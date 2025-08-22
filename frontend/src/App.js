@@ -459,12 +459,6 @@ const DepartmentDashboard = () => {
           </h1>
           <div className="flex gap-4">
             <button
-              onClick={() => setShowEmployeeProfile(true)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              Mitarbeiter Profile
-            </button>
-            <button
               onClick={logout}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
