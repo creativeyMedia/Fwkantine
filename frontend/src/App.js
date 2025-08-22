@@ -2521,18 +2521,12 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
     if (!editingItem) return;
 
     try {
-      if (editingItem.category === 'drinks' || editingItem.category === 'sweets') {
-        // For drinks and sweets, update both name and price
-        await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, {
-          name: editForm.name,
-          price: parseFloat(editForm.price)
-        });
-      } else {
-        // For breakfast and toppings, only update price
-        await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, {
-          price: parseFloat(editForm.price)
-        });
-      }
+      const updateData = {
+        name: editForm.name,
+        price: parseFloat(editForm.price)
+      };
+      
+      await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, updateData);
       
       fetchMenus();
       setEditingItem(null);
