@@ -1280,9 +1280,8 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
 // Price Management Tab Component
 const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice }) => {
   const rollTypeLabels = {
-    'hell': 'Helles Brötchen',
-    'dunkel': 'Dunkles Brötchen',
-    'vollkorn': 'Vollkornbrötchen'
+    'weiss': 'Weißes Brötchen',
+    'koerner': 'Körnerbrötchen'
   };
 
   const toppingLabels = {
