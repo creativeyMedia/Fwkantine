@@ -253,7 +253,7 @@ class CanteenTester:
         menu_tests = [
             {
                 'endpoint': 'breakfast',
-                'expected_items': ['hell', 'dunkel', 'vollkorn'],
+                'expected_items': ['weiss', 'koerner'],  # Updated roll types
                 'price_field': 'roll_type'
             },
             {
