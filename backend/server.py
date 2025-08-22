@@ -148,23 +148,34 @@ class MenuItemCreate(BaseModel):
 async def initialize_default_data():
     """Initialize the database with default departments and menu items"""
     
-    # Check if data already exists
-    existing_depts = await db.departments.find().to_list(1)
-    if existing_depts:
-        return {"message": "Data already initialized"}
-    
-    # Create 4 watch departments
-    departments = [
-        Department(name="Wachabteilung A", password_hash="passwordA", admin_password_hash="adminA"),
-        Department(name="Wachabteilung B", password_hash="passwordB", admin_password_hash="adminB"),
-        Department(name="Wachabteilung C", password_hash="passwordC", admin_password_hash="adminC"),
-        Department(name="Wachabteilung D", password_hash="passwordD", admin_password_hash="adminD")
+    # Always update departments with correct admin passwords
+    departments_data = [
+        {"name": "Wachabteilung A", "password_hash": "passwordA", "admin_password_hash": "adminA"},
+        {"name": "Wachabteilung B", "password_hash": "passwordB", "admin_password_hash": "adminB"},
+        {"name": "Wachabteilung C", "password_hash": "passwordC", "admin_password_hash": "adminC"},
+        {"name": "Wachabteilung D", "password_hash": "passwordD", "admin_password_hash": "adminD"}
     ]
     
-    for dept in departments:
-        await db.departments.insert_one(dept.dict())
+    # Update or create departments
+    for dept_data in departments_data:
+        existing_dept = await db.departments.find_one({"name": dept_data["name"]})
+        if existing_dept:
+            # Update existing department with correct admin password
+            await db.departments.update_one(
+                {"name": dept_data["name"]}, 
+                {"$set": {"admin_password_hash": dept_data["admin_password_hash"]}}
+            )
+        else:
+            # Create new department
+            department = Department(**dept_data)
+            await db.departments.insert_one(department.dict())
     
-    # Create default menu items
+    # Check if menu items already exist
+    existing_breakfast = await db.menu_breakfast.find().to_list(1)
+    if existing_breakfast:
+        return {"message": "Daten erfolgreich aktualisiert (Admin-Passwörter korrigiert)"}
+    
+    # Create default menu items (only if they don't exist)
     breakfast_items = [
         MenuItemBreakfast(roll_type=RollType.LIGHT, price=0.50),
         MenuItemBreakfast(roll_type=RollType.DARK, price=0.55),
