@@ -364,11 +364,14 @@ const DepartmentDashboard = () => {
           </div>
         </div>
 
-        {/* Employee Profile List Modal */}
-        {showEmployeeProfile && (
-          <EmployeeProfileList
-            employees={employees}
-            onClose={() => setShowEmployeeProfile(false)}
+        {/* Employee Profile Modal for Individual Employee */}
+        {showEmployeeProfile && selectedEmployeeForProfile && (
+          <IndividualEmployeeProfile
+            employee={selectedEmployeeForProfile}
+            onClose={() => {
+              setShowEmployeeProfile(false);
+              setSelectedEmployeeForProfile(null);
+            }}
           />
         )}
 
