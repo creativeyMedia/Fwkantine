@@ -401,8 +401,71 @@ async def get_daily_summary(department_id: str):
 @api_router.get("/orders/employee/{employee_id}")
 async def get_employee_orders(employee_id: str):
     """Get all orders for a specific employee"""
-    orders = await db.orders.find({"employee_id": employee_id}).to_list(1000)
+    orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
     return [parse_from_mongo(order) for order in orders]
+
+@api_router.get("/employees/{employee_id}/profile")
+async def get_employee_profile(employee_id: str):
+    """Get employee profile with detailed order history"""
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Get order history with menu details
+    orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
+    
+    # Get menu items for reference
+    breakfast_menu = await db.menu_breakfast.find().to_list(100)
+    toppings_menu = await db.menu_toppings.find().to_list(100)
+    drinks_menu = await db.menu_drinks.find().to_list(100)
+    sweets_menu = await db.menu_sweets.find().to_list(100)
+    
+    # Create lookup dictionaries
+    roll_names = {item["roll_type"]: f"€{item['price']:.2f}" for item in breakfast_menu}
+    topping_names = {item["topping_type"]: f"€{item['price']:.2f}" for item in toppings_menu}
+    drink_names = {item["id"]: {"name": item["name"], "price": item["price"]} for item in drinks_menu}
+    sweet_names = {item["id"]: {"name": item["name"], "price": item["price"]} for item in sweets_menu}
+    
+    # Enrich orders with readable names
+    enriched_orders = []
+    for order in orders:
+        enriched_order = parse_from_mongo(order.copy())
+        
+        if order["order_type"] == "breakfast" and order.get("breakfast_items"):
+            enriched_order["readable_items"] = []
+            for item in order["breakfast_items"]:
+                roll_name = {"hell": "Helles Brötchen", "dunkel": "Dunkles Brötchen", "vollkorn": "Vollkornbrötchen"}.get(item["roll_type"], item["roll_type"])
+                topping_names_german = {
+                    "ruehrei": "Rührei", "spiegelei": "Spiegelei", "eiersalat": "Eiersalat",
+                    "salami": "Salami", "schinken": "Schinken", "kaese": "Käse", "butter": "Butter"
+                }
+                toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
+                enriched_order["readable_items"].append({
+                    "description": f"{item['roll_count']}x {roll_name}",
+                    "toppings": toppings_str if toppings_str else "Ohne Belag"
+                })
+        
+        elif order["order_type"] in ["drinks", "sweets"]:
+            enriched_order["readable_items"] = []
+            items_dict = order.get("drink_items", {}) if order["order_type"] == "drinks" else order.get("sweet_items", {})
+            names_dict = drink_names if order["order_type"] == "drinks" else sweet_names
+            
+            for item_id, quantity in items_dict.items():
+                if item_id in names_dict and quantity > 0:
+                    enriched_order["readable_items"].append({
+                        "description": f"{quantity}x {names_dict[item_id]['name']}",
+                        "unit_price": f"€{names_dict[item_id]['price']:.2f}"
+                    })
+        
+        enriched_orders.append(enriched_order)
+    
+    return {
+        "employee": Employee(**employee),
+        "order_history": enriched_orders,
+        "total_orders": len(orders),
+        "breakfast_total": employee["breakfast_balance"],
+        "drinks_sweets_total": employee["drinks_sweets_balance"]
+    }
 
 # Admin routes
 @api_router.delete("/orders/{order_id}")
