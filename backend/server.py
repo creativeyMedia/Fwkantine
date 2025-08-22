@@ -459,25 +459,34 @@ async def create_order(order_data: OrderCreate):
         lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
         
         for breakfast_item in order_data.breakfast_items:
-            # Validate that toppings count matches roll halves
-            if len(breakfast_item.toppings) != breakfast_item.roll_halves:
+            # Validate that white_halves + seeded_halves = total_halves
+            if breakfast_item.white_halves + breakfast_item.seeded_halves != breakfast_item.total_halves:
                 raise HTTPException(
                     status_code=400, 
-                    detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.roll_halves}) entsprechen"
+                    detail=f"Weiße ({breakfast_item.white_halves}) + Körner ({breakfast_item.seeded_halves}) Hälften müssen der Gesamtzahl ({breakfast_item.total_halves}) entsprechen"
                 )
             
-            # Roll price - calculated per half roll
-            roll_price = breakfast_prices.get(breakfast_item.roll_type, 0.0)
-            total_price += roll_price * breakfast_item.roll_halves
+            # Validate that toppings count matches total halves
+            if len(breakfast_item.toppings) != breakfast_item.total_halves:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.total_halves}) entsprechen"
+                )
             
-            # Toppings price (now free but keep structure for future changes)
+            # Calculate roll prices
+            white_price = breakfast_prices.get("weiss", 0.0)
+            seeded_price = breakfast_prices.get("koerner", 0.0)
+            
+            total_price += (white_price * breakfast_item.white_halves) + (seeded_price * breakfast_item.seeded_halves)
+            
+            # Toppings price (free but keep structure)
             for topping in breakfast_item.toppings:
                 topping_price = topping_prices.get(topping, 0.0)
-                total_price += topping_price  # Price per topping, not per roll
+                total_price += topping_price
             
             # Lunch price if selected
             if breakfast_item.has_lunch:
-                total_price += lunch_price * breakfast_item.roll_halves
+                total_price += lunch_price * breakfast_item.total_halves
     
     elif order_data.order_type == OrderType.DRINKS and order_data.drink_items:
         drinks_menu = await db.menu_drinks.find().to_list(100)
