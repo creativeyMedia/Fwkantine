@@ -140,13 +140,25 @@ const Homepage = () => {
           {departments.map((department) => (
             <div
               key={department.id}
-              onClick={() => handleDepartmentClick(department)}
-              className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300 border-l-4 border-blue-500"
+              className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500"
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 {department.name}
               </h2>
-              <p className="text-gray-600">Klicken zum Anmelden</p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleDepartmentClick(department)}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                >
+                  Mitarbeiter Anmeldung
+                </button>
+                <button
+                  onClick={() => handleDepartmentAdminClick(department)}
+                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors duration-300"
+                >
+                  Admin Anmeldung
+                </button>
+              </div>
             </div>
           ))}
         </div>
