@@ -731,6 +731,365 @@ const NewEmployeeModal = ({ onCreate, onClose }) => {
   );
 };
 
+// Employee Profile List Component
+const EmployeeProfileList = ({ employees, onClose }) => {
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [employeeProfile, setEmployeeProfile] = useState(null);
+
+  const fetchEmployeeProfile = async (employeeId) => {
+    try {
+      const response = await axios.get(`${API}/employees/${employeeId}/profile`);
+      setEmployeeProfile(response.data);
+      setSelectedEmployee(employeeId);
+    } catch (error) {
+      console.error('Fehler beim Laden des Mitarbeiterprofils:', error);
+    }
+  };
+
+  if (selectedEmployee && employeeProfile) {
+    return (
+      <EmployeeProfileDetail
+        profile={employeeProfile}
+        onBack={() => {
+          setSelectedEmployee(null);
+          setEmployeeProfile(null);
+        }}
+        onClose={onClose}
+      />
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Mitarbeiter Profile</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {employees.map((employee) => (
+              <div
+                key={employee.id}
+                onClick={() => fetchEmployeeProfile(employee.id)}
+                className="bg-white border border-gray-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-300"
+              >
+                <h3 className="text-lg font-semibold mb-2">{employee.name}</h3>
+                <div className="text-sm text-gray-600">
+                  <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
+                  <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+                  <p className="text-blue-600 mt-2">Klicken für Verlauf →</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Employee Profile Detail Component
+const EmployeeProfileDetail = ({ profile, onBack, onClose }) => {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getOrderTypeLabel = (orderType) => {
+    switch (orderType) {
+      case 'breakfast': return 'Frühstück';
+      case 'drinks': return 'Getränke';
+      case 'sweets': return 'Süßes';
+      default: return orderType;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onBack}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ← Zurück
+              </button>
+              <h2 className="text-2xl font-bold">{profile.employee.name} - Profil</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
+              <p className="text-2xl font-bold text-blue-600">€{profile.breakfast_total.toFixed(2)}</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
+              <p className="text-2xl font-bold text-green-600">€{profile.drinks_sweets_total.toFixed(2)}</p>
+            </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h3 className="font-semibold text-purple-800">Gesamt Bestellungen</h3>
+              <p className="text-2xl font-bold text-purple-600">{profile.total_orders}</p>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
+              <p className="text-2xl font-bold text-orange-600">€{(profile.breakfast_total + profile.drinks_sweets_total).toFixed(2)}</p>
+            </div>
+          </div>
+
+          {/* Order History */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Bestellverlauf</h3>
+            {profile.order_history.length === 0 ? (
+              <p className="text-gray-600">Keine Bestellungen vorhanden</p>
+            ) : (
+              <div className="space-y-4">
+                {profile.order_history.map((order, index) => (
+                  <div key={order.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                          {getOrderTypeLabel(order.order_type)}
+                        </span>
+                        <span className="text-sm text-gray-600">{formatDate(order.timestamp)}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">€{order.total_price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    {order.readable_items && order.readable_items.length > 0 && (
+                      <div className="space-y-1">
+                        {order.readable_items.map((item, idx) => (
+                          <div key={idx} className="text-sm">
+                            <span className="font-medium">{item.description}</span>
+                            {item.toppings && <span className="text-gray-600"> mit {item.toppings}</span>}
+                            {item.unit_price && <span className="text-gray-600"> ({item.unit_price} pro Stück)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Department Admin Dashboard
+const DepartmentAdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('employees');
+  const [employees, setEmployees] = useState([]);
+  const [breakfastMenu, setBreakfastMenu] = useState([]);
+  const [toppingsMenu, setToppingsMenu] = useState([]);
+  const [drinksMenu, setDrinksMenu] = useState([]);
+  const [sweetsMenu, setSweetsMenu] = useState([]);
+  const [showNewEmployee, setShowNewEmployee] = useState(false);
+  const [showNewDrink, setShowNewDrink] = useState(false);
+  const [showNewSweet, setShowNewSweet] = useState(false);
+  const { currentDepartment, logout } = React.useContext(AuthContext);
+
+  useEffect(() => {
+    if (currentDepartment) {
+      fetchEmployees();
+      fetchMenus();
+    }
+  }, [currentDepartment]);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get(
+        `${API}/departments/${currentDepartment.department_id}/employees`
+      );
+      setEmployees(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Mitarbeiter:', error);
+    }
+  };
+
+  const fetchMenus = async () => {
+    try {
+      const [breakfast, toppings, drinks, sweets] = await Promise.all([
+        axios.get(`${API}/menu/breakfast`),
+        axios.get(`${API}/menu/toppings`),
+        axios.get(`${API}/menu/drinks`),
+        axios.get(`${API}/menu/sweets`)
+      ]);
+      setBreakfastMenu(breakfast.data);
+      setToppingsMenu(toppings.data);
+      setDrinksMenu(drinks.data);
+      setSweetsMenu(sweets.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Menüs:', error);
+    }
+  };
+
+  const handleCreateEmployee = async (name) => {
+    try {
+      await axios.post(`${API}/employees`, {
+        name,
+        department_id: currentDepartment.department_id
+      });
+      fetchEmployees();
+      setShowNewEmployee(false);
+    } catch (error) {
+      console.error('Fehler beim Erstellen des Mitarbeiters:', error);
+    }
+  };
+
+  const updatePrice = async (category, itemId, newPrice) => {
+    try {
+      await axios.put(`${API}/department-admin/menu/${category}/${itemId}`, {
+        price: parseFloat(newPrice)
+      });
+      fetchMenus();
+      alert('Preis erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Preises:', error);
+      alert('Fehler beim Aktualisieren des Preises');
+    }
+  };
+
+  const createMenuItem = async (category, name, price) => {
+    try {
+      await axios.post(`${API}/department-admin/menu/${category}`, {
+        name,
+        price: parseFloat(price)
+      });
+      fetchMenus();
+      if (category === 'drinks') setShowNewDrink(false);
+      if (category === 'sweets') setShowNewSweet(false);
+      alert('Artikel erfolgreich erstellt');
+    } catch (error) {
+      console.error('Fehler beim Erstellen des Artikels:', error);
+      alert('Fehler beim Erstellen des Artikels');
+    }
+  };
+
+  const deleteMenuItem = async (category, itemId) => {
+    if (window.confirm('Artikel wirklich löschen?')) {
+      try {
+        await axios.delete(`${API}/department-admin/menu/${category}/${itemId}`);
+        fetchMenus();
+        alert('Artikel erfolgreich gelöscht');
+      } catch (error) {
+        console.error('Fehler beim Löschen des Artikels:', error);
+        alert('Fehler beim Löschen des Artikels');
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">
+            {currentDepartment.department_name} - Admin
+          </h1>
+          <button
+            onClick={logout}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Abmelden
+          </button>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex mb-6 space-x-1">
+          {[
+            { id: 'employees', label: 'Mitarbeiter' },
+            { id: 'prices', label: 'Preise verwalten' },
+            { id: 'menu', label: 'Menü verwalten' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-6 py-3 rounded-t-lg ${
+                activeTab === tab.id
+                  ? 'bg-white border-t border-l border-r text-blue-600 font-semibold'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6 min-h-96">
+          {activeTab === 'employees' && (
+            <EmployeeManagementTab 
+              employees={employees}
+              onCreateEmployee={handleCreateEmployee}
+              showNewEmployee={showNewEmployee}
+              setShowNewEmployee={setShowNewEmployee}
+            />
+          )}
+
+          {activeTab === 'prices' && (
+            <PriceManagementTab 
+              breakfastMenu={breakfastMenu}
+              toppingsMenu={toppingsMenu}
+              drinksMenu={drinksMenu}
+              sweetsMenu={sweetsMenu}
+              onUpdatePrice={updatePrice}
+            />
+          )}
+
+          {activeTab === 'menu' && (
+            <MenuManagementTab 
+              drinksMenu={drinksMenu}
+              sweetsMenu={sweetsMenu}
+              onCreateMenuItem={createMenuItem}
+              onDeleteMenuItem={deleteMenuItem}
+              showNewDrink={showNewDrink}
+              setShowNewDrink={setShowNewDrink}
+              showNewSweet={showNewSweet}
+              setShowNewSweet={setShowNewSweet}
+            />
+          )}
+        </div>
+
+        {/* New Employee Modal */}
+        {showNewEmployee && (
+          <NewEmployeeModal
+            onCreate={handleCreateEmployee}
+            onClose={() => setShowNewEmployee(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Admin Dashboard (placeholder for now)
 const AdminDashboard = () => {
   const { logout } = React.useContext(AuthContext);
