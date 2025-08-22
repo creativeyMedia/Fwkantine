@@ -173,6 +173,14 @@ class MenuItemCreate(BaseModel):
     name: str
     price: float
 
+class MenuItemCreateBreakfast(BaseModel):
+    roll_type: RollType
+    price: float
+
+class MenuItemCreateToppings(BaseModel):
+    topping_type: ToppingType
+    price: float
+
 # Initialize default data
 @api_router.post("/cleanup-departments-final")
 async def cleanup_departments_final():
