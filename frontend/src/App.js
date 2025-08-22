@@ -693,87 +693,73 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
   );
 };
 
-// Breakfast Order Form with New Mixed Roll Logic
+// Simplified Breakfast Order Form - Direct Roll Selection with Topping Assignment
 const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels }) => {
-  const [totalHalves, setTotalHalves] = useState(1);
-  const [whiteHalves, setWhiteHalves] = useState(1);
-  const [seededHalves, setSeededHalves] = useState(0);
-  const [selectedToppings, setSelectedToppings] = useState([]);
+  const [whiteRolls, setWhiteRolls] = useState(0);
+  const [seededRolls, setSeededRolls] = useState(0);
+  const [toppingAssignments, setToppingAssignments] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
 
-  const handleTotalHalvesChange = (newTotal) => {
-    setTotalHalves(newTotal);
-    
-    // Redistribute halves proportionally
-    if (newTotal === 1) {
-      setWhiteHalves(1);
-      setSeededHalves(0);
-    } else {
-      // Keep proportions if possible, otherwise default split
-      const currentTotal = whiteHalves + seededHalves;
-      if (currentTotal > 0) {
-        const whiteRatio = whiteHalves / currentTotal;
-        const newWhite = Math.round(newTotal * whiteRatio);
-        const newSeeded = newTotal - newWhite;
-        setWhiteHalves(Math.max(0, newWhite));
-        setSeededHalves(Math.max(0, newSeeded));
-      } else {
-        setWhiteHalves(newTotal);
-        setSeededHalves(0);
-      }
-    }
-    
-    // Reset toppings if we have too many selected
-    if (selectedToppings.length > newTotal) {
-      setSelectedToppings(prev => prev.slice(0, newTotal));
-    }
-  };
+  const totalHalves = whiteRolls + seededRolls;
 
-  const handleWhiteHalvesChange = (newWhite) => {
-    const maxWhite = totalHalves - seededHalves;
-    const actualWhite = Math.min(Math.max(0, newWhite), maxWhite);
-    setWhiteHalves(actualWhite);
-  };
-
-  const handleSeededHalvesChange = (newSeeded) => {
-    const maxSeeded = totalHalves - whiteHalves;
-    const actualSeeded = Math.min(Math.max(0, newSeeded), maxSeeded);
-    setSeededHalves(actualSeeded);
-  };
-
-  const handleToppingChange = (toppingType) => {
-    if (selectedToppings.includes(toppingType)) {
-      // Remove topping
-      setSelectedToppings(prev => prev.filter(t => t !== toppingType));
-    } else {
-      // Add topping only if we haven't reached the limit
-      if (selectedToppings.length < totalHalves) {
-        setSelectedToppings(prev => [...prev, toppingType]);
-      } else {
-        alert(`Sie können nur ${totalHalves} Belag(e) für ${totalHalves} Brötchenhälfte(n) wählen.`);
-      }
+  // Update topping assignments when roll counts change
+  useEffect(() => {
+    const newAssignments = [];
+    // Add white roll topping slots
+    for (let i = 0; i < whiteRolls; i++) {
+      newAssignments.push({
+        id: `white_${i}`,
+        rollType: 'weiss',
+        rollLabel: `Weißes Brötchen ${i + 1}`,
+        topping: toppingAssignments[newAssignments.length]?.topping || ''
+      });
     }
+    // Add seeded roll topping slots
+    for (let i = 0; i < seededRolls; i++) {
+      newAssignments.push({
+        id: `seeded_${i}`,
+        rollType: 'koerner',
+        rollLabel: `Körnerbrötchen ${i + 1}`,
+        topping: toppingAssignments[newAssignments.length]?.topping || ''
+      });
+    }
+    setToppingAssignments(newAssignments);
+  }, [whiteRolls, seededRolls]);
+
+  const handleToppingAssignment = (assignmentIndex, toppingType) => {
+    setToppingAssignments(prev => {
+      const newAssignments = [...prev];
+      newAssignments[assignmentIndex] = {
+        ...newAssignments[assignmentIndex],
+        topping: toppingType
+      };
+      return newAssignments;
+    });
   };
 
   const handleAddItem = () => {
-    if (whiteHalves + seededHalves !== totalHalves) {
-      alert(`Weiße (${whiteHalves}) + Körner (${seededHalves}) Hälften müssen ${totalHalves} ergeben.`);
+    if (totalHalves === 0) {
+      alert('Bitte wählen Sie mindestens ein Brötchen.');
       return;
     }
-    
-    if (selectedToppings.length !== totalHalves) {
-      alert(`Bitte wählen Sie genau ${totalHalves} Belag(e) für ${totalHalves} Brötchenhälfte(n).`);
+
+    // Check if all toppings are assigned
+    const unassignedCount = toppingAssignments.filter(assignment => !assignment.topping).length;
+    if (unassignedCount > 0) {
+      alert(`Bitte weisen Sie allen ${totalHalves} Brötchenhälften einen Belag zu. ${unassignedCount} fehlen noch.`);
       return;
     }
+
+    // Convert assignments to the expected format
+    const toppings = toppingAssignments.map(assignment => assignment.topping);
     
-    if (totalHalves > 0) {
-      onAddItem(totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch);
-      setTotalHalves(1);
-      setWhiteHalves(1);
-      setSeededHalves(0);
-      setSelectedToppings([]);
-      setHasLunch(false);
-    }
+    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch);
+    
+    // Reset form
+    setWhiteRolls(0);
+    setSeededRolls(0);
+    setToppingAssignments([]);
+    setHasLunch(false);
   };
 
   return (
@@ -781,135 +767,132 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       <h3 className="text-lg font-semibold mb-4">Frühstück zusammenstellen</h3>
       
       <div className="space-y-6">
-        {/* Step 1: Total Halves */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold mb-3">1. Gesamtzahl der Brötchenhälften</h4>
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium">Anzahl Hälften:</label>
-            <input
-              type="number"
-              min="1"
-              max="20"
-              value={totalHalves}
-              onChange={(e) => handleTotalHalvesChange(parseInt(e.target.value) || 1)}
-              className="w-20 px-2 py-1 border border-gray-300 rounded"
-            />
-            <span className="text-sm text-gray-600">
-              = {Math.ceil(totalHalves / 2)} ganze(s) Brötchen
-            </span>
-          </div>
-        </div>
-
-        {/* Step 2: Distribute Roll Types */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-semibold mb-3">2. Verteilung: Weiß / Körner</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Step 1: Select Roll Counts */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Weiße Hälften</label>
+              <label className="block text-sm font-medium mb-2">Weiße Brötchen (Hälften)</label>
               <input
                 type="number"
                 min="0"
-                max={totalHalves}
-                value={whiteHalves}
-                onChange={(e) => handleWhiteHalvesChange(parseInt(e.target.value) || 0)}
-                className="w-20 px-2 py-1 border border-gray-300 rounded"
+                max="20"
+                value={whiteRolls}
+                onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="0"
               />
-              <span className="text-xs text-gray-600 ml-2">
-                (€{(whiteHalves * 0.5).toFixed(2)})
+              <span className="text-sm text-gray-600 ml-3">
+                à €0.50 = €{(whiteRolls * 0.5).toFixed(2)}
               </span>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Körner Hälften</label>
+              <label className="block text-sm font-medium mb-2">Körner Brötchen (Hälften)</label>
               <input
                 type="number"
                 min="0"
-                max={totalHalves}
-                value={seededHalves}
-                onChange={(e) => handleSeededHalvesChange(parseInt(e.target.value) || 0)}
-                className="w-20 px-2 py-1 border border-gray-300 rounded"
+                max="20"
+                value={seededRolls}
+                onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="0"
               />
-              <span className="text-xs text-gray-600 ml-2">
-                (€{(seededHalves * 0.6).toFixed(2)})
+              <span className="text-sm text-gray-600 ml-3">
+                à €0.60 = €{(seededRolls * 0.6).toFixed(2)}
               </span>
             </div>
           </div>
-          <div className="mt-2 text-sm">
-            <span className="font-medium">Gesamt: {whiteHalves + seededHalves}/{totalHalves} Hälften</span>
-            {whiteHalves + seededHalves !== totalHalves && (
-              <span className="text-red-600 ml-2">
-                ⚠️ Verteilung unvollständig!
-              </span>
-            )}
+          
+          <div className="mt-4 p-3 bg-white border border-blue-300 rounded">
+            <p className="text-sm font-medium">
+              Gesamt: {totalHalves} Brötchenhälften = {Math.ceil(totalHalves / 2)} ganze(s) Brötchen
+            </p>
+            <p className="text-sm text-gray-600">
+              Kosten: €{((whiteRolls * 0.5) + (seededRolls * 0.6)).toFixed(2)}
+            </p>
           </div>
         </div>
 
-        {/* Step 3: Select Toppings */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <h4 className="font-semibold mb-3">
-            3. Beläge auswählen (kostenlos) - {selectedToppings.length}/{totalHalves} gewählt
-          </h4>
-          <p className="text-sm text-gray-600 mb-3">
-            Wählen Sie genau {totalHalves} Belag(e). Sie können gleiche Beläge mehrfach wählen.
-          </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {toppingsMenu.map((item) => (
-              <label key={item.id} className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={selectedToppings.includes(item.topping_type)}
-                  onChange={() => handleToppingChange(item.topping_type)}
-                  disabled={!selectedToppings.includes(item.topping_type) && selectedToppings.length >= totalHalves}
-                  className="mr-2"
-                />
-                <span className={!selectedToppings.includes(item.topping_type) && selectedToppings.length >= totalHalves ? 'text-gray-400' : ''}>
-                  {toppingLabels[item.topping_type]}
-                </span>
-              </label>
-            ))}
-          </div>
-          
-          {selectedToppings.length > 0 && (
-            <div className="mt-4 p-3 bg-white border border-orange-300 rounded">
-              <h5 className="text-sm font-medium mb-1">Ihre Belag-Auswahl:</h5>
+        {/* Step 2: Assign Toppings to Each Roll */}
+        {totalHalves > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h4 className="font-semibold mb-4">2. Beläge zuweisen (kostenlos)</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Weisen Sie jedem Brötchen einen Belag zu. Gleiche Beläge können mehrfach verwendet werden.
+            </p>
+            
+            <div className="space-y-3">
+              {toppingAssignments.map((assignment, index) => (
+                <div key={assignment.id} className="flex items-center gap-4 p-3 bg-white border border-green-300 rounded">
+                  <div className="w-40">
+                    <span className="text-sm font-medium">{assignment.rollLabel}</span>
+                  </div>
+                  <div className="flex-1">
+                    <select
+                      value={assignment.topping}
+                      onChange={(e) => handleToppingAssignment(index, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+                    >
+                      <option value="">-- Belag wählen --</option>
+                      {toppingsMenu.map((item) => (
+                        <option key={item.id} value={item.topping_type}>
+                          {toppingLabels[item.topping_type]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 p-3 bg-white border border-green-300 rounded">
+              <h5 className="text-sm font-medium mb-2">Belag-Übersicht:</h5>
               <div className="text-xs text-gray-700">
-                {selectedToppings.map((topping, index) => (
-                  <span key={index} className="inline-block bg-orange-200 px-2 py-1 rounded mr-1 mb-1">
-                    {toppingLabels[topping]}
+                {Object.entries(
+                  toppingAssignments
+                    .filter(a => a.topping)
+                    .reduce((acc, a) => {
+                      acc[a.topping] = (acc[a.topping] || 0) + 1;
+                      return acc;
+                    }, {})
+                ).map(([topping, count]) => (
+                  <span key={topping} className="inline-block bg-green-200 px-2 py-1 rounded mr-2 mb-1">
+                    {count}x {toppingLabels[topping]}
                   </span>
                 ))}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Lunch Option */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={hasLunch}
-              onChange={(e) => setHasLunch(e.target.checked)}
-              className="mr-2"
-            />
-            <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
-          </label>
-        </div>
+        {totalHalves > 0 && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={hasLunch}
+                onChange={(e) => setHasLunch(e.target.checked)}
+                className="mr-3"
+              />
+              <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
+            </label>
+          </div>
+        )}
       </div>
 
-      <div className="mt-6 flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          <p><strong>Zusammenfassung:</strong></p>
-          <p>{whiteHalves} Weiße + {seededHalves} Körner = {totalHalves} Hälften</p>
-          <p>{selectedToppings.length} Beläge ausgewählt</p>
-        </div>
-        
+      <div className="mt-6">
         <button
           onClick={handleAddItem}
-          disabled={whiteHalves + seededHalves !== totalHalves || selectedToppings.length !== totalHalves}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={totalHalves === 0 || toppingAssignments.some(a => !a.topping)}
+          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
         >
-          Bestellung hinzufügen
+          {totalHalves === 0 
+            ? 'Bitte Brötchen auswählen'
+            : toppingAssignments.some(a => !a.topping)
+            ? `Noch ${toppingAssignments.filter(a => !a.topping).length} Belag(e) zuweisen`
+            : 'Bestellung hinzufügen'
+          }
         </button>
       </div>
     </div>
