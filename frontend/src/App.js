@@ -2882,6 +2882,187 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
   );
 };
 
+// Breakfast History Tab Component
+const BreakfastHistoryTab = ({ currentDepartment }) => {
+  const [breakfastHistory, setBreakfastHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  useEffect(() => {
+    fetchBreakfastHistory();
+  }, [currentDepartment]);
+
+  const fetchBreakfastHistory = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/orders/breakfast-history/${currentDepartment.department_id}?days_back=30`);
+      setBreakfastHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Fehler beim Laden der Frühstück-Geschichte:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      weekday: 'long'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Lade Frühstück-Verlauf...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Frühstück Verlauf - {currentDepartment.department_name}</h3>
+
+      {breakfastHistory.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p>Keine Frühstücks-Bestellungen in den letzten 30 Tagen gefunden.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800">Gesamt Tage</h4>
+              <p className="text-2xl font-bold text-blue-600">{breakfastHistory.length}</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-800">Gesamt Bestellungen</h4>
+              <p className="text-2xl font-bold text-green-600">
+                {breakfastHistory.reduce((sum, day) => sum + day.total_orders, 0)}
+              </p>
+            </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-semibold text-purple-800">Gesamt Umsatz</h4>
+              <p className="text-2xl font-bold text-purple-600">
+                €{breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0).toFixed(2)}
+              </p>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h4 className="font-semibold text-orange-800">Ø pro Tag</h4>
+              <p className="text-2xl font-bold text-orange-600">
+                €{(breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0) / breakfastHistory.length).toFixed(2)}
+              </p>
+            </div>
+          </div>
+
+          {/* Daily History List */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b">
+              <h4 className="font-semibold text-gray-800">Tägliche Übersichten</h4>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {breakfastHistory.map((day, index) => (
+                <div
+                  key={day.date}
+                  className={`p-6 hover:bg-gray-50 cursor-pointer ${
+                    selectedDate === day.date ? 'bg-blue-50' : ''
+                  }`}
+                  onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
+                >
+                  {/* Day Summary Header */}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h5 className="font-semibold text-lg">{formatDate(day.date)}</h5>
+                      <p className="text-sm text-gray-600">
+                        {day.total_orders} Bestellungen • €{day.total_amount.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>Weiße: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
+                      <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
+                      <span>{selectedDate === day.date ? '▲' : '▼'}</span>
+                    </div>
+                  </div>
+
+                  {/* Detailed View */}
+                  {selectedDate === day.date && (
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      {/* Shopping List */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h6 className="font-semibold text-blue-800 mb-3">Einkaufsliste</h6>
+                          <div className="space-y-2 text-sm">
+                            {day.shopping_list.weiss && (
+                              <div className="flex justify-between">
+                                <span>Weiße Brötchen:</span>
+                                <span className="font-medium">{day.shopping_list.weiss.whole_rolls} Stück</span>
+                              </div>
+                            )}
+                            {day.shopping_list.koerner && (
+                              <div className="flex justify-between">
+                                <span>Körnerbrötchen:</span>
+                                <span className="font-medium">{day.shopping_list.koerner.whole_rolls} Stück</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <h6 className="font-semibold text-green-800 mb-3">Tagesstatistik</h6>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Bestellungen:</span>
+                              <span className="font-medium">{day.total_orders}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Gesamtumsatz:</span>
+                              <span className="font-medium">€{day.total_amount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Ø pro Bestellung:</span>
+                              <span className="font-medium">€{(day.total_amount / day.total_orders).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Employee Details */}
+                      <div>
+                        <h6 className="font-semibold text-gray-800 mb-3">Mitarbeiter Bestellungen</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {Object.entries(day.employee_orders).map(([employeeName, employeeData]) => (
+                            <div key={employeeName} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                              <h7 className="font-medium text-gray-800">{employeeName}</h7>
+                              <div className="mt-2 space-y-1 text-sm text-gray-600">
+                                <div>Weiße Hälften: {employeeData.white_halves}</div>
+                                <div>Körner Hälften: {employeeData.seeded_halves}</div>
+                                <div className="pt-1 border-t">
+                                  <strong>Total: €{employeeData.total_amount.toFixed(2)}</strong>
+                                </div>
+                                {Object.keys(employeeData.toppings).length > 0 && (
+                                  <div className="pt-1 text-xs">
+                                    Beläge: {Object.entries(employeeData.toppings).map(([topping, count]) => `${count}x ${topping}`).join(', ')}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Admin Settings Tab Component
 const AdminSettingsTab = ({ currentDepartment }) => {
   const [newEmployeePassword, setNewEmployeePassword] = useState('');
