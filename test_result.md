@@ -327,6 +327,18 @@ backend:
           agent: "testing"
           comment: "✅ NEW FEATURE VERIFIED: Enhanced daily summary with shopping list calculation working perfectly. GET /api/orders/daily-summary/{department_id} now includes shopping_list field that converts roll halves to whole rolls (rounded up). Example: 46 white halves → 23 whole rolls, 9 seeded halves → 5 whole rolls. Total toppings aggregation across all roll types functional."
 
+  - task: "Enhanced Menu Management - Breakfast & Toppings CRUD"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE FULLY TESTED: All 4 new breakfast and toppings menu management endpoints working perfectly. POST /api/department-admin/menu/breakfast creates breakfast items with valid roll_type enums (weiss/koerner) and pricing. DELETE /api/department-admin/menu/breakfast/{item_id} successfully removes items from database. POST /api/department-admin/menu/toppings creates topping items with valid topping_type enums (ruehrei/kaese/etc) and pricing. DELETE /api/department-admin/menu/toppings/{item_id} successfully removes items. All operations properly validated, persisted to database, and verified through GET requests. Error handling for invalid IDs returns proper 404 responses. 15/15 individual tests passed (100% success rate)."
+
   - task: "Menu Endpoints"
     implemented: true
     working: true
