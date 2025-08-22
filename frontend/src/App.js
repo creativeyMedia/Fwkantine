@@ -492,16 +492,6 @@ const DepartmentDashboard = () => {
               </div>
             </div>
           ))}
-          
-          <div
-            onClick={() => setShowNewEmployee(true)}
-            className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300 border-2 border-dashed border-gray-300 flex items-center justify-center"
-          >
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">+</div>
-              <p>Neuer Mitarbeiter</p>
-            </div>
-          </div>
         </div>
 
         {/* Employee Profile Modal for Individual Employee */}
