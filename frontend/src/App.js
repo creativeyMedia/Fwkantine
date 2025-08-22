@@ -2501,8 +2501,18 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
 
   const startEditItem = (item, category) => {
     setEditingItem({ ...item, category });
+    let displayName = '';
+    
+    if (category === 'breakfast') {
+      displayName = item.name || rollTypeLabels[item.roll_type];
+    } else if (category === 'toppings') {
+      displayName = item.name || toppingLabels[item.topping_type];
+    } else {
+      displayName = item.name;
+    }
+    
     setEditForm({ 
-      name: item.name || rollTypeLabels[item.roll_type] || toppingLabels[item.topping_type], 
+      name: displayName,
       price: item.price.toString() 
     });
   };
