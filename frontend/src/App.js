@@ -2653,6 +2653,198 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
   );
 };
 
+// Admin Settings Tab Component
+const AdminSettingsTab = ({ currentDepartment }) => {
+  const [newEmployeePassword, setNewEmployeePassword] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [showBreakfastControls, setShowBreakfastControls] = useState(true);
+  const [breakfastStatus, setBreakfastStatus] = useState({ is_closed: false });
+
+  useEffect(() => {
+    fetchBreakfastStatus();
+  }, [currentDepartment]);
+
+  const fetchBreakfastStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/breakfast-status/${currentDepartment.department_id}`);
+      setBreakfastStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Frühstück-Status:', error);
+    }
+  };
+
+  const changePasswords = async () => {
+    if (!newEmployeePassword || !newAdminPassword) {
+      alert('Bitte beide Passwörter eingeben');
+      return;
+    }
+
+    if (newEmployeePassword === newAdminPassword) {
+      alert('Mitarbeiter- und Admin-Passwort müssen unterschiedlich sein');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/department-admin/change-password/${currentDepartment.department_id}?new_employee_password=${newEmployeePassword}&new_admin_password=${newAdminPassword}`);
+      alert('Passwörter erfolgreich geändert');
+      setNewEmployeePassword('');
+      setNewAdminPassword('');
+    } catch (error) {
+      console.error('Fehler beim Ändern der Passwörter:', error);
+      alert('Fehler beim Ändern der Passwörter');
+    }
+  };
+
+  const closeBreakfast = async () => {
+    if (window.confirm('Frühstück für heute schließen? Mitarbeiter können dann keine neuen Bestellungen mehr aufgeben.')) {
+      try {
+        await axios.post(`${API}/department-admin/close-breakfast/${currentDepartment.department_id}?admin_name=${currentDepartment.department_name}`);
+        fetchBreakfastStatus();
+        alert('Frühstück für heute geschlossen');
+      } catch (error) {
+        console.error('Fehler beim Schließen des Frühstücks:', error);
+        alert('Fehler beim Schließen des Frühstücks');
+      }
+    }
+  };
+
+  const reopenBreakfast = async () => {
+    if (window.confirm('Frühstück für heute wieder öffnen?')) {
+      try {
+        await axios.post(`${API}/department-admin/reopen-breakfast/${currentDepartment.department_id}`);
+        fetchBreakfastStatus();
+        alert('Frühstück für heute wieder geöffnet');
+      } catch (error) {
+        console.error('Fehler beim Öffnen des Frühstücks:', error);
+        alert('Fehler beim Öffnen des Frühstücks');
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Einstellungen</h3>
+
+      <div className="space-y-8">
+        {/* Breakfast Controls */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <h4 className="text-md font-semibold mb-4 text-yellow-800">Frühstück Kontrolle</h4>
+          
+          <div className="mb-4 p-4 bg-white border border-yellow-300 rounded">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium">Status: </span>
+                <span className={`px-2 py-1 rounded text-sm ${
+                  breakfastStatus.is_closed 
+                    ? 'bg-red-100 text-red-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {breakfastStatus.is_closed ? 'Geschlossen' : 'Geöffnet'}
+                </span>
+              </div>
+              
+              {breakfastStatus.is_closed ? (
+                <button
+                  onClick={reopenBreakfast}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Frühstück öffnen
+                </button>
+              ) : (
+                <button
+                  onClick={closeBreakfast}
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                >
+                  Frühstück schließen
+                </button>
+              )}
+            </div>
+            
+            {breakfastStatus.is_closed && breakfastStatus.closed_by && (
+              <div className="mt-2 text-sm text-gray-600">
+                Geschlossen von: {breakfastStatus.closed_by}
+              </div>
+            )}
+          </div>
+
+          <div className="text-sm text-gray-600">
+            <p><strong>Info:</strong></p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Wenn geschlossen, können Mitarbeiter keine neuen Frühstücksbestellungen aufgeben</li>
+              <li>Nur Admins können dann noch Bestellungen bearbeiten</li>
+              <li>Status kann jederzeit wieder geändert werden</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Password Management */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h4 className="text-md font-semibold mb-4 text-blue-800">Passwörter ändern</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Neues Mitarbeiter-Passwort</label>
+              <input
+                type="password"
+                value={newEmployeePassword}
+                onChange={(e) => setNewEmployeePassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="Neues Passwort für Mitarbeiter"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Neues Admin-Passwort</label>
+              <input
+                type="password"
+                value={newAdminPassword}
+                onChange={(e) => setNewAdminPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="Neues Passwort für Admin"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <button
+              onClick={changePasswords}
+              disabled={!newEmployeePassword || !newAdminPassword}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              Passwörter ändern
+            </button>
+          </div>
+
+          <div className="mt-4 text-sm text-gray-600">
+            <p><strong>Hinweis:</strong></p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Beide Passwörter müssen unterschiedlich sein</li>
+              <li>Nach der Änderung müssen sich alle neu anmelden</li>
+              <li>Passwörter werden sofort für diese Wachabteilung geändert</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Department Info */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <h4 className="text-md font-semibold mb-4 text-gray-700">Abteilungs-Information</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="font-medium">Abteilung:</span>
+              <span className="ml-2">{currentDepartment.department_name}</span>
+            </div>
+            <div>
+              <span className="font-medium">Abteilungs-ID:</span>
+              <span className="ml-2 text-xs text-gray-600">{currentDepartment.department_id}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
