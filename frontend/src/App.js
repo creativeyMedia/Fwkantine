@@ -1329,6 +1329,7 @@ const DepartmentAdminDashboard = () => {
             { id: 'employees', label: 'Mitarbeiter' },
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'lunch', label: 'Lunch verwalten' },
+            { id: 'breakfast-history', label: 'Frühstück Verlauf' },
             { id: 'settings', label: 'Einstellungen' }
           ].map((tab) => (
             <button
