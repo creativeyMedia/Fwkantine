@@ -98,6 +98,7 @@ class BreakfastOrder(BaseModel):
     roll_type: RollType
     roll_count: int
     toppings: List[ToppingType]
+    has_lunch: bool = False  # New lunch option
     
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
