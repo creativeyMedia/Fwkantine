@@ -296,12 +296,20 @@ const DepartmentDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-800">
             {currentDepartment.department_name}
           </h1>
-          <button
-            onClick={logout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Abmelden
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowEmployeeProfile(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Mitarbeiter Profile
+            </button>
+            <button
+              onClick={logout}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Abmelden
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
