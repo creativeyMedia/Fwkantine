@@ -501,6 +501,14 @@ const DepartmentDashboard = () => {
           ))}
         </div>
 
+        {/* Breakfast Summary Modal */}
+        {showBreakfastSummary && (
+          <BreakfastSummaryTable
+            departmentId={currentDepartment.department_id}
+            onClose={() => setShowBreakfastSummary(false)}
+          />
+        )}
+
         {/* Employee Profile Modal for Individual Employee */}
         {showEmployeeProfile && selectedEmployeeForProfile && (
           <IndividualEmployeeProfile
