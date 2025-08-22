@@ -222,17 +222,11 @@ async def cleanup_departments():
     await db.departments.delete_many({})
     
     # Create exactly 4 new departments
-    departments_data = [
-        {"name": "1. Wachabteilung", "password_hash": "password1", "admin_password_hash": "admin1"},
-        {"name": "2. Wachabteilung", "password_hash": "password2", "admin_password_hash": "admin2"},
-        {"name": "3. Wachabteilung", "password_hash": "password3", "admin_password_hash": "admin3"},
-        {"name": "4. Wachabteilung", "password_hash": "password4", "admin_password_hash": "admin4"}
-    ]
+    departments_data = get_department_data()
     
     # Create new departments
-    for dept_data in departments_data:
-        department = Department(**dept_data)
-        await db.departments.insert_one(department.dict())
+    for dept in departments_data:
+        await db.departments.insert_one(dept.dict())
     
     return {"message": "Departments cleaned up successfully", "count": 4}
 
