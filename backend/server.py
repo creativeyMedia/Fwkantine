@@ -135,6 +135,14 @@ class OrderCreate(BaseModel):
     drink_items: Optional[Dict[str, int]] = {}
     sweet_items: Optional[Dict[str, int]] = {}
 
+class MenuItemUpdate(BaseModel):
+    price: Optional[float] = None
+    name: Optional[str] = None
+
+class MenuItemCreate(BaseModel):
+    name: str
+    price: float
+
 # Initialize default data
 @api_router.post("/init-data")
 async def initialize_default_data():
