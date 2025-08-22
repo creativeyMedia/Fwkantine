@@ -558,10 +558,11 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
     'butter': 'Butter'
   };
 
-  const addBreakfastItem = (rollType, rollHalves, selectedToppings, hasLunch) => {
+  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch) => {
     const newItem = {
-      roll_type: rollType,
-      roll_halves: rollHalves,  // Changed from roll_count to roll_halves
+      total_halves: totalHalves,
+      white_halves: whiteHalves,
+      seeded_halves: seededHalves,
       toppings: selectedToppings,
       has_lunch: hasLunch
     };
