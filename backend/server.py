@@ -322,7 +322,8 @@ async def department_login(login_data: DepartmentLogin):
 @api_router.post("/login/master")
 async def master_login(department_name: str, master_password: str):
     """Master password login for developer access to any department"""
-    if master_password != "master123dev":  # Developer master password
+    master_password_env = os.environ.get('MASTER_PASSWORD', 'master123dev')
+    if master_password != master_password_env:  # Developer master password
         raise HTTPException(status_code=401, detail="Ungültiges Master-Passwort")
     
     # Find the department
