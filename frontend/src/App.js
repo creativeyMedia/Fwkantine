@@ -2313,6 +2313,346 @@ const LunchManagementTab = () => {
   );
 };
 
+// Unified Menu & Price Management Tab Component
+const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice, onCreateMenuItem, onDeleteMenuItem, fetchMenus }) => {
+  const [showNewDrink, setShowNewDrink] = useState(false);
+  const [showNewSweet, setShowNewSweet] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', price: '' });
+
+  const rollTypeLabels = {
+    'weiss': 'Weißes Brötchen',
+    'koerner': 'Körnerbrötchen'
+  };
+
+  const toppingLabels = {
+    'ruehrei': 'Rührei',
+    'spiegelei': 'Spiegelei',
+    'eiersalat': 'Eiersalat',
+    'salami': 'Salami',
+    'schinken': 'Schinken',
+    'kaese': 'Käse',
+    'butter': 'Butter'
+  };
+
+  const startEditItem = (item, category) => {
+    setEditingItem({ ...item, category });
+    setEditForm({ 
+      name: item.name || rollTypeLabels[item.roll_type] || toppingLabels[item.topping_type], 
+      price: item.price.toString() 
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingItem) return;
+
+    try {
+      if (editingItem.category === 'drinks' || editingItem.category === 'sweets') {
+        // For drinks and sweets, update both name and price
+        await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, {
+          name: editForm.name,
+          price: parseFloat(editForm.price)
+        });
+      } else {
+        // For breakfast and toppings, only update price
+        await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, {
+          price: parseFloat(editForm.price)
+        });
+      }
+      
+      fetchMenus();
+      setEditingItem(null);
+      setEditForm({ name: '', price: '' });
+      alert('Artikel erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren:', error);
+      alert('Fehler beim Aktualisieren');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setEditForm({ name: '', price: '' });
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Menü & Preise verwalten</h3>
+
+      <div className="space-y-8">
+        {/* Breakfast Items */}
+        <div>
+          <h4 className="text-md font-semibold mb-4 text-gray-700 border-b pb-2">Brötchen</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {breakfastMenu.map((item) => (
+              <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                {editingItem?.id === item.id ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Name (nicht änderbar)</label>
+                      <input
+                        type="text"
+                        value={rollTypeLabels[item.roll_type]}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Preis (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.price}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={saveEdit} className="bg-green-600 text-white px-3 py-1 rounded text-sm">
+                        Speichern
+                      </button>
+                      <button onClick={cancelEdit} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                        Abbrechen
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-medium">{rollTypeLabels[item.roll_type]}</span>
+                      <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
+                    </div>
+                    <button
+                      onClick={() => startEditItem(item, 'breakfast')}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                    >
+                      Bearbeiten
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Toppings */}
+        <div>
+          <h4 className="text-md font-semibold mb-4 text-gray-700 border-b pb-2">Beläge</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {toppingsMenu.map((item) => (
+              <div key={item.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                {editingItem?.id === item.id ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Name (nicht änderbar)</label>
+                      <input
+                        type="text"
+                        value={toppingLabels[item.topping_type]}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Preis (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.price}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={saveEdit} className="bg-green-600 text-white px-3 py-1 rounded text-sm">
+                        Speichern
+                      </button>
+                      <button onClick={cancelEdit} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                        Abbrechen
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-medium">{toppingLabels[item.topping_type]}</span>
+                      <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
+                    </div>
+                    <button
+                      onClick={() => startEditItem(item, 'toppings')}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                    >
+                      Bearbeiten
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Drinks */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Getränke</h4>
+            <button
+              onClick={() => setShowNewDrink(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+            >
+              Neues Getränk
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {drinksMenu.map((item) => (
+              <div key={item.id} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                {editingItem?.id === item.id ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Preis (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.price}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={saveEdit} className="bg-green-600 text-white px-3 py-1 rounded text-sm">
+                        Speichern
+                      </button>
+                      <button onClick={cancelEdit} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                        Abbrechen
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditItem(item, 'drinks')}
+                        className="bg-purple-600 text-white px-2 py-1 rounded text-sm hover:bg-purple-700"
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        onClick={() => onDeleteMenuItem('drinks', item.id)}
+                        className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sweets */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Süßwaren</h4>
+            <button
+              onClick={() => setShowNewSweet(true)}
+              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+            >
+              Neue Süßware
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sweetsMenu.map((item) => (
+              <div key={item.id} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                {editingItem?.id === item.id ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Preis (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.price}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={saveEdit} className="bg-green-600 text-white px-3 py-1 rounded text-sm">
+                        Speichern
+                      </button>
+                      <button onClick={cancelEdit} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
+                        Abbrechen
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditItem(item, 'sweets')}
+                        className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover:bg-orange-700"
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        onClick={() => onDeleteMenuItem('sweets', item.id)}
+                        className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* New Item Modals */}
+      {showNewDrink && (
+        <NewMenuItemModal
+          title="Neues Getränk hinzufügen"
+          onCreateItem={(name, price) => onCreateMenuItem('drinks', name, price)}
+          onClose={() => setShowNewDrink(false)}
+        />
+      )}
+
+      {showNewSweet && (
+        <NewMenuItemModal
+          title="Neue Süßware hinzufügen"
+          onCreateItem={(name, price) => onCreateMenuItem('sweets', name, price)}
+          onClose={() => setShowNewSweet(false)}
+        />
+      )}
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
