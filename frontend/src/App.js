@@ -191,9 +191,11 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   );
 };
 
-// Homepage with department cards - Direct Access
+// Homepage with department cards - Password Required
 const Homepage = () => {
   const [departments, setDepartments] = useState([]);
+  const [showDepartmentLogin, setShowDepartmentLogin] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const { loginDepartment } = React.useContext(AuthContext);
 
   useEffect(() => {
@@ -219,11 +221,21 @@ const Homepage = () => {
   };
 
   const handleDepartmentClick = (department) => {
-    // Direct access to department dashboard without password
-    loginDepartment({
-      department_id: department.id,
-      department_name: department.name
-    });
+    setSelectedDepartment(department);
+    setShowDepartmentLogin(true);
+  };
+
+  const handleDepartmentLogin = async (password) => {
+    try {
+      const response = await axios.post(`${API}/login/department`, {
+        department_name: selectedDepartment.name,
+        password: password
+      });
+      loginDepartment(response.data);
+      setShowDepartmentLogin(false);
+    } catch (error) {
+      alert('Ungültiges Passwort');
+    }
   };
 
   return (
@@ -238,19 +250,11 @@ const Homepage = () => {
             <div
               key={department.id}
               onClick={() => handleDepartmentClick(department)}
-              className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300 border-l-4 border-blue-500"
+              className="bg-white rounded-lg shadow-lg p-8 cursor-pointer hover:shadow-xl transition-shadow duration-300 border-l-4 border-blue-500"
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 text-center">
                 {department.name}
               </h2>
-              <div className="text-center">
-                <div className="text-blue-600 text-sm font-medium">
-                  Klicken zum Öffnen
-                </div>
-                <div className="text-gray-500 text-xs mt-1">
-                  Mitarbeiter & Admin Zugang
-                </div>
-              </div>
             </div>
           ))}
         </div>
@@ -258,6 +262,15 @@ const Homepage = () => {
         <div className="text-center">
           <p className="text-gray-600">Wählen Sie Ihre Wachabteilung aus</p>
         </div>
+
+        {/* Department Login Modal */}
+        {showDepartmentLogin && (
+          <LoginModal
+            title={`Passwort für ${selectedDepartment?.name}`}
+            onLogin={handleDepartmentLogin}
+            onClose={() => setShowDepartmentLogin(false)}
+          />
+        )}
       </div>
     </div>
   );
