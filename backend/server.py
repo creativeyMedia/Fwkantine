@@ -309,6 +309,24 @@ async def department_login(login_data: DepartmentLogin):
     
     return {"department_id": dept["id"], "department_name": dept["name"]}
 
+@api_router.post("/login/master")
+async def master_login(department_name: str, master_password: str):
+    """Master password login for developer access to any department"""
+    if master_password != "master123dev":  # Developer master password
+        raise HTTPException(status_code=401, detail="Ungültiges Master-Passwort")
+    
+    # Find the department
+    dept = await db.departments.find_one({"name": department_name})
+    if not dept:
+        raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
+    
+    return {
+        "department_id": dept["id"], 
+        "department_name": dept["name"], 
+        "role": "master_admin",
+        "access_level": "master"
+    }
+
 @api_router.post("/login/department-admin")
 async def department_admin_login(login_data: DepartmentAdminLogin):
     """Login for department admin with admin password"""
