@@ -311,7 +311,7 @@ const LoginModal = ({ title, onLogin, onClose }) => {
   );
 };
 
-// Department Dashboard
+// Department Dashboard with Admin Login Inside
 const DepartmentDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [showNewEmployee, setShowNewEmployee] = useState(false);
@@ -319,7 +319,9 @@ const DepartmentDashboard = () => {
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
   const [selectedEmployeeForProfile, setSelectedEmployeeForProfile] = useState(null);
   const [showBreakfastSummary, setShowBreakfastSummary] = useState(false);
-  const { currentDepartment, logout } = React.useContext(AuthContext);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showMasterLogin, setShowMasterLogin] = useState(false);
+  const { currentDepartment, logout, loginDepartmentAdmin } = React.useContext(AuthContext);
 
   useEffect(() => {
     if (currentDepartment) {
