@@ -649,6 +649,7 @@ async def get_daily_summary(department_id: str):
     return {
         "date": today.isoformat(),
         "breakfast_summary": breakfast_summary,
+        "employee_orders": employee_orders,
         "drinks_summary": drinks_summary,
         "sweets_summary": sweets_summary,
         "shopping_list": shopping_list,
