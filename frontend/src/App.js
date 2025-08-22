@@ -277,6 +277,20 @@ const DepartmentDashboard = () => {
     }
   };
 
+  const handleEmployeeClick = (employee, event) => {
+    // Check if the click was on the "Verlauf" button
+    if (event.target.closest('.verlauf-button')) {
+      return; // Don't open order menu if clicking on Verlauf button
+    }
+    setSelectedEmployee(employee);
+  };
+
+  const handleEmployeeProfileClick = async (employee, event) => {
+    event.stopPropagation(); // Prevent the employee order menu from opening
+    setSelectedEmployeeForProfile(employee);
+    setShowEmployeeProfile(true);
+  };
+
   const handleCreateEmployee = async (name) => {
     try {
       await axios.post(`${API}/employees`, {
