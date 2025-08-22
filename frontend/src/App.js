@@ -191,9 +191,8 @@ const Homepage = () => {
   const [departments, setDepartments] = useState([]);
   const [showDepartmentLogin, setShowDepartmentLogin] = useState(false);
   const [showDepartmentAdminLogin, setShowDepartmentAdminLogin] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const { loginDepartment, loginAdmin, loginDepartmentAdmin } = React.useContext(AuthContext);
+  const { loginDepartment, loginDepartmentAdmin } = React.useContext(AuthContext);
 
   useEffect(() => {
     initializeData();
