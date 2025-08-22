@@ -445,7 +445,21 @@ async def get_sweets_menu():
 async def create_order(order_data: OrderCreate):
     """Create a new order and update employee balance"""
     
-    # Calculate total price
+    # For breakfast orders, check if breakfast is closed
+    if order_data.order_type == OrderType.BREAKFAST:
+        today = datetime.now(timezone.utc).date().isoformat()
+        breakfast_status = await db.breakfast_settings.find_one({
+            "department_id": order_data.department_id,
+            "date": today
+        })
+        
+        if breakfast_status and breakfast_status["is_closed"]:
+            raise HTTPException(
+                status_code=403, 
+                detail="Frühstücksbestellungen sind für heute geschlossen. Nur Admins können noch Änderungen vornehmen."
+            )
+    
+    # Calculate total price (rest of the existing logic...)
     total_price = 0.0
     
     if order_data.order_type == OrderType.BREAKFAST and order_data.breakfast_items:
