@@ -160,10 +160,10 @@ async def initialize_default_data():
     
     # Always update departments with correct admin passwords
     departments_data = [
-        {"name": "Wachabteilung A", "password_hash": "passwordA", "admin_password_hash": "adminA"},
-        {"name": "Wachabteilung B", "password_hash": "passwordB", "admin_password_hash": "adminB"},
-        {"name": "Wachabteilung C", "password_hash": "passwordC", "admin_password_hash": "adminC"},
-        {"name": "Wachabteilung D", "password_hash": "passwordD", "admin_password_hash": "adminD"}
+        {"name": "1. Schichtabteilung", "password_hash": "password1", "admin_password_hash": "admin1"},
+        {"name": "2. Schichtabteilung", "password_hash": "password2", "admin_password_hash": "admin2"},
+        {"name": "3. Schichtabteilung", "password_hash": "password3", "admin_password_hash": "admin3"},
+        {"name": "4. Schichtabteilung", "password_hash": "password4", "admin_password_hash": "admin4"}
     ]
     
     # Update or create departments
