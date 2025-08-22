@@ -284,6 +284,32 @@ async def create_employee(employee_data: EmployeeCreate):
     await db.employees.insert_one(employee.dict())
     return employee
 
+@api_router.get("/lunch-settings")
+async def get_lunch_settings():
+    """Get current lunch settings"""
+    lunch_settings = await db.lunch_settings.find_one()
+    if not lunch_settings:
+        # Create default if none exists
+        default_settings = LunchSettings()
+        await db.lunch_settings.insert_one(default_settings.dict())
+        return default_settings
+    return lunch_settings
+
+@api_router.put("/lunch-settings")
+async def update_lunch_settings(price: float):
+    """Update lunch price"""
+    lunch_settings = await db.lunch_settings.find_one()
+    if lunch_settings:
+        await db.lunch_settings.update_one(
+            {"id": lunch_settings["id"]},
+            {"$set": {"price": price}}
+        )
+    else:
+        new_settings = LunchSettings(price=price)
+        await db.lunch_settings.insert_one(new_settings.dict())
+    
+    return {"message": "Lunch-Preis erfolgreich aktualisiert", "price": price}
+
 # Menu routes
 @api_router.get("/menu/breakfast", response_model=List[MenuItemBreakfast])
 async def get_breakfast_menu():
