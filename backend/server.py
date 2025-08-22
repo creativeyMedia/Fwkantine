@@ -64,8 +64,8 @@ class ToppingType(str, Enum):
 class Department(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    password_hash: str  # In production, this should be properly hashed
-    admin_password_hash: str = "admin123"  # Department admin password
+    password_hash: str = os.environ.get('DEPARTMENT_PASSWORD_DEFAULT', 'password1')
+    admin_password_hash: str = os.environ.get('ADMIN_PASSWORD_DEFAULT', 'admin1')
     
 class Employee(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
