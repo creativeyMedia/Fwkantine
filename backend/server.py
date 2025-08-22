@@ -77,11 +77,13 @@ class Employee(BaseModel):
 class MenuItemBreakfast(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     roll_type: RollType
+    name: Optional[str] = None  # Custom name, if None use default from roll_type
     price: float
     
 class MenuItemToppings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     topping_type: ToppingType
+    name: Optional[str] = None  # Custom name, if None use default from topping_type
     price: float
     
 class MenuItemDrink(BaseModel):
