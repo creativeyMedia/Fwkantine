@@ -1288,7 +1288,29 @@ const DepartmentAdminDashboard = () => {
 };
 
 // Employee Management Tab Component
-const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee }) => {
+const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment }) => {
+  
+  const markAsPaid = async (employee, balanceType) => {
+    const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
+    const balanceLabel = balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes';
+    
+    if (balanceAmount <= 0) {
+      alert('Kein Saldo zum Zurücksetzen vorhanden');
+      return;
+    }
+    
+    if (window.confirm(`${balanceLabel}-Saldo von €${balanceAmount.toFixed(2)} für ${employee.name} als bezahlt markieren?`)) {
+      try {
+        await axios.post(`${API}/department-admin/payment/${employee.id}?payment_type=${balanceType}&amount=${balanceAmount}&admin_department=${currentDepartment.department_name}`);
+        alert('Zahlung erfolgreich verbucht');
+        window.location.reload(); // Refresh to show updated balances
+      } catch (error) {
+        console.error('Fehler beim Verbuchen der Zahlung:', error);
+        alert('Fehler beim Verbuchen der Zahlung');
+      }
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -1304,10 +1326,38 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {employees.map((employee) => (
           <div key={employee.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="font-semibold text-lg mb-2">{employee.name}</h4>
-            <div className="text-sm text-gray-600">
-              <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
-              <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+            <h4 className="font-semibold text-lg mb-3">{employee.name}</h4>
+            
+            {/* Breakfast Balance */}
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Frühstück:</span>
+                <span className="font-bold text-blue-600">€{employee.breakfast_balance.toFixed(2)}</span>
+              </div>
+              {employee.breakfast_balance > 0 && (
+                <button
+                  onClick={() => markAsPaid(employee, 'breakfast')}
+                  className="w-full bg-blue-600 text-white text-xs py-1 px-2 rounded hover:bg-blue-700"
+                >
+                  Als bezahlt markieren
+                </button>
+              )}
+            </div>
+            
+            {/* Drinks/Sweets Balance */}
+            <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Getränke/Süßes:</span>
+                <span className="font-bold text-green-600">€{employee.drinks_sweets_balance.toFixed(2)}</span>
+              </div>
+              {employee.drinks_sweets_balance > 0 && (
+                <button
+                  onClick={() => markAsPaid(employee, 'drinks_sweets')}
+                  className="w-full bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
+                >
+                  Als bezahlt markieren
+                </button>
+              )}
             </div>
           </div>
         ))}
