@@ -331,13 +331,24 @@ const DepartmentDashboard = () => {
           {employees.map((employee) => (
             <div
               key={employee.id}
-              onClick={() => setSelectedEmployee(employee)}
+              onClick={(event) => handleEmployeeClick(employee, event)}
               className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300"
             >
               <h3 className="text-lg font-semibold mb-2">{employee.name}</h3>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 mb-4">
                 <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
                 <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={(event) => handleEmployeeProfileClick(employee, event)}
+                  className="verlauf-button flex-1 bg-blue-600 text-white text-xs py-2 px-3 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Verlauf
+                </button>
+                <div className="flex-1 text-center text-xs text-gray-500 py-2">
+                  Klick für Bestellung
+                </div>
               </div>
             </div>
           ))}
