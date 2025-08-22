@@ -105,7 +105,7 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
-  - task: "Enhanced Menu Management - Breakfast & Toppings CRUD"
+  - task: "Enhanced Menu Management with Name Editing - Breakfast & Toppings PUT Endpoints"
     implemented: true
     working: true
     file: "backend/server.py"
@@ -115,10 +115,24 @@ backend:
     status_history:
         - working: true
           agent: "testing"
+          comment: "✅ COMPREHENSIVE ENHANCED FEATURES TESTING COMPLETED! All new features working perfectly: 1) Enhanced Menu Management with Name Editing - PUT endpoints for breakfast and toppings items support both name and price updates, custom names persist correctly and fall back to default roll_type/topping_type labels when not set. 2) New Breakfast History Endpoint - GET /api/orders/breakfast-history/{department_id} works with default and custom days_back parameter, returns proper structure with daily summaries, employee-specific details, and shopping list calculations (halves to whole rolls). 3) Existing Functionality Verification - All existing breakfast/toppings CRUD, department authentication, and daily summary endpoints continue working properly. 25/25 tests passed (100% success rate). All enhanced features are production-ready."
+        - working: true
+          agent: "testing"
           comment: "✅ All 4 new endpoints working perfectly: POST/DELETE breakfast items, POST/DELETE toppings items. 15/15 tests passed (100% success rate). Proper validation with enum values, database persistence verified, error handling for invalid IDs working correctly."
         - working: true
           agent: "main"
           comment: "✅ Successfully implemented enhanced menu management for breakfast and toppings. Added POST/DELETE endpoints for both categories, created proper Pydantic models (MenuItemCreateBreakfast, MenuItemCreateToppings), all backend tests passing."
+  - task: "New Breakfast History Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW BREAKFAST HISTORY ENDPOINT FULLY TESTED! GET /api/orders/breakfast-history/{department_id} working perfectly with both default (30 days) and custom days_back parameters. Returns comprehensive historical data with proper structure: daily summaries with date/total_orders/total_amount, employee-specific order details with white_halves/seeded_halves/toppings breakdown, shopping list calculations that correctly convert halves to whole rolls (rounded up), and proper chronological ordering (newest first). Handles both old and new order formats seamlessly. All 7 specific tests passed including structure validation, shopping list math verification, and employee order details accuracy."
   - task: "Data Initialization"
     implemented: true
     working: true
