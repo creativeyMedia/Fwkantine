@@ -537,11 +537,28 @@ async def get_daily_summary(department_id: str):
                     sweets_summary[sweet_id] = 0
                 sweets_summary[sweet_id] += quantity
     
+    # Calculate shopping list (convert halves to whole rolls, rounded up)
+    shopping_list = {}
+    total_toppings = {}
+    
+    for roll_type, data in breakfast_summary.items():
+        # Convert halves to whole rolls (rounded up)
+        whole_rolls = (data["halves"] + 1) // 2  # Round up
+        shopping_list[roll_type] = {"halves": data["halves"], "whole_rolls": whole_rolls}
+        
+        # Aggregate all toppings
+        for topping, count in data["toppings"].items():
+            if topping not in total_toppings:
+                total_toppings[topping] = 0
+            total_toppings[topping] += count
+    
     return {
         "date": today.isoformat(),
         "breakfast_summary": breakfast_summary,
         "drinks_summary": drinks_summary,
-        "sweets_summary": sweets_summary
+        "sweets_summary": sweets_summary,
+        "shopping_list": shopping_list,
+        "total_toppings": total_toppings
     }
 
 @api_router.get("/orders/employee/{employee_id}")
