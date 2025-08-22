@@ -1047,9 +1047,9 @@ async def delete_employee(employee_id: str):
     return {"message": "Mitarbeiter erfolgreich gelöscht"}
 
 @api_router.post("/department-admin/menu/breakfast")
-async def create_breakfast_item(roll_type: RollType, price: float):
+async def create_breakfast_item(item_data: MenuItemCreateBreakfast):
     """Department Admin: Create new breakfast item"""
-    breakfast_item = MenuItemBreakfast(roll_type=roll_type, price=price)
+    breakfast_item = MenuItemBreakfast(**item_data.dict())
     await db.menu_breakfast.insert_one(breakfast_item.dict())
     return breakfast_item
 
@@ -1062,9 +1062,9 @@ async def delete_breakfast_item(item_id: str):
     return {"message": "Brötchen erfolgreich gelöscht"}
 
 @api_router.post("/department-admin/menu/toppings")
-async def create_topping_item(topping_type: ToppingType, price: float):
+async def create_topping_item(item_data: MenuItemCreateToppings):
     """Department Admin: Create new topping item"""
-    topping_item = MenuItemToppings(topping_type=topping_type, price=price)
+    topping_item = MenuItemToppings(**item_data.dict())
     await db.menu_toppings.insert_one(topping_item.dict())
     return topping_item
 
