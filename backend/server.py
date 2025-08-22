@@ -231,6 +231,9 @@ async def initialize_default_data():
     for item in sweets:
         await db.menu_sweets.insert_one(item.dict())
     
+    # Insert lunch settings
+    await db.lunch_settings.insert_one(lunch_settings.dict())
+    
     return {"message": "Daten erfolgreich initialisiert"}
 
 # Authentication routes
