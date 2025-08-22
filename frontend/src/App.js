@@ -1197,7 +1197,20 @@ const DepartmentAdminDashboard = () => {
   const [showNewEmployee, setShowNewEmployee] = useState(false);
   const [showNewDrink, setShowNewDrink] = useState(false);
   const [showNewSweet, setShowNewSweet] = useState(false);
-  const { currentDepartment, logout } = React.useContext(AuthContext);
+  const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
+
+  const goBackToEmployeeDashboard = () => {
+    // Set auth state to employee mode for this department
+    setAuthState({
+      isAuthenticated: true,
+      currentDepartment: {
+        department_id: currentDepartment.department_id,
+        department_name: currentDepartment.department_name,
+        role: 'employee'
+      },
+      isDepartmentAdmin: false
+    });
+  };
 
   useEffect(() => {
     if (currentDepartment) {
