@@ -94,6 +94,11 @@ class MenuItemSweet(BaseModel):
     name: str
     price: float
 
+class LunchSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    price: float = 0.0
+    enabled: bool = True
+
 class BreakfastOrder(BaseModel):
     roll_type: RollType
     roll_count: int
