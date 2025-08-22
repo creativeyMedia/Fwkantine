@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+// Detect environment and set appropriate backend URL
+const isProduction = window.location.hostname !== 'localhost';
+const BACKEND_URL = isProduction ? '' : (process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001');
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 // Context for authentication
