@@ -1308,9 +1308,9 @@ const DepartmentAdminDashboard = () => {
         <div className="flex mb-6 space-x-1">
           {[
             { id: 'employees', label: 'Mitarbeiter' },
-            { id: 'prices', label: 'Preise verwalten' },
-            { id: 'menu', label: 'Menü verwalten' },
-            { id: 'lunch', label: 'Lunch verwalten' }
+            { id: 'menu-management', label: 'Menü & Preise' },
+            { id: 'lunch', label: 'Lunch verwalten' },
+            { id: 'settings', label: 'Einstellungen' }
           ].map((tab) => (
             <button
               key={tab.id}
