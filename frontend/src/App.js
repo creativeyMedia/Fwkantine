@@ -354,6 +354,29 @@ const DepartmentDashboard = () => {
     setShowEmployeeProfile(true);
   };
 
+  const handleAdminLogin = async (password) => {
+    try {
+      const response = await axios.post(`${API}/login/department-admin`, {
+        department_name: currentDepartment.department_name,
+        admin_password: password
+      });
+      loginDepartmentAdmin(response.data);
+      setShowAdminLogin(false);
+    } catch (error) {
+      alert('Ungültiges Admin-Passwort');
+    }
+  };
+
+  const handleMasterLogin = async (password) => {
+    try {
+      const response = await axios.post(`${API}/login/master?department_name=${currentDepartment.department_name}&master_password=${password}`);
+      loginDepartmentAdmin(response.data);
+      setShowMasterLogin(false);
+    } catch (error) {
+      alert('Ungültiges Master-Passwort');
+    }
+  };
+
   const handleCreateEmployee = async (name) => {
     try {
       await axios.post(`${API}/employees`, {
