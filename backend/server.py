@@ -48,9 +48,8 @@ class OrderType(str, Enum):
     SWEETS = "sweets"
 
 class RollType(str, Enum):
-    LIGHT = "hell"  # Light roll
-    DARK = "dunkel"  # Dark roll
-    WHOLEMEAL = "vollkorn"  # Wholemeal roll
+    WHITE = "weiss"  # White roll
+    SEEDED = "koerner"  # Seeded roll
 
 class ToppingType(str, Enum):
     SCRAMBLED_EGG = "ruehrei"
