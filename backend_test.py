@@ -1689,6 +1689,7 @@ class CanteenTester:
             ("Order Deletion", self.test_order_deletion),
             ("Department Admin Menu Management", self.test_department_admin_menu_management),
             ("Menu Item Creation & Deletion", self.test_menu_item_creation_deletion),
+            ("New Breakfast & Toppings Menu Management", self.test_new_breakfast_toppings_menu_management),
             ("Daily Summary with New Roll Types", self.test_daily_summary_with_new_roll_types),
             ("Data Integrity", self.test_data_integrity),
             ("Daily Summary", self.test_daily_summary),
