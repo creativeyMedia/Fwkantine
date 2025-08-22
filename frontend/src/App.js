@@ -1991,17 +1991,56 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
         </div>
 
         <div className="p-6">
-          {dailySummary && Object.keys(dailySummary.breakfast_summary).length > 0 ? (
+          {dailySummary && dailySummary.shopping_list && Object.keys(dailySummary.shopping_list).length > 0 ? (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Bestellte Brötchen und Beläge</h3>
+              {/* Shopping List Summary */}
+              <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-green-800">🛒 Einkaufsliste</h3>
+                
+                <div className="text-lg font-bold text-green-700 mb-4">
+                  {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
+                    const rollLabel = rollTypeLabels[rollType] || rollType;
+                    return `${data.whole_rolls} ${rollLabel.replace(' Brötchen', '')}`;
+                  }).join(', ')}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => (
+                    <div key={rollType} className="bg-white border border-green-300 rounded p-3">
+                      <div className="font-semibold">{rollTypeLabels[rollType]}</div>
+                      <div className="text-gray-600">
+                        {data.halves} Hälften → {data.whole_rolls} ganze Brötchen
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Total Toppings Summary */}
+              {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
+                <div className="mb-8 bg-orange-50 border border-orange-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4 text-orange-800">🥪 Gesamt Beläge</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
+                      <div key={topping} className="bg-white border border-orange-300 rounded p-3 text-center">
+                        <div className="font-semibold text-orange-700">{count}x</div>
+                        <div className="text-sm">{toppingLabels[topping]}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Detailed Employee Orders */}
+              <h3 className="text-lg font-semibold mb-4">Detaillierte Mitarbeiter-Bestellungen</h3>
               
-              {/* Summary Table */}
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse border border-gray-300">
                   <thead>
                     <tr className="bg-gray-100">
                       <th className="border border-gray-300 px-4 py-2 text-left">Brötchen Art</th>
-                      <th className="border border-gray-300 px-4 py-2 text-center">Anzahl</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">Hälften</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">Ganze Brötchen</th>
                       <th className="border border-gray-300 px-4 py-2 text-left">Beläge (Anzahl)</th>
                     </tr>
                   </thead>
@@ -2012,7 +2051,10 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           {rollTypeLabels[rollType] || rollType}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
-                          {data.count}
+                          {data.halves}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center font-bold text-green-600">
+                          {Math.ceil(data.halves / 2)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           {Object.keys(data.toppings).length > 0 ? (
@@ -2032,44 +2074,6 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     ))}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Total Summary */}
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 mb-2">Gesamtübersicht</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p><strong>Gesamt Brötchen:</strong> {Object.values(dailySummary.breakfast_summary).reduce((sum, data) => sum + data.count, 0)}</p>
-                  </div>
-                  <div>
-                    <p><strong>Gesamt Beläge:</strong> {
-                      Object.values(dailySummary.breakfast_summary)
-                        .reduce((sum, data) => sum + Object.values(data.toppings).reduce((toppingsSum, count) => toppingsSum + count, 0), 0)
-                    }</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed breakdown by topping */}
-              <div className="mt-6">
-                <h4 className="font-semibold mb-3">Detaillierte Belag-Aufschlüsselung</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(() => {
-                    const allToppings = {};
-                    Object.values(dailySummary.breakfast_summary).forEach(data => {
-                      Object.entries(data.toppings).forEach(([topping, count]) => {
-                        allToppings[topping] = (allToppings[topping] || 0) + count;
-                      });
-                    });
-                    
-                    return Object.entries(allToppings).map(([topping, totalCount]) => (
-                      <div key={topping} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <h5 className="font-medium">{toppingLabels[topping] || topping}</h5>
-                        <p className="text-xl font-bold text-green-600">{totalCount}x</p>
-                      </div>
-                    ));
-                  })()}
-                </div>
               </div>
             </div>
           ) : (
