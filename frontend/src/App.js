@@ -2136,11 +2136,7 @@ const LunchManagementTab = () => {
 
 // Main App Component
 function App() {
-  const { currentDepartment, isAdmin, isDepartmentAdmin } = React.useContext(AuthContext);
-
-  if (isAdmin) {
-    return <AdminDashboard />;
-  }
+  const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
 
   if (isDepartmentAdmin) {
     return <DepartmentAdminDashboard />;
