@@ -1045,6 +1045,29 @@ async def create_breakfast_item(roll_type: RollType, price: float):
     await db.menu_breakfast.insert_one(breakfast_item.dict())
     return breakfast_item
 
+@api_router.delete("/department-admin/menu/breakfast/{item_id}")
+async def delete_breakfast_item(item_id: str):
+    """Department Admin: Delete breakfast item"""
+    result = await db.menu_breakfast.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Brötchen nicht gefunden")
+    return {"message": "Brötchen erfolgreich gelöscht"}
+
+@api_router.post("/department-admin/menu/toppings")
+async def create_topping_item(topping_type: ToppingType, price: float):
+    """Department Admin: Create new topping item"""
+    topping_item = MenuItemToppings(topping_type=topping_type, price=price)
+    await db.menu_toppings.insert_one(topping_item.dict())
+    return topping_item
+
+@api_router.delete("/department-admin/menu/toppings/{item_id}")
+async def delete_topping_item(item_id: str):
+    """Department Admin: Delete topping item"""
+    result = await db.menu_toppings.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Belag nicht gefunden")
+    return {"message": "Belag erfolgreich gelöscht"}
+
 @api_router.post("/department-admin/payment/{employee_id}")
 async def mark_payment(employee_id: str, payment_type: str, amount: float, admin_department: str):
     """Department Admin: Mark debt as paid and log the payment"""
