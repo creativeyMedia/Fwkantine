@@ -2455,7 +2455,15 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
 
         {/* Toppings */}
         <div>
-          <h4 className="text-md font-semibold mb-4 text-gray-700 border-b pb-2">Beläge</h4>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Beläge</h4>
+            <button
+              onClick={() => setShowNewTopping(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            >
+              Neuer Belag
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {toppingsMenu.map((item) => (
               <div key={item.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -2495,12 +2503,20 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
                       <span className="font-medium">{toppingLabels[item.topping_type]}</span>
                       <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
                     </div>
-                    <button
-                      onClick={() => startEditItem(item, 'toppings')}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                    >
-                      Bearbeiten
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditItem(item, 'toppings')}
+                        className="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700"
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        onClick={() => onDeleteMenuItem('toppings', item.id)}
+                        className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Löschen
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
