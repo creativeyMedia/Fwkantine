@@ -830,10 +830,8 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
 @api_router.get("/department-admin/payment-logs/{employee_id}")
 async def get_payment_logs(employee_id: str):
     """Get payment history for an employee"""
-    # TODO: Update this function after PaymentLog class replacement
-    # logs = await db.payment_logs.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(100)
-    # return [parse_from_mongo({k: v for k, v in log.items() if k != '_id'}) for log in logs]
-    return []  # Temporary return empty list
+    logs = await db.payment_logs.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(100)
+    return [parse_from_mongo({k: v for k, v in log.items() if k != '_id'}) for log in logs]
 
 # Admin routes
 @api_router.delete("/orders/{order_id}")
