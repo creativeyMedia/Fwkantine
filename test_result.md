@@ -263,6 +263,69 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ NEW FEATURE VERIFIED: Enhanced employee profile (GET /api/employees/{employee_id}/profile) working excellently. German roll type labels (Weißes Brötchen, Körnerbrötchen) displayed correctly. Lunch option display ('mit Mittagessen') working in order descriptions. Profile shows 9 orders with proper balance summaries."
+        - working: true
+          agent: "testing"
+          comment: "✅ UPDATED FEATURE VERIFIED: Fixed KeyError for roll_count/roll_halves compatibility. Employee profile now correctly handles both old orders (roll_count) and new orders (roll_halves). German descriptions show 'Hälften' for new roll halves orders. Profile working with 4 orders in history."
+
+  - task: "New Department Structure Updates"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE VERIFIED: Updated department names to '1. Schichtabteilung', '2. Schichtabteilung', '3. Schichtabteilung', '4. Schichtabteilung' working correctly. New authentication credentials password1/admin1, password2/admin2, password3/admin3, password4/admin4 all functional. Central admin (admin123) still accessible."
+
+  - task: "Roll Halves Breakfast Logic"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE VERIFIED: Roll halves logic implemented correctly. Orders now use roll_halves instead of roll_count. Topping validation ensures exact match between number of toppings and roll halves. Pricing calculation works per half roll. Lunch option integration functional with roll halves."
+
+  - task: "Retroactive Lunch Pricing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE VERIFIED: Retroactive lunch pricing working correctly. PUT /api/lunch-settings updates lunch price and automatically recalculates all today's breakfast orders with lunch option. Employee balances adjusted for price differences. Affected 10 orders in test run."
+
+  - task: "Payment Logging System"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE VERIFIED: Payment logging system fully functional. POST /api/department-admin/payment/{employee_id} marks payments and creates logs. Balance reset working correctly. GET /api/department-admin/payment-logs/{employee_id} retrieves payment history. PaymentLog model with timestamp, admin_user, and action tracking working."
+
+  - task: "Enhanced Daily Summary with Shopping List"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW FEATURE VERIFIED: Enhanced daily summary with shopping list calculation working perfectly. GET /api/orders/daily-summary/{department_id} now includes shopping_list field that converts roll halves to whole rolls (rounded up). Example: 46 white halves → 23 whole rolls, 9 seeded halves → 5 whole rolls. Total toppings aggregation across all roll types functional."
 
   - task: "Menu Endpoints"
     implemented: true
