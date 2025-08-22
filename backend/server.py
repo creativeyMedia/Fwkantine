@@ -467,6 +467,109 @@ async def get_employee_profile(employee_id: str):
         "drinks_sweets_total": employee["drinks_sweets_balance"]
     }
 
+# Department Admin routes
+@api_router.put("/department-admin/menu/breakfast/{item_id}")
+async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
+    """Department Admin: Update breakfast menu item"""
+    update_fields = {}
+    if update_data.price is not None:
+        update_fields["price"] = update_data.price
+    
+    if update_fields:
+        result = await db.menu_breakfast.update_one(
+            {"id": item_id}, 
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Artikel nicht gefunden")
+    
+    return {"message": "Artikel erfolgreich aktualisiert"}
+
+@api_router.put("/department-admin/menu/toppings/{item_id}")
+async def update_toppings_menu_item(item_id: str, update_data: MenuItemUpdate):
+    """Department Admin: Update toppings menu item"""
+    update_fields = {}
+    if update_data.price is not None:
+        update_fields["price"] = update_data.price
+    
+    if update_fields:
+        result = await db.menu_toppings.update_one(
+            {"id": item_id}, 
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Belag nicht gefunden")
+    
+    return {"message": "Belag erfolgreich aktualisiert"}
+
+@api_router.put("/department-admin/menu/drinks/{item_id}")
+async def update_drinks_menu_item(item_id: str, update_data: MenuItemUpdate):
+    """Department Admin: Update drinks menu item"""
+    update_fields = {}
+    if update_data.price is not None:
+        update_fields["price"] = update_data.price
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
+    
+    if update_fields:
+        result = await db.menu_drinks.update_one(
+            {"id": item_id}, 
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Getränk nicht gefunden")
+    
+    return {"message": "Getränk erfolgreich aktualisiert"}
+
+@api_router.put("/department-admin/menu/sweets/{item_id}")
+async def update_sweets_menu_item(item_id: str, update_data: MenuItemUpdate):
+    """Department Admin: Update sweets menu item"""
+    update_fields = {}
+    if update_data.price is not None:
+        update_fields["price"] = update_data.price
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
+    
+    if update_fields:
+        result = await db.menu_sweets.update_one(
+            {"id": item_id}, 
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Süßware nicht gefunden")
+    
+    return {"message": "Süßware erfolgreich aktualisiert"}
+
+@api_router.post("/department-admin/menu/drinks")
+async def create_drink_item(item_data: MenuItemCreate):
+    """Department Admin: Create new drink item"""
+    drink_item = MenuItemDrink(**item_data.dict())
+    await db.menu_drinks.insert_one(drink_item.dict())
+    return drink_item
+
+@api_router.post("/department-admin/menu/sweets")
+async def create_sweet_item(item_data: MenuItemCreate):
+    """Department Admin: Create new sweet item"""
+    sweet_item = MenuItemSweet(**item_data.dict())
+    await db.menu_sweets.insert_one(sweet_item.dict())
+    return sweet_item
+
+@api_router.delete("/department-admin/menu/drinks/{item_id}")
+async def delete_drink_item(item_id: str):
+    """Department Admin: Delete drink item"""
+    result = await db.menu_drinks.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Getränk nicht gefunden")
+    return {"message": "Getränk erfolgreich gelöscht"}
+
+@api_router.delete("/department-admin/menu/sweets/{item_id}")
+async def delete_sweet_item(item_id: str):
+    """Department Admin: Delete sweet item"""
+    result = await db.menu_sweets.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Süßware nicht gefunden")
+    return {"message": "Süßware erfolgreich gelöscht"}
+
 # Admin routes
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
