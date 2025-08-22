@@ -1243,6 +1243,7 @@ const DepartmentAdminDashboard = () => {
               onCreateEmployee={handleCreateEmployee}
               showNewEmployee={showNewEmployee}
               setShowNewEmployee={setShowNewEmployee}
+              currentDepartment={currentDepartment}
             />
           )}
 
