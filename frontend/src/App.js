@@ -1265,6 +1265,10 @@ const DepartmentAdminDashboard = () => {
               setShowNewSweet={setShowNewSweet}
             />
           )}
+
+          {activeTab === 'lunch' && (
+            <LunchManagementTab />
+          )}
         </div>
 
         {/* New Employee Modal */}
