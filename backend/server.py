@@ -1031,6 +1031,84 @@ async def get_payment_logs(employee_id: str):
     logs = await db.payment_logs.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(100)
     return [parse_from_mongo({k: v for k, v in log.items() if k != '_id'}) for log in logs]
 
+@api_router.get("/department-admin/breakfast-history/{department_id}")
+async def get_breakfast_history(department_id: str, days: int = 7):
+    """Get breakfast history for past days"""
+    histories = []
+    
+    for i in range(1, days + 1):  # Start from yesterday
+        target_date = datetime.now(timezone.utc).date() - timedelta(days=i)
+        start_of_day = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_of_day = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        
+        # Get orders for that day
+        orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {
+                "$gte": start_of_day.isoformat(),
+                "$lte": end_of_day.isoformat()
+            }
+        }).to_list(1000)
+        
+        if orders:  # Only include days with orders
+            # Process the same way as daily summary
+            breakfast_summary = {}
+            employee_orders = {}
+            
+            for order in orders:
+                employee = await db.employees.find_one({"id": order["employee_id"]})
+                employee_name = employee["name"] if employee else "Unknown"
+                
+                if employee_name not in employee_orders:
+                    employee_orders[employee_name] = {"white_halves": 0, "seeded_halves": 0, "toppings": {}}
+                
+                for item in order["breakfast_items"]:
+                    # Handle both old and new formats
+                    if "total_halves" in item:
+                        white_halves = item.get("white_halves", 0)
+                        seeded_halves = item.get("seeded_halves", 0)
+                    else:
+                        roll_type = item.get("roll_type", "weiss")
+                        roll_halves = item.get("roll_halves", item.get("roll_count", 1))
+                        if roll_type == "weiss":
+                            white_halves = roll_halves
+                            seeded_halves = 0
+                        else:
+                            white_halves = 0
+                            seeded_halves = roll_halves
+                    
+                    employee_orders[employee_name]["white_halves"] += white_halves
+                    employee_orders[employee_name]["seeded_halves"] += seeded_halves
+                    
+                    # Count toppings
+                    for topping in item["toppings"]:
+                        if topping not in employee_orders[employee_name]["toppings"]:
+                            employee_orders[employee_name]["toppings"][topping] = {"white": 0, "seeded": 0}
+                        
+                        if white_halves >= seeded_halves:
+                            employee_orders[employee_name]["toppings"][topping]["white"] += 1
+                        else:
+                            employee_orders[employee_name]["toppings"][topping]["seeded"] += 1
+            
+            # Calculate shopping list
+            total_white_halves = sum(emp["white_halves"] for emp in employee_orders.values())
+            total_seeded_halves = sum(emp["seeded_halves"] for emp in employee_orders.values())
+            
+            shopping_list = {
+                "weiss": {"halves": total_white_halves, "whole_rolls": (total_white_halves + 1) // 2},
+                "koerner": {"halves": total_seeded_halves, "whole_rolls": (total_seeded_halves + 1) // 2}
+            }
+            
+            histories.append({
+                "date": target_date.isoformat(),
+                "employee_orders": employee_orders,
+                "shopping_list": shopping_list,
+                "total_orders": len(orders)
+            })
+    
+    return histories
+
 # Admin routes
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
