@@ -66,6 +66,7 @@ class Department(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     password_hash: str  # In production, this should be properly hashed
+    admin_password_hash: str = "admin123"  # Department admin password
     
 class Employee(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
