@@ -958,6 +958,493 @@ class CanteenTester:
             self.log_test("Admin Login", False, f"Exception: {str(e)}")
         
         return success_count >= 1
+
+    def test_lunch_management_system(self):
+        """Test lunch settings and pricing functionality"""
+        print("\n=== Testing Lunch Management System ===")
+        
+        success_count = 0
+        
+        # Test GET lunch settings
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                
+                # Check required fields
+                if 'price' in lunch_settings and 'enabled' in lunch_settings:
+                    self.log_test("Get Lunch Settings", True, 
+                                f"Current lunch price: €{lunch_settings['price']:.2f}, Enabled: {lunch_settings['enabled']}")
+                    success_count += 1
+                else:
+                    self.log_test("Get Lunch Settings", False, "Missing required fields in lunch settings")
+            else:
+                self.log_test("Get Lunch Settings", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Get Lunch Settings", False, f"Exception: {str(e)}")
+        
+        # Test PUT lunch settings (update price)
+        try:
+            new_lunch_price = 3.50
+            response = self.session.put(f"{API_BASE}/lunch-settings", 
+                                      params={"price": new_lunch_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('price') == new_lunch_price:
+                    self.log_test("Update Lunch Price", True, 
+                                f"Successfully updated lunch price to €{new_lunch_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Update Lunch Price", False, "Price update response mismatch")
+            else:
+                self.log_test("Update Lunch Price", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Update Lunch Price", False, f"Exception: {str(e)}")
+        
+        return success_count >= 1
+
+    def test_breakfast_with_lunch_option(self):
+        """Test breakfast orders with lunch option and pricing"""
+        print("\n=== Testing Breakfast with Lunch Option ===")
+        
+        if not self.employees:
+            self.log_test("Breakfast with Lunch", False, "No employees available for testing")
+            return False
+        
+        success_count = 0
+        test_employee = self.employees[0]
+        
+        # First, set a lunch price
+        try:
+            lunch_price = 4.00
+            self.session.put(f"{API_BASE}/lunch-settings", params={"price": lunch_price})
+        except:
+            pass  # Continue even if lunch price setting fails
+        
+        # Test breakfast order with lunch option
+        try:
+            breakfast_with_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "weiss",  # Updated roll type
+                        "roll_count": 2,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": True  # Include lunch
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_with_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                
+                # Check that total price includes lunch cost
+                if order['total_price'] > 0:
+                    self.log_test("Breakfast Order with Lunch", True, 
+                                f"Created breakfast order with lunch: €{order['total_price']:.2f}")
+                    success_count += 1
+                    
+                    # Verify the order contains lunch information
+                    if order.get('breakfast_items') and len(order['breakfast_items']) > 0:
+                        breakfast_item = order['breakfast_items'][0]
+                        if breakfast_item.get('has_lunch') == True:
+                            self.log_test("Lunch Option in Order", True, 
+                                        "Lunch option correctly saved in order")
+                            success_count += 1
+                        else:
+                            self.log_test("Lunch Option in Order", False, 
+                                        "Lunch option not saved in order")
+                else:
+                    self.log_test("Breakfast Order with Lunch", False, "Invalid total price")
+            else:
+                self.log_test("Breakfast Order with Lunch", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Breakfast Order with Lunch", False, f"Exception: {str(e)}")
+        
+        # Test breakfast order without lunch option
+        try:
+            breakfast_without_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "koerner",  # Updated roll type
+                        "roll_count": 1,
+                        "toppings": ["schinken"],
+                        "has_lunch": False  # No lunch
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_without_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                self.log_test("Breakfast Order without Lunch", True, 
+                            f"Created breakfast order without lunch: €{order['total_price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Breakfast Order without Lunch", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Breakfast Order without Lunch", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_admin_employee_management(self):
+        """Test admin employee management functions"""
+        print("\n=== Testing Admin Employee Management ===")
+        
+        if not self.employees:
+            self.log_test("Admin Employee Management", False, "No employees available for testing")
+            return False
+        
+        success_count = 0
+        
+        # Create a test employee for deletion
+        test_dept = self.departments[0] if self.departments else None
+        if not test_dept:
+            self.log_test("Admin Employee Management", False, "No departments available")
+            return False
+        
+        test_employee_id = None
+        try:
+            employee_data = {
+                "name": "Test Employee for Deletion",
+                "department_id": test_dept['id']
+            }
+            
+            response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+            if response.status_code == 200:
+                test_employee = response.json()
+                test_employee_id = test_employee['id']
+                self.log_test("Create Test Employee", True, "Test employee created for deletion test")
+            
+        except Exception as e:
+            self.log_test("Create Test Employee", False, f"Exception: {str(e)}")
+        
+        # Test employee deletion
+        if test_employee_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/department-admin/employees/{test_employee_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test("Delete Employee", True, 
+                                f"Successfully deleted employee: {result.get('message', 'Success')}")
+                    success_count += 1
+                else:
+                    self.log_test("Delete Employee", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Delete Employee", False, f"Exception: {str(e)}")
+        
+        # Test balance reset functionality
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                
+                # Test breakfast balance reset
+                response = self.session.post(f"{API_BASE}/admin/reset-balance/{test_employee['id']}", 
+                                           params={"balance_type": "breakfast"})
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test("Reset Breakfast Balance", True, 
+                                f"Successfully reset breakfast balance: {result.get('message', 'Success')}")
+                    success_count += 1
+                else:
+                    self.log_test("Reset Breakfast Balance", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                
+                # Test drinks/sweets balance reset
+                response = self.session.post(f"{API_BASE}/admin/reset-balance/{test_employee['id']}", 
+                                           params={"balance_type": "drinks_sweets"})
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test("Reset Drinks/Sweets Balance", True, 
+                                f"Successfully reset drinks/sweets balance: {result.get('message', 'Success')}")
+                    success_count += 1
+                else:
+                    self.log_test("Reset Drinks/Sweets Balance", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Reset Balance", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_order_deletion(self):
+        """Test order deletion functionality"""
+        print("\n=== Testing Order Deletion ===")
+        
+        if not self.employees:
+            self.log_test("Order Deletion", False, "No employees available for testing")
+            return False
+        
+        success_count = 0
+        test_employee = self.employees[0]
+        
+        # Create a test order for deletion
+        test_order_id = None
+        try:
+            test_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "weiss",
+                        "roll_count": 1,
+                        "toppings": ["butter"],
+                        "has_lunch": False
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=test_order)
+            if response.status_code == 200:
+                order = response.json()
+                test_order_id = order['id']
+                self.log_test("Create Test Order", True, "Test order created for deletion test")
+            
+        except Exception as e:
+            self.log_test("Create Test Order", False, f"Exception: {str(e)}")
+        
+        # Test order deletion
+        if test_order_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/orders/{test_order_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test("Delete Order", True, 
+                                f"Successfully deleted order: {result.get('message', 'Success')}")
+                    success_count += 1
+                else:
+                    self.log_test("Delete Order", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Delete Order", False, f"Exception: {str(e)}")
+        
+        return success_count >= 1
+
+    def test_daily_summary_with_new_roll_types(self):
+        """Test daily summary with new roll types and toppings"""
+        print("\n=== Testing Daily Summary with New Roll Types ===")
+        
+        if not self.departments or not self.employees:
+            self.log_test("Daily Summary New Roll Types", False, "Missing departments or employees")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        test_employee = self.employees[0]
+        
+        # Create test breakfast orders with new roll types
+        try:
+            # Order with weiss roll
+            weiss_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "weiss",
+                        "roll_count": 2,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": False
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=weiss_order)
+            if response.status_code == 200:
+                self.log_test("Create Weiss Roll Order", True, "Created order with weiss roll")
+            
+            # Order with koerner roll
+            koerner_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "koerner",
+                        "roll_count": 1,
+                        "toppings": ["schinken", "butter"],
+                        "has_lunch": True
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=koerner_order)
+            if response.status_code == 200:
+                self.log_test("Create Koerner Roll Order", True, "Created order with koerner roll")
+            
+        except Exception as e:
+            self.log_test("Create Test Orders", False, f"Exception: {str(e)}")
+        
+        # Test daily summary aggregation
+        try:
+            response = self.session.get(f"{API_BASE}/orders/daily-summary/{test_dept['id']}")
+            
+            if response.status_code == 200:
+                summary = response.json()
+                
+                # Check structure
+                required_fields = ['date', 'breakfast_summary', 'drinks_summary', 'sweets_summary']
+                missing_fields = [field for field in required_fields if field not in summary]
+                
+                if not missing_fields:
+                    self.log_test("Daily Summary Structure", True, "Summary has correct structure")
+                    success_count += 1
+                    
+                    # Check breakfast summary for new roll types
+                    breakfast_summary = summary.get('breakfast_summary', {})
+                    
+                    # Check if new roll types are present
+                    has_weiss = 'weiss' in breakfast_summary
+                    has_koerner = 'koerner' in breakfast_summary
+                    
+                    if has_weiss or has_koerner:
+                        self.log_test("New Roll Types in Summary", True, 
+                                    f"Summary includes new roll types: weiss={has_weiss}, koerner={has_koerner}")
+                        success_count += 1
+                        
+                        # Check toppings aggregation
+                        for roll_type, roll_data in breakfast_summary.items():
+                            if 'toppings' in roll_data and roll_data['toppings']:
+                                self.log_test("Toppings Aggregation", True, 
+                                            f"Toppings properly aggregated for {roll_type}: {list(roll_data['toppings'].keys())}")
+                                success_count += 1
+                                break
+                    else:
+                        self.log_test("New Roll Types in Summary", False, 
+                                    "New roll types not found in summary")
+                else:
+                    self.log_test("Daily Summary Structure", False, f"Missing fields: {missing_fields}")
+                    
+            else:
+                self.log_test("Daily Summary", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Daily Summary", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_enhanced_employee_profile(self):
+        """Test enhanced employee profile with German roll type labels and lunch options"""
+        print("\n=== Testing Enhanced Employee Profile ===")
+        
+        if not self.employees:
+            self.log_test("Enhanced Employee Profile", False, "No employees available for testing")
+            return False
+        
+        success_count = 0
+        test_employee = self.employees[0]
+        
+        # Create test orders with new roll types and lunch options
+        try:
+            # Order with lunch option
+            lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "weiss",
+                        "roll_count": 1,
+                        "toppings": ["ruehrei"],
+                        "has_lunch": True
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=lunch_order)
+            if response.status_code == 200:
+                self.log_test("Create Lunch Order for Profile", True, "Created order with lunch for profile testing")
+            
+        except Exception as e:
+            self.log_test("Create Lunch Order for Profile", False, f"Exception: {str(e)}")
+        
+        # Test enhanced profile endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/profile")
+            
+            if response.status_code == 200:
+                profile = response.json()
+                
+                # Check required fields
+                required_fields = ['employee', 'order_history', 'total_orders', 'breakfast_total', 'drinks_sweets_total']
+                missing_fields = [field for field in required_fields if field not in profile]
+                
+                if not missing_fields:
+                    self.log_test("Enhanced Profile Structure", True, "Profile has all required fields")
+                    success_count += 1
+                    
+                    # Check for German roll type labels in order history
+                    order_history = profile.get('order_history', [])
+                    has_german_labels = False
+                    has_lunch_display = False
+                    
+                    for order in order_history:
+                        if 'readable_items' in order:
+                            for item in order['readable_items']:
+                                description = item.get('description', '')
+                                
+                                # Check for German roll labels
+                                if 'Weißes Brötchen' in description or 'Körnerbrötchen' in description:
+                                    has_german_labels = True
+                                
+                                # Check for lunch option display
+                                if 'mit Mittagessen' in description:
+                                    has_lunch_display = True
+                    
+                    if has_german_labels:
+                        self.log_test("German Roll Type Labels", True, 
+                                    "Profile shows German roll type labels (Weißes Brötchen, Körnerbrötchen)")
+                        success_count += 1
+                    else:
+                        self.log_test("German Roll Type Labels", False, 
+                                    "Missing German roll type labels in profile")
+                    
+                    if has_lunch_display:
+                        self.log_test("Lunch Option Display", True, 
+                                    "Profile shows lunch option in order descriptions")
+                        success_count += 1
+                    else:
+                        self.log_test("Lunch Option Display", False, 
+                                    "Missing lunch option display in profile")
+                        
+                else:
+                    self.log_test("Enhanced Profile Structure", False, f"Missing fields: {missing_fields}")
+                    
+            else:
+                self.log_test("Enhanced Employee Profile", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Enhanced Employee Profile", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
     
     def run_all_tests(self):
         """Run all backend tests"""
