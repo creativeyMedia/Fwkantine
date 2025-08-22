@@ -591,6 +591,105 @@ async def create_order(order_data: OrderCreate):
     
     return order
 
+@api_router.get("/orders/breakfast-history/{department_id}")
+async def get_breakfast_history(department_id: str, days_back: int = 30):
+    """Get historical breakfast summaries for a department"""
+    
+    # Get date range
+    end_date = datetime.now(timezone.utc).date()
+    start_date = end_date - timedelta(days=days_back)
+    
+    history = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        # Get orders for this specific date
+        start_of_day = datetime.combine(current_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_of_day = datetime.combine(current_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        
+        orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {
+                "$gte": start_of_day.isoformat(),
+                "$lte": end_of_day.isoformat()
+            }
+        }).to_list(1000)
+        
+        if orders:  # Only include dates with orders
+            # Calculate daily summary
+            breakfast_summary = {}
+            employee_orders = {}
+            total_orders = len(orders)
+            total_amount = sum(order.get("total_price", 0) for order in orders)
+            
+            for order in orders:
+                if order.get("breakfast_items"):
+                    # Get employee info
+                    employee = await db.employees.find_one({"id": order["employee_id"]})
+                    employee_name = employee["name"] if employee else "Unknown"
+                    
+                    if employee_name not in employee_orders:
+                        employee_orders[employee_name] = {"white_halves": 0, "seeded_halves": 0, "toppings": {}, "total_amount": 0}
+                    
+                    employee_orders[employee_name]["total_amount"] += order.get("total_price", 0)
+                    
+                    for item in order["breakfast_items"]:
+                        # Handle new format (total_halves, white_halves, seeded_halves)
+                        if "total_halves" in item:
+                            white_halves = item.get("white_halves", 0)
+                            seeded_halves = item.get("seeded_halves", 0)
+                        else:
+                            # Handle old format (roll_type, roll_halves)
+                            roll_type = item.get("roll_type", "weiss")
+                            roll_halves = item.get("roll_halves", item.get("roll_count", 1))
+                            if roll_type == "weiss":
+                                white_halves = roll_halves
+                                seeded_halves = 0
+                            else:
+                                white_halves = 0
+                                seeded_halves = roll_halves
+                        
+                        # Update employee totals
+                        employee_orders[employee_name]["white_halves"] += white_halves
+                        employee_orders[employee_name]["seeded_halves"] += seeded_halves
+                        
+                        # Update overall summary
+                        if "weiss" not in breakfast_summary:
+                            breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
+                        if "koerner" not in breakfast_summary:
+                            breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
+                        
+                        breakfast_summary["weiss"]["halves"] += white_halves
+                        breakfast_summary["koerner"]["halves"] += seeded_halves
+                        
+                        # Count toppings
+                        for topping in item["toppings"]:
+                            if topping not in employee_orders[employee_name]["toppings"]:
+                                employee_orders[employee_name]["toppings"][topping] = 0
+                            employee_orders[employee_name]["toppings"][topping] += 1
+            
+            # Calculate shopping list
+            shopping_list = {}
+            for roll_type, data in breakfast_summary.items():
+                whole_rolls = (data["halves"] + 1) // 2
+                shopping_list[roll_type] = {"halves": data["halves"], "whole_rolls": whole_rolls}
+            
+            history.append({
+                "date": current_date.isoformat(),
+                "total_orders": total_orders,
+                "total_amount": total_amount,
+                "breakfast_summary": breakfast_summary,
+                "employee_orders": employee_orders,
+                "shopping_list": shopping_list
+            })
+        
+        current_date += timedelta(days=1)
+    
+    # Return history in reverse chronological order (newest first)
+    return {"history": list(reversed(history))}
+
+
 @api_router.get("/orders/daily-summary/{department_id}")
 async def get_daily_summary(department_id: str):
     """Get daily summary of all orders for a department"""
