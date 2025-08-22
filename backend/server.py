@@ -347,8 +347,9 @@ async def admin_login(login_data: AdminLogin):
 # Department routes
 @api_router.get("/departments", response_model=List[Department])
 async def get_departments():
-    """Get all departments for homepage display"""
-    departments = await db.departments.find().to_list(100)
+    """Get all departments for homepage display - ONLY Wachabteilung"""
+    # Only return departments with "Wachabteilung" in name
+    departments = await db.departments.find({"name": {"$regex": "Wachabteilung"}}).to_list(100)
     return [Department(**dept) for dept in departments]
 
 # Employee routes
