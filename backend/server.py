@@ -300,7 +300,7 @@ async def get_lunch_settings():
 
 @api_router.put("/lunch-settings")
 async def update_lunch_settings(price: float):
-    """Update lunch price"""
+    """Update lunch price and retroactively apply to all today's lunch orders"""
     lunch_settings = await db.lunch_settings.find_one()
     if lunch_settings:
         await db.lunch_settings.update_one(
@@ -311,7 +311,71 @@ async def update_lunch_settings(price: float):
         new_settings = LunchSettings(price=price)
         await db.lunch_settings.insert_one(new_settings.dict())
     
-    return {"message": "Lunch-Preis erfolgreich aktualisiert", "price": price}
+    # Retroactively update all today's breakfast orders with lunch
+    today = datetime.now(timezone.utc).date()
+    start_of_day = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_of_day = datetime.combine(today, datetime.max.time()).replace(tzinfo=timezone.utc)
+    
+    # Find all today's breakfast orders with lunch
+    todays_orders = await db.orders.find({
+        "order_type": "breakfast",
+        "timestamp": {
+            "$gte": start_of_day.isoformat(),
+            "$lte": end_of_day.isoformat()
+        }
+    }).to_list(1000)
+    
+    updated_orders = 0
+    for order in todays_orders:
+        if order.get("breakfast_items"):
+            # Check if any breakfast item has lunch
+            has_lunch_items = any(item.get("has_lunch", False) for item in order["breakfast_items"])
+            if has_lunch_items:
+                # Recalculate total price with new lunch price
+                new_total = 0.0
+                
+                # Get current menu prices
+                breakfast_menu = await db.menu_breakfast.find().to_list(100)
+                toppings_menu = await db.menu_toppings.find().to_list(100)
+                breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+                topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
+                
+                for item in order["breakfast_items"]:
+                    # Roll price
+                    roll_price = breakfast_prices.get(item["roll_type"], 0.0)
+                    new_total += roll_price * item.get("roll_halves", item.get("roll_count", 1))
+                    
+                    # Toppings price
+                    for topping in item.get("toppings", []):
+                        topping_price = topping_prices.get(topping, 0.0)
+                        new_total += topping_price
+                    
+                    # New lunch price
+                    if item.get("has_lunch"):
+                        new_total += price * item.get("roll_halves", item.get("roll_count", 1))
+                
+                # Update order with new total price
+                old_total = order["total_price"]
+                await db.orders.update_one(
+                    {"id": order["id"]},
+                    {"$set": {"total_price": new_total}}
+                )
+                
+                # Update employee balance with the difference
+                balance_diff = new_total - old_total
+                if balance_diff != 0:
+                    await db.employees.update_one(
+                        {"id": order["employee_id"]},
+                        {"$inc": {"breakfast_balance": balance_diff}}
+                    )
+                
+                updated_orders += 1
+    
+    return {
+        "message": "Lunch-Preis erfolgreich aktualisiert", 
+        "price": price,
+        "updated_orders": updated_orders
+    }
 
 # Menu routes
 @api_router.get("/menu/breakfast", response_model=List[MenuItemBreakfast])
