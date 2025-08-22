@@ -740,6 +740,48 @@ async def create_breakfast_item(roll_type: RollType, price: float):
     await db.menu_breakfast.insert_one(breakfast_item.dict())
     return breakfast_item
 
+@api_router.post("/department-admin/payment/{employee_id}")
+async def mark_payment(employee_id: str, payment_type: str, amount: float, admin_department: str):
+    """Department Admin: Mark debt as paid and log the payment"""
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Create payment log
+    payment_log = PaymentLog(
+        employee_id=employee_id,
+        department_id=employee["department_id"],
+        amount=amount,
+        payment_type=payment_type,
+        action="payment",
+        admin_user=admin_department,
+        notes=f"Schulden als bezahlt markiert: €{amount:.2f}"
+    )
+    
+    # Save payment log
+    payment_dict = prepare_for_mongo(payment_log.dict())
+    await db.payment_logs.insert_one(payment_dict)
+    
+    # Reset the balance to zero
+    if payment_type == "breakfast":
+        await db.employees.update_one(
+            {"id": employee_id},
+            {"$set": {"breakfast_balance": 0.0}}
+        )
+    elif payment_type == "drinks_sweets":
+        await db.employees.update_one(
+            {"id": employee_id},
+            {"$set": {"drinks_sweets_balance": 0.0}}
+        )
+    
+    return {"message": "Zahlung erfolgreich verbucht und Saldo zurückgesetzt"}
+
+@api_router.get("/department-admin/payment-logs/{employee_id}")
+async def get_payment_logs(employee_id: str):
+    """Get payment history for an employee"""
+    logs = await db.payment_logs.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(100)
+    return [parse_from_mongo({k: v for k, v in log.items() if k != '_id'}) for log in logs]
+
 # Admin routes
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
