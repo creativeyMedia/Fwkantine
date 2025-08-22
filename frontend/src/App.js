@@ -252,16 +252,6 @@ const Homepage = () => {
     }
   };
 
-  const handleAdminLogin = async (password) => {
-    try {
-      await axios.post(`${API}/login/admin`, { password });
-      loginAdmin();
-      setShowAdminLogin(false);
-    } catch (error) {
-      alert('Ungültiges Admin-Passwort');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
