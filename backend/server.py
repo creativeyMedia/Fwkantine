@@ -155,10 +155,10 @@ async def initialize_default_data():
     
     # Create 4 watch departments
     departments = [
-        Department(name="Wachabteilung A", password_hash="passwordA"),
-        Department(name="Wachabteilung B", password_hash="passwordB"),
-        Department(name="Wachabteilung C", password_hash="passwordC"),
-        Department(name="Wachabteilung D", password_hash="passwordD")
+        Department(name="Wachabteilung A", password_hash="passwordA", admin_password_hash="adminA"),
+        Department(name="Wachabteilung B", password_hash="passwordB", admin_password_hash="adminB"),
+        Department(name="Wachabteilung C", password_hash="passwordC", admin_password_hash="adminC"),
+        Department(name="Wachabteilung D", password_hash="passwordD", admin_password_hash="adminD")
     ]
     
     for dept in departments:
