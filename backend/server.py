@@ -112,6 +112,17 @@ class BreakfastSettings(BaseModel):
     closed_by: str = ""  # Admin who closed it
     closed_at: Optional[datetime] = None
 
+class PaymentLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employee_id: str
+    department_id: str
+    amount: float
+    payment_type: str  # "breakfast" or "drinks_sweets"
+    action: str  # "payment" or "reset"
+    admin_user: str  # department name who performed action
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    notes: str = ""
+
 class BreakfastOrder(BaseModel):
     roll_type: RollType
     roll_halves: int  # Changed from roll_count to roll_halves
