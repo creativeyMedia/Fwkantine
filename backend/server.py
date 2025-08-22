@@ -349,8 +349,9 @@ async def department_admin_login(login_data: DepartmentAdminLogin):
 
 @api_router.post("/login/admin") 
 async def admin_login(login_data: AdminLogin):
-    """Admin login"""
-    if login_data.password != "admin123":  # In production, use proper authentication
+    """Central admin login"""
+    admin_password = os.environ.get('CENTRAL_ADMIN_PASSWORD', 'admin123')
+    if login_data.password != admin_password:
         raise HTTPException(status_code=401, detail="Ungültiges Admin-Passwort")
     
     return {"message": "Admin erfolgreich angemeldet", "role": "admin"}
