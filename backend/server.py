@@ -234,13 +234,17 @@ async def cleanup_departments():
 async def initialize_default_data():
     """Initialize the database with default departments and menu items"""
     
-    # Always update departments with correct admin passwords
-    departments_data = [
-        {"name": "1. Schichtabteilung", "password_hash": "password1", "admin_password_hash": "admin1"},
-        {"name": "2. Schichtabteilung", "password_hash": "password2", "admin_password_hash": "admin2"},
-        {"name": "3. Schichtabteilung", "password_hash": "password3", "admin_password_hash": "admin3"},
-        {"name": "4. Schichtabteilung", "password_hash": "password4", "admin_password_hash": "admin4"}
-    ]
+    # Always update departments with correct admin passwords using environment variables
+    departments_data = []
+    for i in range(1, 5):
+        dept_password = os.environ.get(f'DEPT_{i}_PASSWORD', f'password{i}')
+        admin_password = os.environ.get(f'DEPT_{i}_ADMIN_PASSWORD', f'admin{i}')
+        
+        departments_data.append({
+            "name": f"{i}. Wachabteilung", 
+            "password_hash": dept_password, 
+            "admin_password_hash": admin_password
+        })
     
     # Update or create departments
     for dept_data in departments_data:
