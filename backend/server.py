@@ -494,14 +494,17 @@ async def get_employee_profile(employee_id: str):
         if order["order_type"] == "breakfast" and order.get("breakfast_items"):
             enriched_order["readable_items"] = []
             for item in order["breakfast_items"]:
-                roll_name = {"hell": "Helles Brötchen", "dunkel": "Dunkles Brötchen", "vollkorn": "Vollkornbrötchen"}.get(item["roll_type"], item["roll_type"])
+                roll_name = {"weiss": "Weißes Brötchen", "koerner": "Körnerbrötchen"}.get(item["roll_type"], item["roll_type"])
                 topping_names_german = {
                     "ruehrei": "Rührei", "spiegelei": "Spiegelei", "eiersalat": "Eiersalat",
                     "salami": "Salami", "schinken": "Schinken", "kaese": "Käse", "butter": "Butter"
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
+                description = f"{item['roll_count']}x {roll_name}"
+                if item.get("has_lunch"):
+                    description += " (mit Mittagessen)"
                 enriched_order["readable_items"].append({
-                    "description": f"{item['roll_count']}x {roll_name}",
+                    "description": description,
                     "toppings": toppings_str if toppings_str else "Ohne Belag"
                 })
         
