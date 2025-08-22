@@ -2081,6 +2081,96 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
   );
 };
 
+// Lunch Management Tab Component
+const LunchManagementTab = () => {
+  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
+  const [newPrice, setNewPrice] = useState('');
+
+  useEffect(() => {
+    fetchLunchSettings();
+  }, []);
+
+  const fetchLunchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/lunch-settings`);
+      setLunchSettings(response.data);
+      setNewPrice(response.data.price.toFixed(2));
+    } catch (error) {
+      console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
+    }
+  };
+
+  const updateLunchPrice = async () => {
+    if (!newPrice || isNaN(parseFloat(newPrice))) {
+      alert('Bitte gültigen Preis eingeben');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/lunch-settings?price=${parseFloat(newPrice)}`);
+      await fetchLunchSettings();
+      alert('Lunch-Preis erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Lunch-Preises:', error);
+      alert('Fehler beim Aktualisieren des Preises');
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Lunch Preis verwalten</h3>
+
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+        <div className="mb-6">
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Aktueller Lunch-Preis</h4>
+          <div className="text-3xl font-bold text-orange-600 mb-4">
+            €{lunchSettings.price.toFixed(2)}
+          </div>
+          <p className="text-sm text-gray-600">
+            Dieser Preis wird für alle Mitarbeiter angewendet, die Lunch als Zusatzoption zu ihrem Frühstück wählen.
+          </p>
+        </div>
+
+        <div className="border-t pt-6">
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Preis ändern</h4>
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Neuer Preis (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={updateLunchPrice}
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                Preis aktualisieren
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 bg-white border border-orange-300 rounded-lg p-4">
+          <h4 className="font-semibold text-orange-800 mb-2">Information</h4>
+          <ul className="text-sm text-gray-700 space-y-1">
+            <li>• Mitarbeiter können Lunch als Zusatzoption beim Frühstück wählen</li>
+            <li>• Der Lunch-Preis wird pro Brötchen berechnet</li>
+            <li>• Preisänderungen wirken sich auf neue Bestellungen aus</li>
+            <li>• Bereits getätigte Bestellungen behalten ihren ursprünglichen Preis</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isAdmin, isDepartmentAdmin } = React.useContext(AuthContext);
