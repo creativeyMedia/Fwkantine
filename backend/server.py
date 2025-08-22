@@ -669,6 +669,80 @@ async def get_employee_profile(employee_id: str):
         "drinks_sweets_total": employee["drinks_sweets_balance"]
     }
 
+@api_router.post("/department-admin/close-breakfast/{department_id}")
+async def close_breakfast_for_day(department_id: str, admin_name: str):
+    """Close breakfast ordering for the day"""
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Check if already closed
+    existing_setting = await db.breakfast_settings.find_one({
+        "department_id": department_id,
+        "date": today
+    })
+    
+    if existing_setting and existing_setting["is_closed"]:
+        raise HTTPException(status_code=400, detail="Frühstück für heute bereits geschlossen")
+    
+    # Create or update breakfast settings
+    breakfast_setting = BreakfastSettings(
+        department_id=department_id,
+        date=today,
+        is_closed=True,
+        closed_by=admin_name,
+        closed_at=datetime.now(timezone.utc)
+    )
+    
+    if existing_setting:
+        await db.breakfast_settings.update_one(
+            {"id": existing_setting["id"]},
+            {"$set": {
+                "is_closed": True,
+                "closed_by": admin_name,
+                "closed_at": breakfast_setting.closed_at.isoformat()
+            }}
+        )
+    else:
+        setting_dict = prepare_for_mongo(breakfast_setting.dict())
+        await db.breakfast_settings.insert_one(setting_dict)
+    
+    return {"message": "Frühstück für heute geschlossen", "closed_by": admin_name}
+
+@api_router.get("/breakfast-status/{department_id}")
+async def get_breakfast_status(department_id: str):
+    """Check if breakfast is closed for today"""
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    setting = await db.breakfast_settings.find_one({
+        "department_id": department_id,
+        "date": today
+    })
+    
+    if setting:
+        return {
+            "is_closed": setting["is_closed"],
+            "closed_by": setting.get("closed_by", ""),
+            "closed_at": setting.get("closed_at", ""),
+            "date": today
+        }
+    
+    return {"is_closed": False, "date": today}
+
+@api_router.post("/department-admin/reopen-breakfast/{department_id}")
+async def reopen_breakfast_for_day(department_id: str):
+    """Reopen breakfast ordering for the day (admin only)"""
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    await db.breakfast_settings.update_one(
+        {"department_id": department_id, "date": today},
+        {"$set": {
+            "is_closed": False,
+            "closed_by": "",
+            "closed_at": None
+        }}
+    )
+    
+    return {"message": "Frühstück für heute wieder geöffnet"}
+
 # Department Admin routes
 @api_router.put("/department-admin/menu/breakfast/{item_id}")
 async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
