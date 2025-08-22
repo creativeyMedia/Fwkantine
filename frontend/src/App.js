@@ -307,15 +307,6 @@ const Homepage = () => {
             onClose={() => setShowDepartmentAdminLogin(false)}
           />
         )}
-
-        {/* Admin Login Modal */}
-        {showAdminLogin && (
-          <LoginModal
-            title="Admin Anmeldung"
-            onLogin={handleAdminLogin}
-            onClose={() => setShowAdminLogin(false)}
-          />
-        )}
       </div>
     </div>
   );
