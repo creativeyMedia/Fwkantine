@@ -906,6 +906,22 @@ async def reopen_breakfast_for_day(department_id: str):
     
     return {"message": "Frühstück für heute wieder geöffnet"}
 
+@api_router.put("/department-admin/change-password/{department_id}")
+async def change_department_password(department_id: str, new_employee_password: str, new_admin_password: str):
+    """Change department passwords (both employee and admin)"""
+    result = await db.departments.update_one(
+        {"id": department_id},
+        {"$set": {
+            "password_hash": new_employee_password,
+            "admin_password_hash": new_admin_password
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
+    
+    return {"message": "Passwörter erfolgreich geändert"}
+
 # Department Admin routes
 @api_router.put("/department-admin/menu/breakfast/{item_id}")
 async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
