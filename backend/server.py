@@ -124,10 +124,11 @@ class PaymentLog(BaseModel):
     notes: str = ""
 
 class BreakfastOrder(BaseModel):
-    roll_type: RollType
-    roll_halves: int  # Changed from roll_count to roll_halves
-    toppings: List[ToppingType]  # Now exactly matches roll_halves count
-    has_lunch: bool = False  # New lunch option
+    total_halves: int  # Total number of roll halves
+    white_halves: int  # Number of white roll halves
+    seeded_halves: int  # Number of seeded roll halves
+    toppings: List[ToppingType]  # Exactly matches total_halves count
+    has_lunch: bool = False
     
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
