@@ -513,14 +513,17 @@ async def get_daily_summary(department_id: str):
             for item in order["breakfast_items"]:
                 roll_type = item["roll_type"]
                 if roll_type not in breakfast_summary:
-                    breakfast_summary[roll_type] = {"count": 0, "toppings": {}}
+                    breakfast_summary[roll_type] = {"halves": 0, "toppings": {}}
                 
-                breakfast_summary[roll_type]["count"] += item["roll_count"]
+                # Count halves (new logic)
+                roll_halves = item.get("roll_halves", item.get("roll_count", 1))  # Fallback for old orders
+                breakfast_summary[roll_type]["halves"] += roll_halves
                 
+                # Count toppings
                 for topping in item["toppings"]:
                     if topping not in breakfast_summary[roll_type]["toppings"]:
                         breakfast_summary[roll_type]["toppings"][topping] = 0
-                    breakfast_summary[roll_type]["toppings"][topping] += item["roll_count"]
+                    breakfast_summary[roll_type]["toppings"][topping] += 1  # Count per topping, not per roll
         
         elif order["order_type"] == "drinks" and order.get("drink_items"):
             for drink_id, quantity in order["drink_items"].items():
