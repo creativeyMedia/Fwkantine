@@ -2683,6 +2683,22 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
           onClose={() => setShowNewSweet(false)}
         />
       )}
+
+      {showNewBreakfast && (
+        <NewBreakfastItemModal
+          title="Neues Brötchen hinzufügen"
+          onCreateItem={(rollType, price) => onCreateMenuItem('breakfast', rollType, price)}
+          onClose={() => setShowNewBreakfast(false)}
+        />
+      )}
+
+      {showNewTopping && (
+        <NewToppingItemModal
+          title="Neuer Belag hinzufügen"
+          onCreateItem={(toppingType, price) => onCreateMenuItem('toppings', toppingType, price)}
+          onClose={() => setShowNewTopping(false)}
+        />
+      )}
     </div>
   );
 };
