@@ -636,6 +636,25 @@ async def delete_sweet_item(item_id: str):
         raise HTTPException(status_code=404, detail="Süßware nicht gefunden")
     return {"message": "Süßware erfolgreich gelöscht"}
 
+@api_router.delete("/department-admin/employees/{employee_id}")
+async def delete_employee(employee_id: str):
+    """Department Admin: Delete employee"""
+    result = await db.employees.delete_one({"id": employee_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Also delete all orders for this employee
+    await db.orders.delete_many({"employee_id": employee_id})
+    
+    return {"message": "Mitarbeiter erfolgreich gelöscht"}
+
+@api_router.post("/department-admin/menu/breakfast")
+async def create_breakfast_item(roll_type: RollType, price: float):
+    """Department Admin: Create new breakfast item"""
+    breakfast_item = MenuItemBreakfast(roll_type=roll_type, price=price)
+    await db.menu_breakfast.insert_one(breakfast_item.dict())
+    return breakfast_item
+
 # Admin routes
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
