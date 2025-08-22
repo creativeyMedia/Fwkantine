@@ -712,6 +712,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const [selectedRollType, setSelectedRollType] = useState('');
   const [rollCount, setRollCount] = useState(1);
   const [selectedToppings, setSelectedToppings] = useState([]);
+  const [hasLunch, setHasLunch] = useState(false);
 
   const handleToppingChange = (toppingType) => {
     setSelectedToppings(prev => 
@@ -723,10 +724,11 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
 
   const handleAddItem = () => {
     if (selectedRollType && rollCount > 0) {
-      onAddItem(selectedRollType, rollCount, selectedToppings);
+      onAddItem(selectedRollType, rollCount, selectedToppings, hasLunch);
       setSelectedRollType('');
       setRollCount(1);
       setSelectedToppings([]);
+      setHasLunch(false);
     }
   };
 
@@ -760,10 +762,22 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
               className="w-20 px-2 py-1 border border-gray-300 rounded"
             />
           </div>
+
+          <div className="mt-4">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={hasLunch}
+                onChange={(e) => setHasLunch(e.target.checked)}
+                className="mr-2"
+              />
+              <span className="text-sm font-medium">Mittagessen (Preis wird vom Admin festgelegt)</span>
+            </label>
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Belag</label>
+          <label className="block text-sm font-medium mb-2">Belag (kostenlos)</label>
           {toppingsMenu.map((item) => (
             <label key={item.id} className="flex items-center mb-2">
               <input
@@ -772,7 +786,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                 onChange={() => handleToppingChange(item.topping_type)}
                 className="mr-2"
               />
-              {toppingLabels[item.topping_type]} (€{item.price.toFixed(2)})
+              {toppingLabels[item.topping_type]}
             </label>
           ))}
         </div>
