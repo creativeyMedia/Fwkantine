@@ -467,6 +467,450 @@ class CanteenTester:
             self.log_test("Daily Summary", False, f"Exception: {str(e)}")
             return False
     
+    def test_department_admin_authentication(self):
+        """Test department admin login functionality with new admin passwords"""
+        print("\n=== Testing Department Admin Authentication ===")
+        
+        if not self.departments:
+            self.log_test("Department Admin Authentication", False, "No departments available for testing")
+            return False
+        
+        success_count = 0
+        
+        # Test correct admin passwords
+        expected_admin_passwords = {
+            "Wachabteilung A": "adminA",
+            "Wachabteilung B": "adminB", 
+            "Wachabteilung C": "adminC",
+            "Wachabteilung D": "adminD"
+        }
+        
+        for dept in self.departments:
+            dept_name = dept['name']
+            expected_admin_password = expected_admin_passwords.get(dept_name)
+            
+            if expected_admin_password:
+                try:
+                    # Test correct admin login
+                    admin_login_data = {
+                        "department_name": dept_name,
+                        "admin_password": expected_admin_password
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/login/department-admin", 
+                                               json=admin_login_data)
+                    
+                    if response.status_code == 200:
+                        login_result = response.json()
+                        if (login_result.get('department_id') == dept['id'] and 
+                            login_result.get('role') == 'department_admin'):
+                            self.log_test(f"Admin Login {dept_name}", True, 
+                                        f"Successful admin authentication with role assignment")
+                            success_count += 1
+                        else:
+                            self.log_test(f"Admin Login {dept_name}", False, 
+                                        "Department ID or role mismatch")
+                    else:
+                        self.log_test(f"Admin Login {dept_name}", False, 
+                                    f"HTTP {response.status_code}: {response.text}")
+                        
+                    # Test wrong admin password
+                    wrong_admin_login_data = {
+                        "department_name": dept_name,
+                        "admin_password": "wrongadminpassword"
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/login/department-admin", 
+                                               json=wrong_admin_login_data)
+                    
+                    if response.status_code == 401:
+                        self.log_test(f"Wrong Admin Password {dept_name}", True, 
+                                    "Correctly rejected wrong admin password")
+                    else:
+                        self.log_test(f"Wrong Admin Password {dept_name}", False, 
+                                    f"Should reject wrong admin password, got {response.status_code}")
+                        
+                except Exception as e:
+                    self.log_test(f"Admin Login {dept_name}", False, f"Exception: {str(e)}")
+        
+        return success_count == len(self.departments)
+
+    def test_employee_profile_endpoint(self):
+        """Test the enhanced employee profile endpoint with order history"""
+        print("\n=== Testing Employee Profile Endpoint ===")
+        
+        if not self.employees:
+            self.log_test("Employee Profile", False, "No employees available for testing")
+            return False
+        
+        test_employee = self.employees[0]
+        success_count = 0
+        
+        # First create some test orders for the employee
+        try:
+            # Create breakfast order
+            breakfast_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "roll_type": "hell",
+                        "roll_count": 1,
+                        "toppings": ["ruehrei", "kaese"]
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+            if response.status_code == 200:
+                self.log_test("Create Test Breakfast Order", True, "Order created for profile testing")
+            
+            # Create drinks order if drinks available
+            if self.menu_items['drinks']:
+                drink_item = self.menu_items['drinks'][0]
+                drinks_order = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "drinks",
+                    "drink_items": {drink_item['id']: 2}
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=drinks_order)
+                if response.status_code == 200:
+                    self.log_test("Create Test Drinks Order", True, "Drinks order created for profile testing")
+            
+            # Create sweets order if sweets available
+            if self.menu_items['sweets']:
+                sweet_item = self.menu_items['sweets'][0]
+                sweets_order = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "sweets",
+                    "sweet_items": {sweet_item['id']: 1}
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=sweets_order)
+                if response.status_code == 200:
+                    self.log_test("Create Test Sweets Order", True, "Sweets order created for profile testing")
+            
+        except Exception as e:
+            self.log_test("Create Test Orders", False, f"Exception: {str(e)}")
+        
+        # Now test the profile endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/profile")
+            
+            if response.status_code == 200:
+                profile = response.json()
+                
+                # Check required fields
+                required_fields = ['employee', 'order_history', 'total_orders', 'breakfast_total', 'drinks_sweets_total']
+                missing_fields = [field for field in required_fields if field not in profile]
+                
+                if not missing_fields:
+                    self.log_test("Profile Structure", True, "All required fields present")
+                    success_count += 1
+                    
+                    # Check employee details
+                    employee_data = profile['employee']
+                    if (employee_data['id'] == test_employee['id'] and 
+                        employee_data['name'] == test_employee['name']):
+                        self.log_test("Profile Employee Data", True, "Employee details correct")
+                        success_count += 1
+                    else:
+                        self.log_test("Profile Employee Data", False, "Employee details mismatch")
+                    
+                    # Check order history with German descriptions
+                    order_history = profile['order_history']
+                    if isinstance(order_history, list) and len(order_history) > 0:
+                        self.log_test("Profile Order History", True, f"Found {len(order_history)} orders")
+                        success_count += 1
+                        
+                        # Check for readable German descriptions
+                        has_readable_items = any('readable_items' in order for order in order_history)
+                        if has_readable_items:
+                            self.log_test("Profile German Descriptions", True, "Orders have German readable descriptions")
+                            success_count += 1
+                        else:
+                            self.log_test("Profile German Descriptions", False, "Missing German readable descriptions")
+                    else:
+                        self.log_test("Profile Order History", False, "No order history found")
+                    
+                    # Check balance summaries
+                    if (isinstance(profile['total_orders'], int) and 
+                        isinstance(profile['breakfast_total'], (int, float)) and
+                        isinstance(profile['drinks_sweets_total'], (int, float))):
+                        self.log_test("Profile Balance Summaries", True, 
+                                    f"Total orders: {profile['total_orders']}, Breakfast: €{profile['breakfast_total']:.2f}, Drinks/Sweets: €{profile['drinks_sweets_total']:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test("Profile Balance Summaries", False, "Invalid balance data types")
+                        
+                else:
+                    self.log_test("Profile Structure", False, f"Missing fields: {missing_fields}")
+                    
+            else:
+                self.log_test("Employee Profile", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Employee Profile", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_department_admin_menu_management(self):
+        """Test department admin menu management functionality"""
+        print("\n=== Testing Department Admin Menu Management ===")
+        
+        if not self.menu_items or not any(self.menu_items.values()):
+            self.log_test("Menu Management", False, "No menu items available for testing")
+            return False
+        
+        success_count = 0
+        
+        # Test breakfast price updates
+        if self.menu_items['breakfast']:
+            try:
+                breakfast_item = self.menu_items['breakfast'][0]
+                original_price = breakfast_item['price']
+                new_price = original_price + 0.10
+                
+                update_data = {"price": new_price}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/breakfast/{breakfast_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_test("Update Breakfast Price", True, 
+                                f"Updated price from €{original_price:.2f} to €{new_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Update Breakfast Price", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Update Breakfast Price", False, f"Exception: {str(e)}")
+        
+        # Test toppings price updates
+        if self.menu_items['toppings']:
+            try:
+                topping_item = self.menu_items['toppings'][0]
+                original_price = topping_item['price']
+                new_price = original_price + 0.05
+                
+                update_data = {"price": new_price}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/toppings/{topping_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_test("Update Toppings Price", True, 
+                                f"Updated topping price from €{original_price:.2f} to €{new_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Update Toppings Price", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Update Toppings Price", False, f"Exception: {str(e)}")
+        
+        # Test drinks price and name updates
+        if self.menu_items['drinks']:
+            try:
+                drink_item = self.menu_items['drinks'][0]
+                original_price = drink_item['price']
+                original_name = drink_item['name']
+                new_price = original_price + 0.15
+                new_name = f"{original_name} Premium"
+                
+                update_data = {"price": new_price, "name": new_name}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/drinks/{drink_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_test("Update Drinks Price/Name", True, 
+                                f"Updated '{original_name}' to '{new_name}' with price €{new_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Update Drinks Price/Name", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Update Drinks Price/Name", False, f"Exception: {str(e)}")
+        
+        # Test sweets price and name updates
+        if self.menu_items['sweets']:
+            try:
+                sweet_item = self.menu_items['sweets'][0]
+                original_price = sweet_item['price']
+                original_name = sweet_item['name']
+                new_price = original_price + 0.20
+                new_name = f"{original_name} Deluxe"
+                
+                update_data = {"price": new_price, "name": new_name}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/sweets/{sweet_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    self.log_test("Update Sweets Price/Name", True, 
+                                f"Updated '{original_name}' to '{new_name}' with price €{new_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Update Sweets Price/Name", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Update Sweets Price/Name", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_menu_item_creation_deletion(self):
+        """Test creating and deleting menu items"""
+        print("\n=== Testing Menu Item Creation & Deletion ===")
+        
+        success_count = 0
+        created_items = []
+        
+        # Test creating new drink item
+        try:
+            new_drink_data = {"name": "Heisse Schokolade", "price": 1.80}
+            response = self.session.post(f"{API_BASE}/department-admin/menu/drinks", 
+                                       json=new_drink_data)
+            
+            if response.status_code == 200:
+                new_drink = response.json()
+                created_items.append(('drinks', new_drink['id']))
+                self.log_test("Create New Drink", True, 
+                            f"Created '{new_drink['name']}' for €{new_drink['price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Create New Drink", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create New Drink", False, f"Exception: {str(e)}")
+        
+        # Test creating new sweet item
+        try:
+            new_sweet_data = {"name": "Lebkuchen", "price": 1.25}
+            response = self.session.post(f"{API_BASE}/department-admin/menu/sweets", 
+                                       json=new_sweet_data)
+            
+            if response.status_code == 200:
+                new_sweet = response.json()
+                created_items.append(('sweets', new_sweet['id']))
+                self.log_test("Create New Sweet", True, 
+                            f"Created '{new_sweet['name']}' for €{new_sweet['price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Create New Sweet", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create New Sweet", False, f"Exception: {str(e)}")
+        
+        # Test deleting created items
+        for item_type, item_id in created_items:
+            try:
+                response = self.session.delete(f"{API_BASE}/department-admin/menu/{item_type}/{item_id}")
+                
+                if response.status_code == 200:
+                    self.log_test(f"Delete {item_type.title()} Item", True, 
+                                f"Successfully deleted item {item_id}")
+                    success_count += 1
+                else:
+                    self.log_test(f"Delete {item_type.title()} Item", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Delete {item_type.title()} Item", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_data_integrity(self):
+        """Test data integrity after menu updates and operations"""
+        print("\n=== Testing Data Integrity ===")
+        
+        success_count = 0
+        
+        # Test that menu fetches reflect updates
+        try:
+            # Fetch updated menus
+            response = self.session.get(f"{API_BASE}/menu/drinks")
+            if response.status_code == 200:
+                drinks = response.json()
+                self.log_test("Menu Fetch After Updates", True, 
+                            f"Successfully fetched {len(drinks)} drinks after updates")
+                success_count += 1
+            else:
+                self.log_test("Menu Fetch After Updates", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Menu Fetch After Updates", False, f"Exception: {str(e)}")
+        
+        # Test employee profile shows German translations
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/profile")
+                
+                if response.status_code == 200:
+                    profile = response.json()
+                    order_history = profile.get('order_history', [])
+                    
+                    # Check for German translations in order descriptions
+                    has_german_translations = False
+                    for order in order_history:
+                        if 'readable_items' in order:
+                            for item in order['readable_items']:
+                                description = item.get('description', '')
+                                # Check for German words
+                                german_words = ['Brötchen', 'Rührei', 'Spiegelei', 'Käse', 'Schinken']
+                                if any(word in description for word in german_words):
+                                    has_german_translations = True
+                                    break
+                    
+                    if has_german_translations:
+                        self.log_test("German Translation Integrity", True, 
+                                    "Employee profile shows proper German order descriptions")
+                        success_count += 1
+                    else:
+                        self.log_test("German Translation Integrity", False, 
+                                    "Missing German translations in order descriptions")
+                else:
+                    self.log_test("Profile Data Integrity", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Profile Data Integrity", False, f"Exception: {str(e)}")
+        
+        # Test Euro pricing consistency
+        try:
+            all_menus = ['breakfast', 'toppings', 'drinks', 'sweets']
+            euro_pricing_valid = True
+            
+            for menu_type in all_menus:
+                response = self.session.get(f"{API_BASE}/menu/{menu_type}")
+                if response.status_code == 200:
+                    items = response.json()
+                    for item in items:
+                        if not (0 < item['price'] < 20):  # Reasonable Euro price range
+                            euro_pricing_valid = False
+                            break
+            
+            if euro_pricing_valid:
+                self.log_test("Euro Pricing Integrity", True, 
+                            "All menu items have valid Euro pricing")
+                success_count += 1
+            else:
+                self.log_test("Euro Pricing Integrity", False, 
+                            "Invalid Euro pricing found in menu items")
+                
+        except Exception as e:
+            self.log_test("Euro Pricing Integrity", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
     def test_admin_functions(self):
         """Test admin login and order deletion"""
         print("\n=== Testing Admin Functions ===")
