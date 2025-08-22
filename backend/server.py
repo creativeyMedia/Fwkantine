@@ -940,6 +940,8 @@ async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
     update_fields = {}
     if update_data.price is not None:
         update_fields["price"] = update_data.price
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
     
     if update_fields:
         result = await db.menu_breakfast.update_one(
@@ -957,6 +959,8 @@ async def update_toppings_menu_item(item_id: str, update_data: MenuItemUpdate):
     update_fields = {}
     if update_data.price is not None:
         update_fields["price"] = update_data.price
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
     
     if update_fields:
         result = await db.menu_toppings.update_one(
