@@ -1319,7 +1319,7 @@ const DepartmentAdminDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => window.location.reload()} // This will go back to employee dashboard
+              onClick={goBackToEmployeeDashboard}
               className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Zurück zum Mitarbeiter-Dashboard
