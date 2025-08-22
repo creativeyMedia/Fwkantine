@@ -10,40 +10,28 @@ const AuthContext = React.createContext();
 
 const AuthProvider = ({ children }) => {
   const [currentDepartment, setCurrentDepartment] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isDepartmentAdmin, setIsDepartmentAdmin] = useState(false);
 
   const loginDepartment = (departmentData) => {
     setCurrentDepartment(departmentData);
-    setIsAdmin(false);
-    setIsDepartmentAdmin(false);
-  };
-
-  const loginAdmin = () => {
-    setIsAdmin(true);
-    setCurrentDepartment(null);
     setIsDepartmentAdmin(false);
   };
 
   const loginDepartmentAdmin = (departmentData) => {
     setCurrentDepartment(departmentData);
     setIsDepartmentAdmin(true);
-    setIsAdmin(false);
   };
 
   const logout = () => {
     setCurrentDepartment(null);
-    setIsAdmin(false);
     setIsDepartmentAdmin(false);
   };
 
   return (
     <AuthContext.Provider value={{
       currentDepartment,
-      isAdmin,
       isDepartmentAdmin,
       loginDepartment,
-      loginAdmin,
       loginDepartmentAdmin,
       logout
     }}>
