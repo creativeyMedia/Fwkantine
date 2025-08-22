@@ -790,20 +790,20 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
     if not employee:
         raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
     
-    # Create payment log
-    payment_log = PaymentLog(
-        employee_id=employee_id,
-        department_id=employee["department_id"],
-        amount=amount,
-        payment_type=payment_type,
-        action="payment",
-        admin_user=admin_department,
-        notes=f"Schulden als bezahlt markiert: €{amount:.2f}"
-    )
+    # TODO: Create payment log - PaymentLog class was replaced with BreakfastSettings
+    # payment_log = PaymentLog(
+    #     employee_id=employee_id,
+    #     department_id=employee["department_id"],
+    #     amount=amount,
+    #     payment_type=payment_type,
+    #     action="payment",
+    #     admin_user=admin_department,
+    #     notes=f"Schulden als bezahlt markiert: €{amount:.2f}"
+    # )
     
     # Save payment log
-    payment_dict = prepare_for_mongo(payment_log.dict())
-    await db.payment_logs.insert_one(payment_dict)
+    # payment_dict = prepare_for_mongo(payment_log.dict())
+    # await db.payment_logs.insert_one(payment_dict)
     
     # Reset the balance to zero
     if payment_type == "breakfast":
