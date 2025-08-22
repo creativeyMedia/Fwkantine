@@ -104,16 +104,13 @@ class LunchSettings(BaseModel):
     price: float = 0.0
     enabled: bool = True
 
-class PaymentLog(BaseModel):
+class BreakfastSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    employee_id: str
     department_id: str
-    amount: float
-    payment_type: str  # "breakfast" or "drinks_sweets"
-    action: str  # "payment" or "reset"
-    admin_user: str  # department name who performed action
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    notes: str = ""
+    date: str  # YYYY-MM-DD format
+    is_closed: bool = False
+    closed_by: str = ""  # Admin who closed it
+    closed_at: Optional[datetime] = None
 
 class BreakfastOrder(BaseModel):
     roll_type: RollType
