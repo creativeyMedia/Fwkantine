@@ -1559,13 +1559,68 @@ const NewMenuItemModal = ({ title, onCreateItem, onClose }) => {
 
 // Admin Dashboard (placeholder for now)
 const AdminDashboard = () => {
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
+  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
   const { logout } = React.useContext(AuthContext);
+
+  useEffect(() => {
+    fetchAllEmployees();
+    fetchLunchSettings();
+  }, []);
+
+  const fetchAllEmployees = async () => {
+    try {
+      // Fetch employees from all departments
+      const deptResponse = await axios.get(`${API}/departments`);
+      const departments = deptResponse.data;
+      
+      let allEmps = [];
+      for (const dept of departments) {
+        const empResponse = await axios.get(`${API}/departments/${dept.id}/employees`);
+        const deptEmployees = empResponse.data.map(emp => ({
+          ...emp,
+          department_name: dept.name
+        }));
+        allEmps = [...allEmps, ...deptEmployees];
+      }
+      setAllEmployees(allEmps);
+    } catch (error) {
+      console.error('Fehler beim Laden der Mitarbeiter:', error);
+    }
+  };
+
+  const fetchLunchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/lunch-settings`);
+      setLunchSettings(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
+    }
+  };
+
+  const updateLunchPrice = async (newPrice) => {
+    try {
+      await axios.put(`${API}/lunch-settings?price=${newPrice}`);
+      setLunchSettings(prev => ({ ...prev, price: newPrice }));
+      alert('Lunch-Preis erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Lunch-Preises:', error);
+      alert('Fehler beim Aktualisieren des Preises');
+    }
+  };
+
+  const handleEmployeeClick = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEmployeeProfile(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard - Mitarbeiter Profile</h1>
           <button
             onClick={logout}
             className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
@@ -1573,17 +1628,59 @@ const AdminDashboard = () => {
             Abmelden
           </button>
         </div>
-        
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Verwaltungsfunktionen</h2>
-          <p className="text-gray-600">
-            Admin-Funktionen werden in der nächsten Phase implementiert:
-            <br />• Bestellungen bearbeiten/löschen
-            <br />• Guthaben zurücksetzen
-            <br />• Inventar verwalten
-            <br />• Tagesberichte anzeigen
-          </p>
+
+        {/* Lunch Price Management */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Lunch-Preis Verwaltung</h2>
+          <div className="flex items-center gap-4">
+            <span>Aktueller Preis: €{lunchSettings.price.toFixed(2)}</span>
+            <button
+              onClick={() => {
+                const newPrice = prompt('Neuer Lunch-Preis (€):', lunchSettings.price.toFixed(2));
+                if (newPrice && !isNaN(parseFloat(newPrice))) {
+                  updateLunchPrice(parseFloat(newPrice));
+                }
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Preis ändern
+            </button>
+          </div>
         </div>
+        
+        {/* All Employees Overview */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-6">Alle Mitarbeiter</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allEmployees.map((employee) => (
+              <div
+                key={employee.id}
+                onClick={() => handleEmployeeClick(employee)}
+                className="bg-gray-50 border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-300"
+              >
+                <h3 className="font-semibold text-lg">{employee.name}</h3>
+                <p className="text-sm text-gray-600">{employee.department_name}</p>
+                <div className="text-sm text-gray-600 mt-2">
+                  <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
+                  <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+                </div>
+                <p className="text-blue-600 text-sm mt-2">Klicken für Verlauf →</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Employee Profile with Admin Controls */}
+        {showEmployeeProfile && selectedEmployee && (
+          <AdminEmployeeProfile
+            employee={selectedEmployee}
+            onClose={() => {
+              setShowEmployeeProfile(false);
+              setSelectedEmployee(null);
+            }}
+            onRefresh={fetchAllEmployees}
+          />
+        )}
       </div>
     </div>
   );
