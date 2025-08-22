@@ -1917,6 +1917,165 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
   );
 };
 
+// Breakfast Summary Table Component
+const BreakfastSummaryTable = ({ departmentId, onClose }) => {
+  const [dailySummary, setDailySummary] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDailySummary();
+  }, [departmentId]);
+
+  const fetchDailySummary = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${API}/orders/daily-summary/${departmentId}`);
+      setDailySummary(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Tagesübersicht:', error);
+      alert('Fehler beim Laden der Übersicht');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const rollTypeLabels = {
+    'weiss': 'Weißes Brötchen',
+    'koerner': 'Körnerbrötchen'
+  };
+
+  const toppingLabels = {
+    'ruehrei': 'Rührei',
+    'spiegelei': 'Spiegelei',
+    'eiersalat': 'Eiersalat',
+    'salami': 'Salami',
+    'schinken': 'Schinken',
+    'kaese': 'Käse',
+    'butter': 'Butter'
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p>Lade Frühstück Übersicht...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Frühstück Tagesübersicht - {dailySummary?.date}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {dailySummary && Object.keys(dailySummary.breakfast_summary).length > 0 ? (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Bestellte Brötchen und Beläge</h3>
+              
+              {/* Summary Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-4 py-2 text-left">Brötchen Art</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">Anzahl</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Beläge (Anzahl)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(dailySummary.breakfast_summary).map(([rollType, data]) => (
+                      <tr key={rollType} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2 font-semibold">
+                          {rollTypeLabels[rollType] || rollType}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
+                          {data.count}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          {Object.keys(data.toppings).length > 0 ? (
+                            <div className="space-y-1">
+                              {Object.entries(data.toppings).map(([topping, count]) => (
+                                <div key={topping} className="flex justify-between">
+                                  <span>{toppingLabels[topping] || topping}:</span>
+                                  <span className="font-semibold ml-2">{count}x</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 italic">Keine Beläge</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Total Summary */}
+              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-2">Gesamtübersicht</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p><strong>Gesamt Brötchen:</strong> {Object.values(dailySummary.breakfast_summary).reduce((sum, data) => sum + data.count, 0)}</p>
+                  </div>
+                  <div>
+                    <p><strong>Gesamt Beläge:</strong> {
+                      Object.values(dailySummary.breakfast_summary)
+                        .reduce((sum, data) => sum + Object.values(data.toppings).reduce((toppingsSum, count) => toppingsSum + count, 0), 0)
+                    }</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed breakdown by topping */}
+              <div className="mt-6">
+                <h4 className="font-semibold mb-3">Detaillierte Belag-Aufschlüsselung</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(() => {
+                    const allToppings = {};
+                    Object.values(dailySummary.breakfast_summary).forEach(data => {
+                      Object.entries(data.toppings).forEach(([topping, count]) => {
+                        allToppings[topping] = (allToppings[topping] || 0) + count;
+                      });
+                    });
+                    
+                    return Object.entries(allToppings).map(([topping, totalCount]) => (
+                      <div key={topping} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <h5 className="font-medium">{toppingLabels[topping] || topping}</h5>
+                        <p className="text-xl font-bold text-green-600">{totalCount}x</p>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 text-lg">Keine Frühstück-Bestellungen für heute</p>
+              <p className="text-gray-500">Bestellungen werden hier angezeigt, sobald sie eingehen.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isAdmin, isDepartmentAdmin } = React.useContext(AuthContext);
