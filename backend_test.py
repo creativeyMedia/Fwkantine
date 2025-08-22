@@ -342,7 +342,7 @@ class CanteenTester:
                 "order_type": "breakfast",
                 "breakfast_items": [
                     {
-                        "roll_type": "hell",
+                        "roll_type": "weiss",  # Updated roll type
                         "roll_count": 2,
                         "toppings": ["ruehrei", "kaese"]
                     }
