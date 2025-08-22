@@ -287,12 +287,7 @@ const Homepage = () => {
         </div>
 
         <div className="text-center">
-          <button
-            onClick={() => setShowAdminLogin(true)}
-            className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors duration-300"
-          >
-            Admin Anmeldung
-          </button>
+          <p className="text-gray-600">Wählen Sie Ihre Schichtabteilung aus</p>
         </div>
 
         {/* Department Login Modal */}
