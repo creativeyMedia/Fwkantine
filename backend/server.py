@@ -187,19 +187,18 @@ async def initialize_default_data():
     
     # Create default menu items (only if they don't exist)
     breakfast_items = [
-        MenuItemBreakfast(roll_type=RollType.LIGHT, price=0.50),
-        MenuItemBreakfast(roll_type=RollType.DARK, price=0.55),
-        MenuItemBreakfast(roll_type=RollType.WHOLEMEAL, price=0.60)
+        MenuItemBreakfast(roll_type=RollType.WHITE, price=0.50),
+        MenuItemBreakfast(roll_type=RollType.SEEDED, price=0.60)
     ]
     
     toppings = [
-        MenuItemToppings(topping_type=ToppingType.SCRAMBLED_EGG, price=1.20),
-        MenuItemToppings(topping_type=ToppingType.FRIED_EGG, price=1.00),
-        MenuItemToppings(topping_type=ToppingType.EGG_SALAD, price=0.80),
-        MenuItemToppings(topping_type=ToppingType.SALAMI, price=1.50),
-        MenuItemToppings(topping_type=ToppingType.HAM, price=1.30),
-        MenuItemToppings(topping_type=ToppingType.CHEESE, price=0.70),
-        MenuItemToppings(topping_type=ToppingType.BUTTER, price=0.30)
+        MenuItemToppings(topping_type=ToppingType.SCRAMBLED_EGG, price=0.00),  # Free
+        MenuItemToppings(topping_type=ToppingType.FRIED_EGG, price=0.00),     # Free
+        MenuItemToppings(topping_type=ToppingType.EGG_SALAD, price=0.00),     # Free
+        MenuItemToppings(topping_type=ToppingType.SALAMI, price=0.00),        # Free
+        MenuItemToppings(topping_type=ToppingType.HAM, price=0.00),           # Free
+        MenuItemToppings(topping_type=ToppingType.CHEESE, price=0.00),        # Free
+        MenuItemToppings(topping_type=ToppingType.BUTTER, price=0.00)         # Free
     ]
     
     drinks = [
@@ -218,6 +217,9 @@ async def initialize_default_data():
         MenuItemSweet(name="Banane", price=0.50),
         MenuItemSweet(name="Kuchen", price=2.00)
     ]
+    
+    # Create default lunch settings
+    lunch_settings = LunchSettings(price=0.0, enabled=True)
     
     # Insert menu items
     for item in breakfast_items:
