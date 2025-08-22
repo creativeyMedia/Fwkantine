@@ -2595,7 +2595,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
                 ) : (
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-medium">{rollTypeLabels[item.roll_type]}</span>
+                      <span className="font-medium">{item.name || rollTypeLabels[item.roll_type]}</span>
                       <div className="text-sm text-gray-600">€{item.price.toFixed(2)}</div>
                     </div>
                     <div className="flex gap-2">
