@@ -405,6 +405,18 @@ const DepartmentDashboard = () => {
               Frühstück Übersicht
             </button>
             <button
+              onClick={() => setShowAdminLogin(true)}
+              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Admin Login
+            </button>
+            <button
+              onClick={() => setShowMasterLogin(true)}
+              className="bg-purple-600 text-white px-2 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
+              Master
+            </button>
+            <button
               onClick={logout}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
