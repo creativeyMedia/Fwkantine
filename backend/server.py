@@ -314,22 +314,28 @@ async def create_order(order_data: OrderCreate):
     total_price = 0.0
     
     if order_data.order_type == OrderType.BREAKFAST and order_data.breakfast_items:
-        # Get breakfast menu prices
+        # Get breakfast menu prices and lunch settings
         breakfast_menu = await db.menu_breakfast.find().to_list(100)
         toppings_menu = await db.menu_toppings.find().to_list(100)
+        lunch_settings = await db.lunch_settings.find_one()
         
         breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
         topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
+        lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
         
         for breakfast_item in order_data.breakfast_items:
             # Roll price
             roll_price = breakfast_prices.get(breakfast_item.roll_type, 0.0)
             total_price += roll_price * breakfast_item.roll_count
             
-            # Toppings price
+            # Toppings price (now free but keep structure for future changes)
             for topping in breakfast_item.toppings:
                 topping_price = topping_prices.get(topping, 0.0)
                 total_price += topping_price * breakfast_item.roll_count
+            
+            # Lunch price if selected
+            if breakfast_item.has_lunch:
+                total_price += lunch_price * breakfast_item.roll_count
     
     elif order_data.order_type == OrderType.DRINKS and order_data.drink_items:
         drinks_menu = await db.menu_drinks.find().to_list(100)
