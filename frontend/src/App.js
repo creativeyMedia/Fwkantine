@@ -1419,10 +1419,14 @@ const AdminDashboard = () => {
 
 // Main App Component
 function App() {
-  const { currentDepartment, isAdmin } = React.useContext(AuthContext);
+  const { currentDepartment, isAdmin, isDepartmentAdmin } = React.useContext(AuthContext);
 
   if (isAdmin) {
     return <AdminDashboard />;
+  }
+
+  if (isDepartmentAdmin) {
+    return <DepartmentAdminDashboard />;
   }
 
   if (currentDepartment) {
