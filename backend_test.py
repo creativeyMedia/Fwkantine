@@ -960,9 +960,14 @@ class CanteenTester:
             ("Data Initialization", self.test_data_initialization),
             ("Department Retrieval", self.test_get_departments),
             ("Department Authentication", self.test_department_authentication),
+            ("Department Admin Authentication", self.test_department_admin_authentication),
             ("Employee Management", self.test_employee_management),
             ("Menu Endpoints", self.test_menu_endpoints),
             ("Order Processing", self.test_order_processing),
+            ("Employee Profile Endpoint", self.test_employee_profile_endpoint),
+            ("Department Admin Menu Management", self.test_department_admin_menu_management),
+            ("Menu Item Creation & Deletion", self.test_menu_item_creation_deletion),
+            ("Data Integrity", self.test_data_integrity),
             ("Daily Summary", self.test_daily_summary),
             ("Admin Functions", self.test_admin_functions)
         ]
