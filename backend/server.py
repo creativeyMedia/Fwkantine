@@ -106,8 +106,8 @@ class LunchSettings(BaseModel):
 
 class BreakfastOrder(BaseModel):
     roll_type: RollType
-    roll_count: int
-    toppings: List[ToppingType]
+    roll_halves: int  # Changed from roll_count to roll_halves
+    toppings: List[ToppingType]  # Now exactly matches roll_halves count
     has_lunch: bool = False  # New lunch option
     
 class Order(BaseModel):
