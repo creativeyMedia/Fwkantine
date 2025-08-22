@@ -1715,6 +1715,157 @@ const NewMenuItemModal = ({ title, onCreateItem, onClose }) => {
   );
 };
 
+// New Breakfast Item Modal
+const NewBreakfastItemModal = ({ title, onCreateItem, onClose }) => {
+  const [rollType, setRollType] = useState('');
+  const [price, setPrice] = useState('');
+
+  const rollTypeOptions = [
+    { value: 'weiss', label: 'Weißes Brötchen' },
+    { value: 'koerner', label: 'Körnerbrötchen' }
+  ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (rollType && price && !isNaN(parseFloat(price))) {
+      onCreateItem(rollType, price);
+      setRollType('');
+      setPrice('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Brötchen-Typ</label>
+            <select
+              value={rollType}
+              onChange={(e) => setRollType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            >
+              <option value="">-- Brötchen-Typ wählen --</option>
+              {rollTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Preis (€)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            >
+              Erstellen
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// New Topping Item Modal
+const NewToppingItemModal = ({ title, onCreateItem, onClose }) => {
+  const [toppingType, setToppingType] = useState('');
+  const [price, setPrice] = useState('');
+
+  const toppingTypeOptions = [
+    { value: 'ruehrei', label: 'Rührei' },
+    { value: 'spiegelei', label: 'Spiegelei' },
+    { value: 'eiersalat', label: 'Eiersalat' },
+    { value: 'salami', label: 'Salami' },
+    { value: 'schinken', label: 'Schinken' },
+    { value: 'kaese', label: 'Käse' },
+    { value: 'butter', label: 'Butter' }
+  ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (toppingType && price && !isNaN(parseFloat(price))) {
+      onCreateItem(toppingType, price);
+      setToppingType('');
+      setPrice('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Belag-Typ</label>
+            <select
+              value={toppingType}
+              onChange={(e) => setToppingType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            >
+              <option value="">-- Belag-Typ wählen --</option>
+              {toppingTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Preis (€)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+            >
+              Erstellen
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Admin Dashboard (placeholder for now)
 const AdminDashboard = () => {
   const [allEmployees, setAllEmployees] = useState([]);
