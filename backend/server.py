@@ -293,7 +293,10 @@ async def get_lunch_settings():
         default_settings = LunchSettings()
         await db.lunch_settings.insert_one(default_settings.dict())
         return default_settings
-    return lunch_settings
+    
+    # Clean the document by removing MongoDB _id field
+    clean_settings = {k: v for k, v in lunch_settings.items() if k != '_id'}
+    return clean_settings
 
 @api_router.put("/lunch-settings")
 async def update_lunch_settings(price: float):
