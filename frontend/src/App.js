@@ -256,6 +256,7 @@ const DepartmentDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [showNewEmployee, setShowNewEmployee] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
   const { currentDepartment, logout } = React.useContext(AuthContext);
 
   useEffect(() => {
