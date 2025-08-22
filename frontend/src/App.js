@@ -1374,6 +1374,10 @@ const DepartmentAdminDashboard = () => {
             <LunchManagementTab />
           )}
 
+          {activeTab === 'breakfast-history' && (
+            <BreakfastHistoryTab currentDepartment={currentDepartment} />
+          )}
+
           {activeTab === 'settings' && (
             <AdminSettingsTab currentDepartment={currentDepartment} />
           )}
