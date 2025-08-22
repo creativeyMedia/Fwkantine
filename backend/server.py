@@ -440,7 +440,9 @@ async def get_employee_profile(employee_id: str):
     # Enrich orders with readable names
     enriched_orders = []
     for order in orders:
-        enriched_order = parse_from_mongo(order.copy())
+        # Clean the order data and remove MongoDB _id
+        clean_order = {k: v for k, v in order.items() if k != '_id'}
+        enriched_order = parse_from_mongo(clean_order.copy())
         
         if order["order_type"] == "breakfast" and order.get("breakfast_items"):
             enriched_order["readable_items"] = []
@@ -470,8 +472,11 @@ async def get_employee_profile(employee_id: str):
         
         enriched_orders.append(enriched_order)
     
+    # Clean employee data and remove MongoDB _id
+    clean_employee = {k: v for k, v in employee.items() if k != '_id'}
+    
     return {
-        "employee": Employee(**employee),
+        "employee": clean_employee,
         "order_history": enriched_orders,
         "total_orders": len(orders),
         "breakfast_total": employee["breakfast_balance"],
