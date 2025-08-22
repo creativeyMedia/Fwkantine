@@ -686,28 +686,47 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
   );
 };
 
-// Breakfast Order Form
+// Breakfast Order Form with Roll Halves Logic
 const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels }) => {
   const [selectedRollType, setSelectedRollType] = useState('');
-  const [rollCount, setRollCount] = useState(1);
+  const [rollHalves, setRollHalves] = useState(1);
   const [selectedToppings, setSelectedToppings] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
 
   const handleToppingChange = (toppingType) => {
-    setSelectedToppings(prev => 
-      prev.includes(toppingType)
-        ? prev.filter(t => t !== toppingType)
-        : [...prev, toppingType]
-    );
+    if (selectedToppings.includes(toppingType)) {
+      // Remove topping
+      setSelectedToppings(prev => prev.filter(t => t !== toppingType));
+    } else {
+      // Add topping only if we haven't reached the limit
+      if (selectedToppings.length < rollHalves) {
+        setSelectedToppings(prev => [...prev, toppingType]);
+      } else {
+        alert(`Sie können nur ${rollHalves} Belag(e) für ${rollHalves} Brötchenhälfte(n) wählen.`);
+      }
+    }
   };
 
   const handleAddItem = () => {
-    if (selectedRollType && rollCount > 0) {
-      onAddItem(selectedRollType, rollCount, selectedToppings, hasLunch);
+    if (selectedRollType && rollHalves > 0) {
+      if (selectedToppings.length !== rollHalves) {
+        alert(`Bitte wählen Sie genau ${rollHalves} Belag(e) für ${rollHalves} Brötchenhälfte(n).`);
+        return;
+      }
+      
+      onAddItem(selectedRollType, rollHalves, selectedToppings, hasLunch);
       setSelectedRollType('');
-      setRollCount(1);
+      setRollHalves(1);
       setSelectedToppings([]);
       setHasLunch(false);
+    }
+  };
+
+  const handleRollHalvesChange = (newHalves) => {
+    setRollHalves(newHalves);
+    // Reset toppings if we have too many selected
+    if (selectedToppings.length > newHalves) {
+      setSelectedToppings(prev => prev.slice(0, newHalves));
     }
   };
 
@@ -727,19 +746,22 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                 onChange={(e) => setSelectedRollType(e.target.value)}
                 className="mr-2"
               />
-              {rollTypeLabels[item.roll_type]} (€{item.price.toFixed(2)})
+              {rollTypeLabels[item.roll_type]} (€{item.price.toFixed(2)} pro Hälfte)
             </label>
           ))}
           
           <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">Anzahl</label>
+            <label className="block text-sm font-medium mb-2">Anzahl Brötchenhälften</label>
             <input
               type="number"
               min="1"
-              value={rollCount}
-              onChange={(e) => setRollCount(e.target.value)}
+              value={rollHalves}
+              onChange={(e) => handleRollHalvesChange(parseInt(e.target.value) || 1)}
               className="w-20 px-2 py-1 border border-gray-300 rounded"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {rollHalves} Hälfte(n) = {Math.ceil(rollHalves / 2)} ganze(s) Brötchen
+            </p>
           </div>
 
           <div className="mt-4">
@@ -756,24 +778,42 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Belag (kostenlos)</label>
+          <label className="block text-sm font-medium mb-2">
+            Belag wählen (kostenlos) - {selectedToppings.length}/{rollHalves} gewählt
+          </label>
+          <p className="text-xs text-gray-600 mb-3">Wählen Sie genau {rollHalves} Belag(e) für Ihre {rollHalves} Brötchenhälfte(n)</p>
+          
           {toppingsMenu.map((item) => (
             <label key={item.id} className="flex items-center mb-2">
               <input
                 type="checkbox"
                 checked={selectedToppings.includes(item.topping_type)}
                 onChange={() => handleToppingChange(item.topping_type)}
+                disabled={!selectedToppings.includes(item.topping_type) && selectedToppings.length >= rollHalves}
                 className="mr-2"
               />
-              {toppingLabels[item.topping_type]}
+              <span className={!selectedToppings.includes(item.topping_type) && selectedToppings.length >= rollHalves ? 'text-gray-400' : ''}>
+                {toppingLabels[item.topping_type]}
+              </span>
             </label>
           ))}
+          
+          {selectedToppings.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <h4 className="text-sm font-medium">Ihre Auswahl:</h4>
+              <ul className="text-xs text-gray-700 mt-1">
+                {selectedToppings.map((topping, index) => (
+                  <li key={index}>• {toppingLabels[topping]}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
       <button
         onClick={handleAddItem}
-        disabled={!selectedRollType}
+        disabled={!selectedRollType || selectedToppings.length !== rollHalves}
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
       >
         Hinzufügen
