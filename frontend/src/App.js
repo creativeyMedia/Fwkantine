@@ -181,6 +181,15 @@ const Homepage = () => {
           />
         )}
 
+        {/* Department Admin Login Modal */}
+        {showDepartmentAdminLogin && (
+          <LoginModal
+            title={`Admin Anmeldung für ${selectedDepartment?.name}`}
+            onLogin={handleDepartmentAdminLogin}
+            onClose={() => setShowDepartmentAdminLogin(false)}
+          />
+        )}
+
         {/* Admin Login Modal */}
         {showAdminLogin && (
           <LoginModal
