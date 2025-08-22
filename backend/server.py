@@ -165,6 +165,28 @@ class MenuItemCreate(BaseModel):
     price: float
 
 # Initialize default data
+@api_router.post("/cleanup-departments")
+async def cleanup_departments():
+    """Clean up duplicate and old departments, keep only the 4 new ones"""
+    
+    # Delete all existing departments
+    await db.departments.delete_many({})
+    
+    # Create exactly 4 new departments
+    departments_data = [
+        {"name": "1. Wachabteilung", "password_hash": "password1", "admin_password_hash": "admin1"},
+        {"name": "2. Wachabteilung", "password_hash": "password2", "admin_password_hash": "admin2"},
+        {"name": "3. Wachabteilung", "password_hash": "password3", "admin_password_hash": "admin3"},
+        {"name": "4. Wachabteilung", "password_hash": "password4", "admin_password_hash": "admin4"}
+    ]
+    
+    # Create new departments
+    for dept_data in departments_data:
+        department = Department(**dept_data)
+        await db.departments.insert_one(department.dict())
+    
+    return {"message": "Departments cleaned up successfully", "count": 4}
+
 @api_router.post("/init-data")
 async def initialize_default_data():
     """Initialize the database with default departments and menu items"""
