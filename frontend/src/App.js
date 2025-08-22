@@ -2632,12 +2632,12 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
                 {editingItem?.id === item.id ? (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Name (nicht änderbar)</label>
+                      <label className="block text-sm font-medium mb-1">Name</label>
                       <input
                         type="text"
-                        value={toppingLabels[item.topping_type]}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded"
                       />
                     </div>
                     <div>
