@@ -220,6 +220,15 @@ async def department_login(login_data: DepartmentLogin):
     
     return {"department_id": dept["id"], "department_name": dept["name"]}
 
+@api_router.post("/login/department-admin")
+async def department_admin_login(login_data: DepartmentAdminLogin):
+    """Login for department admin with admin password"""
+    dept = await db.departments.find_one({"name": login_data.department_name})
+    if not dept or dept["admin_password_hash"] != login_data.admin_password:
+        raise HTTPException(status_code=401, detail="Ungültiger Name oder Admin-Passwort")
+    
+    return {"department_id": dept["id"], "department_name": dept["name"], "role": "department_admin"}
+
 @api_router.post("/login/admin") 
 async def admin_login(login_data: AdminLogin):
     """Admin login"""
