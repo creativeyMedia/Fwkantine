@@ -1337,31 +1337,25 @@ const DepartmentAdminDashboard = () => {
             />
           )}
 
-          {activeTab === 'prices' && (
-            <PriceManagementTab 
+          {activeTab === 'menu-management' && (
+            <UnifiedMenuManagementTab 
               breakfastMenu={breakfastMenu}
               toppingsMenu={toppingsMenu}
               drinksMenu={drinksMenu}
               sweetsMenu={sweetsMenu}
               onUpdatePrice={updatePrice}
-            />
-          )}
-
-          {activeTab === 'menu' && (
-            <MenuManagementTab 
-              drinksMenu={drinksMenu}
-              sweetsMenu={sweetsMenu}
               onCreateMenuItem={createMenuItem}
               onDeleteMenuItem={deleteMenuItem}
-              showNewDrink={showNewDrink}
-              setShowNewDrink={setShowNewDrink}
-              showNewSweet={showNewSweet}
-              setShowNewSweet={setShowNewSweet}
+              fetchMenus={fetchMenus}
             />
           )}
 
           {activeTab === 'lunch' && (
             <LunchManagementTab />
+          )}
+
+          {activeTab === 'settings' && (
+            <AdminSettingsTab currentDepartment={currentDepartment} />
           )}
         </div>
 
