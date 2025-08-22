@@ -1216,7 +1216,8 @@ const DepartmentAdminDashboard = () => {
           {[
             { id: 'employees', label: 'Mitarbeiter' },
             { id: 'prices', label: 'Preise verwalten' },
-            { id: 'menu', label: 'Menü verwalten' }
+            { id: 'menu', label: 'Menü verwalten' },
+            { id: 'lunch', label: 'Lunch verwalten' }
           ].map((tab) => (
             <button
               key={tab.id}
