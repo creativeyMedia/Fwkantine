@@ -52,6 +52,152 @@ const AuthProvider = ({ children }) => {
   );
 };
 
+// Individual Employee Profile Component
+const IndividualEmployeeProfile = ({ employee, onClose }) => {
+  const [employeeProfile, setEmployeeProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployeeProfile();
+  }, [employee.id]);
+
+  const fetchEmployeeProfile = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${API}/employees/${employee.id}/profile`);
+      setEmployeeProfile(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Mitarbeiterprofils:', error);
+      alert('Fehler beim Laden des Profils');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getOrderTypeLabel = (orderType) => {
+    switch (orderType) {
+      case 'breakfast': return 'Frühstück';
+      case 'drinks': return 'Getränke';
+      case 'sweets': return 'Süßes';
+      default: return orderType;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p>Lade Profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!employeeProfile) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8">
+          <p>Fehler beim Laden des Profils</p>
+          <button onClick={onClose} className="mt-4 bg-red-600 text-white px-4 py-2 rounded">
+            Schließen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">{employeeProfile.employee.name} - Verlauf</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
+              <p className="text-2xl font-bold text-blue-600">€{employeeProfile.breakfast_total.toFixed(2)}</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
+              <p className="text-2xl font-bold text-green-600">€{employeeProfile.drinks_sweets_total.toFixed(2)}</p>
+            </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h3 className="font-semibold text-purple-800">Gesamt Bestellungen</h3>
+              <p className="text-2xl font-bold text-purple-600">{employeeProfile.total_orders}</p>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
+              <p className="text-2xl font-bold text-orange-600">€{(employeeProfile.breakfast_total + employeeProfile.drinks_sweets_total).toFixed(2)}</p>
+            </div>
+          </div>
+
+          {/* Order History */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Bestellverlauf</h3>
+            {employeeProfile.order_history.length === 0 ? (
+              <p className="text-gray-600 text-center py-8">Keine Bestellungen vorhanden</p>
+            ) : (
+              <div className="space-y-4">
+                {employeeProfile.order_history.map((order, index) => (
+                  <div key={order.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                          {getOrderTypeLabel(order.order_type)}
+                        </span>
+                        <span className="text-sm text-gray-600">{formatDate(order.timestamp)}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">€{order.total_price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    {order.readable_items && order.readable_items.length > 0 && (
+                      <div className="space-y-1">
+                        {order.readable_items.map((item, idx) => (
+                          <div key={idx} className="text-sm">
+                            <span className="font-medium">{item.description}</span>
+                            {item.toppings && <span className="text-gray-600"> mit {item.toppings}</span>}
+                            {item.unit_price && <span className="text-gray-600"> ({item.unit_price} pro Stück)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Homepage with department cards
 const Homepage = () => {
   const [departments, setDepartments] = useState([]);
