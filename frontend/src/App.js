@@ -88,6 +88,11 @@ const Homepage = () => {
     setShowDepartmentLogin(true);
   };
 
+  const handleDepartmentAdminClick = (department) => {
+    setSelectedDepartment(department);
+    setShowDepartmentAdminLogin(true);
+  };
+
   const handleDepartmentLogin = async (password) => {
     try {
       const response = await axios.post(`${API}/login/department`, {
@@ -98,6 +103,19 @@ const Homepage = () => {
       setShowDepartmentLogin(false);
     } catch (error) {
       alert('Ungültiges Passwort');
+    }
+  };
+
+  const handleDepartmentAdminLogin = async (password) => {
+    try {
+      const response = await axios.post(`${API}/login/department-admin`, {
+        department_name: selectedDepartment.name,
+        admin_password: password
+      });
+      loginDepartmentAdmin(response.data);
+      setShowDepartmentAdminLogin(false);
+    } catch (error) {
+      alert('Ungültiges Admin-Passwort');
     }
   };
 
