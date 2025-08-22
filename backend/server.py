@@ -605,7 +605,8 @@ async def get_employee_profile(employee_id: str):
                     "salami": "Salami", "schinken": "Schinken", "kaese": "Käse", "butter": "Butter"
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
-                description = f"{item['roll_count']}x {roll_name}"
+                roll_count = item.get('roll_halves', item.get('roll_count', 1))
+                description = f"{roll_count}x {roll_name} Hälften" if 'roll_halves' in item else f"{roll_count}x {roll_name}"
                 if item.get("has_lunch"):
                     description += " (mit Mittagessen)"
                 enriched_order["readable_items"].append({
