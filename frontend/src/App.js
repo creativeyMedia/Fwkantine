@@ -1090,6 +1090,301 @@ const DepartmentAdminDashboard = () => {
   );
 };
 
+// Employee Management Tab Component
+const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee }) => {
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Mitarbeiter verwalten</h3>
+        <button
+          onClick={() => setShowNewEmployee(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Neuer Mitarbeiter
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {employees.map((employee) => (
+          <div key={employee.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 className="font-semibold text-lg mb-2">{employee.name}</h4>
+            <div className="text-sm text-gray-600">
+              <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
+              <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Price Management Tab Component
+const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice }) => {
+  const rollTypeLabels = {
+    'hell': 'Helles Brötchen',
+    'dunkel': 'Dunkles Brötchen',
+    'vollkorn': 'Vollkornbrötchen'
+  };
+
+  const toppingLabels = {
+    'ruehrei': 'Rührei',
+    'spiegelei': 'Spiegelei',
+    'eiersalat': 'Eiersalat',
+    'salami': 'Salami',
+    'schinken': 'Schinken',
+    'kaese': 'Käse',
+    'butter': 'Butter'
+  };
+
+  const updateItemPrice = (category, itemId, currentPrice) => {
+    const newPrice = prompt('Neuer Preis (€):', currentPrice.toFixed(2));
+    if (newPrice && !isNaN(parseFloat(newPrice))) {
+      onUpdatePrice(category, itemId, newPrice);
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Preise verwalten</h3>
+
+      <div className="space-y-8">
+        {/* Breakfast Items */}
+        <div>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Brötchen</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {breakfastMenu.map((item) => (
+              <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{rollTypeLabels[item.roll_type]}</span>
+                  <button
+                    onClick={() => updateItemPrice('breakfast', item.id, item.price)}
+                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                  >
+                    €{item.price.toFixed(2)}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Toppings */}
+        <div>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Beläge</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {toppingsMenu.map((item) => (
+              <div key={item.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{toppingLabels[item.topping_type]}</span>
+                  <button
+                    onClick={() => updateItemPrice('toppings', item.id, item.price)}
+                    className="text-green-600 hover:text-green-800 font-semibold"
+                  >
+                    €{item.price.toFixed(2)}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Drinks */}
+        <div>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Getränke</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {drinksMenu.map((item) => (
+              <div key={item.id} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{item.name}</span>
+                  <button
+                    onClick={() => updateItemPrice('drinks', item.id, item.price)}
+                    className="text-purple-600 hover:text-purple-800 font-semibold"
+                  >
+                    €{item.price.toFixed(2)}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sweets */}
+        <div>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Süßwaren</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sweetsMenu.map((item) => (
+              <div key={item.id} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{item.name}</span>
+                  <button
+                    onClick={() => updateItemPrice('sweets', item.id, item.price)}
+                    className="text-orange-600 hover:text-orange-800 font-semibold"
+                  >
+                    €{item.price.toFixed(2)}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Menu Management Tab Component  
+const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteMenuItem, showNewDrink, setShowNewDrink, showNewSweet, setShowNewSweet }) => {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold mb-6">Menü verwalten</h3>
+
+      <div className="space-y-8">
+        {/* Drinks Management */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-md font-semibold text-gray-700">Getränke</h4>
+            <button
+              onClick={() => setShowNewDrink(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+            >
+              Neues Getränk
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {drinksMenu.map((item) => (
+              <div key={item.id} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium">{item.name}</span>
+                    <p className="text-sm text-gray-600">€{item.price.toFixed(2)}</p>
+                  </div>
+                  <button
+                    onClick={() => onDeleteMenuItem('drinks', item.id)}
+                    className="text-red-600 hover:text-red-800 font-semibold"
+                  >
+                    Löschen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sweets Management */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-md font-semibold text-gray-700">Süßwaren</h4>
+            <button
+              onClick={() => setShowNewSweet(true)}
+              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+            >
+              Neue Süßware
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sweetsMenu.map((item) => (
+              <div key={item.id} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium">{item.name}</span>
+                    <p className="text-sm text-gray-600">€{item.price.toFixed(2)}</p>
+                  </div>
+                  <button
+                    onClick={() => onDeleteMenuItem('sweets', item.id)}
+                    className="text-red-600 hover:text-red-800 font-semibold"
+                  >
+                    Löschen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* New Item Modals */}
+      {showNewDrink && (
+        <NewMenuItemModal
+          title="Neues Getränk hinzufügen"
+          onCreateItem={(name, price) => onCreateMenuItem('drinks', name, price)}
+          onClose={() => setShowNewDrink(false)}
+        />
+      )}
+
+      {showNewSweet && (
+        <NewMenuItemModal
+          title="Neue Süßware hinzufügen"
+          onCreateItem={(name, price) => onCreateMenuItem('sweets', name, price)}
+          onClose={() => setShowNewSweet(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+// New Menu Item Modal
+const NewMenuItemModal = ({ title, onCreateItem, onClose }) => {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (name.trim() && price && !isNaN(parseFloat(price))) {
+      onCreateItem(name.trim(), price);
+      setName('');
+      setPrice('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Preis (€)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            >
+              Erstellen
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Admin Dashboard (placeholder for now)
 const AdminDashboard = () => {
   const { logout } = React.useContext(AuthContext);
