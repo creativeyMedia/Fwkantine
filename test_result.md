@@ -426,6 +426,17 @@ test_plan:
   test_priority: "completed"
 
 frontend:
+  - task: "Enhanced Menu Management UI - Breakfast & Toppings CRUD"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "⚠️ Frontend implementation completed but authentication issues detected. Enhanced UnifiedMenuManagementTab with add/delete buttons for breakfast and toppings, created NewBreakfastItemModal and NewToppingItemModal components, updated createMenuItem function to handle different data structures. However, login attempts show 401 errors suggesting frontend may be configured for production environment instead of local backend."
   - task: "Homepage & Navigation"
     implemented: true
     working: true
