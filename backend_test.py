@@ -1445,6 +1445,226 @@ class CanteenTester:
             self.log_test("Enhanced Employee Profile", False, f"Exception: {str(e)}")
         
         return success_count >= 2
+
+    def test_new_breakfast_toppings_menu_management(self):
+        """Test the new breakfast and toppings menu management endpoints"""
+        print("\n=== Testing New Breakfast & Toppings Menu Management ===")
+        
+        success_count = 0
+        created_items = []
+        
+        # Test 1: POST /api/department-admin/menu/breakfast - Create new breakfast item
+        try:
+            new_breakfast_data = {
+                "roll_type": "weiss",  # Valid enum value
+                "price": 0.75
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/breakfast", 
+                                       json=new_breakfast_data)
+            
+            if response.status_code == 200:
+                new_breakfast = response.json()
+                created_items.append(('breakfast', new_breakfast['id']))
+                self.log_test("Create New Breakfast Item", True, 
+                            f"Created breakfast item: {new_breakfast['roll_type']} for €{new_breakfast['price']:.2f}")
+                success_count += 1
+                
+                # Verify it appears in GET request
+                verify_response = self.session.get(f"{API_BASE}/menu/breakfast")
+                if verify_response.status_code == 200:
+                    breakfast_items = verify_response.json()
+                    item_found = any(item['id'] == new_breakfast['id'] for item in breakfast_items)
+                    if item_found:
+                        self.log_test("Verify New Breakfast in Menu", True, 
+                                    "New breakfast item appears in menu")
+                        success_count += 1
+                    else:
+                        self.log_test("Verify New Breakfast in Menu", False, 
+                                    "New breakfast item not found in menu")
+            else:
+                self.log_test("Create New Breakfast Item", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create New Breakfast Item", False, f"Exception: {str(e)}")
+        
+        # Test 2: POST /api/department-admin/menu/toppings - Create new topping item
+        try:
+            new_topping_data = {
+                "topping_type": "ruehrei",  # Valid enum value
+                "price": 0.25
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", 
+                                       json=new_topping_data)
+            
+            if response.status_code == 200:
+                new_topping = response.json()
+                created_items.append(('toppings', new_topping['id']))
+                self.log_test("Create New Topping Item", True, 
+                            f"Created topping item: {new_topping['topping_type']} for €{new_topping['price']:.2f}")
+                success_count += 1
+                
+                # Verify it appears in GET request
+                verify_response = self.session.get(f"{API_BASE}/menu/toppings")
+                if verify_response.status_code == 200:
+                    topping_items = verify_response.json()
+                    item_found = any(item['id'] == new_topping['id'] for item in topping_items)
+                    if item_found:
+                        self.log_test("Verify New Topping in Menu", True, 
+                                    "New topping item appears in menu")
+                        success_count += 1
+                    else:
+                        self.log_test("Verify New Topping in Menu", False, 
+                                    "New topping item not found in menu")
+            else:
+                self.log_test("Create New Topping Item", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create New Topping Item", False, f"Exception: {str(e)}")
+        
+        # Test 3: Create another breakfast item with koerner roll type
+        try:
+            koerner_breakfast_data = {
+                "roll_type": "koerner",  # Valid enum value
+                "price": 0.85
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/breakfast", 
+                                       json=koerner_breakfast_data)
+            
+            if response.status_code == 200:
+                koerner_breakfast = response.json()
+                created_items.append(('breakfast', koerner_breakfast['id']))
+                self.log_test("Create Koerner Breakfast Item", True, 
+                            f"Created koerner breakfast: €{koerner_breakfast['price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Create Koerner Breakfast Item", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create Koerner Breakfast Item", False, f"Exception: {str(e)}")
+        
+        # Test 4: Create another topping with different type
+        try:
+            cheese_topping_data = {
+                "topping_type": "kaese",  # Valid enum value
+                "price": 0.30
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", 
+                                       json=cheese_topping_data)
+            
+            if response.status_code == 200:
+                cheese_topping = response.json()
+                created_items.append(('toppings', cheese_topping['id']))
+                self.log_test("Create Cheese Topping Item", True, 
+                            f"Created cheese topping: €{cheese_topping['price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Create Cheese Topping Item", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create Cheese Topping Item", False, f"Exception: {str(e)}")
+        
+        # Test 5: DELETE breakfast items
+        breakfast_items_to_delete = [item for item in created_items if item[0] == 'breakfast']
+        for item_type, item_id in breakfast_items_to_delete:
+            try:
+                response = self.session.delete(f"{API_BASE}/department-admin/menu/breakfast/{item_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test(f"Delete Breakfast Item", True, 
+                                f"Successfully deleted breakfast item: {result.get('message', 'Success')}")
+                    success_count += 1
+                    
+                    # Verify deletion by checking it's no longer in menu
+                    verify_response = self.session.get(f"{API_BASE}/menu/breakfast")
+                    if verify_response.status_code == 200:
+                        breakfast_items = verify_response.json()
+                        item_found = any(item['id'] == item_id for item in breakfast_items)
+                        if not item_found:
+                            self.log_test("Verify Breakfast Item Deletion", True, 
+                                        "Breakfast item successfully removed from menu")
+                            success_count += 1
+                        else:
+                            self.log_test("Verify Breakfast Item Deletion", False, 
+                                        "Breakfast item still appears in menu after deletion")
+                else:
+                    self.log_test(f"Delete Breakfast Item", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Delete Breakfast Item", False, f"Exception: {str(e)}")
+        
+        # Test 6: DELETE topping items
+        topping_items_to_delete = [item for item in created_items if item[0] == 'toppings']
+        for item_type, item_id in topping_items_to_delete:
+            try:
+                response = self.session.delete(f"{API_BASE}/department-admin/menu/toppings/{item_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    self.log_test(f"Delete Topping Item", True, 
+                                f"Successfully deleted topping item: {result.get('message', 'Success')}")
+                    success_count += 1
+                    
+                    # Verify deletion by checking it's no longer in menu
+                    verify_response = self.session.get(f"{API_BASE}/menu/toppings")
+                    if verify_response.status_code == 200:
+                        topping_items = verify_response.json()
+                        item_found = any(item['id'] == item_id for item in topping_items)
+                        if not item_found:
+                            self.log_test("Verify Topping Item Deletion", True, 
+                                        "Topping item successfully removed from menu")
+                            success_count += 1
+                        else:
+                            self.log_test("Verify Topping Item Deletion", False, 
+                                        "Topping item still appears in menu after deletion")
+                else:
+                    self.log_test(f"Delete Topping Item", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Delete Topping Item", False, f"Exception: {str(e)}")
+        
+        # Test 7: Test error handling for invalid IDs
+        try:
+            invalid_id = "invalid-breakfast-id-12345"
+            response = self.session.delete(f"{API_BASE}/department-admin/menu/breakfast/{invalid_id}")
+            
+            if response.status_code == 404:
+                self.log_test("Error Handling - Invalid Breakfast ID", True, 
+                            "Correctly returned 404 for invalid breakfast ID")
+                success_count += 1
+            else:
+                self.log_test("Error Handling - Invalid Breakfast ID", False, 
+                            f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Error Handling - Invalid Breakfast ID", False, f"Exception: {str(e)}")
+        
+        try:
+            invalid_id = "invalid-topping-id-12345"
+            response = self.session.delete(f"{API_BASE}/department-admin/menu/toppings/{invalid_id}")
+            
+            if response.status_code == 404:
+                self.log_test("Error Handling - Invalid Topping ID", True, 
+                            "Correctly returned 404 for invalid topping ID")
+                success_count += 1
+            else:
+                self.log_test("Error Handling - Invalid Topping ID", False, 
+                            f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Error Handling - Invalid Topping ID", False, f"Exception: {str(e)}")
+        
+        return success_count >= 8  # Expect at least 8 successful tests
     
     def run_all_tests(self):
         """Run all backend tests"""
