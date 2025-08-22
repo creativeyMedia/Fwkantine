@@ -557,27 +557,67 @@ async def get_daily_summary(department_id: str):
         }
     }).to_list(1000)
     
-    # Aggregate breakfast orders
+    # Aggregate breakfast orders with employee details
     breakfast_summary = {}
+    employee_orders = {}  # Track individual employee orders
     drinks_summary = {}
     sweets_summary = {}
     
     for order in orders:
         if order["order_type"] == "breakfast" and order.get("breakfast_items"):
+            # Get employee info
+            employee = await db.employees.find_one({"id": order["employee_id"]})
+            employee_name = employee["name"] if employee else "Unknown"
+            
+            if employee_name not in employee_orders:
+                employee_orders[employee_name] = {"white_halves": 0, "seeded_halves": 0, "toppings": {}}
+            
             for item in order["breakfast_items"]:
-                roll_type = item["roll_type"]
-                if roll_type not in breakfast_summary:
-                    breakfast_summary[roll_type] = {"halves": 0, "toppings": {}}
+                # Handle new format (total_halves, white_halves, seeded_halves)
+                if "total_halves" in item:
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                else:
+                    # Handle old format (roll_type, roll_halves)
+                    roll_type = item.get("roll_type", "weiss")
+                    roll_halves = item.get("roll_halves", item.get("roll_count", 1))
+                    if roll_type == "weiss":
+                        white_halves = roll_halves
+                        seeded_halves = 0
+                    else:
+                        white_halves = 0
+                        seeded_halves = roll_halves
                 
-                # Count halves (new logic)
-                roll_halves = item.get("roll_halves", item.get("roll_count", 1))  # Fallback for old orders
-                breakfast_summary[roll_type]["halves"] += roll_halves
+                # Update employee totals
+                employee_orders[employee_name]["white_halves"] += white_halves
+                employee_orders[employee_name]["seeded_halves"] += seeded_halves
                 
-                # Count toppings
+                # Update overall summary
+                if "weiss" not in breakfast_summary:
+                    breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
+                if "koerner" not in breakfast_summary:
+                    breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
+                
+                breakfast_summary["weiss"]["halves"] += white_halves
+                breakfast_summary["koerner"]["halves"] += seeded_halves
+                
+                # Count toppings per employee
                 for topping in item["toppings"]:
-                    if topping not in breakfast_summary[roll_type]["toppings"]:
-                        breakfast_summary[roll_type]["toppings"][topping] = 0
-                    breakfast_summary[roll_type]["toppings"][topping] += 1  # Count per topping, not per roll
+                    # Employee toppings
+                    if topping not in employee_orders[employee_name]["toppings"]:
+                        employee_orders[employee_name]["toppings"][topping] = {"white": 0, "seeded": 0}
+                    
+                    # Distribute toppings proportionally (simplified: assign to roll type with more halves)
+                    if white_halves >= seeded_halves:
+                        employee_orders[employee_name]["toppings"][topping]["white"] += 1
+                        if topping not in breakfast_summary["weiss"]["toppings"]:
+                            breakfast_summary["weiss"]["toppings"][topping] = 0
+                        breakfast_summary["weiss"]["toppings"][topping] += 1
+                    else:
+                        employee_orders[employee_name]["toppings"][topping]["seeded"] += 1
+                        if topping not in breakfast_summary["koerner"]["toppings"]:
+                            breakfast_summary["koerner"]["toppings"][topping] = 0
+                        breakfast_summary["koerner"]["toppings"][topping] += 1
         
         elif order["order_type"] == "drinks" and order.get("drink_items"):
             for drink_id, quantity in order["drink_items"].items():
