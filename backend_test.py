@@ -292,15 +292,25 @@ class CanteenTester:
                         self.log_test(f"Menu {menu_test['endpoint'].title()}", True, 
                                     f"All German items found: {len(items)} items")
                         
-                        # Check Euro pricing (all prices should be > 0 and reasonable)
-                        valid_prices = all(0 < item['price'] < 10 for item in items)
-                        if valid_prices:
-                            self.log_test(f"Pricing {menu_test['endpoint'].title()}", True, 
-                                        f"Valid Euro pricing: €{min(item['price'] for item in items):.2f} - €{max(item['price'] for item in items):.2f}")
-                            success_count += 1
+                        # Check pricing - toppings should be free (0.00), others should be > 0
+                        if menu_test['endpoint'] == 'toppings':
+                            valid_prices = all(item['price'] == 0.0 for item in items)
+                            if valid_prices:
+                                self.log_test(f"Free Toppings Pricing", True, 
+                                            f"All toppings are free: €0.00")
+                                success_count += 1
+                            else:
+                                self.log_test(f"Free Toppings Pricing", False, 
+                                            "Toppings should be free (€0.00)")
                         else:
-                            self.log_test(f"Pricing {menu_test['endpoint'].title()}", False, 
-                                        "Invalid pricing found")
+                            valid_prices = all(0 < item['price'] < 10 for item in items)
+                            if valid_prices:
+                                self.log_test(f"Pricing {menu_test['endpoint'].title()}", True, 
+                                            f"Valid Euro pricing: €{min(item['price'] for item in items):.2f} - €{max(item['price'] for item in items):.2f}")
+                                success_count += 1
+                            else:
+                                self.log_test(f"Pricing {menu_test['endpoint'].title()}", False, 
+                                            "Invalid pricing found")
                     else:
                         self.log_test(f"Menu {menu_test['endpoint'].title()}", False, 
                                     f"Missing items: {missing_items}")
