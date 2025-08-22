@@ -615,6 +615,65 @@ async def get_daily_summary(department_id: str):
         "total_toppings": total_toppings
     }
 
+@api_router.get("/employee/{employee_id}/today-orders")
+async def get_employee_today_orders(employee_id: str):
+    """Get employee's orders for today"""
+    today = datetime.now(timezone.utc).date()
+    start_of_day = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_of_day = datetime.combine(today, datetime.max.time()).replace(tzinfo=timezone.utc)
+    
+    orders = await db.orders.find({
+        "employee_id": employee_id,
+        "timestamp": {
+            "$gte": start_of_day.isoformat(),
+            "$lte": end_of_day.isoformat()
+        }
+    }).to_list(100)
+    
+    return [parse_from_mongo({k: v for k, v in order.items() if k != '_id'}) for order in orders]
+
+@api_router.delete("/employee/{employee_id}/orders/{order_id}")
+async def delete_employee_order(employee_id: str, order_id: str):
+    """Allow employee to delete their own order (if breakfast not closed)"""
+    # Check if order belongs to employee
+    order = await db.orders.find_one({"id": order_id, "employee_id": employee_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+    
+    # For breakfast orders, check if breakfast is closed
+    if order["order_type"] == "breakfast":
+        today = datetime.now(timezone.utc).date().isoformat()
+        breakfast_status = await db.breakfast_settings.find_one({
+            "department_id": order["department_id"],
+            "date": today
+        })
+        
+        if breakfast_status and breakfast_status["is_closed"]:
+            raise HTTPException(
+                status_code=403, 
+                detail="Frühstück ist geschlossen. Nur Admins können noch Änderungen vornehmen."
+            )
+    
+    # Adjust employee balance
+    employee = await db.employees.find_one({"id": employee_id})
+    if employee:
+        if order["order_type"] == "breakfast":
+            new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
+            await db.employees.update_one(
+                {"id": employee_id},
+                {"$set": {"breakfast_balance": max(0, new_breakfast_balance)}}
+            )
+        else:
+            new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+            await db.employees.update_one(
+                {"id": employee_id},
+                {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
+            )
+    
+    # Delete order
+    await db.orders.delete_one({"id": order_id})
+    return {"message": "Bestellung erfolgreich gelöscht"}
+
 @api_router.get("/orders/employee/{employee_id}")
 async def get_employee_orders(employee_id: str):
     """Get all orders for a specific employee"""
