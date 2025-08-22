@@ -191,13 +191,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   );
 };
 
-// Homepage with department cards
+// Homepage with department cards - Direct Access
 const Homepage = () => {
   const [departments, setDepartments] = useState([]);
-  const [showDepartmentLogin, setShowDepartmentLogin] = useState(false);
-  const [showDepartmentAdminLogin, setShowDepartmentAdminLogin] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const { loginDepartment, loginDepartmentAdmin } = React.useContext(AuthContext);
+  const { loginDepartment } = React.useContext(AuthContext);
 
   useEffect(() => {
     initializeData();
@@ -222,39 +219,11 @@ const Homepage = () => {
   };
 
   const handleDepartmentClick = (department) => {
-    setSelectedDepartment(department);
-    setShowDepartmentLogin(true);
-  };
-
-  const handleDepartmentAdminClick = (department) => {
-    setSelectedDepartment(department);
-    setShowDepartmentAdminLogin(true);
-  };
-
-  const handleDepartmentLogin = async (password) => {
-    try {
-      const response = await axios.post(`${API}/login/department`, {
-        department_name: selectedDepartment.name,
-        password: password
-      });
-      loginDepartment(response.data);
-      setShowDepartmentLogin(false);
-    } catch (error) {
-      alert('Ungültiges Passwort');
-    }
-  };
-
-  const handleDepartmentAdminLogin = async (password) => {
-    try {
-      const response = await axios.post(`${API}/login/department-admin`, {
-        department_name: selectedDepartment.name,
-        admin_password: password
-      });
-      loginDepartmentAdmin(response.data);
-      setShowDepartmentAdminLogin(false);
-    } catch (error) {
-      alert('Ungültiges Admin-Passwort');
-    }
+    // Direct access to department dashboard without password
+    loginDepartment({
+      department_id: department.id,
+      department_name: department.name
+    });
   };
 
   return (
@@ -268,50 +237,27 @@ const Homepage = () => {
           {departments.map((department) => (
             <div
               key={department.id}
-              className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500"
+              onClick={() => handleDepartmentClick(department)}
+              className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300 border-l-4 border-blue-500"
             >
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 {department.name}
               </h2>
-              <div className="space-y-2">
-                <button
-                  onClick={() => handleDepartmentClick(department)}
-                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300"
-                >
-                  Mitarbeiter Anmeldung
-                </button>
-                <button
-                  onClick={() => handleDepartmentAdminClick(department)}
-                  className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors duration-300"
-                >
-                  Admin Anmeldung
-                </button>
+              <div className="text-center">
+                <div className="text-blue-600 text-sm font-medium">
+                  Klicken zum Öffnen
+                </div>
+                <div className="text-gray-500 text-xs mt-1">
+                  Mitarbeiter & Admin Zugang
+                </div>
               </div>
             </div>
           ))}
         </div>
 
         <div className="text-center">
-          <p className="text-gray-600">Wählen Sie Ihre Schichtabteilung aus</p>
+          <p className="text-gray-600">Wählen Sie Ihre Wachabteilung aus</p>
         </div>
-
-        {/* Department Login Modal */}
-        {showDepartmentLogin && (
-          <LoginModal
-            title={`Anmeldung für ${selectedDepartment?.name}`}
-            onLogin={handleDepartmentLogin}
-            onClose={() => setShowDepartmentLogin(false)}
-          />
-        )}
-
-        {/* Department Admin Login Modal */}
-        {showDepartmentAdminLogin && (
-          <LoginModal
-            title={`Admin Anmeldung für ${selectedDepartment?.name}`}
-            onLogin={handleDepartmentAdminLogin}
-            onClose={() => setShowDepartmentAdminLogin(false)}
-          />
-        )}
       </div>
     </div>
   );
