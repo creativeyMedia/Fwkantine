@@ -353,18 +353,25 @@ async def create_order(order_data: OrderCreate):
         lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
         
         for breakfast_item in order_data.breakfast_items:
-            # Roll price
+            # Validate that toppings count matches roll halves
+            if len(breakfast_item.toppings) != breakfast_item.roll_halves:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.roll_halves}) entsprechen"
+                )
+            
+            # Roll price - calculated per half roll
             roll_price = breakfast_prices.get(breakfast_item.roll_type, 0.0)
-            total_price += roll_price * breakfast_item.roll_count
+            total_price += roll_price * breakfast_item.roll_halves
             
             # Toppings price (now free but keep structure for future changes)
             for topping in breakfast_item.toppings:
                 topping_price = topping_prices.get(topping, 0.0)
-                total_price += topping_price * breakfast_item.roll_count
+                total_price += topping_price  # Price per topping, not per roll
             
             # Lunch price if selected
             if breakfast_item.has_lunch:
-                total_price += lunch_price * breakfast_item.roll_count
+                total_price += lunch_price * breakfast_item.roll_halves
     
     elif order_data.order_type == OrderType.DRINKS and order_data.drink_items:
         drinks_menu = await db.menu_drinks.find().to_list(100)
