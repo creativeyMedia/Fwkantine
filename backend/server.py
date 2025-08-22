@@ -184,6 +184,20 @@ class MenuItemCreateToppings(BaseModel):
     price: float
 
 # Initialize default data
+def get_department_data():
+    """Generate department data using environment variables for passwords"""
+    departments_data = []
+    for i in range(1, 5):
+        dept_password = os.environ.get(f'DEPT_{i}_PASSWORD', f'password{i}')
+        admin_password = os.environ.get(f'DEPT_{i}_ADMIN_PASSWORD', f'admin{i}')
+        
+        departments_data.append(Department(
+            name=f"{i}. Wachabteilung", 
+            password_hash=dept_password, 
+            admin_password_hash=admin_password
+        ))
+    return departments_data
+
 @api_router.post("/cleanup-departments-final")
 async def cleanup_departments_final():
     """Final cleanup - keep only 4 Wachabteilung departments, remove all others"""
@@ -192,12 +206,7 @@ async def cleanup_departments_final():
     await db.departments.delete_many({})
     
     # Create exactly 4 clean Wachabteilung departments
-    departments_data = [
-        Department(name="1. Wachabteilung", password_hash="password1", admin_password_hash="admin1"),
-        Department(name="2. Wachabteilung", password_hash="password2", admin_password_hash="admin2"),
-        Department(name="3. Wachabteilung", password_hash="password3", admin_password_hash="admin3"),
-        Department(name="4. Wachabteilung", password_hash="password4", admin_password_hash="admin4")
-    ]
+    departments_data = get_department_data()
     
     # Insert new departments
     for dept in departments_data:
