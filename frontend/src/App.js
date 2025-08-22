@@ -1260,15 +1260,26 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
-  const createMenuItem = async (category, name, price) => {
+  const createMenuItem = async (category, nameOrType, price) => {
     try {
-      await axios.post(`${API}/department-admin/menu/${category}`, {
-        name,
-        price: parseFloat(price)
-      });
+      let requestData;
+      
+      if (category === 'breakfast') {
+        requestData = { roll_type: nameOrType, price: parseFloat(price) };
+      } else if (category === 'toppings') {
+        requestData = { topping_type: nameOrType, price: parseFloat(price) };
+      } else {
+        // For drinks and sweets
+        requestData = { name: nameOrType, price: parseFloat(price) };
+      }
+
+      await axios.post(`${API}/department-admin/menu/${category}`, requestData);
       fetchMenus();
+      
+      // Close appropriate modals
       if (category === 'drinks') setShowNewDrink(false);
       if (category === 'sweets') setShowNewSweet(false);
+      
       alert('Artikel erfolgreich erstellt');
     } catch (error) {
       console.error('Fehler beim Erstellen des Artikels:', error);
