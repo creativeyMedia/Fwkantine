@@ -1903,7 +1903,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                             {formatDate(order.timestamp)}
                           </span>
                           <span className="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
-                            €{order.total_price.toFixed(2)}
+                            {order.total_price.toFixed(2)} €
                           </span>
                         </div>
                         <div className="text-gray-700 mb-2">
