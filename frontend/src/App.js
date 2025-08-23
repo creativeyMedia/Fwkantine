@@ -886,7 +886,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                       <option value="">-- Belag wählen --</option>
                       {toppingsMenu.map((item) => (
                         <option key={item.id} value={item.topping_type}>
-                          {toppingLabels[item.topping_type]}
+                          {finalToppingLabels[item.topping_type]}
                         </option>
                       ))}
                     </select>
