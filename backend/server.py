@@ -884,7 +884,13 @@ async def get_employee_orders(employee_id: str):
     """Get all orders for a specific employee"""
     try:
         orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
-        return {"orders": orders}
+        # Clean orders by removing MongoDB _id and parsing timestamps
+        clean_orders = []
+        for order in orders:
+            clean_order = {k: v for k, v in order.items() if k != '_id'}
+            clean_order = parse_from_mongo(clean_order)
+            clean_orders.append(clean_order)
+        return {"orders": clean_orders}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching orders: {str(e)}")
 
