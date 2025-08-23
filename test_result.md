@@ -429,15 +429,15 @@ backend:
 
 metadata:
   created_by: "testing_agent"
-  version: "3.0"
-  test_sequence: 3
+  version: "4.0"
+  test_sequence: 4
   run_ui: false
 
 test_plan:
   current_focus: []
   stuck_tasks: []
-  test_all: true
-  test_priority: "completed"
+  test_all: false
+  test_priority: "critical_bug_fixes_completed"
 
 frontend:
   - task: "Enhanced Menu Management UI - Breakfast & Toppings CRUD"
