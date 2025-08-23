@@ -636,7 +636,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   useEffect(() => {
     fetchMenus();
-  }, []);
+  }, [currentDepartment]);
 
   const fetchMenus = async () => {
     try {
