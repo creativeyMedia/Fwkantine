@@ -2982,58 +2982,98 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     })()}
                     
                     {/* Toppings with Roll Type Detail */}
-                    {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
-                      <div>
-                        <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
-                        <div className="ml-4 space-y-1">
-                          {(() => {
-                            // Calculate detailed topping breakdown by roll type
-                            const toppingBreakdown = {};
-                            
-                            // Process each employee's orders to get topping-roll type combinations
-                            Object.values(dailySummary.employee_orders).forEach(employeeData => {
-                              if (employeeData.toppings) {
-                                Object.entries(employeeData.toppings).forEach(([topping, count]) => {
-                                  if (!toppingBreakdown[topping]) {
-                                    toppingBreakdown[topping] = { white: 0, seeded: 0 };
-                                  }
-                                  
-                                  // Distribute toppings proportionally based on employee's roll selection
-                                  const whiteHalves = employeeData.white_halves || 0;
-                                  const seededHalves = employeeData.seeded_halves || 0;
-                                  const totalHalves = whiteHalves + seededHalves;
-                                  
-                                  if (totalHalves > 0) {
-                                    const whiteRatio = whiteHalves / totalHalves;
-                                    const seededRatio = seededHalves / totalHalves;
-                                    toppingBreakdown[topping].white += Math.round(count * whiteRatio);
-                                    toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
+                    {(() => {
+                      // Debug: Log the actual data structure
+                      console.log('Daily Summary Data:', dailySummary);
+                      console.log('Employee Orders:', dailySummary.employee_orders);
+                      console.log('Total Toppings:', dailySummary.total_toppings);
+                      
+                      // Check if we have toppings data from total_toppings or need to calculate from employee orders
+                      const hasToppingsData = dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0;
+                      const hasEmployeeData = dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0;
+                      
+                      if (!hasToppingsData && !hasEmployeeData) {
+                        return null;
+                      }
+                      
+                      return (
+                        <div>
+                          <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
+                          <div className="ml-4 space-y-1">
+                            {(() => {
+                              // Try to use total_toppings first, if available
+                              if (hasToppingsData) {
+                                return Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
+                                  <div key={topping} className="flex justify-between items-center">
+                                    <span className="text-gray-600">
+                                      {String(finalToppingLabels[topping] || topping)}: {String(count)}x gesamt
+                                    </span>
+                                  </div>
+                                ));
+                              }
+                              
+                              // If no total_toppings, calculate from employee orders
+                              if (hasEmployeeData) {
+                                const toppingBreakdown = {};
+                                
+                                Object.values(dailySummary.employee_orders).forEach(employeeData => {
+                                  if (employeeData.toppings) {
+                                    Object.entries(employeeData.toppings).forEach(([topping, count]) => {
+                                      if (!toppingBreakdown[topping]) {
+                                        toppingBreakdown[topping] = { white: 0, seeded: 0, total: 0 };
+                                      }
+                                      
+                                      const whiteHalves = employeeData.white_halves || 0;
+                                      const seededHalves = employeeData.seeded_halves || 0;
+                                      const totalHalves = whiteHalves + seededHalves;
+                                      
+                                      if (totalHalves > 0) {
+                                        const whiteRatio = whiteHalves / totalHalves;
+                                        const seededRatio = seededHalves / totalHalves;
+                                        const whiteCount = Math.round(count * whiteRatio);
+                                        const seededCount = Math.round(count * seededRatio);
+                                        
+                                        toppingBreakdown[topping].white += whiteCount;
+                                        toppingBreakdown[topping].seeded += seededCount;
+                                        toppingBreakdown[topping].total += count;
+                                      }
+                                    });
                                   }
                                 });
+                                
+                                return Object.entries(toppingBreakdown).map(([topping, counts]) => {
+                                  const toppingName = finalToppingLabels[topping] || topping;
+                                  const items = [];
+                                  
+                                  if (counts.seeded > 0) {
+                                    items.push(
+                                      <div key={`${topping}-seeded`} className="flex justify-between items-center">
+                                        <span className="text-gray-600">{counts.seeded}x {toppingName} Körner (Korn)</span>
+                                      </div>
+                                    );
+                                  }
+                                  if (counts.white > 0) {
+                                    items.push(
+                                      <div key={`${topping}-white`} className="flex justify-between items-center">
+                                        <span className="text-gray-600">{counts.white}x {toppingName} Hell</span>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return items;
+                                }).flat();
                               }
-                            });
-                            
-                            return Object.entries(toppingBreakdown).map(([topping, counts]) => {
-                              const toppingName = finalToppingLabels[topping] || topping;
-                              const items = [];
                               
-                              if (counts.seeded > 0) {
-                                items.push(`${counts.seeded}x ${toppingName} Körner (Korn)`);
-                              }
-                              if (counts.white > 0) {
-                                items.push(`${counts.white}x ${toppingName} Hell`);
-                              }
-                              
-                              return items.map((item, index) => (
-                                <div key={`${topping}-${index}`} className="flex justify-between items-center">
-                                  <span className="text-gray-600">{item}</span>
+                              return [
+                                <div key="no-data" className="text-gray-500 italic">
+                                  Keine Beläge für heute
                                 </div>
-                              ));
-                            }).flat();
-                          })()}
+                              ];
+                            })()}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
