@@ -1203,7 +1203,18 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
               min="0"
               max="10"
               value={boiledEggs}
-              onChange={(e) => setBoiledEggs(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Prevent invalid values and parse safely
+                if (value === '' || value === '0') {
+                  setBoiledEggs(0);
+                } else {
+                  const parsed = parseInt(value);
+                  if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                    setBoiledEggs(parsed);
+                  }
+                }
+              }}
               className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
             />
             <span className="text-sm text-gray-600">
