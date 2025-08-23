@@ -2595,10 +2595,21 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
 const BreakfastSummaryTable = ({ departmentId, onClose }) => {
   const [dailySummary, setDailySummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [toppingsMenu, setToppingsMenu] = useState([]);
 
   useEffect(() => {
     fetchDailySummary();
+    fetchToppingsMenu();
   }, [departmentId]);
+
+  const fetchToppingsMenu = async () => {
+    try {
+      const response = await axios.get(`${API}/menu/toppings`);
+      setToppingsMenu(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Beläge:', error);
+    }
+  };
 
   const fetchDailySummary = async () => {
     try {
@@ -2618,7 +2629,22 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
     'koerner': 'Körnerbrötchen'
   };
 
-  const toppingLabels = {
+  // Use dynamic labels from menu if available, otherwise fall back to defaults
+  const toppingLabels = {};
+  toppingsMenu.forEach(item => {
+    toppingLabels[item.topping_type] = item.name || {
+      'ruehrei': 'Rührei',
+      'spiegelei': 'Spiegelei',
+      'eiersalat': 'Eiersalat',
+      'salami': 'Salami',
+      'schinken': 'Schinken',
+      'kaese': 'Käse',
+      'butter': 'Butter'
+    }[item.topping_type] || item.topping_type;
+  });
+
+  // Fallback toppings if menu is empty
+  const finalToppingLabels = Object.keys(toppingLabels).length > 0 ? toppingLabels : {
     'ruehrei': 'Rührei',
     'spiegelei': 'Spiegelei',
     'eiersalat': 'Eiersalat',
