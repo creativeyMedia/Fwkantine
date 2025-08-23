@@ -318,6 +318,71 @@ async def initialize_default_data():
     
     return {"message": "Daten erfolgreich initialisiert"}
 
+@api_router.post("/migrate-to-department-specific")
+async def migrate_to_department_specific():
+    """Migrate existing global menu items to department-specific items"""
+    
+    # Get all departments
+    departments = await db.departments.find().to_list(100)
+    if not departments:
+        raise HTTPException(status_code=400, detail="Keine Abteilungen gefunden. Bitte zuerst /api/init-data aufrufen.")
+    
+    migration_results = {
+        "breakfast_items": 0,
+        "topping_items": 0, 
+        "drink_items": 0,
+        "sweet_items": 0,
+        "departments_processed": len(departments)
+    }
+    
+    # Migrate breakfast items
+    existing_breakfast = await db.menu_breakfast.find({"department_id": {"$exists": False}}).to_list(100)
+    for breakfast_item in existing_breakfast:
+        # Remove MongoDB _id and create department-specific copies
+        clean_item = {k: v for k, v in breakfast_item.items() if k != '_id'}
+        for dept in departments:
+            new_item = MenuItemBreakfast(**clean_item, department_id=dept["id"])
+            await db.menu_breakfast.insert_one(new_item.dict())
+            migration_results["breakfast_items"] += 1
+    
+    # Migrate topping items
+    existing_toppings = await db.menu_toppings.find({"department_id": {"$exists": False}}).to_list(100)
+    for topping_item in existing_toppings:
+        clean_item = {k: v for k, v in topping_item.items() if k != '_id'}
+        for dept in departments:
+            new_item = MenuItemToppings(**clean_item, department_id=dept["id"])
+            await db.menu_toppings.insert_one(new_item.dict())
+            migration_results["topping_items"] += 1
+    
+    # Migrate drink items
+    existing_drinks = await db.menu_drinks.find({"department_id": {"$exists": False}}).to_list(100)
+    for drink_item in existing_drinks:
+        clean_item = {k: v for k, v in drink_item.items() if k != '_id'}
+        for dept in departments:
+            new_item = MenuItemDrink(**clean_item, department_id=dept["id"])
+            await db.menu_drinks.insert_one(new_item.dict())
+            migration_results["drink_items"] += 1
+    
+    # Migrate sweet items
+    existing_sweets = await db.menu_sweets.find({"department_id": {"$exists": False}}).to_list(100)
+    for sweet_item in existing_sweets:
+        clean_item = {k: v for k, v in sweet_item.items() if k != '_id'}
+        for dept in departments:
+            new_item = MenuItemSweet(**clean_item, department_id=dept["id"])
+            await db.menu_sweets.insert_one(new_item.dict())
+            migration_results["sweet_items"] += 1
+    
+    # Remove old global items (optional - comment out if you want to keep them)
+    await db.menu_breakfast.delete_many({"department_id": {"$exists": False}})
+    await db.menu_toppings.delete_many({"department_id": {"$exists": False}})
+    await db.menu_drinks.delete_many({"department_id": {"$exists": False}})
+    await db.menu_sweets.delete_many({"department_id": {"$exists": False}})
+    
+    return {
+        "message": "Migration zu abteilungsspezifischen Menüs erfolgreich abgeschlossen",
+        "results": migration_results
+    }
+
 # Authentication routes
 @api_router.post("/login/department")
 async def department_login(login_data: DepartmentLogin):
