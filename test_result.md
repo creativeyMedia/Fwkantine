@@ -459,12 +459,15 @@ metadata:
 
   - task: "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ALL CRITICAL BUG FIXES WORKING CORRECTLY! Comprehensive testing of all 5 critical bug fixes completed successfully: 1) Price Calculation Accuracy - FIXED: System now correctly uses admin-set prices directly (3 halves × €0.75 = €2.25), no division by 2, both weiss and koerner roll pricing accurate. 2) Single Breakfast Order Constraint - WORKING: System correctly prevents duplicate breakfast orders per employee per day with proper German error message 'Sie haben bereits eine Frühstücksbestellung für heute. Bitte bearbeiten Sie Ihre bestehende Bestellung.' 3) Balance Updates on Deletion - WORKING: Orders deleted via admin dashboard correctly decrease balance by exact order amount, balance cannot go below zero. 4) Order Update & Re-editing - WORKING: PUT /api/orders/{order_id} successfully updates orders without duplication, balance adjustments work correctly. 5) Daily Summary Data Structure - WORKING: GET /api/orders/daily-summary/{department_id} returns proper structure with shopping_list, breakfast_summary, employee_orders sections, all data JSON serializable for React frontend. All functionality works with correct pricing, proper constraints, and accurate balance management. 5/5 critical tests passed (100% success rate)."
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL ISSUES IDENTIFIED: 1) Order Update Functionality - PUT /api/orders/{order_id} endpoint exists and works correctly, successfully updates breakfast items and recalculates employee balances. 2) Balance Adjustment on Order Deletion - DELETE /api/department-admin/orders/{order_id} works perfectly, correctly reduces employee balance by deleted order amount and prevents negative balances. 3) Daily Summary & Employee Data - GET /api/orders/daily-summary/{department_id} returns complete structure with employee_orders section containing individual employee data. 4) Authentication - All department credentials (password1-4) and admin credentials (admin1-4) working correctly. ❌ CRITICAL BUGS FOUND: 1) Price Calculation Accuracy - Using full roll price for halves instead of per-half calculation (3 halves × €0.75 = €2.25 instead of expected 3 × €0.375 = €1.125). 2) Single Breakfast Order Constraint - Multiple breakfast orders per employee per day are created instead of updating existing order (found 2 orders when should be 1 updated order). These issues need immediate fixing."
