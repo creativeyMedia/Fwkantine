@@ -702,7 +702,7 @@ async def create_order(order_data: OrderCreate):
                 total_price += lunch_price * breakfast_item.total_halves
     
     elif order_data.order_type == OrderType.DRINKS and order_data.drink_items:
-        drinks_menu = await db.menu_drinks.find().to_list(100)
+        drinks_menu = await db.menu_drinks.find({"department_id": order_data.department_id}).to_list(100)
         drink_prices = {item["id"]: item["price"] for item in drinks_menu}
         
         for drink_id, quantity in order_data.drink_items.items():
@@ -710,7 +710,7 @@ async def create_order(order_data: OrderCreate):
             total_price += drink_price * quantity
             
     elif order_data.order_type == OrderType.SWEETS and order_data.sweet_items:
-        sweets_menu = await db.menu_sweets.find().to_list(100)
+        sweets_menu = await db.menu_sweets.find({"department_id": order_data.department_id}).to_list(100)
         sweet_prices = {item["id"]: item["price"] for item in sweets_menu}
         
         for sweet_id, quantity in order_data.sweet_items.items():
