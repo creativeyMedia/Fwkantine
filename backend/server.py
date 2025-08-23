@@ -529,6 +529,25 @@ async def create_order(order_data: OrderCreate):
                 status_code=403, 
                 detail="Frühstücksbestellungen sind für heute geschlossen. Nur Admins können noch Änderungen vornehmen."
             )
+        
+        # Check for existing breakfast order today (single breakfast order constraint)
+        start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        existing_breakfast = await db.orders.find_one({
+            "employee_id": order_data.employee_id,
+            "order_type": "breakfast",
+            "timestamp": {
+                "$gte": start_of_day.isoformat(),
+                "$lte": end_of_day.isoformat()
+            }
+        })
+        
+        if existing_breakfast:
+            raise HTTPException(
+                status_code=400,
+                detail="Sie haben bereits eine Frühstücksbestellung für heute. Bitte bearbeiten Sie Ihre bestehende Bestellung."
+            )
     
     # Calculate total price (rest of the existing logic...)
     total_price = 0.0
