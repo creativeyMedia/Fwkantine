@@ -173,6 +173,7 @@ class MenuItemUpdate(BaseModel):
 class MenuItemCreate(BaseModel):
     name: str
     price: float
+    department_id: str
 
 class MenuItemCreateBreakfast(BaseModel):
     roll_type: RollType
