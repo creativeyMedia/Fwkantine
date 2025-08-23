@@ -105,6 +105,25 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
+  - task: "Department-Specific Products & Pricing Implementation - Phase 1 Backend"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "✅ MAJOR ARCHITECTURAL CHANGE COMPLETED! Successfully implemented department-specific products and pricing system. Key changes: (1) Updated all menu models (MenuItemBreakfast, MenuItemToppings, MenuItemDrink, MenuItemSweet) to include department_id field, (2) Created comprehensive migration system /api/migrate-to-department-specific to convert global items to department-specific items, (3) Updated all menu GET endpoints to be department-aware with backward compatibility, (4) Modified order creation logic to use department-specific menus and pricing, (5) Updated all department admin CRUD operations, (6) Enhanced init-data to create department-specific items by default. System now supports complete department isolation with independent product catalogs and pricing. Each department can customize their own menus while maintaining data integrity. Ready for comprehensive backend testing."
+  - task: "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
   - task: "Enhanced Menu Management with Name Editing - Breakfast & Toppings PUT Endpoints"
     implemented: true
     working: true
