@@ -2286,7 +2286,7 @@ const NewBreakfastItemModal = ({ title, onCreateItem, onClose }) => {
   const [price, setPrice] = useState('');
 
   const rollTypeOptions = [
-    { value: 'weiss', label: 'Weißes Brötchen' },
+    { value: 'weiss', label: 'Helles Brötchen' },
     { value: 'koerner', label: 'Körnerbrötchen' }
   ];
 
