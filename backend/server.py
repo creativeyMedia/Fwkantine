@@ -1234,7 +1234,7 @@ async def change_department_password(department_id: str, new_employee_password: 
 
 # Department Admin routes
 @api_router.put("/department-admin/menu/breakfast/{item_id}")
-async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
+async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate, department_id: str = None):
     """Department Admin: Update breakfast menu item"""
     update_fields = {}
     if update_data.price is not None:
@@ -1243,12 +1243,14 @@ async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate):
         update_fields["name"] = update_data.name
     
     if update_fields:
-        result = await db.menu_breakfast.update_one(
-            {"id": item_id}, 
-            {"$set": update_fields}
-        )
+        # Query should include both id and department_id for security
+        query = {"id": item_id}
+        if department_id:
+            query["department_id"] = department_id
+            
+        result = await db.menu_breakfast.update_one(query, {"$set": update_fields})
         if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Artikel nicht gefunden")
+            raise HTTPException(status_code=404, detail="Artikel nicht gefunden oder keine Berechtigung")
     
     return {"message": "Artikel erfolgreich aktualisiert"}
 
