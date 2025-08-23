@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Critical Bug Fixes Test Suite for German Canteen Management System
-Tests the specific critical bug fixes as requested in the review
+Tests the three critical bug fixes:
+1. Menu Item Edit Saving Fix
+2. Payment History Display Fix  
+3. Department-Specific Menu Updates Integration
 """
 
 import requests
@@ -16,8 +19,6 @@ load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
-if BACKEND_URL == 'https://dept-order-system.preview.emergentagent.com':
-    BACKEND_URL = 'http://localhost:8001'
 API_BASE = f"{BACKEND_URL}/api"
 
 class CriticalBugFixesTester:
