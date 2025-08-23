@@ -457,7 +457,7 @@ metadata:
   test_sequence: 5
   run_ui: false
 
-  - task: "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+  - task: "Department-Specific Menu System Implementation"
     implemented: true
     working: true
     file: "backend/server.py"
@@ -467,13 +467,55 @@ metadata:
     status_history:
         - working: true
           agent: "testing"
-          comment: "🎉 ALL CRITICAL BUG FIXES VERIFIED WORKING CORRECTLY! Comprehensive testing of all 5 critical bug fixes completed with 100% success rate (25/25 individual tests passed): ✅ 1) Price Calculation Accuracy - CONFIRMED WORKING: System correctly uses admin-set prices directly per half roll (3 halves × €0.75 = €2.25), no incorrect division by 2. Tested with weiss, koerner, and mixed roll types - all calculations accurate. ✅ 2) Single Breakfast Order Constraint - CONFIRMED WORKING: System correctly prevents duplicate breakfast orders per employee per day with proper German error message 'Sie haben bereits eine Frühstücksbestellung für heute. Bitte bearbeiten Sie Ihre bestehende Bestellung.' Only 1 breakfast order exists per employee per day as expected. ✅ 3) Balance Updates on Order Deletion - CONFIRMED WORKING: DELETE /api/department-admin/orders/{order_id} correctly decreases employee balance by exact order amount (€1.50 test case), balance cannot go below zero, proper balance management verified. ✅ 4) Order Update & Re-editing - CONFIRMED WORKING: PUT /api/orders/{order_id} successfully updates breakfast orders without creating duplicates, order content correctly updated (1 half → 3 halves), balance adjustments work correctly (€0.75 → €2.25). ✅ 5) Daily Summary Data Structure - CONFIRMED WORKING: GET /api/orders/daily-summary/{department_id} returns proper JSON-serializable structure with all required fields (shopping_list, breakfast_summary, employee_orders), compatible with React frontend consumption. All critical functionality verified working with correct pricing, proper constraints, and accurate balance management as specified in review request."
+          comment: "🎉 DEPARTMENT-SPECIFIC MENU SYSTEM TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new Department-Specific Menu System implementation completed with 100% success rate (5/5 core tests passed): ✅ 1) Migration System - POST /api/migrate-to-department-specific successfully migrated 144 items (16 breakfast, 72 toppings, 24 drinks, 32 sweets) across departments. Migration endpoint working correctly with proper results reporting. ✅ 2) Department-Specific Menu Endpoints - All new department-aware endpoints working perfectly: GET /api/menu/breakfast/{department_id} (2 items), GET /api/menu/toppings/{department_id} (9 items), GET /api/menu/drinks/{department_id} (3 items), GET /api/menu/sweets/{department_id} (4 items). All items correctly have department_id field. ✅ 3) Backward Compatibility - All old menu endpoints still functional: GET /api/menu/breakfast (2 items), GET /api/menu/toppings (9 items), GET /api/menu/drinks (3 items), GET /api/menu/sweets (4 items). Legacy endpoints return first department's menu as expected. ✅ 4) Department-Specific Order Creation - Orders successfully use department-specific pricing. Tested with multiple departments, all orders created with correct department-specific menu items and pricing (€1.50 test orders). ✅ 5) Data Integrity & Department Isolation - All menu items have correct department_id, department admin access properly isolated, orders reference correct department. Department admin authentication working with admin1-4 credentials. The major architectural change from global to department-specific menus is working correctly and maintains data integrity as requested."
+
+  - task: "Migration System Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
         - working: true
           agent: "testing"
-          comment: "✅ ALL CRITICAL BUG FIXES WORKING CORRECTLY! Comprehensive testing of all 5 critical bug fixes completed successfully: 1) Price Calculation Accuracy - FIXED: System now correctly uses admin-set prices directly (3 halves × €0.75 = €2.25), no division by 2, both weiss and koerner roll pricing accurate. 2) Single Breakfast Order Constraint - WORKING: System correctly prevents duplicate breakfast orders per employee per day with proper German error message 'Sie haben bereits eine Frühstücksbestellung für heute. Bitte bearbeiten Sie Ihre bestehende Bestellung.' 3) Balance Updates on Deletion - WORKING: Orders deleted via admin dashboard correctly decrease balance by exact order amount, balance cannot go below zero. 4) Order Update & Re-editing - WORKING: PUT /api/orders/{order_id} successfully updates orders without duplication, balance adjustments work correctly. 5) Daily Summary Data Structure - WORKING: GET /api/orders/daily-summary/{department_id} returns proper structure with shopping_list, breakfast_summary, employee_orders sections, all data JSON serializable for React frontend. All functionality works with correct pricing, proper constraints, and accurate balance management. 5/5 critical tests passed (100% success rate)."
-        - working: false
+          comment: "✅ MIGRATION SYSTEM FULLY FUNCTIONAL! POST /api/migrate-to-department-specific endpoint successfully converts global menu items to department-specific items for all 4 departments. Migration results: 144 total items migrated (16 breakfast items, 72 topping items, 24 drink items, 32 sweet items). Each department now has its own copy of all menu items with proper department_id assignment. Migration message: 'Migration zu abteilungsspezifischen Menüs erfolgreich abgeschlossen'. System properly handles the architectural change from global to department-specific menu structure."
+
+  - task: "Department-Specific Menu Endpoints Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
           agent: "testing"
-          comment: "❌ CRITICAL ISSUES IDENTIFIED: 1) Order Update Functionality - PUT /api/orders/{order_id} endpoint exists and works correctly, successfully updates breakfast items and recalculates employee balances. 2) Balance Adjustment on Order Deletion - DELETE /api/department-admin/orders/{order_id} works perfectly, correctly reduces employee balance by deleted order amount and prevents negative balances. 3) Daily Summary & Employee Data - GET /api/orders/daily-summary/{department_id} returns complete structure with employee_orders section containing individual employee data. 4) Authentication - All department credentials (password1-4) and admin credentials (admin1-4) working correctly. ❌ CRITICAL BUGS FOUND: 1) Price Calculation Accuracy - Using full roll price for halves instead of per-half calculation (3 halves × €0.75 = €2.25 instead of expected 3 × €0.375 = €1.125). 2) Single Breakfast Order Constraint - Multiple breakfast orders per employee per day are created instead of updating existing order (found 2 orders when should be 1 updated order). These issues need immediate fixing."
+          comment: "✅ ALL DEPARTMENT-SPECIFIC MENU ENDPOINTS WORKING PERFECTLY! Comprehensive testing of new department-aware menu endpoints completed successfully: ✅ GET /api/menu/breakfast/{department_id} - Returns 2 breakfast items with correct department_id. ✅ GET /api/menu/toppings/{department_id} - Returns 9 topping items with correct department_id. ✅ GET /api/menu/drinks/{department_id} - Returns 3 drink items with correct department_id. ✅ GET /api/menu/sweets/{department_id} - Returns 4 sweet items with correct department_id. All endpoints properly filter items by department and return only items belonging to the specified department. Department isolation working correctly with proper data integrity."
+
+  - task: "Backward Compatibility Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ BACKWARD COMPATIBILITY FULLY MAINTAINED! All old menu endpoints continue to work correctly after migration to department-specific system: ✅ GET /api/menu/breakfast - Returns 2 breakfast items (first department's menu). ✅ GET /api/menu/toppings - Returns 9 topping items (first department's menu). ✅ GET /api/menu/drinks - Returns 3 drink items (first department's menu). ✅ GET /api/menu/sweets - Returns 4 sweet items (first department's menu). Legacy endpoints properly default to first department's menu items as designed, ensuring existing frontend code continues to function without modification."
+
+  - task: "Department Isolation & Data Integrity Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DEPARTMENT ISOLATION & DATA INTEGRITY VERIFIED! Comprehensive testing confirms proper department separation and data integrity: ✅ Department ID Integrity - All menu items have correct department_id field matching their assigned department. ✅ Department Admin Isolation - Department admins can only access their specific department (tested with admin1 credentials). ✅ Order Department Integrity - All orders correctly reference their department (1 test order verified). ✅ Department-Specific Order Creation - Orders successfully use department-specific pricing and menu items. Each department maintains its own isolated menu items while sharing the same structure. Authentication working correctly with department credentials (password1-4) and admin credentials (admin1-4)."
 
 test_plan:
   current_focus:
