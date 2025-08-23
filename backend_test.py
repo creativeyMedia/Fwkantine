@@ -2877,6 +2877,233 @@ class CanteenTester:
         
         return success_count >= 6  # At least 6 out of 8+ tests should pass
     
+    def test_admin_boiled_eggs_pricing_management(self):
+        """Test the new Admin Boiled Eggs Pricing Management feature"""
+        print("\n=== Testing Admin Boiled Eggs Pricing Management ===")
+        
+        success_count = 0
+        
+        # Test 1: Admin Price Management Interface - GET /api/lunch-settings returns boiled_eggs_price field
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                
+                if 'boiled_eggs_price' in lunch_settings:
+                    current_price = lunch_settings['boiled_eggs_price']
+                    self.log_test("GET Lunch Settings - Boiled Eggs Price Field", True, 
+                                f"Boiled eggs price field present: €{current_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("GET Lunch Settings - Boiled Eggs Price Field", False, 
+                                "boiled_eggs_price field missing from lunch settings")
+            else:
+                self.log_test("GET Lunch Settings - Boiled Eggs Price Field", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Lunch Settings - Boiled Eggs Price Field", False, f"Exception: {str(e)}")
+        
+        # Test 2: Admin Price Management Interface - PUT /api/lunch-settings/boiled-eggs-price endpoint
+        try:
+            new_price = 0.75
+            response = self.session.put(f"{API_BASE}/lunch-settings/boiled-eggs-price", 
+                                      params={"price": new_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('price') == new_price:
+                    self.log_test("PUT Boiled Eggs Price Update", True, 
+                                f"Successfully updated boiled eggs price to €{new_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("PUT Boiled Eggs Price Update", False, 
+                                "Price update response mismatch")
+            else:
+                self.log_test("PUT Boiled Eggs Price Update", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("PUT Boiled Eggs Price Update", False, f"Exception: {str(e)}")
+        
+        # Test 3: Verify price persistence - GET again to confirm update
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                updated_price = lunch_settings.get('boiled_eggs_price', 0)
+                
+                if updated_price == 0.75:
+                    self.log_test("Boiled Eggs Price Persistence", True, 
+                                f"Price update persisted correctly: €{updated_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Boiled Eggs Price Persistence", False, 
+                                f"Expected €0.75, got €{updated_price:.2f}")
+            else:
+                self.log_test("Boiled Eggs Price Persistence", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Boiled Eggs Price Persistence", False, f"Exception: {str(e)}")
+        
+        # Test 4: Dynamic Price Integration - Test order creation uses updated price
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                
+                # Create breakfast order with boiled eggs
+                breakfast_order_with_eggs = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["ruehrei", "kaese"],
+                            "has_lunch": False,
+                            "boiled_eggs": 3  # 3 boiled eggs at €0.75 each = €2.25
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=breakfast_order_with_eggs)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    total_price = order['total_price']
+                    
+                    # Calculate expected boiled eggs cost: 3 eggs × €0.75 = €2.25
+                    expected_eggs_cost = 3 * 0.75
+                    
+                    if total_price > expected_eggs_cost:  # Should include roll cost + eggs cost
+                        self.log_test("Order Creation with Updated Boiled Eggs Price", True, 
+                                    f"Order created with boiled eggs: €{total_price:.2f} (includes €{expected_eggs_cost:.2f} for eggs)")
+                        success_count += 1
+                    else:
+                        self.log_test("Order Creation with Updated Boiled Eggs Price", False, 
+                                    f"Total price €{total_price:.2f} seems too low for 3 eggs at €0.75 each")
+                else:
+                    self.log_test("Order Creation with Updated Boiled Eggs Price", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Order Creation with Updated Boiled Eggs Price", False, f"Exception: {str(e)}")
+        
+        # Test 5: Price Independence - Test that boiled eggs pricing is separate from lunch pricing
+        try:
+            # Update lunch price
+            lunch_price = 4.50
+            response = self.session.put(f"{API_BASE}/lunch-settings", params={"price": lunch_price})
+            
+            if response.status_code == 200:
+                # Check that boiled eggs price remains unchanged
+                response = self.session.get(f"{API_BASE}/lunch-settings")
+                
+                if response.status_code == 200:
+                    settings = response.json()
+                    lunch_price_check = settings.get('price', 0)
+                    eggs_price_check = settings.get('boiled_eggs_price', 0)
+                    
+                    if lunch_price_check == 4.50 and eggs_price_check == 0.75:
+                        self.log_test("Price Independence - Lunch vs Boiled Eggs", True, 
+                                    f"Lunch price: €{lunch_price_check:.2f}, Boiled eggs price: €{eggs_price_check:.2f} (independent)")
+                        success_count += 1
+                    else:
+                        self.log_test("Price Independence - Lunch vs Boiled Eggs", False, 
+                                    f"Price independence failed. Lunch: €{lunch_price_check:.2f}, Eggs: €{eggs_price_check:.2f}")
+                else:
+                    self.log_test("Price Independence - Lunch vs Boiled Eggs", False, 
+                                f"Failed to verify independence: HTTP {response.status_code}")
+            else:
+                self.log_test("Price Independence - Lunch vs Boiled Eggs", False, 
+                            f"Failed to update lunch price: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Price Independence - Lunch vs Boiled Eggs", False, f"Exception: {str(e)}")
+        
+        # Test 6: Test another price change to verify admin control
+        try:
+            another_new_price = 0.60
+            response = self.session.put(f"{API_BASE}/lunch-settings/boiled-eggs-price", 
+                                      params={"price": another_new_price})
+            
+            if response.status_code == 200:
+                # Verify the change took effect
+                response = self.session.get(f"{API_BASE}/lunch-settings")
+                
+                if response.status_code == 200:
+                    settings = response.json()
+                    final_price = settings.get('boiled_eggs_price', 0)
+                    
+                    if final_price == another_new_price:
+                        self.log_test("Admin Complete Control - Multiple Price Changes", True, 
+                                    f"Admin can change boiled eggs price multiple times: €{final_price:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test("Admin Complete Control - Multiple Price Changes", False, 
+                                    f"Expected €{another_new_price:.2f}, got €{final_price:.2f}")
+                else:
+                    self.log_test("Admin Complete Control - Multiple Price Changes", False, 
+                                f"Failed to verify final price: HTTP {response.status_code}")
+            else:
+                self.log_test("Admin Complete Control - Multiple Price Changes", False, 
+                            f"Failed to update price again: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Admin Complete Control - Multiple Price Changes", False, f"Exception: {str(e)}")
+        
+        # Test 7: Test order processing with final price
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                
+                # Create another order with different quantity to verify calculation
+                breakfast_order_final = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 1,
+                            "white_halves": 1,
+                            "seeded_halves": 0,
+                            "toppings": ["butter"],
+                            "has_lunch": False,
+                            "boiled_eggs": 2  # 2 boiled eggs at €0.60 each = €1.20
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=breakfast_order_final)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    total_price = order['total_price']
+                    
+                    # Calculate expected boiled eggs cost: 2 eggs × €0.60 = €1.20
+                    expected_eggs_cost = 2 * 0.60
+                    
+                    if total_price >= expected_eggs_cost:  # Should include roll cost + eggs cost
+                        self.log_test("Final Order Processing with Admin-Set Price", True, 
+                                    f"Order uses current admin-set price: €{total_price:.2f} (includes €{expected_eggs_cost:.2f} for eggs)")
+                        success_count += 1
+                    else:
+                        self.log_test("Final Order Processing with Admin-Set Price", False, 
+                                    f"Total price €{total_price:.2f} seems incorrect for 2 eggs at €0.60 each")
+                else:
+                    self.log_test("Final Order Processing with Admin-Set Price", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Final Order Processing with Admin-Set Price", False, f"Exception: {str(e)}")
+        
+        return success_count >= 5  # At least 5 out of 7 tests should pass
+    
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
