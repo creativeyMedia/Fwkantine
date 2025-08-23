@@ -3128,7 +3128,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
   const [editForm, setEditForm] = useState({ name: '', price: '' });
 
   const rollTypeLabels = {
-    'weiss': 'Weißes Brötchen',
+    'weiss': 'Helles Brötchen',
     'koerner': 'Körnerbrötchen'
   };
 
