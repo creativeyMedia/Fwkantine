@@ -4059,9 +4059,9 @@ const AdminSettingsTab = ({ currentDepartment }) => {
     }
   };
 
-  const changePasswords = async () => {
-    if (!newEmployeePassword || !newAdminPassword) {
-      alert('Bitte beide Passwörter eingeben');
+  const changeEmployeePassword = async () => {
+    if (!newEmployeePassword) {
+      alert('Bitte neues Mitarbeiter-Passwort eingeben');
       return;
     }
 
@@ -4071,13 +4071,33 @@ const AdminSettingsTab = ({ currentDepartment }) => {
     }
 
     try {
-      await axios.put(`${API}/department-admin/change-password/${currentDepartment.department_id}?new_employee_password=${newEmployeePassword}&new_admin_password=${newAdminPassword}`);
-      alert('Passwörter erfolgreich geändert');
+      await axios.put(`${API}/department-admin/change-employee-password/${currentDepartment.department_id}?new_password=${newEmployeePassword}`);
+      alert('Mitarbeiter-Passwort erfolgreich geändert');
       setNewEmployeePassword('');
+    } catch (error) {
+      console.error('Fehler beim Ändern des Mitarbeiter-Passworts:', error);
+      alert('Fehler beim Ändern des Mitarbeiter-Passworts');
+    }
+  };
+
+  const changeAdminPassword = async () => {
+    if (!newAdminPassword) {
+      alert('Bitte neues Admin-Passwort eingeben');
+      return;
+    }
+
+    if (newEmployeePassword === newAdminPassword) {
+      alert('Mitarbeiter- und Admin-Passwort müssen unterschiedlich sein');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/department-admin/change-admin-password/${currentDepartment.department_id}?new_password=${newAdminPassword}`);
+      alert('Admin-Passwort erfolgreich geändert');
       setNewAdminPassword('');
     } catch (error) {
-      console.error('Fehler beim Ändern der Passwörter:', error);
-      alert('Fehler beim Ändern der Passwörter');
+      console.error('Fehler beim Ändern des Admin-Passworts:', error);
+      alert('Fehler beim Ändern des Admin-Passworts');
     }
   };
 
