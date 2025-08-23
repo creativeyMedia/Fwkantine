@@ -2829,13 +2829,13 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       {Object.entries(dailySummary.employee_orders).map(([employeeName, employeeData]) => (
                         <tr key={employeeName} className="hover:bg-gray-50">
                           <td className="border border-gray-300 px-4 py-2 font-semibold">
-                            {employeeName}
+                            {String(employeeName)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
-                            {employeeData.white_halves}
+                            {String(employeeData.white_halves || 0)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-center font-bold text-orange-600">
-                            {employeeData.seeded_halves}
+                            {String(employeeData.seeded_halves || 0)}
                           </td>
                           <td className="border border-gray-300 px-4 py-2">
                             {Object.keys(employeeData.toppings).length > 0 ? (
