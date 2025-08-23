@@ -1101,28 +1101,35 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   };
 
   const handleAddItem = () => {
-    if (totalHalves === 0) {
-      alert('Bitte wählen Sie mindestens ein Brötchen.');
-      return;
-    }
-
-    // Check if all toppings are assigned
-    const unassignedCount = toppingAssignments.filter(assignment => !assignment.topping).length;
-    if (unassignedCount > 0) {
-      alert(`Bitte weisen Sie allen ${totalHalves} Brötchenhälften einen Belag zu. ${unassignedCount} fehlen noch.`);
-      return;
-    }
-
-    // Convert assignments to the expected format
-    const toppings = toppingAssignments.map(assignment => assignment.topping);
+    const hasRolls = totalHalves > 0;
+    const hasEggsOrLunch = boiledEggs > 0 || hasLunch;
     
-    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch, totalCost);
+    // Validate that user has selected something
+    if (!hasRolls && !hasEggsOrLunch) {
+      alert('Bitte wählen Sie mindestens ein Brötchen, Frühstückseier oder Mittagessen.');
+      return;
+    }
+
+    // If user selected rolls, check if all toppings are assigned  
+    if (hasRolls) {
+      const unassignedCount = toppingAssignments.filter(assignment => !assignment.topping).length;
+      if (unassignedCount > 0) {
+        alert(`Bitte weisen Sie allen ${totalHalves} Brötchenhälften einen Belag zu. ${unassignedCount} fehlen noch.`);
+        return;
+      }
+    }
+
+    // Convert assignments to the expected format (empty array if no rolls)
+    const toppings = hasRolls ? toppingAssignments.map(assignment => assignment.topping) : [];
+    
+    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch, boiledEggs, totalCost);
     
     // Reset form
     setWhiteRolls(0);
     setSeededRolls(0);
     setToppingAssignments([]);
     setHasLunch(false);
+    setBoiledEggs(0);
   };
 
   return (
