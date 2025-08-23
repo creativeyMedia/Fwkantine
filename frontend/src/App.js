@@ -959,6 +959,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const [seededRolls, setSeededRolls] = useState(0);
   const [toppingAssignments, setToppingAssignments] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
+  const [boiledEggs, setBoiledEggs] = useState(0);
 
   // Initialize form with existing order data if available
   useEffect(() => {
