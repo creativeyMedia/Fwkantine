@@ -828,6 +828,24 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     setToppingAssignments(newAssignments);
   }, [whiteRolls, seededRolls]);
 
+  // Update breakfast form data whenever form changes
+  useEffect(() => {
+    if (totalHalves > 0 && !toppingAssignments.some(a => !a.topping) && onDirectSubmit) {
+      const toppings = toppingAssignments.map(assignment => assignment.topping);
+      const breakfastData = {
+        total_halves: totalHalves,
+        white_halves: whiteRolls,
+        seeded_halves: seededRolls,
+        toppings: toppings,
+        has_lunch: hasLunch,
+        item_cost: totalCost
+      };
+      onDirectSubmit(breakfastData);
+    } else if (onDirectSubmit) {
+      onDirectSubmit(null); // Clear data if form is incomplete
+    }
+  }, [totalHalves, whiteRolls, seededRolls, toppingAssignments, hasLunch, totalCost, onDirectSubmit]);
+
   const handleToppingAssignment = (assignmentIndex, toppingType) => {
     setToppingAssignments(prev => {
       const newAssignments = [...prev];
