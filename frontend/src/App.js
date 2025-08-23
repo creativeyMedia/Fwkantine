@@ -2050,7 +2050,15 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">Mitarbeiter verwalten</h3>
+        <div>
+          <h3 className="text-lg font-semibold">Mitarbeiter verwalten</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            <svg className="inline w-4 h-4 mr-1" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8,18H11V15H8V18M8,14H11V10H8V14M8,9H11V6H8V9M13,18H16V15H13V18M13,14H16V10H13V14M13,9H16V6H13V9Z" />
+            </svg>
+            Mitarbeiter per Drag & Drop sortieren
+          </p>
+        </div>
         <button
           onClick={() => setShowNewEmployee(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
