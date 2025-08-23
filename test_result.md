@@ -612,6 +612,17 @@ agent_communication:
       message: "🎉 CRITICAL BREAKFAST ORDERING FIXES TESTING COMPLETED SUCCESSFULLY! All requested critical fixes for the canteen management system are working perfectly: ✅ Order Submission Workflow - POST /api/orders with new breakfast format (total_halves, white_halves, seeded_halves, toppings, has_lunch) working correctly with proper validation and pricing. ✅ Order Persistence & Retrieval - GET /api/employees/{employee_id}/orders returns proper format, fixed MongoDB ObjectId serialization issue that was causing 500 errors. ✅ Admin Order Management - Department admin authentication working with admin1-4 credentials, order viewing and deletion functionality operational. ✅ Menu Integration - Dynamic pricing working correctly, menu price updates immediately affect order calculations. ✅ Validation - Proper error handling for invalid breakfast orders. Fixed critical backend bug in employee orders endpoint. All core breakfast ordering functionality is production-ready."
 
 frontend:
+  - task: "NEW FEATURE - Boiled Breakfast Eggs Option"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_request"
+          comment: "🆕 NEW FEATURE REQUESTED: Add an additional option to the breakfast order form to allow employees to order boiled breakfast eggs. Requirements: (1) Employee can select number of boiled eggs, (2) Boiled eggs included in breakfast overview summary as 'Boiled Breakfast Eggs' with quantity, (3) Proper integration with existing breakfast ordering workflow."
   - task: "CRITICAL UI BUG - Detailed Employee Orders Toppings Display"
     implemented: true
     working: true
