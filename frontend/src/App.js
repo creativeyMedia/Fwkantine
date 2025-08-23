@@ -2716,21 +2716,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
   };
 
   // Use dynamic labels from menu if available, otherwise fall back to defaults
-  const toppingLabels = {};
-  toppingsMenu.forEach(item => {
-    toppingLabels[item.topping_type] = item.name || {
-      'ruehrei': 'Rührei',
-      'spiegelei': 'Spiegelei',
-      'eiersalat': 'Eiersalat',
-      'salami': 'Salami',
-      'schinken': 'Schinken',
-      'kaese': 'Käse',
-      'butter': 'Butter'
-    }[item.topping_type] || item.topping_type;
-  });
-
-  // Fallback toppings if menu is empty
-  const finalToppingLabels = Object.keys(toppingLabels).length > 0 ? toppingLabels : {
+  const defaultLabels = {
     'ruehrei': 'Rührei',
     'spiegelei': 'Spiegelei',
     'eiersalat': 'Eiersalat',
@@ -2739,6 +2725,20 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
     'kaese': 'Käse',
     'butter': 'Butter'
   };
+  
+  const toppingLabels = {};
+  toppingsMenu.forEach(item => {
+    // Ensure we always get a string value
+    const customName = item.name;
+    const fallbackName = defaultLabels[item.topping_type];
+    const finalName = customName || fallbackName || item.topping_type;
+    
+    // Make sure the final value is a string and not an object
+    toppingLabels[item.topping_type] = typeof finalName === 'string' ? finalName : String(finalName);
+  });
+
+  // Fallback toppings if menu is empty or missing items
+  const finalToppingLabels = { ...defaultLabels, ...toppingLabels };
 
   if (isLoading) {
     return (
