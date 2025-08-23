@@ -1479,11 +1479,15 @@ async def create_topping_item(item_data: MenuItemCreateToppings):
     return topping_item
 
 @api_router.delete("/department-admin/menu/toppings/{item_id}")
-async def delete_topping_item(item_id: str):
+async def delete_topping_item(item_id: str, department_id: str = None):
     """Department Admin: Delete topping item"""
-    result = await db.menu_toppings.delete_one({"id": item_id})
+    query = {"id": item_id}
+    if department_id:
+        query["department_id"] = department_id
+    
+    result = await db.menu_toppings.delete_one(query)
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Belag nicht gefunden")
+        raise HTTPException(status_code=404, detail="Belag nicht gefunden oder keine Berechtigung")
     return {"message": "Belag erfolgreich gelöscht"}
 
 @api_router.post("/department-admin/payment/{employee_id}")
