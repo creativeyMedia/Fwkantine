@@ -16,9 +16,7 @@ load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
-# Fix for None URL in preview environment
-if BACKEND_URL == 'https://dept-order-system.preview.emergentagent.com':
-    BACKEND_URL = 'http://localhost:8001'
+# Use the correct URL for testing
 API_BASE = f"{BACKEND_URL}/api"
 
 class CanteenTester:
