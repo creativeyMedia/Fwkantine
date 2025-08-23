@@ -1447,8 +1447,14 @@ async def delete_breakfast_item(item_id: str):
 
 @api_router.post("/department-admin/menu/toppings")
 async def create_topping_item(item_data: MenuItemCreateToppings):
-    """Department Admin: Create new topping item"""
-    topping_item = MenuItemToppings(**item_data.dict())
+    """Department Admin: Create new topping item with custom name"""
+    topping_item = MenuItemToppings(
+        id=item_data.topping_id,
+        topping_type=item_data.topping_id,  # Use custom ID as type
+        topping_name=item_data.topping_name,  # Custom display name
+        price=item_data.price,
+        department_id=item_data.department_id
+    )
     await db.menu_toppings.insert_one(topping_item.dict())
     return topping_item
 
