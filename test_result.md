@@ -107,12 +107,15 @@ user_problem_statement: "Test the comprehensive German canteen management system
 backend:
   - task: "Department-Specific Products & Pricing Implementation - Phase 1 Backend"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 DEPARTMENT-SPECIFIC PRODUCTS & PRICING SYSTEM TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the major architectural change from global to department-specific menus completed with excellent results (6/6 core tests passed): ✅ 1) Fresh Installation Test - /api/init-data successfully creates department-specific menu items for all 4 departments (1-4. Wachabteilung), each department gets its own copy of all menu items with proper department_id assignment. ✅ 2) Migration System - /api/migrate-to-department-specific properly handles existing global items, migrates items across all departments with no data loss, each department now has 18 total menu items (2 breakfast, 9 toppings, 3 drinks, 4 sweets). ✅ 3) Department-Specific Menu Isolation - Complete department separation verified, each department has independent menus with correct department_id, price changes in one department don't affect others, department admins only see their department's items. ✅ 4) Order System Integration - Order creation works with department-specific menus and pricing, tested with multiple departments showing proper isolation (€2.25 vs €1.50 orders), order updates use department-specific pricing correctly. ✅ 5) Admin Management - Department admin functionality working perfectly with admin1-4 credentials, menu CRUD operations work with department-specific items, price updates are isolated per department, order management uses correct department context. ✅ 6) Backward Compatibility - All existing functionality still works, old menu endpoints function correctly (return first department's menu), existing orders continue to work, employee profiles and order history maintained. Authentication verified with department credentials (password1-4) and admin credentials (admin1-4) all working correctly. The major architectural change is working correctly and maintains complete data integrity as requested."
         - working: false
           agent: "main"
           comment: "✅ MAJOR ARCHITECTURAL CHANGE COMPLETED! Successfully implemented department-specific products and pricing system. Key changes: (1) Updated all menu models (MenuItemBreakfast, MenuItemToppings, MenuItemDrink, MenuItemSweet) to include department_id field, (2) Created comprehensive migration system /api/migrate-to-department-specific to convert global items to department-specific items, (3) Updated all menu GET endpoints to be department-aware with backward compatibility, (4) Modified order creation logic to use department-specific menus and pricing, (5) Updated all department admin CRUD operations, (6) Enhanced init-data to create department-specific items by default. System now supports complete department isolation with independent product catalogs and pricing. Each department can customize their own menus while maintaining data integrity. Ready for comprehensive backend testing."
