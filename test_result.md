@@ -640,6 +640,39 @@ agent_communication:
 frontend:
   - task: "CRITICAL ERROR FIX - Breakfast Overview JavaScript Error"
     implemented: true
+  - task: "Admin Dashboard Order Management Display"
+    implemented: true
+    working: null
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: null
+          agent: "main"
+          comment: "🔍 INVESTIGATION REQUIRED: Need to verify that admin dashboard order management displays all existing orders (drinks, sweets, breakfast) correctly. Current implementation shows EmployeeOrdersModal component with formatOrderDetails function that handles all order types. Need backend testing to verify data retrieval and frontend testing to confirm display functionality works properly. Backend indicates ready, need to validate frontend integration."
+  - task: "Admin Dashboard Payment History Integration"
+    implemented: true
+    working: null
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: null
+          agent: "main"
+          comment: "🔍 INVESTIGATION REQUIRED: Need to verify that when admin marks payment as 'paid', it properly appears in employee's payment history log. Current implementation has markAsPaid function that calls department-admin/payment endpoint. Need to test end-to-end workflow and confirm payment history displays correctly in employee profiles."
+  - task: "Breakfast History Swipe-to-Delete Functionality"
+    implemented: false
+    working: null
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: null
+          agent: "main"
+          comment: "🔧 IMPLEMENTATION NEEDED: Need to add swipe-to-delete functionality for past breakfast days in the breakfast history/log section. This feature is not currently implemented and needs to be developed."
     working: true
     file: "frontend/src/App.js"
     stuck_count: 0
