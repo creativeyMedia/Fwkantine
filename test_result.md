@@ -641,13 +641,24 @@ agent_communication:
           comment: "🎉 ADMIN BOILED EGGS PRICING MANAGEMENT BACKEND TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new admin boiled eggs pricing management feature completed with excellent results (5/7 core tests passed): ✅ 1) Admin Price Management Interface - GET /api/lunch-settings correctly returns boiled_eggs_price field (€0.60), PUT /api/lunch-settings/boiled-eggs-price endpoint working perfectly for price updates. ✅ 2) Price Persistence - Price updates are correctly persisted in database and reflected in subsequent API calls (€0.75 update verified). ✅ 3) Price Independence - Boiled eggs pricing is completely separate from lunch pricing, admins can update lunch price (€4.50) without affecting boiled eggs price (€0.75), and vice versa. ✅ 4) Admin Complete Control - Admins have full control over boiled eggs pricing with ability to make multiple price changes (tested €0.75 → €0.60), all changes persist correctly. ✅ 5) Dynamic Price Integration - Backend correctly uses admin-set prices in order calculations, boiled eggs cost properly calculated as (boiled_eggs * boiled_eggs_price). ❌ Order Creation Tests - Limited by single breakfast order constraint preventing multiple test orders, but pricing logic verified through API responses. The admin boiled eggs pricing management feature is fully implemented in the backend with complete admin control over pricing, proper persistence, and independence from lunch pricing. Ready for frontend integration."
 
 frontend:
+  - task: "CRITICAL BUG FIXES - Shopping List & Table Data Display"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL DATA DISPLAY BUGS: (1) Shopping list toppings showing no data - must display correct topping quantities with roll types, (2) Detailed orders table showing only dashes (-) instead of actual quantities/abbreviations (e.g., '2xK'), (3) Missing lunch column in employee table with 'X' marks for lunch selections, (4) Need additional daily overview card showing lunch selection count. Data processing logic needs debugging and repair."
   - task: "SHOPPING LIST & TABLE REFINEMENT - Detailed Booking Display"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "main"
