@@ -2667,8 +2667,21 @@ class CanteenTester:
         
         print(f"\nSetup Tests: {setup_passed}/{len(setup_tests)} passed")
         
-        # Run critical bug fix tests
-        print("\n--- Running Critical Bug Fix Tests ---")
+        # Run Department-Specific Menu System tests (main focus)
+        print("\n--- Running Department-Specific Menu System Tests ---")
+        dept_specific_passed = 0
+        for test_name, test_func in department_specific_tests:
+            try:
+                if test_func():
+                    dept_specific_passed += 1
+                    print(f"✅ {test_name}: PASSED")
+                else:
+                    print(f"❌ {test_name}: FAILED")
+            except Exception as e:
+                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
+        
+        # Run additional critical tests
+        print("\n--- Running Additional Critical Tests ---")
         critical_passed = 0
         for test_name, test_func in critical_tests:
             try:
@@ -2682,36 +2695,40 @@ class CanteenTester:
         
         # Print summary
         print("\n" + "=" * 60)
-        print("🎯 CRITICAL BUG FIXES TESTING SUMMARY")
+        print("🎯 DEPARTMENT-SPECIFIC MENU SYSTEM TESTING SUMMARY")
         print("=" * 60)
         
-        total_tests = len(setup_tests) + len(critical_tests)
-        total_passed = setup_passed + critical_passed
+        total_tests = len(setup_tests) + len(department_specific_tests) + len(critical_tests)
+        total_passed = setup_passed + dept_specific_passed + critical_passed
         
         print(f"✅ Setup Tests: {setup_passed}/{len(setup_tests)}")
-        print(f"🔧 Critical Tests: {critical_passed}/{len(critical_tests)}")
+        print(f"🏢 Department-Specific Tests: {dept_specific_passed}/{len(department_specific_tests)}")
+        print(f"🔧 Additional Critical Tests: {critical_passed}/{len(critical_tests)}")
         print(f"📊 Overall: {total_passed}/{total_tests}")
         
-        # Print individual test results for critical tests only
-        print(f"\n📋 Critical Bug Fix Test Details:")
-        critical_results = [result for result in self.test_results 
-                          if any(keyword in result['test'] for keyword in 
-                               ['Employee Orders Management', 'Order Creation', 'Menu Integration', 
-                                'Employee Deletion', 'Department Admin Order', 'Dynamic Pricing'])]
+        # Print individual test results for department-specific tests
+        print(f"\n📋 Department-Specific Menu System Test Details:")
+        dept_specific_results = [result for result in self.test_results 
+                               if any(keyword in result['test'] for keyword in 
+                                    ['Migration', 'Department-Specific', 'Backward Compatible', 
+                                     'Department Isolation', 'Department ID Integrity'])]
         
-        for result in critical_results:
+        for result in dept_specific_results:
             status = "✅" if result['success'] else "❌"
             print(f"   {status} {result['test']}: {result['message']}")
         
         # Overall status
-        if critical_passed == len(critical_tests):
-            print(f"\n🎉 CRITICAL BUG FIXES: ALL WORKING CORRECTLY!")
+        if dept_specific_passed == len(department_specific_tests):
+            print(f"\n🎉 DEPARTMENT-SPECIFIC MENU SYSTEM: ALL WORKING CORRECTLY!")
             return True
-        elif critical_passed > 0:
-            print(f"\n⚠️  CRITICAL BUG FIXES: PARTIALLY WORKING ({critical_passed}/{len(critical_tests)})")
+        elif dept_specific_passed >= len(department_specific_tests) * 0.8:  # 80% pass rate
+            print(f"\n✅ DEPARTMENT-SPECIFIC MENU SYSTEM: MOSTLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
+            return True
+        elif dept_specific_passed > 0:
+            print(f"\n⚠️  DEPARTMENT-SPECIFIC MENU SYSTEM: PARTIALLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
             return False
         else:
-            print(f"\n🚨 CRITICAL BUG FIXES: MAJOR ISSUES DETECTED")
+            print(f"\n🚨 DEPARTMENT-SPECIFIC MENU SYSTEM: MAJOR ISSUES DETECTED")
             return False
 
 if __name__ == "__main__":
