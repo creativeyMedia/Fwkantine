@@ -696,7 +696,7 @@ async def create_order(order_data: OrderCreate):
         breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
         topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
         lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
-        boiled_eggs_price = lunch_settings["boiled_eggs_price"] if lunch_settings else 0.50  # Default €0.50 per egg
+        boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50  # Default €0.50 per egg
         
         for breakfast_item in order_data.breakfast_items:
             # Validate that white_halves + seeded_halves = total_halves
