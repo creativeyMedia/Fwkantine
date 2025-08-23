@@ -1225,16 +1225,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
               max="10"
               step="1"
               value={boiledEggs}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                if (isNaN(value) || value < 0) {
-                  setBoiledEggs(0);
-                } else if (value > 10) {
-                  setBoiledEggs(10);
-                } else {
-                  setBoiledEggs(value);
-                }
-              }}
+              onChange={handleBoiledEggsChange}
               className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
             />
             <span className="text-sm text-gray-600">
