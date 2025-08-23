@@ -984,6 +984,9 @@ async def get_daily_summary(department_id: str):
                 total_toppings[topping] = 0
             total_toppings[topping] += count
     
+    # Calculate total boiled eggs
+    total_boiled_eggs = sum(data["boiled_eggs"] for data in employee_orders.values())
+    
     return {
         "date": today.isoformat(),
         "breakfast_summary": breakfast_summary,
@@ -991,7 +994,8 @@ async def get_daily_summary(department_id: str):
         "drinks_summary": drinks_summary,
         "sweets_summary": sweets_summary,
         "shopping_list": shopping_list,
-        "total_toppings": total_toppings
+        "total_toppings": total_toppings,
+        "total_boiled_eggs": total_boiled_eggs  # Add total boiled eggs
     }
 
 @api_router.get("/employee/{employee_id}/today-orders")
