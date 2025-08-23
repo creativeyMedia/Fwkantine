@@ -449,7 +449,7 @@ test_plan:
   current_focus: []
   stuck_tasks: []
   test_all: false
-  test_priority: "critical_bug_fixes_completed"
+  test_priority: "comprehensive_frontend_testing_completed"
 
 frontend:
   - task: "Enhanced Menu Management UI - Breakfast & Toppings CRUD"
