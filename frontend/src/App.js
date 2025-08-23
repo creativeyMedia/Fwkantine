@@ -761,7 +761,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               onClick={submitOrder}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              Bestellung aufgeben
+              Bestellung speichern
             </button>
           </div>
         </div>
