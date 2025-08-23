@@ -580,12 +580,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Dashboard Order Management Display Testing"
-    - "Admin Dashboard Payment History Integration Testing"
     - "Breakfast History Swipe-to-Delete Functionality"
   stuck_tasks: []
   test_all: false
-  test_priority: "admin_dashboard_features_verification"
+  test_priority: "remaining_frontend_features"
 
 agent_communication:
     - agent: "main"
