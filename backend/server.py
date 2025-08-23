@@ -104,6 +104,7 @@ class LunchSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     price: float = 0.0
     enabled: bool = True
+    boiled_eggs_price: float = 0.50  # Default price per boiled egg
 
 class BreakfastSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
