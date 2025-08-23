@@ -1239,7 +1239,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           </div>
         </div>
 
-        {/* Lunch Option */}
+        {/* Mittagessen Option */}
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <label className="flex items-center cursor-pointer">
             <input
