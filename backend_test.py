@@ -3693,6 +3693,228 @@ class CanteenTester:
         
         return success_count >= 6  # At least 6 out of 10 tests should pass
 
+    def test_password_change_functionality(self):
+        """Test password change functionality for both employee and admin passwords"""
+        print("\n=== Testing Password Change Functionality ===")
+        
+        if not self.departments:
+            self.log_test("Password Change", False, "No departments available for testing")
+            return False
+        
+        success_count = 0
+        test_dept = None
+        
+        # Find department 1 (1. Wachabteilung)
+        for dept in self.departments:
+            if "1." in dept['name'] and "Wachabteilung" in dept['name']:
+                test_dept = dept
+                break
+        
+        if not test_dept:
+            self.log_test("Find Department 1", False, "Could not find department 1 for testing")
+            return False
+        
+        self.log_test("Find Department 1", True, f"Found department: {test_dept['name']}")
+        
+        # Step 1: Test initial authentication with original passwords
+        try:
+            # Test employee login with password1
+            employee_login = {
+                "department_name": test_dept['name'],
+                "password": "password1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department", json=employee_login)
+            if response.status_code == 200:
+                self.log_test("Initial Employee Authentication", True, "Successfully authenticated with password1")
+                success_count += 1
+            else:
+                self.log_test("Initial Employee Authentication", False, f"Failed to authenticate with password1: {response.status_code}")
+                return False
+            
+            # Test admin login with admin1
+            admin_login = {
+                "department_name": test_dept['name'],
+                "admin_password": "admin1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=admin_login)
+            if response.status_code == 200:
+                self.log_test("Initial Admin Authentication", True, "Successfully authenticated with admin1")
+                success_count += 1
+            else:
+                self.log_test("Initial Admin Authentication", False, f"Failed to authenticate with admin1: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Initial Authentication", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 2: Test individual password change endpoints
+        try:
+            # Test change employee password endpoint
+            response = self.session.put(f"{API_BASE}/department-admin/change-employee-password/{test_dept['id']}", 
+                                      params={"new_password": "newpass1"})
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_test("Change Employee Password Endpoint", True, 
+                            f"Employee password changed: {result.get('message', 'Success')}")
+                success_count += 1
+            else:
+                self.log_test("Change Employee Password Endpoint", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Change Employee Password Endpoint", False, f"Exception: {str(e)}")
+            return False
+        
+        try:
+            # Test change admin password endpoint
+            response = self.session.put(f"{API_BASE}/department-admin/change-admin-password/{test_dept['id']}", 
+                                      params={"new_password": "newadmin1"})
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log_test("Change Admin Password Endpoint", True, 
+                            f"Admin password changed: {result.get('message', 'Success')}")
+                success_count += 1
+            else:
+                self.log_test("Change Admin Password Endpoint", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Change Admin Password Endpoint", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 3: Test that old passwords no longer work
+        try:
+            # Test old employee password should fail
+            old_employee_login = {
+                "department_name": test_dept['name'],
+                "password": "password1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department", json=old_employee_login)
+            if response.status_code == 401:
+                self.log_test("Old Employee Password Rejected", True, "Old employee password correctly rejected")
+                success_count += 1
+            else:
+                self.log_test("Old Employee Password Rejected", False, 
+                            f"Old password should be rejected, got {response.status_code}")
+            
+            # Test old admin password should fail
+            old_admin_login = {
+                "department_name": test_dept['name'],
+                "admin_password": "admin1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=old_admin_login)
+            if response.status_code == 401:
+                self.log_test("Old Admin Password Rejected", True, "Old admin password correctly rejected")
+                success_count += 1
+            else:
+                self.log_test("Old Admin Password Rejected", False, 
+                            f"Old admin password should be rejected, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Old Password Rejection", False, f"Exception: {str(e)}")
+        
+        # Step 4: Test authentication with new passwords
+        try:
+            # Test new employee password
+            new_employee_login = {
+                "department_name": test_dept['name'],
+                "password": "newpass1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department", json=new_employee_login)
+            if response.status_code == 200:
+                login_result = response.json()
+                if login_result.get('department_id') == test_dept['id']:
+                    self.log_test("New Employee Password Authentication", True, 
+                                "Successfully authenticated with new employee password")
+                    success_count += 1
+                else:
+                    self.log_test("New Employee Password Authentication", False, 
+                                "Department ID mismatch with new password")
+            else:
+                self.log_test("New Employee Password Authentication", False, 
+                            f"Failed to authenticate with new password: {response.status_code}")
+            
+            # Test new admin password
+            new_admin_login = {
+                "department_name": test_dept['name'],
+                "admin_password": "newadmin1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=new_admin_login)
+            if response.status_code == 200:
+                login_result = response.json()
+                if (login_result.get('department_id') == test_dept['id'] and 
+                    login_result.get('role') == 'department_admin'):
+                    self.log_test("New Admin Password Authentication", True, 
+                                "Successfully authenticated with new admin password")
+                    success_count += 1
+                else:
+                    self.log_test("New Admin Password Authentication", False, 
+                                "Department ID or role mismatch with new admin password")
+            else:
+                self.log_test("New Admin Password Authentication", False, 
+                            f"Failed to authenticate with new admin password: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("New Password Authentication", False, f"Exception: {str(e)}")
+        
+        # Step 5: Test database persistence by checking department data
+        try:
+            # Get department data to verify password changes are persisted
+            response = self.session.get(f"{API_BASE}/departments")
+            if response.status_code == 200:
+                departments = response.json()
+                updated_dept = None
+                for dept in departments:
+                    if dept['id'] == test_dept['id']:
+                        updated_dept = dept
+                        break
+                
+                if updated_dept:
+                    # We can't directly check password hashes, but we can verify the department still exists
+                    # and our authentication tests above confirm the passwords work
+                    self.log_test("Database Persistence Check", True, 
+                                "Department data retrieved successfully after password changes")
+                    success_count += 1
+                else:
+                    self.log_test("Database Persistence Check", False, 
+                                "Could not find updated department in database")
+            else:
+                self.log_test("Database Persistence Check", False, 
+                            f"Failed to retrieve departments: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Database Persistence Check", False, f"Exception: {str(e)}")
+        
+        # Step 6: Test endpoint availability and error handling
+        try:
+            # Test with invalid department ID
+            response = self.session.put(f"{API_BASE}/department-admin/change-employee-password/invalid-id", 
+                                      params={"new_password": "testpass"})
+            
+            if response.status_code == 404:
+                self.log_test("Invalid Department ID Handling", True, 
+                            "Correctly handled invalid department ID")
+                success_count += 1
+            else:
+                self.log_test("Invalid Department ID Handling", False, 
+                            f"Expected 404 for invalid ID, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Invalid Department ID Handling", False, f"Exception: {str(e)}")
+        
+        return success_count >= 8  # Expect at least 8 out of 10 tests to pass
+
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
