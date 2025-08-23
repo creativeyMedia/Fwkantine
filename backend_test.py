@@ -3722,6 +3722,7 @@ class CanteenTester:
             ("Critical Breakfast Ordering Fixes", self.test_critical_breakfast_ordering_fixes),
             ("Critical Bug Fixes", self.test_critical_bug_fixes),
             ("🔧 Daily Summary Toppings Fix - [object Object] Issue", self.test_daily_summary_toppings_fix),
+            ("🆕 NEW FEATURE - Breakfast Day Deletion", self.test_breakfast_day_deletion),
         ]
         
         # NEW FEATURE TEST - Boiled Breakfast Eggs
