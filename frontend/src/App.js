@@ -2510,7 +2510,7 @@ const AdminDashboard = () => {
             <span>Aktueller Preis: €{lunchSettings.price.toFixed(2)}</span>
             <button
               onClick={() => {
-                const newPrice = prompt('Neuer Lunch-Preis (€):', lunchSettings.price.toFixed(2));
+                const newPrice = prompt('Neuer Mittagessen-Preis (€):', lunchSettings.price.toFixed(2));
                 if (newPrice && !isNaN(parseFloat(newPrice))) {
                   updateLunchPrice(parseFloat(newPrice));
                 }
