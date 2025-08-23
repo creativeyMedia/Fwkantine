@@ -3616,7 +3616,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                       </p>
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Weiße: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
+                      <span>Helle: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
                       <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
                       <span>{selectedDate === day.date ? '▲' : '▼'}</span>
                     </div>
