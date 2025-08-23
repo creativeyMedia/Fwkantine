@@ -2822,7 +2822,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
   };
 
   const rollTypeLabels = {
-    'weiss': 'Weißes Brötchen',
+    'weiss': 'Helles Brötchen',
     'koerner': 'Körnerbrötchen'
   };
 
