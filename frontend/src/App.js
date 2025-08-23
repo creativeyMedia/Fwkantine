@@ -3919,7 +3919,10 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                 >
                   {/* Day Summary Header */}
                   <div className="flex justify-between items-center">
-                    <div>
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
+                    >
                       <h5 className="font-semibold text-lg">{formatDate(day.date)}</h5>
                       <p className="text-sm text-gray-600">
                         {day.total_orders} Bestellungen • €{day.total_amount.toFixed(2)}
@@ -3928,7 +3931,31 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span>Helle: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
                       <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
-                      <span>{selectedDate === day.date ? '▲' : '▼'}</span>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent expanding/collapsing
+                            deleteBreakfastDay(day.date);
+                          }}
+                          disabled={deleting === day.date}
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                            deleting === day.date 
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                              : 'bg-red-600 text-white hover:bg-red-700'
+                          }`}
+                          title="Tag löschen"
+                        >
+                          {deleting === day.date ? 'Wird gelöscht...' : '🗑️ Löschen'}
+                        </button>
+                        {/* Expand/Collapse Indicator */}
+                        <button
+                          onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
+                          className="px-2 py-1 text-gray-400 hover:text-gray-600"
+                        >
+                          {selectedDate === day.date ? '▲' : '▼'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
