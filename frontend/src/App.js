@@ -4197,6 +4197,15 @@ const AdminSettingsTab = ({ currentDepartment }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="Neues Passwort für Mitarbeiter"
               />
+              <div className="mt-2">
+                <button
+                  onClick={changeEmployeePassword}
+                  disabled={!newEmployeePassword}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                >
+                  Mitarbeiter-Passwort ändern
+                </button>
+              </div>
             </div>
             
             <div>
@@ -4208,17 +4217,16 @@ const AdminSettingsTab = ({ currentDepartment }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="Neues Passwort für Admin"
               />
+              <div className="mt-2">
+                <button
+                  onClick={changeAdminPassword}
+                  disabled={!newAdminPassword}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                >
+                  Admin-Passwort ändern
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <div className="mt-4">
-            <button
-              onClick={changePasswords}
-              disabled={!newEmployeePassword || !newAdminPassword}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              Passwörter ändern
-            </button>
           </div>
 
           <div className="mt-4 text-sm text-gray-600">
