@@ -1386,20 +1386,20 @@ const DepartmentAdminDashboard = () => {
             >
               ← Zurück zum Mitarbeiter-Dashboard
             </button>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mt-2 sm:mt-0">
               {currentDepartment.department_name} - Admin
             </h1>
           </div>
           <button
             onClick={logout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base whitespace-nowrap self-start sm:self-center"
           >
             Abmelden
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex mb-6 space-x-1">
+        <div className="flex flex-wrap mb-6 gap-1 sm:gap-2">
           {[
             { id: 'employees', label: 'Mitarbeiter' },
             { id: 'menu-management', label: 'Menü & Preise' },
