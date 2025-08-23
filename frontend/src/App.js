@@ -660,31 +660,33 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const submitOrder = async () => {
     try {
-      await axios.post(`${API}/orders`, {
+      // For breakfast category, if form is filled but no items in array, auto-add the item
+      if (activeCategory === 'breakfast' && order.breakfast_items.length === 0) {
+        alert('Bitte füllen Sie zuerst das Frühstücksformular aus und verwenden Sie die Vorschau-Funktion.');
+        return;
+      }
+      
+      const orderData = {
         employee_id: employee.id,
         department_id: currentDepartment.department_id,
         order_type: activeCategory,
         breakfast_items: activeCategory === 'breakfast' ? order.breakfast_items : [],
         drink_items: activeCategory === 'drinks' ? order.drink_items : {},
         sweet_items: activeCategory === 'sweets' ? order.sweet_items : {}
-      });
+      };
+
+      await axios.post(`${API}/orders`, orderData);
       
       // Show success message but keep form open
-      alert('Bestellung erfolgreich gespeichert! Sie können Ihre Bestellung weiterhin bearbeiten.');
+      alert('Bestellung erfolgreich gespeichert!');
       
       // Refresh employee data to show updated balance
-      fetchEmployees();
-      
-      // Reset the order for this category to allow new orders
-      if (activeCategory === 'breakfast') {
-        setOrder(prev => ({ ...prev, breakfast_items: [] }));
-      } else if (activeCategory === 'drinks') {
-        setOrder(prev => ({ ...prev, drink_items: {} }));
-      } else if (activeCategory === 'sweets') {
-        setOrder(prev => ({ ...prev, sweet_items: {} }));
+      if (fetchEmployees) {
+        fetchEmployees();
       }
       
-      // DON'T call onOrderComplete() - keep the modal open
+      // DON'T reset the order or close the modal - keep it open for editing
+      
     } catch (error) {
       console.error('Fehler beim Erstellen der Bestellung:', error);
       alert('Fehler beim Speichern der Bestellung. Bitte versuchen Sie es erneut.');
