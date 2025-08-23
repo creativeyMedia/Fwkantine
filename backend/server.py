@@ -558,24 +558,28 @@ async def update_lunch_settings(price: float):
     }
 
 # Menu routes
-@api_router.get("/menu/breakfast", response_model=List[MenuItemBreakfast])
-async def get_breakfast_menu():
-    items = await db.menu_breakfast.find().to_list(100)
+@api_router.get("/menu/breakfast/{department_id}", response_model=List[MenuItemBreakfast])
+async def get_breakfast_menu(department_id: str):
+    """Get breakfast menu items for a specific department"""
+    items = await db.menu_breakfast.find({"department_id": department_id}).to_list(100)
     return [MenuItemBreakfast(**item) for item in items]
 
-@api_router.get("/menu/toppings", response_model=List[MenuItemToppings])
-async def get_toppings_menu():
-    items = await db.menu_toppings.find().to_list(100)
+@api_router.get("/menu/toppings/{department_id}", response_model=List[MenuItemToppings])
+async def get_toppings_menu(department_id: str):
+    """Get topping menu items for a specific department"""
+    items = await db.menu_toppings.find({"department_id": department_id}).to_list(100)
     return [MenuItemToppings(**item) for item in items]
 
-@api_router.get("/menu/drinks", response_model=List[MenuItemDrink])
-async def get_drinks_menu():
-    items = await db.menu_drinks.find().to_list(100)
+@api_router.get("/menu/drinks/{department_id}", response_model=List[MenuItemDrink])
+async def get_drinks_menu(department_id: str):
+    """Get drink menu items for a specific department"""
+    items = await db.menu_drinks.find({"department_id": department_id}).to_list(100)
     return [MenuItemDrink(**item) for item in items]
 
-@api_router.get("/menu/sweets", response_model=List[MenuItemSweet])
-async def get_sweets_menu():
-    items = await db.menu_sweets.find().to_list(100)
+@api_router.get("/menu/sweets/{department_id}", response_model=List[MenuItemSweet])
+async def get_sweets_menu(department_id: str):
+    """Get sweet menu items for a specific department"""
+    items = await db.menu_sweets.find({"department_id": department_id}).to_list(100)
     return [MenuItemSweet(**item) for item in items]
 
 # Order routes
