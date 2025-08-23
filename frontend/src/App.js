@@ -2841,7 +2841,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                               <div className="flex flex-wrap gap-1">
                                 {Object.entries(employeeData.toppings).map(([topping, count]) => (
                                   <span key={topping} className="bg-gray-100 px-2 py-1 rounded text-xs">
-                                    {count}x {finalToppingLabels[topping] || topping}
+                                    {count}x {String(finalToppingLabels[topping] || topping)}
                                   </span>
                                 ))}
                               </div>
