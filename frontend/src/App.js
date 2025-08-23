@@ -1459,6 +1459,145 @@ const DepartmentAdminDashboard = () => {
   );
 };
 
+// Employee Orders Management Modal
+const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpdate }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployeeOrders();
+  }, [employee.id]);
+
+  const fetchEmployeeOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/employees/${employee.id}/orders`);
+      setOrders(response.data.orders || []);
+    } catch (error) {
+      console.error('Fehler beim Laden der Bestellungen:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (window.confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+      try {
+        await axios.delete(`${API}/department-admin/orders/${orderId}`);
+        alert('Bestellung erfolgreich gelöscht');
+        fetchEmployeeOrders();
+        if (onOrderUpdate) {
+          onOrderUpdate();
+        }
+      } catch (error) {
+        console.error('Fehler beim Löschen der Bestellung:', error);
+        alert('Fehler beim Löschen der Bestellung');
+      }
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatOrderDetails = (order) => {
+    if (order.order_type === 'breakfast' && order.breakfast_items) {
+      return order.breakfast_items.map(item => {
+        const whiteHalves = item.white_halves || 0;
+        const seededHalves = item.seeded_halves || 0;
+        const toppings = item.toppings || [];
+        const hasLunch = item.has_lunch ? ' + Lunch' : '';
+        
+        return `${whiteHalves}x Weiße, ${seededHalves}x Körner${toppings.length > 0 ? ', Beläge: ' + toppings.join(', ') : ''}${hasLunch}`;
+      }).join('; ');
+    } else if (order.order_type === 'drinks') {
+      return Object.entries(order.drink_items || {}).map(([drink, qty]) => `${qty}x ${drink}`).join(', ');
+    } else if (order.order_type === 'sweets') {
+      return Object.entries(order.sweet_items || {}).map(([sweet, qty]) => `${qty}x ${sweet}`).join(', ');
+    }
+    return 'Unbekannte Bestellung';
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Bestellungen verwalten: {employee.name}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="text-lg text-gray-600">Lade Bestellungen...</div>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>Keine Bestellungen für diesen Mitarbeiter gefunden.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold mb-4">
+                Alle Bestellungen ({orders.length})
+              </h3>
+              
+              {/* Orders List */}
+              <div className="space-y-3">
+                {orders.map((order) => (
+                  <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-2">
+                          <span className="font-semibold text-lg">
+                            {order.order_type === 'breakfast' ? 'Frühstück' : 
+                             order.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {formatDate(order.timestamp)}
+                          </span>
+                          <span className="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
+                            €{order.total_price.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="text-gray-700 mb-2">
+                          <strong>Details:</strong> {formatOrderDetails(order)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => deleteOrder(order.id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Employee Management Tab Component
 const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate }) => {
   const [showOrdersModal, setShowOrdersModal] = useState(false);
