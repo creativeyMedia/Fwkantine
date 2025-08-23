@@ -1244,8 +1244,11 @@ async def change_department_password(department_id: str, new_employee_password: 
 
 # Department Admin routes
 @api_router.put("/department-admin/menu/breakfast/{item_id}")
-async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate, department_id: str = None):
+async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate, department_id: str):
     """Department Admin: Update breakfast menu item"""
+    if not department_id:
+        raise HTTPException(status_code=400, detail="Department ID is required")
+        
     update_fields = {}
     if update_data.price is not None:
         update_fields["price"] = update_data.price
@@ -1253,10 +1256,8 @@ async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate, 
         update_fields["name"] = update_data.name
     
     if update_fields:
-        # Query should include both id and department_id for security
-        query = {"id": item_id}
-        if department_id:
-            query["department_id"] = department_id
+        # Query must include both id and department_id for security
+        query = {"id": item_id, "department_id": department_id}
             
         result = await db.menu_breakfast.update_one(query, {"$set": update_fields})
         if result.matched_count == 0:
