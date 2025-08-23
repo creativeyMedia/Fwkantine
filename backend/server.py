@@ -1278,6 +1278,32 @@ async def change_department_password(department_id: str, new_employee_password: 
     
     return {"message": "Passwörter erfolgreich geändert"}
 
+@api_router.put("/department-admin/change-employee-password/{department_id}")
+async def change_employee_password(department_id: str, new_password: str):
+    """Change department employee password only"""
+    result = await db.departments.update_one(
+        {"id": department_id},
+        {"$set": {"password_hash": new_password}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
+    
+    return {"message": "Mitarbeiter-Passwort erfolgreich geändert"}
+
+@api_router.put("/department-admin/change-admin-password/{department_id}")
+async def change_admin_password(department_id: str, new_password: str):
+    """Change department admin password only"""
+    result = await db.departments.update_one(
+        {"id": department_id},
+        {"$set": {"admin_password_hash": new_password}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
+    
+    return {"message": "Admin-Passwort erfolgreich geändert"}
+
 # Department Admin routes
 @api_router.put("/department-admin/menu/breakfast/{item_id}")
 async def update_breakfast_menu_item(item_id: str, update_data: MenuItemUpdate, department_id: str):
