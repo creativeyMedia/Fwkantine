@@ -2977,6 +2977,7 @@ class CanteenTester:
         print(f"✅ Setup Tests: {setup_passed}/{len(setup_tests)}")
         print(f"🏢 Department-Specific Tests: {dept_specific_passed}/{len(department_specific_tests)}")
         print(f"🔧 Additional Critical Tests: {critical_passed}/{len(critical_tests)}")
+        print(f"🆕 NEW FEATURE - Boiled Eggs Tests: {new_feature_passed}/{len(new_feature_tests)}")
         print(f"📊 Overall: {total_passed}/{total_tests}")
         
         # Print individual test results for department-specific tests
