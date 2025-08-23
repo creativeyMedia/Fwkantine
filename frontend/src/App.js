@@ -667,9 +667,26 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
         drink_items: activeCategory === 'drinks' ? order.drink_items : {},
         sweet_items: activeCategory === 'sweets' ? order.sweet_items : {}
       });
-      onOrderComplete();
+      
+      // Show success message but keep form open
+      alert('Bestellung erfolgreich gespeichert! Sie können Ihre Bestellung weiterhin bearbeiten.');
+      
+      // Refresh employee data to show updated balance
+      fetchEmployees();
+      
+      // Reset the order for this category to allow new orders
+      if (activeCategory === 'breakfast') {
+        setOrder(prev => ({ ...prev, breakfast_items: [] }));
+      } else if (activeCategory === 'drinks') {
+        setOrder(prev => ({ ...prev, drink_items: {} }));
+      } else if (activeCategory === 'sweets') {
+        setOrder(prev => ({ ...prev, sweet_items: {} }));
+      }
+      
+      // DON'T call onOrderComplete() - keep the modal open
     } catch (error) {
       console.error('Fehler beim Erstellen der Bestellung:', error);
+      alert('Fehler beim Speichern der Bestellung. Bitte versuchen Sie es erneut.');
     }
   };
 
