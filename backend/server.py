@@ -879,6 +879,15 @@ async def get_employee_orders(employee_id: str):
     orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
     return [parse_from_mongo(order) for order in orders]
 
+@api_router.get("/employees/{employee_id}/orders")
+async def get_employee_orders(employee_id: str):
+    """Get all orders for a specific employee"""
+    try:
+        orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
+        return {"orders": orders}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching orders: {str(e)}")
+
 @api_router.get("/employees/{employee_id}/profile")
 async def get_employee_profile(employee_id: str):
     """Get employee profile with detailed order history"""
