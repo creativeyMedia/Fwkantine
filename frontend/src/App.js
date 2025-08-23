@@ -3069,7 +3069,7 @@ const LunchManagementTab = () => {
 };
 
 // Unified Menu & Price Management Tab Component
-const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice, onCreateMenuItem, onDeleteMenuItem, fetchMenus }) => {
+const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice, onCreateMenuItem, onDeleteMenuItem, fetchMenus, currentDepartment }) => {
   const [showNewDrink, setShowNewDrink] = useState(false);
   const [showNewSweet, setShowNewSweet] = useState(false);
   const [showNewBreakfast, setShowNewBreakfast] = useState(false);
