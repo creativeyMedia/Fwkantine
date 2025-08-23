@@ -230,7 +230,7 @@ class CriticalBugTester:
         # Test 3: Mixed halves (2 weiss + 1 koerner) should cost 3 × €0.75 = €2.25
         try:
             breakfast_order = {
-                "employee_id": self.test_employee['id'],
+                "employee_id": employee3['id'],
                 "department_id": self.test_department['id'],
                 "order_type": "breakfast",
                 "breakfast_items": [
