@@ -2732,10 +2732,22 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
 
   const fetchToppingsMenu = async () => {
     try {
-      const response = await axios.get(`${API}/menu/toppings`);
+      if (!departmentId) {
+        console.error('No department ID available for toppings fetch');
+        return;
+      }
+      
+      const response = await axios.get(`${API}/menu/toppings/${departmentId}`);
       setToppingsMenu(response.data);
     } catch (error) {
       console.error('Fehler beim Laden der Beläge:', error);
+      // Fallback to old endpoint
+      try {
+        const response = await axios.get(`${API}/menu/toppings`);
+        setToppingsMenu(response.data);
+      } catch (fallbackError) {
+        console.error('Fallback toppings loading failed:', fallbackError);
+      }
     }
   };
 
