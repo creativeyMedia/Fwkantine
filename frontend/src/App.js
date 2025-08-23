@@ -661,17 +661,25 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const submitOrder = async () => {
     try {
-      // For breakfast category, if form is filled but no items in array, auto-add the item
-      if (activeCategory === 'breakfast' && order.breakfast_items.length === 0) {
-        alert('Bitte füllen Sie zuerst das Frühstücksformular aus und verwenden Sie die Vorschau-Funktion.');
-        return;
+      let breakfastItems = [];
+      
+      // For breakfast category, use form data if available, otherwise use order array
+      if (activeCategory === 'breakfast') {
+        if (breakfastFormData) {
+          breakfastItems = [breakfastFormData];
+        } else if (order.breakfast_items.length > 0) {
+          breakfastItems = order.breakfast_items;
+        } else {
+          alert('Bitte füllen Sie das Frühstücksformular aus.');
+          return;
+        }
       }
       
       const orderData = {
         employee_id: employee.id,
         department_id: currentDepartment.department_id,
         order_type: activeCategory,
-        breakfast_items: activeCategory === 'breakfast' ? order.breakfast_items : [],
+        breakfast_items: breakfastItems,
         drink_items: activeCategory === 'drinks' ? order.drink_items : {},
         sweet_items: activeCategory === 'sweets' ? order.sweet_items : {}
       };
@@ -686,7 +694,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         fetchEmployees();
       }
       
-      // DON'T reset the order or close the modal - keep it open for editing
+      // DON'T reset the form data or close the modal - keep it open for editing
       
     } catch (error) {
       console.error('Fehler beim Erstellen der Bestellung:', error);
