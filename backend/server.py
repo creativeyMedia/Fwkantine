@@ -1275,7 +1275,7 @@ async def update_toppings_menu_item(item_id: str, update_data: MenuItemUpdate, d
     return {"message": "Belag erfolgreich aktualisiert"}
 
 @api_router.put("/department-admin/menu/drinks/{item_id}")
-async def update_drinks_menu_item(item_id: str, update_data: MenuItemUpdate):
+async def update_drinks_menu_item(item_id: str, update_data: MenuItemUpdate, department_id: str = None):
     """Department Admin: Update drinks menu item"""
     update_fields = {}
     if update_data.price is not None:
@@ -1284,12 +1284,13 @@ async def update_drinks_menu_item(item_id: str, update_data: MenuItemUpdate):
         update_fields["name"] = update_data.name
     
     if update_fields:
-        result = await db.menu_drinks.update_one(
-            {"id": item_id}, 
-            {"$set": update_fields}
-        )
+        query = {"id": item_id}
+        if department_id:
+            query["department_id"] = department_id
+            
+        result = await db.menu_drinks.update_one(query, {"$set": update_fields})
         if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Getränk nicht gefunden")
+            raise HTTPException(status_code=404, detail="Getränk nicht gefunden oder keine Berechtigung")
     
     return {"message": "Getränk erfolgreich aktualisiert"}
 
