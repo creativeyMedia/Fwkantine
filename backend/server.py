@@ -1359,10 +1359,33 @@ async def get_breakfast_history(department_id: str, days: int = 7):
 async def delete_order_by_admin(order_id: str):
     """Department Admin: Delete an employee order"""
     try:
+        # Find the order first to get employee info and price
+        order = await db.orders.find_one({"id": order_id})
+        if not order:
+            raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+        
+        # Adjust employee balance before deleting the order
+        employee = await db.employees.find_one({"id": order["employee_id"]})
+        if employee:
+            if order["order_type"] == "breakfast":
+                new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
+                await db.employees.update_one(
+                    {"id": order["employee_id"]},
+                    {"$set": {"breakfast_balance": max(0, new_breakfast_balance)}}
+                )
+            else:
+                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                await db.employees.update_one(
+                    {"id": order["employee_id"]},
+                    {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
+                )
+        
+        # Now delete the order
         result = await db.orders.delete_one({"id": order_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
-        return {"message": "Bestellung erfolgreich gelöscht"}
+        
+        return {"message": "Bestellung erfolgreich gelöscht und Saldo aktualisiert"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting order: {str(e)}")
 
