@@ -4390,6 +4390,230 @@ class CanteenTester:
         
         return success_count >= 5  # At least 5 out of 6 tests should pass
 
+    def test_topping_system_bugs(self):
+        """Test and fix the topping system bugs as requested in the review"""
+        print("\n=== Testing Topping System Bugs ===")
+        
+        if not self.departments:
+            self.log_test("Topping System Bugs", False, "No departments available for testing")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]  # Use first department
+        
+        # Step 1: Get current toppings for department 1
+        try:
+            response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+            
+            if response.status_code == 200:
+                current_toppings = response.json()
+                self.log_test("Get Current Toppings", True, 
+                            f"Found {len(current_toppings)} toppings for department 1")
+                success_count += 1
+                
+                # Check for duplicate toppings with different topping_type vs topping_name
+                topping_names = {}
+                duplicates_found = []
+                
+                for topping in current_toppings:
+                    topping_type = topping.get('topping_type', '')
+                    topping_name = topping.get('name', topping_type)
+                    display_name = topping_name if topping_name else topping_type
+                    
+                    if display_name in topping_names:
+                        duplicates_found.append({
+                            'name': display_name,
+                            'existing': topping_names[display_name],
+                            'duplicate': topping
+                        })
+                    else:
+                        topping_names[display_name] = topping
+                
+                if duplicates_found:
+                    self.log_test("Check for Duplicate Toppings", False, 
+                                f"Found {len(duplicates_found)} duplicate toppings: {[d['name'] for d in duplicates_found]}")
+                    
+                    # Clean up duplicates
+                    for duplicate in duplicates_found:
+                        try:
+                            # Delete the duplicate entry
+                            dup_id = duplicate['duplicate']['id']
+                            delete_response = self.session.delete(f"{API_BASE}/department-admin/menu/toppings/{dup_id}")
+                            if delete_response.status_code == 200:
+                                self.log_test(f"Clean Duplicate Topping {duplicate['name']}", True, 
+                                            f"Successfully removed duplicate topping")
+                            else:
+                                self.log_test(f"Clean Duplicate Topping {duplicate['name']}", False, 
+                                            f"Failed to remove duplicate: HTTP {delete_response.status_code}")
+                        except Exception as e:
+                            self.log_test(f"Clean Duplicate Topping {duplicate['name']}", False, f"Exception: {str(e)}")
+                else:
+                    self.log_test("Check for Duplicate Toppings", True, "No duplicate toppings found")
+                    success_count += 1
+                    
+            else:
+                self.log_test("Get Current Toppings", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Get Current Toppings", False, f"Exception: {str(e)}")
+        
+        # Step 2: Create a test topping with custom name
+        test_topping_id = None
+        try:
+            test_topping_data = {
+                "topping_id": "test_schnittei",
+                "topping_name": "Test Schnittei",
+                "price": 0.75,
+                "department_id": test_dept['id']
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", 
+                                       json=test_topping_data)
+            
+            if response.status_code == 200:
+                test_topping = response.json()
+                test_topping_id = test_topping['id']
+                self.log_test("Create Test Topping", True, 
+                            f"Created test topping 'Test Schnittei' with ID: {test_topping_id}")
+                success_count += 1
+            else:
+                self.log_test("Create Test Topping", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create Test Topping", False, f"Exception: {str(e)}")
+        
+        # Step 3: Update the topping name and verify no duplicates
+        if test_topping_id:
+            try:
+                update_data = {
+                    "name": "Updated Schnittei Premium",
+                    "price": 1.00
+                }
+                
+                response = self.session.put(f"{API_BASE}/department-admin/menu/toppings/{test_topping_id}", 
+                                          json=update_data, 
+                                          params={"department_id": test_dept['id']})
+                
+                if response.status_code == 200:
+                    self.log_test("Update Topping Name", True, 
+                                "Successfully updated topping name to 'Updated Schnittei Premium'")
+                    success_count += 1
+                    
+                    # Verify the update by fetching the topping again
+                    verify_response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                    if verify_response.status_code == 200:
+                        updated_toppings = verify_response.json()
+                        updated_topping = next((t for t in updated_toppings if t['id'] == test_topping_id), None)
+                        
+                        if updated_topping:
+                            # Check if both topping_name and topping_type are updated correctly
+                            name_updated = updated_topping.get('name') == "Updated Schnittei Premium"
+                            type_updated = updated_topping.get('topping_type') == test_topping_id  # Should match ID
+                            price_updated = updated_topping.get('price') == 1.00
+                            
+                            if name_updated and type_updated and price_updated:
+                                self.log_test("Verify Topping Update", True, 
+                                            "Both topping_name and topping_type updated correctly")
+                                success_count += 1
+                            else:
+                                self.log_test("Verify Topping Update", False, 
+                                            f"Update verification failed: name={name_updated}, type={type_updated}, price={price_updated}")
+                        else:
+                            self.log_test("Verify Topping Update", False, "Updated topping not found")
+                    
+                    # Check for duplicates after update
+                    duplicate_check_response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                    if duplicate_check_response.status_code == 200:
+                        all_toppings = duplicate_check_response.json()
+                        schnittei_toppings = [t for t in all_toppings if 'schnittei' in t.get('name', '').lower() or 'schnittei' in t.get('topping_type', '').lower()]
+                        
+                        if len(schnittei_toppings) <= 1:
+                            self.log_test("No Duplicates After Update", True, 
+                                        f"Found {len(schnittei_toppings)} Schnittei topping(s) - no duplicates")
+                            success_count += 1
+                        else:
+                            self.log_test("No Duplicates After Update", False, 
+                                        f"Found {len(schnittei_toppings)} Schnittei toppings - duplicates exist")
+                else:
+                    self.log_test("Update Topping Name", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Update Topping Name", False, f"Exception: {str(e)}")
+        
+        # Step 4: Test deletion functionality
+        if test_topping_id:
+            try:
+                response = self.session.delete(f"{API_BASE}/department-admin/menu/toppings/{test_topping_id}")
+                
+                if response.status_code == 200:
+                    self.log_test("Delete Test Topping", True, 
+                                "Successfully deleted test topping")
+                    success_count += 1
+                    
+                    # Verify deletion
+                    verify_response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                    if verify_response.status_code == 200:
+                        remaining_toppings = verify_response.json()
+                        deleted_topping = next((t for t in remaining_toppings if t['id'] == test_topping_id), None)
+                        
+                        if not deleted_topping:
+                            self.log_test("Verify Topping Deletion", True, 
+                                        "Topping properly removed from database")
+                            success_count += 1
+                        else:
+                            self.log_test("Verify Topping Deletion", False, 
+                                        "Topping still exists after deletion")
+                else:
+                    self.log_test("Delete Test Topping", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Delete Test Topping", False, f"Exception: {str(e)}")
+        
+        # Step 5: Clean up any remaining problematic entries
+        try:
+            final_response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+            if final_response.status_code == 200:
+                final_toppings = final_response.json()
+                
+                # Look for any inconsistent entries
+                inconsistent_entries = []
+                for topping in final_toppings:
+                    topping_type = topping.get('topping_type', '')
+                    topping_name = topping.get('name', '')
+                    
+                    # Check for inconsistencies
+                    if topping_name and topping_type and topping_name != topping_type:
+                        # This is actually expected for custom names, so check for real issues
+                        if not topping_name.strip() or not topping_type.strip():
+                            inconsistent_entries.append(topping)
+                
+                if inconsistent_entries:
+                    self.log_test("Clean Inconsistent Entries", False, 
+                                f"Found {len(inconsistent_entries)} inconsistent topping entries")
+                    
+                    # Clean up inconsistent entries
+                    for entry in inconsistent_entries:
+                        try:
+                            delete_response = self.session.delete(f"{API_BASE}/department-admin/menu/toppings/{entry['id']}")
+                            if delete_response.status_code == 200:
+                                self.log_test(f"Clean Inconsistent Entry {entry['id']}", True, 
+                                            "Successfully removed inconsistent entry")
+                        except Exception as e:
+                            self.log_test(f"Clean Inconsistent Entry {entry['id']}", False, f"Exception: {str(e)}")
+                else:
+                    self.log_test("Database Consistency Check", True, 
+                                "Database is clean and consistent")
+                    success_count += 1
+                    
+        except Exception as e:
+            self.log_test("Database Consistency Check", False, f"Exception: {str(e)}")
+        
+        return success_count >= 6  # At least 6 out of the main tests should pass
+
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
