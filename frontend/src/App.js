@@ -1483,11 +1483,17 @@ const DepartmentAdminDashboard = () => {
 
   const fetchMenus = async () => {
     try {
+      if (!currentDepartment?.department_id) {
+        console.error('No department ID available for admin menu fetch');
+        return;
+      }
+
+      const departmentId = currentDepartment.department_id;
       const [breakfast, toppings, drinks, sweets] = await Promise.all([
-        axios.get(`${API}/menu/breakfast`),
-        axios.get(`${API}/menu/toppings`),
-        axios.get(`${API}/menu/drinks`),
-        axios.get(`${API}/menu/sweets`)
+        axios.get(`${API}/menu/breakfast/${departmentId}`),
+        axios.get(`${API}/menu/toppings/${departmentId}`),
+        axios.get(`${API}/menu/drinks/${departmentId}`),
+        axios.get(`${API}/menu/sweets/${departmentId}`)
       ]);
       setBreakfastMenu(breakfast.data);
       setToppingsMenu(toppings.data);
@@ -1495,6 +1501,21 @@ const DepartmentAdminDashboard = () => {
       setSweetsMenu(sweets.data);
     } catch (error) {
       console.error('Fehler beim Laden der Menüs:', error);
+      // Fallback to old endpoints if department-specific ones fail
+      try {
+        const [breakfast, toppings, drinks, sweets] = await Promise.all([
+          axios.get(`${API}/menu/breakfast`),
+          axios.get(`${API}/menu/toppings`),
+          axios.get(`${API}/menu/drinks`),
+          axios.get(`${API}/menu/sweets`)
+        ]);
+        setBreakfastMenu(breakfast.data);
+        setToppingsMenu(toppings.data);
+        setDrinksMenu(drinks.data);
+        setSweetsMenu(sweets.data);
+      } catch (fallbackError) {
+        console.error('Fallback admin menu loading also failed:', fallbackError);
+      }
     }
   };
 
