@@ -2018,7 +2018,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
 // Price Management Tab Component
 const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice }) => {
   const rollTypeLabels = {
-    'weiss': 'Weißes Brötchen',
+    'weiss': 'Helles Brötchen',
     'koerner': 'Körnerbrötchen'
   };
 
