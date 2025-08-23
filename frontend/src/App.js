@@ -1193,6 +1193,24 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           </div>
         )}
 
+        {/* Boiled Eggs Option */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <label className="block text-sm font-medium mb-3">Gekochte Frühstückseier</label>
+          <div className="flex items-center space-x-4">
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={boiledEggs}
+              onChange={(e) => setBoiledEggs(parseInt(e.target.value) || 0)}
+              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
+            />
+            <span className="text-sm text-gray-600">
+              Stück (€{boiledEggsPrice.toFixed(2)} pro Ei = €{boiledEggsCost.toFixed(2)})
+            </span>
+          </div>
+        </div>
+
         {/* Lunch Option */}
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <label className="flex items-center">
