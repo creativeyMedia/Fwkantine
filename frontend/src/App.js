@@ -1783,9 +1783,20 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
         const whiteHalves = item.white_halves || 0;
         const seededHalves = item.seeded_halves || 0;
         const toppings = item.toppings || [];
-        const hasLunch = item.has_lunch ? ' + Lunch' : '';
+        const hasLunch = item.has_lunch ? ' + Mittagessen' : '';
         
-        return `${whiteHalves}x Weiße, ${seededHalves}x Körner${toppings.length > 0 ? ', Beläge: ' + toppings.join(', ') : ''}${hasLunch}`;
+        // Handle toppings that might be objects or strings
+        const toppingsText = toppings.length > 0 ? 
+          ', Beläge: ' + toppings.map(topping => {
+            if (typeof topping === 'string') {
+              return topping;
+            } else if (topping && typeof topping === 'object') {
+              return topping.name || topping.topping_type || 'Unknown';
+            }
+            return String(topping);
+          }).join(', ') : '';
+        
+        return `${whiteHalves}x Helle, ${seededHalves}x Körner${toppingsText}${hasLunch}`;
       }).join('; ');
     } else if (order.order_type === 'drinks') {
       return Object.entries(order.drink_items || {}).map(([drink, qty]) => `${qty}x ${drink}`).join(', ');
