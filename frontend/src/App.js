@@ -376,7 +376,7 @@ const DepartmentDashboard = () => {
 
   const handleEmployeeClick = (employee, event) => {
     // Check if the click was on the "Verlauf" text
-    if (event.target.closest('.verlauf-text')) {
+    if (event && event.target && event.target.closest('.verlauf-text')) {
       return; // Don't open order menu if clicking on Verlauf text
     }
     setSelectedEmployee(employee);
