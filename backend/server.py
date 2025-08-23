@@ -1131,12 +1131,22 @@ async def get_employee_profile(employee_id: str):
         
         enriched_orders.append(enriched_order)
     
+    # Get payment logs for this employee
+    payment_logs = await db.payment_logs.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
+    
+    # Clean payment logs
+    clean_payment_logs = []
+    for log in payment_logs:
+        clean_log = {k: v for k, v in log.items() if k != '_id'}
+        clean_payment_logs.append(clean_log)
+    
     # Clean employee data and remove MongoDB _id
     clean_employee = {k: v for k, v in employee.items() if k != '_id'}
     
     return {
         "employee": clean_employee,
         "order_history": enriched_orders,
+        "payment_history": clean_payment_logs,  # Add payment history
         "total_orders": len(orders),
         "breakfast_total": employee["breakfast_balance"],
         "drinks_sweets_total": employee["drinks_sweets_balance"]
