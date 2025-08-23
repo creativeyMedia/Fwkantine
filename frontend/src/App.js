@@ -458,15 +458,16 @@ const DepartmentDashboard = () => {
                 <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={(event) => handleEmployeeProfileClick(employee, event)}
-                  className="verlauf-button flex-1 bg-blue-600 text-white text-xs py-2 px-3 rounded hover:bg-blue-700 transition-colors"
-                >
+                <div className="flex-1 text-center text-xs text-gray-700 py-2 cursor-pointer hover:text-gray-900"
+                     onClick={(event) => handleEmployeeProfileClick(employee, event)}>
                   Verlauf
-                </button>
-                <div className="flex-1 text-center text-xs text-gray-500 py-2">
-                  Klick für Bestellung
                 </div>
+                <button
+                  onClick={() => handleEmployeeClick(employee)}
+                  className="flex-1 bg-blue-600 text-white text-xs py-2 px-3 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Bestellen
+                </button>
               </div>
             </div>
           ))}
