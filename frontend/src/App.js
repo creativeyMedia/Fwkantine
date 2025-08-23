@@ -2935,54 +2935,53 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
         <div className="p-6">
           {dailySummary && dailySummary.shopping_list && Object.keys(dailySummary.shopping_list).length > 0 ? (
             <div>
-              {/* Shopping List Summary */}
+              {/* Combined Shopping List */}
               <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-4 text-green-800">🛒 Einkaufsliste</h3>
                 
-                <div className="text-lg font-bold text-green-700 mb-4">
-                  {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
-                    const rollLabel = String(rollTypeLabels[rollType] || rollType);
-                    const wholeRolls = String(data.whole_rolls || 0);
-                    return `${wholeRolls} ${rollLabel.replace(' Brötchen', '')}`;
-                  }).join(', ')}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => (
-                    <div key={rollType} className="bg-white border border-green-300 rounded p-3">
-                      <div className="font-semibold">{String(rollTypeLabels[rollType] || rollType)}</div>
-                      <div className="text-gray-600">
-                        {String(data.halves || 0)} Hälften → {String(data.whole_rolls || 0)} ganze Brötchen
+                <div className="bg-white border border-green-300 rounded-lg p-4">
+                  <div className="space-y-3">
+                    {/* Bread Rolls */}
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                      <span className="font-semibold text-gray-700">Brötchen gesamt:</span>
+                      <div className="text-right">
+                        {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
+                          const rollLabel = rollTypeLabels[rollType] || rollType;
+                          const wholeRolls = data.whole_rolls || 0;
+                          return (
+                            <div key={rollType} className="text-lg font-bold text-green-700">
+                              {wholeRolls} {rollLabel.replace(' Brötchen', '')}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  ))}
+                    
+                    {/* Boiled Eggs */}
+                    {dailySummary.total_boiled_eggs > 0 && (
+                      <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                        <span className="font-semibold text-gray-700">Gekochte Eier:</span>
+                        <span className="text-lg font-bold text-yellow-700">{dailySummary.total_boiled_eggs} Stück</span>
+                      </div>
+                    )}
+                    
+                    {/* Toppings */}
+                    {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
+                      <div>
+                        <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
+                        <div className="ml-4 space-y-1">
+                          {Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
+                            <div key={topping} className="flex justify-between items-center">
+                              <span className="text-gray-600">{String(finalToppingLabels[topping] || topping)}:</span>
+                              <span className="font-semibold text-orange-700">{String(count)}x</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {/* Total Toppings Summary */}
-              {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
-                <div className="mb-8 bg-orange-50 border border-orange-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-orange-800">🥪 Gesamt Beläge</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
-                      <div key={topping} className="bg-white border border-orange-300 rounded p-3 text-center">
-                        <div className="font-semibold text-orange-700">{String(count)}x</div>
-                        <div className="text-sm">{String(finalToppingLabels[topping] || topping)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Boiled Eggs Summary */}
-              {dailySummary.total_boiled_eggs > 0 && (
-                <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-yellow-800">🥚 Gekochte Frühstückseier</h3>
-                  <div className="text-xl font-bold text-yellow-700">
-                    {dailySummary.total_boiled_eggs} Eier gesamt
-                  </div>
-                </div>
-              )}
 
               {/* Detailed Employee Orders */}
               <h3 className="text-lg font-semibold mb-4">Detaillierte Mitarbeiter-Bestellungen</h3>
