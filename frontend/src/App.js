@@ -995,7 +995,12 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const seededRollPrice = getBreakfastPrice('koerner');
 
   const totalHalves = whiteRolls + seededRolls;
-  const totalCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice);
+  
+  // Get boiled eggs price from lunch settings (will be added to backend response)
+  const boiledEggsPrice = 0.50; // Default price, should come from lunch settings
+  const boiledEggsCost = boiledEggs * boiledEggsPrice;
+  
+  const totalCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice) + boiledEggsCost;
 
   // Update topping assignments when roll counts change
   useEffect(() => {
