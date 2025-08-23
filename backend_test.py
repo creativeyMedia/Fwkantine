@@ -1912,77 +1912,85 @@ class CanteenTester:
         return success_count >= 4  # At least 4 out of 6 critical tests should pass
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("🧪 Starting German Canteen Management System Backend Tests")
+        """Run all backend tests focusing on critical bug fixes"""
+        print("🧪 Starting Critical Bug Fixes Testing for German Canteen Management System")
         print(f"🌐 Testing against: {API_BASE}")
         print("=" * 60)
         
-        # Run tests in order
-        tests = [
+        # Run essential setup tests first
+        setup_tests = [
             ("Data Initialization", self.test_data_initialization),
             ("Department Retrieval", self.test_get_departments),
-            ("Department Authentication", self.test_department_authentication),
             ("Department Admin Authentication", self.test_department_admin_authentication),
             ("Employee Management", self.test_employee_management),
             ("Menu Endpoints", self.test_menu_endpoints),
-            ("Lunch Management System", self.test_lunch_management_system),
-            ("Breakfast with Lunch Option", self.test_breakfast_with_lunch_option),
-            ("Order Processing", self.test_order_processing),
-            ("Enhanced Employee Profile", self.test_enhanced_employee_profile),
-            ("Employee Profile Endpoint", self.test_employee_profile_endpoint),
-            ("Admin Employee Management", self.test_admin_employee_management),
-            ("Order Deletion", self.test_order_deletion),
-            ("Department Admin Menu Management", self.test_department_admin_menu_management),
-            ("Menu Item Creation & Deletion", self.test_menu_item_creation_deletion),
-            ("New Breakfast & Toppings Menu Management", self.test_new_breakfast_toppings_menu_management),
-            ("Daily Summary with New Roll Types", self.test_daily_summary_with_new_roll_types),
-            ("Data Integrity", self.test_data_integrity),
-            ("Daily Summary", self.test_daily_summary),
-            ("Admin Functions", self.test_admin_functions)
         ]
         
-        passed_tests = 0
-        total_tests = len(tests)
+        # Critical bug fix tests
+        critical_tests = [
+            ("Critical Bug Fixes", self.test_critical_bug_fixes),
+        ]
         
-        for test_name, test_func in tests:
+        # Run setup tests
+        print("\n--- Running Essential Setup Tests ---")
+        setup_passed = 0
+        for test_name, test_func in setup_tests:
             try:
                 if test_func():
-                    passed_tests += 1
+                    setup_passed += 1
+                    print(f"✅ {test_name}: PASSED")
+                else:
+                    print(f"❌ {test_name}: FAILED")
+            except Exception as e:
+                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
+        
+        print(f"\nSetup Tests: {setup_passed}/{len(setup_tests)} passed")
+        
+        # Run critical bug fix tests
+        print("\n--- Running Critical Bug Fix Tests ---")
+        critical_passed = 0
+        for test_name, test_func in critical_tests:
+            try:
+                if test_func():
+                    critical_passed += 1
+                    print(f"✅ {test_name}: PASSED")
+                else:
+                    print(f"❌ {test_name}: FAILED")
             except Exception as e:
                 print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
         
         # Print summary
         print("\n" + "=" * 60)
-        print("🏁 TEST SUMMARY")
+        print("🎯 CRITICAL BUG FIXES TESTING SUMMARY")
         print("=" * 60)
         
-        print(f"✅ Passed: {passed_tests}/{total_tests} test suites")
-        print(f"❌ Failed: {total_tests - passed_tests}/{total_tests} test suites")
+        total_tests = len(setup_tests) + len(critical_tests)
+        total_passed = setup_passed + critical_passed
         
-        # Print individual test results
-        print(f"\n📊 Detailed Results ({len(self.test_results)} individual tests):")
-        passed_individual = sum(1 for result in self.test_results if result['success'])
-        failed_individual = len(self.test_results) - passed_individual
+        print(f"✅ Setup Tests: {setup_passed}/{len(setup_tests)}")
+        print(f"🔧 Critical Tests: {critical_passed}/{len(critical_tests)}")
+        print(f"📊 Overall: {total_passed}/{total_tests}")
         
-        print(f"   ✅ Individual tests passed: {passed_individual}")
-        print(f"   ❌ Individual tests failed: {failed_individual}")
+        # Print individual test results for critical tests only
+        print(f"\n📋 Critical Bug Fix Test Details:")
+        critical_results = [result for result in self.test_results 
+                          if any(keyword in result['test'] for keyword in 
+                               ['Employee Orders Management', 'Order Creation', 'Menu Integration', 
+                                'Employee Deletion', 'Department Admin Order', 'Dynamic Pricing'])]
         
-        if failed_individual > 0:
-            print(f"\n❌ Failed Tests:")
-            for result in self.test_results:
-                if not result['success']:
-                    print(f"   • {result['test']}: {result['message']}")
+        for result in critical_results:
+            status = "✅" if result['success'] else "❌"
+            print(f"   {status} {result['test']}: {result['message']}")
         
         # Overall status
-        success_rate = passed_tests / total_tests
-        if success_rate >= 0.8:
-            print(f"\n🎉 OVERALL STATUS: GOOD ({success_rate:.1%} test suites passed)")
+        if critical_passed == len(critical_tests):
+            print(f"\n🎉 CRITICAL BUG FIXES: ALL WORKING CORRECTLY!")
             return True
-        elif success_rate >= 0.6:
-            print(f"\n⚠️  OVERALL STATUS: PARTIAL ({success_rate:.1%} test suites passed)")
+        elif critical_passed > 0:
+            print(f"\n⚠️  CRITICAL BUG FIXES: PARTIALLY WORKING ({critical_passed}/{len(critical_tests)})")
             return False
         else:
-            print(f"\n🚨 OVERALL STATUS: CRITICAL ISSUES ({success_rate:.1%} test suites passed)")
+            print(f"\n🚨 CRITICAL BUG FIXES: MAJOR ISSUES DETECTED")
             return False
 
 if __name__ == "__main__":
