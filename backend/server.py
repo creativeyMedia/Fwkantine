@@ -700,34 +700,50 @@ async def create_order(order_data: OrderCreate):
         boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50  # Default €0.50 per egg
         
         for breakfast_item in order_data.breakfast_items:
-            # Validate that white_halves + seeded_halves = total_halves
-            if breakfast_item.white_halves + breakfast_item.seeded_halves != breakfast_item.total_halves:
+            # Allow orders without rolls (just eggs and/or lunch)
+            has_rolls = breakfast_item.total_halves > 0
+            has_eggs_or_lunch = breakfast_item.boiled_eggs > 0 or breakfast_item.has_lunch
+            
+            if not has_rolls and not has_eggs_or_lunch:
                 raise HTTPException(
                     status_code=400, 
-                    detail=f"Weiße ({breakfast_item.white_halves}) + Körner ({breakfast_item.seeded_halves}) Hälften müssen der Gesamtzahl ({breakfast_item.total_halves}) entsprechen"
+                    detail="Bitte wählen Sie mindestens Brötchen, Frühstückseier oder Mittagessen"
                 )
             
-            # Validate that toppings count matches total halves
-            if len(breakfast_item.toppings) != breakfast_item.total_halves:
-                raise HTTPException(
-                    status_code=400, 
-                    detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.total_halves}) entsprechen"
-                )
+            # Validate roll calculation only if rolls are selected
+            if has_rolls:
+                if breakfast_item.white_halves + breakfast_item.seeded_halves != breakfast_item.total_halves:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"Weiße ({breakfast_item.white_halves}) + Körner ({breakfast_item.seeded_halves}) Hälften müssen der Gesamtzahl ({breakfast_item.total_halves}) entsprechen"
+                    )
+                
+                # Validate that toppings count matches total halves only if rolls are selected
+                if len(breakfast_item.toppings) != breakfast_item.total_halves:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.total_halves}) entsprechen"
+                    )
             
-            # Calculate roll prices (use admin-set prices directly)
-            white_price = breakfast_prices.get("weiss", 0.0)
-            seeded_price = breakfast_prices.get("koerner", 0.0)
+            # Calculate roll prices only if rolls are selected
+            if has_rolls:
+                white_price = breakfast_prices.get("weiss", 0.0)
+                seeded_price = breakfast_prices.get("koerner", 0.0)
+                total_price += (white_price * breakfast_item.white_halves) + (seeded_price * breakfast_item.seeded_halves)
+                
+                # Toppings price (free but keep structure)
+                for topping in breakfast_item.toppings:
+                    topping_price = topping_prices.get(topping, 0.0)
+                    total_price += topping_price
             
-            total_price += (white_price * breakfast_item.white_halves) + (seeded_price * breakfast_item.seeded_halves)
-            
-            # Toppings price (free but keep structure)
-            for topping in breakfast_item.toppings:
-                topping_price = topping_prices.get(topping, 0.0)
-                total_price += topping_price
-            
-            # Lunch price if selected
+            # Lunch price calculation (can be without rolls now)
             if breakfast_item.has_lunch:
-                total_price += lunch_price * breakfast_item.total_halves
+                if has_rolls:
+                    # If has rolls, multiply by total halves (traditional logic)
+                    total_price += lunch_price * breakfast_item.total_halves
+                else:
+                    # If no rolls, just add lunch price once
+                    total_price += lunch_price
             
             # Boiled eggs price
             if breakfast_item.boiled_eggs > 0:
