@@ -180,7 +180,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         <span className="text-sm text-gray-600">{formatDate(order.timestamp)}</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">€{order.total_price.toFixed(2)}</p>
+                        <p className="font-semibold">{order.total_price.toFixed(2)} €</p>
                       </div>
                     </div>
                     
