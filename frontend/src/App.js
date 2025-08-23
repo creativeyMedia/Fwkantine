@@ -1443,7 +1443,8 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       try {
         await axios.post(`${API}/department-admin/payment/${employee.id}?payment_type=${balanceType}&amount=${balanceAmount}&admin_department=${currentDepartment.department_name}`);
         alert('Zahlung erfolgreich verbucht');
-        window.location.reload(); // Refresh to show updated balances
+        // Stay in admin dashboard - just reload to refresh balances
+        window.location.reload();
       } catch (error) {
         console.error('Fehler beim Verbuchen der Zahlung:', error);
         alert('Fehler beim Verbuchen der Zahlung');
