@@ -555,7 +555,7 @@ const DepartmentDashboard = () => {
 };
 
 // Employee Menu Component
-const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
+const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) => {
   const [activeCategory, setActiveCategory] = useState('breakfast');
   const [breakfastMenu, setBreakfastMenu] = useState([]);
   const [toppingsMenu, setToppingsMenu] = useState([]);
