@@ -458,7 +458,7 @@ const DepartmentDashboard = () => {
                 <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
               </div>
               <div className="flex gap-2">
-                <div className="flex-1 text-center text-xs text-gray-700 py-2 cursor-pointer hover:text-gray-900"
+                <div className="flex-1 text-center text-xs text-gray-700 py-2 cursor-pointer hover:text-gray-900 verlauf-text"
                      onClick={(event) => handleEmployeeProfileClick(employee, event)}>
                   Verlauf
                 </div>
