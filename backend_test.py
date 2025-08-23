@@ -2205,6 +2205,7 @@ class CanteenTester:
         
         # Critical bug fix tests
         critical_tests = [
+            ("Critical Breakfast Ordering Fixes", self.test_critical_breakfast_ordering_fixes),
             ("Critical Bug Fixes", self.test_critical_bug_fixes),
         ]
         
