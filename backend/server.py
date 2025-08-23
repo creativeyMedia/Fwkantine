@@ -1451,7 +1451,7 @@ async def create_topping_item(item_data: MenuItemCreateToppings):
     topping_item = MenuItemToppings(
         id=item_data.topping_id,
         topping_type=item_data.topping_id,  # Use custom ID as type
-        topping_name=item_data.topping_name,  # Custom display name
+        name=item_data.topping_name,  # Custom display name
         price=item_data.price,
         department_id=item_data.department_id
     )
