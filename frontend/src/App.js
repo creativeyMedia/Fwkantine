@@ -2439,7 +2439,6 @@ const NewToppingItemModal = ({ title, onCreateItem, onClose }) => {
               required
             />
           </div>
-                </option>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Preis (€)</label>
             <input
