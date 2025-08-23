@@ -620,7 +620,10 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       // If there's breakfast data, pre-fill the form
       if (todaysOrder.breakfast_items.length > 0) {
         const latestBreakfast = todaysOrder.breakfast_items[0];
+        console.log('Loading existing breakfast data:', latestBreakfast);
         setBreakfastFormData(latestBreakfast);
+      } else {
+        setBreakfastFormData(null);
       }
 
     } catch (error) {
