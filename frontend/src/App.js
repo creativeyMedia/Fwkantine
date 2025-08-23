@@ -3086,8 +3086,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
 
 // Lunch Management Tab Component
 const LunchManagementTab = () => {
-  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
+  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true, boiled_eggs_price: 0.50 });
   const [newPrice, setNewPrice] = useState('');
+  const [newBoiledEggsPrice, setNewBoiledEggsPrice] = useState('');
 
   useEffect(() => {
     fetchLunchSettings();
