@@ -1666,6 +1666,283 @@ class CanteenTester:
         
         return success_count >= 8  # Expect at least 8 successful tests
     
+    def test_critical_breakfast_ordering_fixes(self):
+        """Test the critical breakfast ordering fixes as requested in review"""
+        print("\n=== Testing Critical Breakfast Ordering Fixes ===")
+        
+        if not self.departments or not self.employees:
+            self.log_test("Critical Breakfast Fixes", False, "Missing departments or employees")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        test_employee = self.employees[0]
+        
+        # Test 1: Order Submission Workflow with new breakfast format
+        try:
+            # Test POST /api/orders with new breakfast format
+            breakfast_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 2,
+                        "toppings": ["ruehrei", "kaese", "schinken", "butter"],
+                        "has_lunch": True
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                
+                # Verify order structure
+                if (order.get('breakfast_items') and 
+                    len(order['breakfast_items']) > 0 and
+                    order['breakfast_items'][0].get('total_halves') == 4 and
+                    order['breakfast_items'][0].get('white_halves') == 2 and
+                    order['breakfast_items'][0].get('seeded_halves') == 2 and
+                    order['breakfast_items'][0].get('has_lunch') == True and
+                    len(order['breakfast_items'][0].get('toppings', [])) == 4):
+                    
+                    self.log_test("New Breakfast Order Format", True, 
+                                f"Order created with new format: €{order['total_price']:.2f}, ID: {order['id']}")
+                    success_count += 1
+                    
+                    # Store order ID for later tests
+                    self.test_order_id = order['id']
+                else:
+                    self.log_test("New Breakfast Order Format", False, "Order structure validation failed")
+            else:
+                self.log_test("New Breakfast Order Format", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("New Breakfast Order Format", False, f"Exception: {str(e)}")
+        
+        # Test 2: Order Persistence & Retrieval
+        try:
+            response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
+            
+            if response.status_code == 200:
+                orders_data = response.json()
+                
+                # Verify response format
+                if 'orders' in orders_data and isinstance(orders_data['orders'], list):
+                    orders = orders_data['orders']
+                    
+                    # Find our test order
+                    test_order_found = False
+                    for order in orders:
+                        if (order.get('order_type') == 'breakfast' and 
+                            order.get('breakfast_items') and
+                            len(order['breakfast_items']) > 0):
+                            
+                            breakfast_item = order['breakfast_items'][0]
+                            if (breakfast_item.get('total_halves') == 4 and
+                                breakfast_item.get('white_halves') == 2 and
+                                breakfast_item.get('seeded_halves') == 2):
+                                test_order_found = True
+                                break
+                    
+                    if test_order_found:
+                        self.log_test("Order Persistence & Retrieval", True, 
+                                    f"Found {len(orders)} orders with correct new format")
+                        success_count += 1
+                    else:
+                        self.log_test("Order Persistence & Retrieval", False, 
+                                    "Test order not found in employee orders")
+                else:
+                    self.log_test("Order Persistence & Retrieval", False, 
+                                "Invalid response format - missing 'orders' array")
+            else:
+                self.log_test("Order Persistence & Retrieval", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Order Persistence & Retrieval", False, f"Exception: {str(e)}")
+        
+        # Test 3: Admin Order Management
+        try:
+            # Test department admin authentication first
+            admin_login_data = {
+                "department_name": test_dept['name'],
+                "admin_password": "admin1"  # Using admin1 as per review request
+            }
+            
+            admin_response = self.session.post(f"{API_BASE}/login/department-admin", 
+                                             json=admin_login_data)
+            
+            if admin_response.status_code == 200:
+                self.log_test("Department Admin Authentication", True, "Admin login successful")
+                
+                # Test admin order management - GET orders
+                response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
+                
+                if response.status_code == 200:
+                    orders_data = response.json()
+                    if 'orders' in orders_data and len(orders_data['orders']) > 0:
+                        self.log_test("Admin Order Management - View", True, 
+                                    f"Admin can view {len(orders_data['orders'])} employee orders")
+                        success_count += 1
+                        
+                        # Test admin order deletion if we have an order
+                        if hasattr(self, 'test_order_id'):
+                            try:
+                                delete_response = self.session.delete(f"{API_BASE}/department-admin/orders/{self.test_order_id}")
+                                
+                                if delete_response.status_code == 200:
+                                    self.log_test("Admin Order Deletion", True, 
+                                                "Admin successfully deleted order")
+                                    success_count += 1
+                                else:
+                                    self.log_test("Admin Order Deletion", False, 
+                                                f"HTTP {delete_response.status_code}: {delete_response.text}")
+                            except Exception as e:
+                                self.log_test("Admin Order Deletion", False, f"Exception: {str(e)}")
+                    else:
+                        self.log_test("Admin Order Management - View", False, "No orders found for admin management")
+                else:
+                    self.log_test("Admin Order Management - View", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("Department Admin Authentication", False, 
+                            f"HTTP {admin_response.status_code}: {admin_response.text}")
+                
+        except Exception as e:
+            self.log_test("Admin Order Management", False, f"Exception: {str(e)}")
+        
+        # Test 4: Menu Integration with Dynamic Pricing
+        try:
+            # Get current breakfast menu
+            menu_response = self.session.get(f"{API_BASE}/menu/breakfast")
+            
+            if menu_response.status_code == 200:
+                breakfast_menu = menu_response.json()
+                
+                if breakfast_menu and len(breakfast_menu) > 0:
+                    # Update a menu item price
+                    test_item = breakfast_menu[0]
+                    original_price = test_item['price']
+                    new_price = original_price + 0.25
+                    
+                    update_response = self.session.put(f"{API_BASE}/department-admin/menu/breakfast/{test_item['id']}", 
+                                                     json={"price": new_price})
+                    
+                    if update_response.status_code == 200:
+                        self.log_test("Menu Price Update", True, 
+                                    f"Updated price from €{original_price:.2f} to €{new_price:.2f}")
+                        
+                        # Create new order to test dynamic pricing
+                        test_order = {
+                            "employee_id": test_employee['id'],
+                            "department_id": test_dept['id'],
+                            "order_type": "breakfast",
+                            "breakfast_items": [
+                                {
+                                    "total_halves": 2,
+                                    "white_halves": 2,
+                                    "seeded_halves": 0,
+                                    "toppings": ["ruehrei", "kaese"],
+                                    "has_lunch": False
+                                }
+                            ]
+                        }
+                        
+                        order_response = self.session.post(f"{API_BASE}/orders", json=test_order)
+                        
+                        if order_response.status_code == 200:
+                            order = order_response.json()
+                            
+                            # Calculate expected price (2 white halves * new_price + free toppings)
+                            expected_price = 2 * new_price  # 2 halves * new price
+                            
+                            if abs(order['total_price'] - expected_price) < 0.01:
+                                self.log_test("Dynamic Pricing Integration", True, 
+                                            f"Order correctly uses updated price: €{order['total_price']:.2f}")
+                                success_count += 1
+                            else:
+                                self.log_test("Dynamic Pricing Integration", False, 
+                                            f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+                        else:
+                            self.log_test("Dynamic Pricing Integration", False, 
+                                        f"Order creation failed: HTTP {order_response.status_code}")
+                    else:
+                        self.log_test("Menu Price Update", False, 
+                                    f"HTTP {update_response.status_code}: {update_response.text}")
+                else:
+                    self.log_test("Menu Integration", False, "No breakfast menu items found")
+            else:
+                self.log_test("Menu Integration", False, 
+                            f"HTTP {menu_response.status_code}: {menu_response.text}")
+                
+        except Exception as e:
+            self.log_test("Menu Integration", False, f"Exception: {str(e)}")
+        
+        # Test 5: Validation Tests
+        try:
+            # Test invalid breakfast order (mismatched halves)
+            invalid_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 1,  # Should be 2 to match total_halves
+                        "toppings": ["ruehrei", "kaese", "schinken", "butter"],
+                        "has_lunch": False
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=invalid_order)
+            
+            if response.status_code == 400:
+                self.log_test("Order Validation - Halves Mismatch", True, 
+                            "Correctly rejected order with mismatched halves")
+                success_count += 1
+            else:
+                self.log_test("Order Validation - Halves Mismatch", False, 
+                            f"Should reject invalid order, got HTTP {response.status_code}")
+            
+            # Test invalid toppings count
+            invalid_toppings_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 2,
+                        "toppings": ["ruehrei", "kaese"],  # Should be 4 toppings for 4 halves
+                        "has_lunch": False
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=invalid_toppings_order)
+            
+            if response.status_code == 400:
+                self.log_test("Order Validation - Toppings Count", True, 
+                            "Correctly rejected order with wrong toppings count")
+                success_count += 1
+            else:
+                self.log_test("Order Validation - Toppings Count", False, 
+                            f"Should reject invalid order, got HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Order Validation", False, f"Exception: {str(e)}")
+        
+        return success_count >= 5  # At least 5 out of 7 tests should pass
+
     def test_critical_bug_fixes(self):
         """Test the critical bug fixes for canteen management system"""
         print("\n=== Testing Critical Bug Fixes ===")
