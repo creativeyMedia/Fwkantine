@@ -1234,7 +1234,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
               className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
             />
             <span className="text-sm text-gray-600">
-              Stück (€{boiledEggsPrice.toFixed(2)} pro Ei = €{boiledEggsCost.toFixed(2)})
+              Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
             </span>
           </div>
         </div>
