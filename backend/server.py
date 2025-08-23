@@ -577,9 +577,9 @@ async def create_order(order_data: OrderCreate):
                     detail=f"Anzahl der Beläge ({len(breakfast_item.toppings)}) muss der Anzahl der Brötchenhälften ({breakfast_item.total_halves}) entsprechen"
                 )
             
-            # Calculate roll prices (prices are per whole roll, divide by 2 for halves)
-            white_price = breakfast_prices.get("weiss", 0.0) / 2
-            seeded_price = breakfast_prices.get("koerner", 0.0) / 2
+            # Calculate roll prices (use admin-set prices directly)
+            white_price = breakfast_prices.get("weiss", 0.0)
+            seeded_price = breakfast_prices.get("koerner", 0.0)
             
             total_price += (white_price * breakfast_item.white_halves) + (seeded_price * breakfast_item.seeded_halves)
             
