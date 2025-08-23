@@ -1292,7 +1292,7 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
           <div key={sweet.id} className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
             <div>
               <span className="font-medium">{sweet.name}</span>
-              <span className="text-gray-600 ml-2">(€{sweet.price.toFixed(2)})</span>
+              <span className="text-gray-600 ml-2">({sweet.price.toFixed(2)} €)</span>
             </div>
             <input
               type="number"
