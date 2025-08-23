@@ -1044,11 +1044,21 @@ async def get_employee_profile(employee_id: str):
     # Get order history with menu details
     orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
     
-    # Get menu items for reference
-    breakfast_menu = await db.menu_breakfast.find().to_list(100)
-    toppings_menu = await db.menu_toppings.find().to_list(100)
-    drinks_menu = await db.menu_drinks.find().to_list(100)
-    sweets_menu = await db.menu_sweets.find().to_list(100)
+    # Get menu items for reference (use employee's department)
+    employee_department_id = employee.get("department_id")
+    if employee_department_id:
+        breakfast_menu = await db.menu_breakfast.find({"department_id": employee_department_id}).to_list(100)
+        toppings_menu = await db.menu_toppings.find({"department_id": employee_department_id}).to_list(100)
+        drinks_menu = await db.menu_drinks.find({"department_id": employee_department_id}).to_list(100)
+        sweets_menu = await db.menu_sweets.find({"department_id": employee_department_id}).to_list(100)
+    else:
+        # Fallback to first department's menu if employee department not found
+        first_dept = await db.departments.find_one()
+        dept_id = first_dept["id"] if first_dept else None
+        breakfast_menu = await db.menu_breakfast.find({"department_id": dept_id}).to_list(100) if dept_id else []
+        toppings_menu = await db.menu_toppings.find({"department_id": dept_id}).to_list(100) if dept_id else []
+        drinks_menu = await db.menu_drinks.find({"department_id": dept_id}).to_list(100) if dept_id else []
+        sweets_menu = await db.menu_sweets.find({"department_id": dept_id}).to_list(100) if dept_id else []
     
     # Create lookup dictionaries
     roll_names = {item["roll_type"]: f"€{item['price']:.2f}" for item in breakfast_menu}
