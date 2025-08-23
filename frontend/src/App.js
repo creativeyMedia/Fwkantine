@@ -469,21 +469,27 @@ const DepartmentDashboard = () => {
             <div
               key={employee.id}
               onClick={(event) => handleEmployeeClick(employee, event)}
-              className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow duration-300"
+              className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
-              <h3 className="text-lg font-semibold mb-2">{employee.name}</h3>
-              <div className="text-sm text-gray-600 mb-4">
-                <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
-                <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-800">{employee.name}</h3>
+              <div className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 space-y-2">
+                <p className="flex justify-between">
+                  <span>Frühstück:</span> 
+                  <span className="font-medium">€{employee.breakfast_balance.toFixed(2)}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span>Getränke/Süßes:</span> 
+                  <span className="font-medium">€{employee.drinks_sweets_balance.toFixed(2)}</span>
+                </p>
               </div>
-              <div className="flex gap-2">
-                <div className="flex-1 text-center text-xs text-gray-700 py-2 cursor-pointer hover:text-gray-900 verlauf-text"
+              <div className="flex gap-2 sm:gap-3">
+                <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
                      onClick={(event) => handleEmployeeProfileClick(employee, event)}>
                   Verlauf
                 </div>
                 <button
                   onClick={() => handleEmployeeClick(employee)}
-                  className="flex-1 bg-blue-600 text-white text-xs py-2 px-3 rounded hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Bestellen
                 </button>
