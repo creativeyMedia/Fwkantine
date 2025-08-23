@@ -941,18 +941,19 @@ async def get_daily_summary(department_id: str):
                 
                 # Count toppings per employee
                 for topping in item["toppings"]:
-                    # Employee toppings
+                    # Employee toppings - use simple integer count for frontend display compatibility
                     if topping not in employee_orders[employee_name]["toppings"]:
-                        employee_orders[employee_name]["toppings"][topping] = {"white": 0, "seeded": 0}
+                        employee_orders[employee_name]["toppings"][topping] = 0
                     
-                    # Distribute toppings proportionally (simplified: assign to roll type with more halves)
+                    # Increment topping count for employee
+                    employee_orders[employee_name]["toppings"][topping] += 1
+                    
+                    # Distribute toppings proportionally for breakfast summary (simplified: assign to roll type with more halves)
                     if white_halves >= seeded_halves:
-                        employee_orders[employee_name]["toppings"][topping]["white"] += 1
                         if topping not in breakfast_summary["weiss"]["toppings"]:
                             breakfast_summary["weiss"]["toppings"][topping] = 0
                         breakfast_summary["weiss"]["toppings"][topping] += 1
                     else:
-                        employee_orders[employee_name]["toppings"][topping]["seeded"] += 1
                         if topping not in breakfast_summary["koerner"]["toppings"]:
                             breakfast_summary["koerner"]["toppings"][topping] = 0
                         breakfast_summary["koerner"]["toppings"][topping] += 1
