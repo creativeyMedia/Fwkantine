@@ -2953,13 +2953,26 @@ class CanteenTester:
             except Exception as e:
                 print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
         
+        # Run NEW FEATURE tests - Boiled Breakfast Eggs
+        print("\n--- Running NEW FEATURE Tests - Boiled Breakfast Eggs ---")
+        new_feature_passed = 0
+        for test_name, test_func in new_feature_tests:
+            try:
+                if test_func():
+                    new_feature_passed += 1
+                    print(f"✅ {test_name}: PASSED")
+                else:
+                    print(f"❌ {test_name}: FAILED")
+            except Exception as e:
+                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
+        
         # Print summary
         print("\n" + "=" * 60)
-        print("🎯 DEPARTMENT-SPECIFIC MENU SYSTEM TESTING SUMMARY")
+        print("🎯 BACKEND TESTING SUMMARY - INCLUDING NEW BOILED EGGS FEATURE")
         print("=" * 60)
         
-        total_tests = len(setup_tests) + len(department_specific_tests) + len(critical_tests)
-        total_passed = setup_passed + dept_specific_passed + critical_passed
+        total_tests = len(setup_tests) + len(department_specific_tests) + len(critical_tests) + len(new_feature_tests)
+        total_passed = setup_passed + dept_specific_passed + critical_passed + new_feature_passed
         
         print(f"✅ Setup Tests: {setup_passed}/{len(setup_tests)}")
         print(f"🏢 Department-Specific Tests: {dept_specific_passed}/{len(department_specific_tests)}")
