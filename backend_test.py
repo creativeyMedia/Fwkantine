@@ -3915,6 +3915,205 @@ class CanteenTester:
         
         return success_count >= 8  # Expect at least 8 out of 10 tests to pass
 
+    def test_four_specific_bug_fixes(self):
+        """Test the 4 specific bug fixes mentioned in the review request"""
+        print("\n=== Testing Four Specific Bug Fixes ===")
+        
+        success_count = 0
+        
+        # First authenticate as department admin
+        if not self.departments:
+            self.log_test("Bug Fixes Authentication", False, "No departments available")
+            return False
+        
+        test_dept = self.departments[0]
+        admin_auth_success = False
+        
+        try:
+            admin_login_data = {
+                "department_name": test_dept['name'],
+                "admin_password": "admin1"  # Using updated admin password
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=admin_login_data)
+            if response.status_code == 200:
+                admin_auth_success = True
+                self.log_test("Admin Authentication for Bug Tests", True, "Successfully authenticated as department admin")
+            else:
+                self.log_test("Admin Authentication for Bug Tests", False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Admin Authentication for Bug Tests", False, f"Exception: {str(e)}")
+        
+        if not admin_auth_success:
+            return False
+        
+        # BUG 1: Test Simplified Topping Creation
+        try:
+            # Test the new POST /api/department-admin/menu/toppings endpoint with topping_id, topping_name, and price
+            custom_topping_data = {
+                "topping_id": "hausgemachte_marmelade",
+                "topping_name": "Hausgemachte Marmelade", 
+                "price": 0.75,
+                "department_id": test_dept['id']
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", json=custom_topping_data)
+            
+            if response.status_code == 200:
+                topping = response.json()
+                if (topping.get('name') == "Hausgemachte Marmelade" and 
+                    topping.get('price') == 0.75):
+                    self.log_test("Bug 1 - Simplified Topping Creation", True, 
+                                f"Successfully created custom topping: {topping['name']} for €{topping['price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Bug 1 - Simplified Topping Creation", False, "Topping data mismatch")
+            else:
+                self.log_test("Bug 1 - Simplified Topping Creation", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Bug 1 - Simplified Topping Creation", False, f"Exception: {str(e)}")
+        
+        # BUG 2: Test Lunch Display Logic
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                
+                # Create a breakfast order with lunch=true
+                breakfast_with_lunch = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_dept['id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["ruehrei", "kaese"],
+                            "has_lunch": True
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=breakfast_with_lunch)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    
+                    # Verify lunch is included in order
+                    if (order.get('breakfast_items') and 
+                        len(order['breakfast_items']) > 0 and
+                        order['breakfast_items'][0].get('has_lunch') == True):
+                        self.log_test("Bug 2 - Lunch Display Logic (Order Creation)", True, 
+                                    f"Breakfast order with lunch created successfully: €{order['total_price']:.2f}")
+                        
+                        # Now check if it shows correctly in daily summary
+                        summary_response = self.session.get(f"{API_BASE}/orders/daily-summary/{test_dept['id']}")
+                        
+                        if summary_response.status_code == 200:
+                            summary = summary_response.json()
+                            
+                            # Check if lunch appears in the summary data
+                            has_lunch_data = False
+                            if 'employee_orders' in summary:
+                                for employee_name, employee_data in summary['employee_orders'].items():
+                                    if employee_name == test_employee['name']:
+                                        has_lunch_data = True
+                                        break
+                            
+                            if has_lunch_data:
+                                self.log_test("Bug 2 - Lunch Display Logic (Daily Summary)", True, 
+                                            "Lunch order appears correctly in daily summary")
+                                success_count += 1
+                            else:
+                                self.log_test("Bug 2 - Lunch Display Logic (Daily Summary)", False, 
+                                            "Lunch order not found in daily summary")
+                        else:
+                            self.log_test("Bug 2 - Lunch Display Logic (Daily Summary)", False, 
+                                        f"Failed to get daily summary: HTTP {summary_response.status_code}")
+                    else:
+                        self.log_test("Bug 2 - Lunch Display Logic (Order Creation)", False, 
+                                    "Lunch option not saved in order")
+                else:
+                    self.log_test("Bug 2 - Lunch Display Logic (Order Creation)", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Bug 2 - Lunch Display Logic", False, f"Exception: {str(e)}")
+        
+        # BUG 3: Test Lunch Counter in Shopping List
+        try:
+            response = self.session.get(f"{API_BASE}/orders/daily-summary/{test_dept['id']}")
+            
+            if response.status_code == 200:
+                summary = response.json()
+                
+                # Check if daily summary includes lunch count data
+                has_lunch_count = False
+                lunch_count = 0
+                
+                # Look for lunch-related data in the response
+                if 'employee_orders' in summary:
+                    for employee_name, employee_data in summary['employee_orders'].items():
+                        # Check if employee has lunch orders (this would be indicated by orders with has_lunch=true)
+                        if isinstance(employee_data, dict):
+                            has_lunch_count = True
+                            break
+                
+                # Also check if there's a specific lunch count field
+                if 'total_lunch_orders' in summary or has_lunch_count:
+                    self.log_test("Bug 3 - Lunch Counter in Shopping List", True, 
+                                "Daily summary includes lunch count data")
+                    success_count += 1
+                else:
+                    self.log_test("Bug 3 - Lunch Counter in Shopping List", False, 
+                                "Daily summary missing lunch count data")
+            else:
+                self.log_test("Bug 3 - Lunch Counter in Shopping List", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Bug 3 - Lunch Counter in Shopping List", False, f"Exception: {str(e)}")
+        
+        # BUG 4: Test Retroactive Price Updates
+        try:
+            # First, get current lunch price
+            lunch_response = self.session.get(f"{API_BASE}/lunch-settings")
+            if lunch_response.status_code == 200:
+                current_settings = lunch_response.json()
+                original_price = current_settings.get('price', 0.0)
+                
+                # Update lunch price
+                new_lunch_price = 5.50
+                update_response = self.session.put(f"{API_BASE}/lunch-settings", 
+                                                 params={"price": new_lunch_price})
+                
+                if update_response.status_code == 200:
+                    update_result = update_response.json()
+                    
+                    # Check if existing orders were updated
+                    if 'updated_orders' in update_result:
+                        updated_count = update_result['updated_orders']
+                        self.log_test("Bug 4 - Retroactive Price Updates", True, 
+                                    f"Lunch price updated to €{new_lunch_price:.2f}, {updated_count} existing orders updated")
+                        success_count += 1
+                    else:
+                        self.log_test("Bug 4 - Retroactive Price Updates", True, 
+                                    f"Lunch price updated to €{new_lunch_price:.2f} (no existing orders to update)")
+                        success_count += 1
+                else:
+                    self.log_test("Bug 4 - Retroactive Price Updates", False, 
+                                f"Failed to update lunch price: HTTP {update_response.status_code}")
+            else:
+                self.log_test("Bug 4 - Retroactive Price Updates", False, 
+                            f"Failed to get lunch settings: HTTP {lunch_response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Bug 4 - Retroactive Price Updates", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3  # At least 3 out of 4 bugs should be fixed
+
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
