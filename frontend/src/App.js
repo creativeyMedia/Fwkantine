@@ -567,6 +567,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     sweet_items: {}
   });
   const [breakfastFormData, setBreakfastFormData] = useState(null);
+  const [isLoadingExistingOrders, setIsLoadingExistingOrders] = useState(true);
 
   const { currentDepartment } = React.useContext(AuthContext);
 
