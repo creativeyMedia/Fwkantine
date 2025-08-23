@@ -421,13 +421,17 @@ class AdminDashboardTester:
         
         # Test marking breakfast payment as paid
         try:
-            payment_data = {
+            # Get current breakfast balance to use as payment amount
+            payment_amount = original_breakfast_balance if original_breakfast_balance else 0.0
+            
+            params = {
                 "payment_type": "breakfast",
-                "notes": "Test payment via admin dashboard"
+                "amount": payment_amount,
+                "admin_department": self.admin_auth['department_name']
             }
             
             response = self.session.post(f"{API_BASE}/department-admin/payment/{test_employee['id']}", 
-                                       json=payment_data)
+                                       params=params)
             
             if response.status_code == 200:
                 result = response.json()
