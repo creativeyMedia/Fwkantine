@@ -542,6 +542,42 @@ metadata:
           agent: "testing"
           comment: "✅ DEPARTMENT ISOLATION & DATA INTEGRITY VERIFIED! Comprehensive testing confirms proper department separation and data integrity: ✅ Department ID Integrity - All menu items have correct department_id field matching their assigned department. ✅ Department Admin Isolation - Department admins can only access their specific department (tested with admin1 credentials). ✅ Order Department Integrity - All orders correctly reference their department (1 test order verified). ✅ Department-Specific Order Creation - Orders successfully use department-specific pricing and menu items. Each department maintains its own isolated menu items while sharing the same structure. Authentication working correctly with department credentials (password1-4) and admin credentials (admin1-4)."
 
+  - task: "CRITICAL BUG FIX 1 - Menu Item Edit Saving Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL BUG FIX 1 FULLY WORKING! Menu Item Edit Saving Fix tested comprehensively with 4/4 tests passed: ✅ Breakfast Item Edit & Persistence - Successfully updated and persisted price €0.80 → €1.05 and name changes with department_id parameter. ✅ Toppings Item Edit & Persistence - Successfully updated and persisted price €0.00 → €0.50 and custom name 'Premium Rührei'. ✅ Drinks Item Edit & Persistence - Successfully updated and persisted price €1.20 → €1.50 and name changes. ✅ Sweets Item Edit & Persistence - Successfully updated and persisted price €2.10 → €2.50 and name changes. All menu item types (breakfast, toppings, drinks, sweets) can be edited by department admin with both name and price changes. Changes persist correctly in database and are reflected in subsequent API calls. Department_id parameter filtering works correctly in update requests."
+
+  - task: "CRITICAL BUG FIX 2 - Payment History Display Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL BUG FIX 2 FULLY WORKING! Payment History Display Fix tested comprehensively with 4/4 tests passed: ✅ Mark Payment - Successfully marked payment with correct message. ✅ Payment Log Creation & Content - Payment log created correctly with €5.00, type: breakfast, admin: 1. Wachabteilung, and proper timestamp. ✅ Payment History in Profile - GET /api/employees/{employee_id}/profile correctly includes payment_history field with our payment data. ✅ Balance Reset After Payment - Balance correctly reset to €0.00 after payment. When admin marks employee balance as paid, a payment log is created with correct amount, payment_type, admin_user, and timestamp. Payment logs show all required data and are properly integrated with employee profile data."
+
+  - task: "CRITICAL BUG FIX 3 - Department-Specific Menu Updates Integration"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "⚠️ CRITICAL BUG FIX 3 MOSTLY WORKING! Department-Specific Menu Updates Integration tested with 4/5 tests passed: ✅ Department-Specific Menu Filtering - Menu items correctly filtered by department (Dept1=3 items, Dept2=2 items). ✅ Order Creation with Department Menu - Order creation working with department-specific menus. ✅ Menu Updates Affect Order Pricing - Menu price successfully updated from €1.05 to €1.55. ✅ Department Admin Authentication - Department admin authentication working correctly. ❌ Cross-Department Edit Prevention - SECURITY ISSUE: Should prevent cross-department editing but returns HTTP 200 instead of 403/404. This means admins can potentially edit other departments' menu items. Most functionality works correctly but there's a security gap in cross-department access control that needs fixing."
+
 test_plan:
   current_focus:
     - "Department-Specific Menu System Implementation"
