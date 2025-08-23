@@ -2190,6 +2190,437 @@ class CanteenTester:
                 self.log_test("Dynamic Pricing Integration", False, f"Exception: {str(e)}")
         
         return success_count >= 4  # At least 4 out of 6 critical tests should pass
+
+    def test_department_specific_migration(self):
+        """Test the migration to department-specific menu system"""
+        print("\n=== Testing Department-Specific Migration ===")
+        
+        success_count = 0
+        
+        # Test migration endpoint
+        try:
+            response = self.session.post(f"{API_BASE}/migrate-to-department-specific")
+            
+            if response.status_code == 200:
+                migration_result = response.json()
+                
+                # Check migration results
+                if 'results' in migration_result:
+                    results = migration_result['results']
+                    departments_processed = results.get('departments_processed', 0)
+                    breakfast_items = results.get('breakfast_items', 0)
+                    topping_items = results.get('topping_items', 0)
+                    drink_items = results.get('drink_items', 0)
+                    sweet_items = results.get('sweet_items', 0)
+                    
+                    if departments_processed == 4:  # Should process 4 departments
+                        self.log_test("Migration Departments", True, 
+                                    f"Processed {departments_processed} departments")
+                        success_count += 1
+                    else:
+                        self.log_test("Migration Departments", False, 
+                                    f"Expected 4 departments, processed {departments_processed}")
+                    
+                    total_items = breakfast_items + topping_items + drink_items + sweet_items
+                    if total_items > 0:
+                        self.log_test("Migration Items", True, 
+                                    f"Migrated {total_items} items (B:{breakfast_items}, T:{topping_items}, D:{drink_items}, S:{sweet_items})")
+                        success_count += 1
+                    else:
+                        self.log_test("Migration Items", False, "No items were migrated")
+                        
+                    self.log_test("Migration Endpoint", True, 
+                                f"Migration completed: {migration_result.get('message', 'Success')}")
+                    success_count += 1
+                else:
+                    self.log_test("Migration Endpoint", False, "Missing results in migration response")
+            else:
+                self.log_test("Migration Endpoint", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Migration Endpoint", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_department_specific_menu_endpoints(self):
+        """Test department-specific menu endpoints"""
+        print("\n=== Testing Department-Specific Menu Endpoints ===")
+        
+        if not self.departments:
+            self.log_test("Department-Specific Menus", False, "No departments available")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        dept_id = test_dept['id']
+        
+        # Test department-specific breakfast menu
+        try:
+            response = self.session.get(f"{API_BASE}/menu/breakfast/{dept_id}")
+            
+            if response.status_code == 200:
+                breakfast_items = response.json()
+                if len(breakfast_items) > 0:
+                    # Check that all items have department_id
+                    all_have_dept_id = all('department_id' in item and item['department_id'] == dept_id 
+                                         for item in breakfast_items)
+                    if all_have_dept_id:
+                        self.log_test("Department-Specific Breakfast Menu", True, 
+                                    f"Found {len(breakfast_items)} breakfast items for department")
+                        success_count += 1
+                    else:
+                        self.log_test("Department-Specific Breakfast Menu", False, 
+                                    "Items missing department_id or wrong department")
+                else:
+                    self.log_test("Department-Specific Breakfast Menu", False, "No breakfast items found")
+            else:
+                self.log_test("Department-Specific Breakfast Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Department-Specific Breakfast Menu", False, f"Exception: {str(e)}")
+        
+        # Test department-specific toppings menu
+        try:
+            response = self.session.get(f"{API_BASE}/menu/toppings/{dept_id}")
+            
+            if response.status_code == 200:
+                topping_items = response.json()
+                if len(topping_items) > 0:
+                    all_have_dept_id = all('department_id' in item and item['department_id'] == dept_id 
+                                         for item in topping_items)
+                    if all_have_dept_id:
+                        self.log_test("Department-Specific Toppings Menu", True, 
+                                    f"Found {len(topping_items)} topping items for department")
+                        success_count += 1
+                    else:
+                        self.log_test("Department-Specific Toppings Menu", False, 
+                                    "Items missing department_id or wrong department")
+                else:
+                    self.log_test("Department-Specific Toppings Menu", False, "No topping items found")
+            else:
+                self.log_test("Department-Specific Toppings Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Department-Specific Toppings Menu", False, f"Exception: {str(e)}")
+        
+        # Test department-specific drinks menu
+        try:
+            response = self.session.get(f"{API_BASE}/menu/drinks/{dept_id}")
+            
+            if response.status_code == 200:
+                drink_items = response.json()
+                if len(drink_items) > 0:
+                    all_have_dept_id = all('department_id' in item and item['department_id'] == dept_id 
+                                         for item in drink_items)
+                    if all_have_dept_id:
+                        self.log_test("Department-Specific Drinks Menu", True, 
+                                    f"Found {len(drink_items)} drink items for department")
+                        success_count += 1
+                    else:
+                        self.log_test("Department-Specific Drinks Menu", False, 
+                                    "Items missing department_id or wrong department")
+                else:
+                    self.log_test("Department-Specific Drinks Menu", False, "No drink items found")
+            else:
+                self.log_test("Department-Specific Drinks Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Department-Specific Drinks Menu", False, f"Exception: {str(e)}")
+        
+        # Test department-specific sweets menu
+        try:
+            response = self.session.get(f"{API_BASE}/menu/sweets/{dept_id}")
+            
+            if response.status_code == 200:
+                sweet_items = response.json()
+                if len(sweet_items) > 0:
+                    all_have_dept_id = all('department_id' in item and item['department_id'] == dept_id 
+                                         for item in sweet_items)
+                    if all_have_dept_id:
+                        self.log_test("Department-Specific Sweets Menu", True, 
+                                    f"Found {len(sweet_items)} sweet items for department")
+                        success_count += 1
+                    else:
+                        self.log_test("Department-Specific Sweets Menu", False, 
+                                    "Items missing department_id or wrong department")
+                else:
+                    self.log_test("Department-Specific Sweets Menu", False, "No sweet items found")
+            else:
+                self.log_test("Department-Specific Sweets Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Department-Specific Sweets Menu", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_backward_compatibility_menus(self):
+        """Test backward compatibility of old menu endpoints"""
+        print("\n=== Testing Backward Compatibility Menu Endpoints ===")
+        
+        success_count = 0
+        
+        # Test old breakfast menu endpoint (should return first department's menu)
+        try:
+            response = self.session.get(f"{API_BASE}/menu/breakfast")
+            
+            if response.status_code == 200:
+                breakfast_items = response.json()
+                if len(breakfast_items) > 0:
+                    self.log_test("Backward Compatible Breakfast Menu", True, 
+                                f"Old endpoint returns {len(breakfast_items)} breakfast items")
+                    success_count += 1
+                else:
+                    self.log_test("Backward Compatible Breakfast Menu", False, "No breakfast items returned")
+            else:
+                self.log_test("Backward Compatible Breakfast Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Backward Compatible Breakfast Menu", False, f"Exception: {str(e)}")
+        
+        # Test old toppings menu endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/menu/toppings")
+            
+            if response.status_code == 200:
+                topping_items = response.json()
+                if len(topping_items) > 0:
+                    self.log_test("Backward Compatible Toppings Menu", True, 
+                                f"Old endpoint returns {len(topping_items)} topping items")
+                    success_count += 1
+                else:
+                    self.log_test("Backward Compatible Toppings Menu", False, "No topping items returned")
+            else:
+                self.log_test("Backward Compatible Toppings Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Backward Compatible Toppings Menu", False, f"Exception: {str(e)}")
+        
+        # Test old drinks menu endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/menu/drinks")
+            
+            if response.status_code == 200:
+                drink_items = response.json()
+                if len(drink_items) > 0:
+                    self.log_test("Backward Compatible Drinks Menu", True, 
+                                f"Old endpoint returns {len(drink_items)} drink items")
+                    success_count += 1
+                else:
+                    self.log_test("Backward Compatible Drinks Menu", False, "No drink items returned")
+            else:
+                self.log_test("Backward Compatible Drinks Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Backward Compatible Drinks Menu", False, f"Exception: {str(e)}")
+        
+        # Test old sweets menu endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/menu/sweets")
+            
+            if response.status_code == 200:
+                sweet_items = response.json()
+                if len(sweet_items) > 0:
+                    self.log_test("Backward Compatible Sweets Menu", True, 
+                                f"Old endpoint returns {len(sweet_items)} sweet items")
+                    success_count += 1
+                else:
+                    self.log_test("Backward Compatible Sweets Menu", False, "No sweet items returned")
+            else:
+                self.log_test("Backward Compatible Sweets Menu", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Backward Compatible Sweets Menu", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_department_specific_order_creation(self):
+        """Test that orders use department-specific pricing"""
+        print("\n=== Testing Department-Specific Order Creation ===")
+        
+        if not self.departments or not self.employees:
+            self.log_test("Department-Specific Orders", False, "Missing departments or employees")
+            return False
+        
+        success_count = 0
+        
+        # Test with different departments to ensure proper isolation
+        for i, dept in enumerate(self.departments[:2]):  # Test first 2 departments
+            dept_employees = [emp for emp in self.employees if emp['department_id'] == dept['id']]
+            if not dept_employees:
+                continue
+                
+            test_employee = dept_employees[0]
+            
+            try:
+                # Get department-specific menu prices
+                breakfast_response = self.session.get(f"{API_BASE}/menu/breakfast/{dept['id']}")
+                if breakfast_response.status_code != 200:
+                    continue
+                    
+                breakfast_menu = breakfast_response.json()
+                if not breakfast_menu:
+                    continue
+                
+                # Create breakfast order using department-specific menu
+                breakfast_order = {
+                    "employee_id": test_employee['id'],
+                    "department_id": dept['id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["ruehrei", "kaese"],
+                            "has_lunch": False
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    
+                    # Verify order uses department-specific pricing
+                    if order['total_price'] > 0 and order['department_id'] == dept['id']:
+                        self.log_test(f"Department {i+1} Order Creation", True, 
+                                    f"Created order with department-specific pricing: €{order['total_price']:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test(f"Department {i+1} Order Creation", False, 
+                                    "Invalid pricing or department mismatch")
+                else:
+                    self.log_test(f"Department {i+1} Order Creation", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Department {i+1} Order Creation", False, f"Exception: {str(e)}")
+        
+        return success_count >= 1
+
+    def test_department_isolation_data_integrity(self):
+        """Test that departments have isolated menu items and proper data integrity"""
+        print("\n=== Testing Department Isolation & Data Integrity ===")
+        
+        if len(self.departments) < 2:
+            self.log_test("Department Isolation", False, "Need at least 2 departments for isolation testing")
+            return False
+        
+        success_count = 0
+        dept1 = self.departments[0]
+        dept2 = self.departments[1]
+        
+        # Test that each department has its own copy of menu items
+        try:
+            # Get breakfast menus for both departments
+            response1 = self.session.get(f"{API_BASE}/menu/breakfast/{dept1['id']}")
+            response2 = self.session.get(f"{API_BASE}/menu/breakfast/{dept2['id']}")
+            
+            if response1.status_code == 200 and response2.status_code == 200:
+                menu1 = response1.json()
+                menu2 = response2.json()
+                
+                if len(menu1) > 0 and len(menu2) > 0:
+                    # Check that items have different IDs (separate copies)
+                    menu1_ids = {item['id'] for item in menu1}
+                    menu2_ids = {item['id'] for item in menu2}
+                    
+                    if menu1_ids.isdisjoint(menu2_ids):
+                        self.log_test("Department Menu Isolation", True, 
+                                    f"Departments have separate menu items (Dept1: {len(menu1)}, Dept2: {len(menu2)})")
+                        success_count += 1
+                    else:
+                        self.log_test("Department Menu Isolation", False, 
+                                    "Departments share menu item IDs - not properly isolated")
+                        
+                    # Check that all items have correct department_id
+                    dept1_correct = all(item['department_id'] == dept1['id'] for item in menu1)
+                    dept2_correct = all(item['department_id'] == dept2['id'] for item in menu2)
+                    
+                    if dept1_correct and dept2_correct:
+                        self.log_test("Department ID Integrity", True, 
+                                    "All menu items have correct department_id")
+                        success_count += 1
+                    else:
+                        self.log_test("Department ID Integrity", False, 
+                                    "Menu items have incorrect department_id")
+                else:
+                    self.log_test("Department Menu Isolation", False, "Empty menus found")
+            else:
+                self.log_test("Department Menu Isolation", False, 
+                            f"Failed to fetch menus: {response1.status_code}, {response2.status_code}")
+                
+        except Exception as e:
+            self.log_test("Department Menu Isolation", False, f"Exception: {str(e)}")
+        
+        # Test department admin access isolation
+        try:
+            # Login as admin for dept1
+            admin_login_data = {
+                "department_name": dept1['name'],
+                "admin_password": "admin1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=admin_login_data)
+            
+            if response.status_code == 200:
+                login_result = response.json()
+                if login_result.get('department_id') == dept1['id']:
+                    self.log_test("Department Admin Isolation", True, 
+                                "Department admin can only access their department")
+                    success_count += 1
+                else:
+                    self.log_test("Department Admin Isolation", False, 
+                                "Department admin access not properly isolated")
+            else:
+                self.log_test("Department Admin Isolation", False, 
+                            f"Admin login failed: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Department Admin Isolation", False, f"Exception: {str(e)}")
+        
+        # Test order isolation - orders should reference correct department-specific menu items
+        if self.employees:
+            try:
+                dept1_employees = [emp for emp in self.employees if emp['department_id'] == dept1['id']]
+                if dept1_employees:
+                    test_employee = dept1_employees[0]
+                    
+                    # Get employee's orders
+                    response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
+                    
+                    if response.status_code == 200:
+                        orders_data = response.json()
+                        orders = orders_data.get('orders', [])
+                        
+                        # Check that all orders belong to correct department
+                        dept_orders_correct = all(order.get('department_id') == dept1['id'] for order in orders)
+                        
+                        if dept_orders_correct:
+                            self.log_test("Order Department Integrity", True, 
+                                        f"All {len(orders)} orders reference correct department")
+                            success_count += 1
+                        else:
+                            self.log_test("Order Department Integrity", False, 
+                                        "Orders reference incorrect department")
+                    else:
+                        self.log_test("Order Department Integrity", False, 
+                                    f"Failed to fetch orders: {response.status_code}")
+                        
+            except Exception as e:
+                self.log_test("Order Department Integrity", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
     
     def run_all_tests(self):
         """Run all backend tests focusing on critical bug fixes"""
