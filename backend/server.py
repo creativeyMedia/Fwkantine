@@ -582,6 +582,44 @@ async def get_sweets_menu(department_id: str):
     items = await db.menu_sweets.find({"department_id": department_id}).to_list(100)
     return [MenuItemSweet(**item) for item in items]
 
+# Backward compatibility endpoints (will use first department if no department specified)
+@api_router.get("/menu/breakfast", response_model=List[MenuItemBreakfast])
+async def get_breakfast_menu_compat():
+    """Backward compatibility - get breakfast menu for first department"""
+    # Get first department
+    dept = await db.departments.find_one()
+    if not dept:
+        return []
+    items = await db.menu_breakfast.find({"department_id": dept["id"]}).to_list(100)
+    return [MenuItemBreakfast(**item) for item in items]
+
+@api_router.get("/menu/toppings", response_model=List[MenuItemToppings])
+async def get_toppings_menu_compat():
+    """Backward compatibility - get toppings menu for first department"""
+    dept = await db.departments.find_one()
+    if not dept:
+        return []
+    items = await db.menu_toppings.find({"department_id": dept["id"]}).to_list(100)
+    return [MenuItemToppings(**item) for item in items]
+
+@api_router.get("/menu/drinks", response_model=List[MenuItemDrink])
+async def get_drinks_menu_compat():
+    """Backward compatibility - get drinks menu for first department"""
+    dept = await db.departments.find_one()
+    if not dept:
+        return []
+    items = await db.menu_drinks.find({"department_id": dept["id"]}).to_list(100)
+    return [MenuItemDrink(**item) for item in items]
+
+@api_router.get("/menu/sweets", response_model=List[MenuItemSweet])
+async def get_sweets_menu_compat():
+    """Backward compatibility - get sweets menu for first department"""
+    dept = await db.departments.find_one()
+    if not dept:
+        return []
+    items = await db.menu_sweets.find({"department_id": dept["id"]}).to_list(100)
+    return [MenuItemSweet(**item) for item in items]
+
 # Order routes
 @api_router.post("/orders", response_model=Order)
 async def create_order(order_data: OrderCreate):
