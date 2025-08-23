@@ -3113,12 +3113,18 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
     if (!editingItem) return;
 
     try {
+      if (!currentDepartment?.department_id) {
+        alert('Fehler: Keine Abteilungs-ID verfügbar');
+        return;
+      }
+
       const updateData = {
         name: editForm.name,
         price: parseFloat(editForm.price)
       };
       
-      await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}`, updateData);
+      const departmentId = currentDepartment.department_id;
+      await axios.put(`${API}/department-admin/menu/${editingItem.category}/${editingItem.id}?department_id=${departmentId}`, updateData);
       
       fetchMenus();
       setEditingItem(null);
