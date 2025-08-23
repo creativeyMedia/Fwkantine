@@ -1659,6 +1659,7 @@ const DepartmentAdminDashboard = () => {
               onCreateMenuItem={createMenuItem}
               onDeleteMenuItem={deleteMenuItem}
               fetchMenus={fetchMenus}
+              currentDepartment={currentDepartment}
             />
           )}
 
