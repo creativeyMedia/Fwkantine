@@ -1451,6 +1451,19 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     }
   };
 
+  const deleteEmployee = async (employee) => {
+    if (window.confirm(`Mitarbeiter ${employee.name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und löscht auch alle Bestellungen des Mitarbeiters.`)) {
+      try {
+        await axios.delete(`${API}/department-admin/employees/${employee.id}`);
+        alert('Mitarbeiter erfolgreich gelöscht');
+        window.location.reload(); // Refresh to show updated employee list
+      } catch (error) {
+        console.error('Fehler beim Löschen des Mitarbeiters:', error);
+        alert('Fehler beim Löschen des Mitarbeiters');
+      }
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
