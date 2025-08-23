@@ -286,20 +286,11 @@ const Homepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* App Header with Logo */}
-      <div className="text-center bg-gradient-to-r from-blue-800 to-blue-600 text-white py-6 px-4 shadow-lg">
-        <img 
-          src="https://customer-assets.emergentagent.com/job_canteen-manager/artifacts/v6rzqop7_Feuerwehr-Lichterfelde-Logo.png" 
-          alt="Feuerwehr Lichterfelde Logo" 
-          className="w-20 h-20 mx-auto mb-4 rounded-lg border-2 border-white/30 bg-white/90 p-2 object-contain"
-        />
-        <h1 className="text-3xl font-bold">Feuerwache Lichterfelde</h1>
-        <p className="text-lg opacity-90">Kantinenverwaltung</p>
-      </div>
-
-      <div className="p-4 sm:p-6 md:p-8 lg:p-12">
-        <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center mb-8 sm:mb-12 lg:mb-16 text-gray-800 px-4">
+          Feuerwache Lichterfelde Kantine
+        </h1>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 px-4">
           {departments.map((department) => (
