@@ -727,19 +727,69 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         }
       }
       
-      const orderData = {
-        employee_id: employee.id,
-        department_id: currentDepartment.department_id,
-        order_type: activeCategory,
-        breakfast_items: breakfastItems,
-        drink_items: activeCategory === 'drinks' ? order.drink_items : {},
-        sweet_items: activeCategory === 'sweets' ? order.sweet_items : {}
-      };
+      // Check if employee already has an order for today (for breakfast only)
+      if (activeCategory === 'breakfast') {
+        try {
+          const existingOrdersResponse = await axios.get(`${API}/employees/${employee.id}/orders`);
+          const orders = existingOrdersResponse.data.orders || [];
+          
+          // Filter orders for today
+          const today = new Date().toDateString();
+          const todaysBreakfastOrders = orders.filter(order => {
+            const orderDate = new Date(order.timestamp).toDateString();
+            return orderDate === today && order.order_type === 'breakfast';
+          });
 
-      await axios.post(`${API}/orders`, orderData);
-      
-      // Show success message but keep form open
-      alert('Bestellung erfolgreich gespeichert!');
+          if (todaysBreakfastOrders.length > 0) {
+            // Update existing order instead of creating new
+            const existingOrderId = todaysBreakfastOrders[0].id;
+            
+            await axios.put(`${API}/orders/${existingOrderId}`, {
+              breakfast_items: breakfastItems
+            });
+            
+            alert('Bestellung erfolgreich aktualisiert!');
+          } else {
+            // Create new order
+            await axios.post(`${API}/orders`, {
+              employee_id: employee.id,
+              department_id: currentDepartment.department_id,
+              order_type: activeCategory,
+              breakfast_items: breakfastItems,
+              drink_items: {},
+              sweet_items: {}
+            });
+            
+            alert('Bestellung erfolgreich gespeichert!');
+          }
+        } catch (existingOrderError) {
+          console.error('Fehler beim Prüfen bestehender Bestellungen:', existingOrderError);
+          // Fallback: try to create new order
+          await axios.post(`${API}/orders`, {
+            employee_id: employee.id,
+            department_id: currentDepartment.department_id,
+            order_type: activeCategory,
+            breakfast_items: breakfastItems,
+            drink_items: {},
+            sweet_items: {}
+          });
+          
+          alert('Bestellung erfolgreich gespeichert!');
+        }
+      } else {
+        // For drinks and sweets, create new order as usual
+        const orderData = {
+          employee_id: employee.id,
+          department_id: currentDepartment.department_id,
+          order_type: activeCategory,
+          breakfast_items: [],
+          drink_items: activeCategory === 'drinks' ? order.drink_items : {},
+          sweet_items: activeCategory === 'sweets' ? order.sweet_items : {}
+        };
+
+        await axios.post(`${API}/orders`, orderData);
+        alert('Bestellung erfolgreich gespeichert!');
+      }
       
       // Refresh employee data to show updated balance
       if (fetchEmployees) {
@@ -749,7 +799,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       // DON'T reset the form data or close the modal - keep it open for editing
       
     } catch (error) {
-      console.error('Fehler beim Erstellen der Bestellung:', error);
+      console.error('Fehler beim Speichern der Bestellung:', error);
       alert('Fehler beim Speichern der Bestellung. Bitte versuchen Sie es erneut.');
     }
   };
