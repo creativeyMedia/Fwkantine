@@ -3099,6 +3099,7 @@ const LunchManagementTab = () => {
       const response = await axios.get(`${API}/lunch-settings`);
       setLunchSettings(response.data);
       setNewPrice(response.data.price.toFixed(2));
+      setNewBoiledEggsPrice((response.data.boiled_eggs_price || 0.50).toFixed(2));
     } catch (error) {
       console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
     }
