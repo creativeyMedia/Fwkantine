@@ -1560,6 +1560,16 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                 Mitarbeiter löschen
               </button>
             </div>
+
+            {/* Order Management Button */}
+            <div className="mt-2">
+              <button
+                onClick={() => viewEmployeeOrders(employee)}
+                className="w-full bg-green-600 text-white text-xs py-2 px-2 rounded hover:bg-green-700"
+              >
+                Bestellungen verwalten
+              </button>
+            </div>
           </div>
         ))}
       </div>
