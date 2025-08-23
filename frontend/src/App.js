@@ -570,12 +570,28 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
     }
   };
 
+  // Create dynamic labels from menu data
   const rollTypeLabels = {
     'weiss': 'Weißes Brötchen',
     'koerner': 'Körnerbrötchen'
   };
 
-  const toppingLabels = {
+  // Use custom names from menu if available, otherwise fall back to defaults
+  const toppingLabels = {};
+  toppingsMenu.forEach(item => {
+    toppingLabels[item.topping_type] = item.name || {
+      'ruehrei': 'Rührei',
+      'spiegelei': 'Spiegelei', 
+      'eiersalat': 'Eiersalat',
+      'salami': 'Salami',
+      'schinken': 'Schinken',
+      'kaese': 'Käse',
+      'butter': 'Butter'
+    }[item.topping_type] || item.topping_type;
+  });
+
+  // Fallback toppings if menu is empty
+  const defaultToppingLabels = {
     'ruehrei': 'Rührei',
     'spiegelei': 'Spiegelei',
     'eiersalat': 'Eiersalat',
@@ -584,6 +600,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
     'kaese': 'Käse',
     'butter': 'Butter'
   };
+
+  const finalToppingLabels = Object.keys(toppingLabels).length > 0 ? toppingLabels : defaultToppingLabels;
 
   const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, totalCost) => {
     const newItem = {
