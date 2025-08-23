@@ -1061,11 +1061,19 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     setToppingAssignments(newAssignments);
   }, [whiteRolls, seededRolls]); // Removed toppingAssignments from dependencies to avoid infinite loop
 
-  // Only update form data when toppings are properly assigned (not on every input change)
+  // Update form data when any valid combination is selected
   useEffect(() => {
-    if (totalHalves > 0 && toppingAssignments.length === totalHalves && 
-        !toppingAssignments.some(a => !a.topping) && onDirectSubmit) {
-      const toppings = toppingAssignments.map(assignment => assignment.topping);
+    const hasRolls = totalHalves > 0;
+    const hasValidRollOrder = hasRolls && toppingAssignments.length === totalHalves && 
+                              !toppingAssignments.some(a => !a.topping);
+    const hasEggsOrLunch = boiledEggs > 0 || hasLunch;
+    
+    // Allow submission if user has:
+    // 1. Valid roll order (rolls + toppings), OR
+    // 2. Just eggs or lunch without rolls, OR  
+    // 3. Any combination of rolls, eggs, and/or lunch
+    if ((hasValidRollOrder || (hasEggsOrLunch && !hasRolls) || (hasRolls && hasEggsOrLunch)) && onDirectSubmit) {
+      const toppings = hasRolls ? toppingAssignments.map(assignment => assignment.topping) : [];
       const breakfastData = {
         total_halves: totalHalves,
         white_halves: whiteRolls,
@@ -1076,8 +1084,8 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         item_cost: totalCost
       };
       onDirectSubmit(breakfastData);
-    } else if (onDirectSubmit && totalHalves === 0) {
-      onDirectSubmit(null); // Clear data if no rolls selected
+    } else if (onDirectSubmit && totalHalves === 0 && !hasEggsOrLunch) {
+      onDirectSubmit(null); // Clear data if nothing selected
     }
   }, [toppingAssignments, totalHalves]); // Only depend on toppings completion, not individual input changes
 
