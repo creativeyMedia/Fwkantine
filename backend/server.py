@@ -1366,6 +1366,89 @@ async def delete_order_by_admin(order_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting order: {str(e)}")
 
+@api_router.put("/orders/{order_id}")
+async def update_order(order_id: str, order_update: dict):
+    """Update an existing order"""
+    try:
+        # Find the existing order
+        existing_order = await db.orders.find_one({"id": order_id})
+        if not existing_order:
+            raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+        
+        # Update the order with new data
+        update_fields = {}
+        if "breakfast_items" in order_update:
+            update_fields["breakfast_items"] = order_update["breakfast_items"]
+            
+            # Recalculate total price for breakfast items
+            total_price = 0.0
+            
+            # Get current menu prices
+            breakfast_menu = await db.menu_breakfast.find({}).to_list(100)
+            toppings_menu = await db.menu_toppings.find({}).to_list(100)
+            
+            breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+            toppings_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
+            
+            for item in order_update["breakfast_items"]:
+                # Handle new format with white_halves and seeded_halves
+                white_halves = item.get("white_halves", 0)
+                seeded_halves = item.get("seeded_halves", 0)
+                
+                # Prices are per-whole roll, divide by 2 for half-roll pricing
+                white_price = breakfast_prices.get("weiss", 0.0) / 2
+                seeded_price = breakfast_prices.get("koerner", 0.0) / 2
+                
+                total_price += (white_halves * white_price) + (seeded_halves * seeded_price)
+                
+                # Add toppings price (toppings are free currently)
+                for topping in item.get("toppings", []):
+                    total_price += toppings_prices.get(topping, 0.0)
+                
+                # Add lunch price if applicable
+                if item.get("has_lunch"):
+                    lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
+                    total_price += lunch_settings["price"]
+            
+            update_fields["total_price"] = total_price
+        
+        if "drink_items" in order_update:
+            update_fields["drink_items"] = order_update["drink_items"]
+            # TODO: Calculate total price for drinks
+        
+        if "sweet_items" in order_update:
+            update_fields["sweet_items"] = order_update["sweet_items"]
+            # TODO: Calculate total price for sweets
+        
+        # Update the order in database
+        result = await db.orders.update_one(
+            {"id": order_id},
+            {"$set": update_fields}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+        
+        # Update employee balance
+        employee = await db.employees.find_one({"id": existing_order["employee_id"]})
+        if employee:
+            # Calculate balance difference
+            old_price = existing_order.get("total_price", 0.0)
+            new_price = update_fields.get("total_price", old_price)
+            price_difference = new_price - old_price
+            
+            # Update employee balance
+            new_breakfast_balance = employee.get("breakfast_balance", 0.0) + price_difference
+            await db.employees.update_one(
+                {"id": existing_order["employee_id"]},
+                {"$set": {"breakfast_balance": new_breakfast_balance}}
+            )
+        
+        return {"message": "Bestellung erfolgreich aktualisiert", "order_id": order_id}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Aktualisieren der Bestellung: {str(e)}")
+
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
     """Admin: Delete an order and adjust employee balance"""
