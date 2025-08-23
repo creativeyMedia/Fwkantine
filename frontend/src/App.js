@@ -786,7 +786,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 };
 
 // Simplified Breakfast Order Form - Direct Roll Selection with Topping Assignment
-const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels }) => {
+const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels, onDirectSubmit }) => {
   const [whiteRolls, setWhiteRolls] = useState(0);
   const [seededRolls, setSeededRolls] = useState(0);
   const [toppingAssignments, setToppingAssignments] = useState([]);
