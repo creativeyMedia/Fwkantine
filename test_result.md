@@ -457,13 +457,29 @@ metadata:
   test_sequence: 5
   run_ui: false
 
+  - task: "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUES IDENTIFIED: 1) Order Update Functionality - PUT /api/orders/{order_id} endpoint exists and works correctly, successfully updates breakfast items and recalculates employee balances. 2) Balance Adjustment on Order Deletion - DELETE /api/department-admin/orders/{order_id} works perfectly, correctly reduces employee balance by deleted order amount and prevents negative balances. 3) Daily Summary & Employee Data - GET /api/orders/daily-summary/{department_id} returns complete structure with employee_orders section containing individual employee data. 4) Authentication - All department credentials (password1-4) and admin credentials (admin1-4) working correctly. ❌ CRITICAL BUGS FOUND: 1) Price Calculation Accuracy - Using full roll price for halves instead of per-half calculation (3 halves × €0.75 = €2.25 instead of expected 3 × €0.375 = €1.125). 2) Single Breakfast Order Constraint - Multiple breakfast orders per employee per day are created instead of updating existing order (found 2 orders when should be 1 updated order). These issues need immediate fixing."
+
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+  stuck_tasks:
+    - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
   test_all: false
-  test_priority: "critical_breakfast_fixes_completed"
+  test_priority: "critical_fixes_required"
 
 agent_communication:
+    - agent: "testing"
+      message: "🚨 CRITICAL BUG FIXES TESTING COMPLETED - ISSUES FOUND! Comprehensive testing of the requested critical bug fixes revealed: ✅ WORKING CORRECTLY: Order Update Functionality (PUT /api/orders/{order_id}), Balance Adjustment on Order Deletion (DELETE /api/department-admin/orders/{order_id}), Daily Summary & Employee Data (GET /api/orders/daily-summary/{department_id}), Authentication with department/admin credentials (password1-4/admin1-4). ❌ CRITICAL ISSUES REQUIRING IMMEDIATE FIX: 1) Price Calculation Accuracy - Backend is using full roll price for halves instead of per-half calculation (menu price ÷ 2). Current: 3 halves × €0.75 = €2.25, Expected: 3 halves × €0.375 = €1.125. Issue in server.py line 565. 2) Single Breakfast Order Constraint - System creates multiple breakfast orders per employee per day instead of updating existing order. No logic exists to check for existing breakfast orders before creating new ones. Both issues are in the order creation logic and need backend fixes."
     - agent: "testing"
       message: "🎉 CRITICAL BREAKFAST ORDERING FIXES TESTING COMPLETED SUCCESSFULLY! All requested critical fixes for the canteen management system are working perfectly: ✅ Order Submission Workflow - POST /api/orders with new breakfast format (total_halves, white_halves, seeded_halves, toppings, has_lunch) working correctly with proper validation and pricing. ✅ Order Persistence & Retrieval - GET /api/employees/{employee_id}/orders returns proper format, fixed MongoDB ObjectId serialization issue that was causing 500 errors. ✅ Admin Order Management - Department admin authentication working with admin1-4 credentials, order viewing and deletion functionality operational. ✅ Menu Integration - Dynamic pricing working correctly, menu price updates immediately affect order calculations. ✅ Validation - Proper error handling for invalid breakfast orders. Fixed critical backend bug in employee orders endpoint. All core breakfast ordering functionality is production-ready."
 
