@@ -2803,7 +2803,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                             <div className="space-y-1">
                               {Object.entries(data.toppings).map(([topping, count]) => (
                                 <div key={topping} className="flex justify-between">
-                                  <span>{toppingLabels[topping] || topping}:</span>
+                                  <span>{finalToppingLabels[topping] || topping}:</span>
                                   <span className="font-semibold ml-2">{count}x</span>
                                 </div>
                               ))}
