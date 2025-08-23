@@ -3670,7 +3670,11 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                 </div>
                                 {Object.keys(employeeData.toppings).length > 0 && (
                                   <div className="pt-1 text-xs">
-                                    Beläge: {Object.entries(employeeData.toppings).map(([topping, count]) => `${count}x ${topping}`).join(', ')}
+                                    Beläge: {Object.entries(employeeData.toppings).map(([topping, count]) => {
+                                      // Handle both string and object toppings
+                                      const toppingName = typeof topping === 'string' ? topping : (topping.name || topping.topping_type || 'Unknown');
+                                      return `${count}x ${toppingName}`;
+                                    }).join(', ')}
                                   </div>
                                 )}
                               </div>
