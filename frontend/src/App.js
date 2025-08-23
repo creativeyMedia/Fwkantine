@@ -912,11 +912,16 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       
       // Reconstruct toppings assignments
       if (existingOrderData.toppings && Array.isArray(existingOrderData.toppings)) {
-        const newToppings = {};
+        const newAssignments = [];
         existingOrderData.toppings.forEach((topping, index) => {
-          newToppings[index] = topping;
+          newAssignments.push({
+            id: `existing_${index}`,
+            rollType: index < (existingOrderData.white_halves || 0) ? 'weiss' : 'koerner',
+            rollLabel: `Brötchen ${index + 1}`,
+            topping: topping
+          });
         });
-        setToppings(newToppings);
+        setToppingAssignments(newAssignments);
       }
     }
   }, [existingOrderData]);
