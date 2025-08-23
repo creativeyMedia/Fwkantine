@@ -33,6 +33,18 @@ const AuthProvider = ({ children }) => {
     setIsMasterAdmin(false);
   };
 
+  const setAuthState = (state) => {
+    if (state.currentDepartment) {
+      setCurrentDepartment(state.currentDepartment);
+    }
+    if (state.hasOwnProperty('isDepartmentAdmin')) {
+      setIsDepartmentAdmin(state.isDepartmentAdmin);
+    }
+    if (state.hasOwnProperty('isMasterAdmin')) {
+      setIsMasterAdmin(state.isMasterAdmin);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       currentDepartment,
@@ -40,7 +52,8 @@ const AuthProvider = ({ children }) => {
       isMasterAdmin,
       loginDepartment,
       loginDepartmentAdmin,
-      logout
+      logout,
+      setAuthState
     }}>
       {children}
     </AuthContext.Provider>
