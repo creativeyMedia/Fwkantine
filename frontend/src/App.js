@@ -294,7 +294,7 @@ const Homepage = () => {
           alt="Feuerwehr Lichterfelde Logo" 
           className="w-20 h-20 mx-auto mb-4 rounded-lg border-2 border-white/30 bg-white/90 p-2 object-contain"
         />
-        <h1 className="text-3xl font-bold text-shadow">Feuerwache Lichterfelde</h1>
+        <h1 className="text-3xl font-bold">Feuerwache Lichterfelde</h1>
         <p className="text-lg opacity-90">Kantinenverwaltung</p>
       </div>
 
