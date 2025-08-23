@@ -83,6 +83,7 @@ class MenuItemBreakfast(BaseModel):
     
 class MenuItemToppings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str  # Department-specific menu items
     topping_type: ToppingType
     name: Optional[str] = None  # Custom name, if None use default from topping_type
     price: float
