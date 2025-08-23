@@ -2786,9 +2786,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => (
                     <div key={rollType} className="bg-white border border-green-300 rounded p-3">
-                      <div className="font-semibold">{rollTypeLabels[rollType]}</div>
+                      <div className="font-semibold">{String(rollTypeLabels[rollType] || rollType)}</div>
                       <div className="text-gray-600">
-                        {data.halves} Hälften → {data.whole_rolls} ganze Brötchen
+                        {String(data.halves || 0)} Hälften → {String(data.whole_rolls || 0)} ganze Brötchen
                       </div>
                     </div>
                   ))}
