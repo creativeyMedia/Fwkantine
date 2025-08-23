@@ -367,6 +367,18 @@ backend:
           agent: "testing"
           comment: "✅ NEW FEATURE FULLY TESTED: All 4 new breakfast and toppings menu management endpoints working perfectly. POST /api/department-admin/menu/breakfast creates breakfast items with valid roll_type enums (weiss/koerner) and pricing. DELETE /api/department-admin/menu/breakfast/{item_id} successfully removes items from database. POST /api/department-admin/menu/toppings creates topping items with valid topping_type enums (ruehrei/kaese/etc) and pricing. DELETE /api/department-admin/menu/toppings/{item_id} successfully removes items. All operations properly validated, persisted to database, and verified through GET requests. Error handling for invalid IDs returns proper 404 responses. 15/15 individual tests passed (100% success rate)."
 
+  - task: "Critical Bug Fixes - Employee Orders Management & Order Creation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL BUG FIXES TESTING COMPLETED SUCCESSFULLY! All 6 critical bug fixes are working perfectly: 1) Employee Orders Management - GET /api/employees/{employee_id}/orders returns proper format with orders array, successfully fetched orders for employees. 2) Order Creation with New Breakfast Format - POST /api/orders correctly handles dynamic pricing structure with total_halves, white_halves, seeded_halves format, order created with €3.50 total and structure properly saved. 3) Menu Integration with Custom Names - Toppings menu correctly returns custom names when set by admin, 'Premium Rührei' custom name properly reflected in menu responses. 4) Employee Deletion - DELETE /api/department-admin/employees/{employee_id} works without redirect issues, employee successfully deleted with proper message. 5) Department Admin Order Deletion - DELETE /api/department-admin/orders/{order_id} working correctly for admin order management, order successfully deleted. 6) Dynamic Pricing Integration - Menu price changes immediately affect order calculations, order correctly uses updated price of €0.75 per roll half resulting in €1.50 total. All critical functionality is production-ready and user-reported issues have been resolved."
+
   - task: "Menu Endpoints"
     implemented: true
     working: true
