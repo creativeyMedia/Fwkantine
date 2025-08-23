@@ -265,7 +265,7 @@ const Homepage = () => {
             <div
               key={department.id}
               onClick={() => handleDepartmentClick(department)}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-6 sm:p-8 lg:p-10"
+              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-6 sm:p-8 lg:p-10 flex items-center justify-center"
             >
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-blue-800">
                 {department.name}
