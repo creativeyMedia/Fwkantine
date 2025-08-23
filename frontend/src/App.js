@@ -2400,6 +2400,56 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
               {/* Detailed Employee Orders */}
               <h3 className="text-lg font-semibold mb-4">Detaillierte Mitarbeiter-Bestellungen</h3>
               
+              {/* Employee Orders Table */}
+              {dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0 ? (
+                <div className="overflow-x-auto mb-8">
+                  <table className="w-full border-collapse border border-gray-300 mb-6">
+                    <thead>
+                      <tr className="bg-blue-100">
+                        <th className="border border-gray-300 px-4 py-2 text-left">Mitarbeiter Name</th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">Weiße Hälften</th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">Körner Hälften</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Beläge</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(dailySummary.employee_orders).map(([employeeName, employeeData]) => (
+                        <tr key={employeeName} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-2 font-semibold">
+                            {employeeName}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
+                            {employeeData.white_halves}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center font-bold text-orange-600">
+                            {employeeData.seeded_halves}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {Object.keys(employeeData.toppings).length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(employeeData.toppings).map(([topping, count]) => (
+                                  <span key={topping} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                                    {count}x {toppingLabels[topping] || topping}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-500 italic">Keine Beläge</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-4 mb-8 text-gray-500">
+                  Keine Mitarbeiter-Bestellungen für heute
+                </div>
+              )}
+
+              {/* Summary Table (only once at bottom) */}
+              <h4 className="text-md font-semibold mb-4">Gesamtübersicht für Einkauf</h4>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse border border-gray-300">
                   <thead>
