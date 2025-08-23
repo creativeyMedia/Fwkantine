@@ -2802,7 +2802,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     {Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
                       <div key={topping} className="bg-white border border-orange-300 rounded p-3 text-center">
                         <div className="font-semibold text-orange-700">{count}x</div>
-                        <div className="text-sm">{toppingLabels[topping]}</div>
+                        <div className="text-sm">{String(finalToppingLabels[topping] || topping)}</div>
                       </div>
                     ))}
                   </div>
