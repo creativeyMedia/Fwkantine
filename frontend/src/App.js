@@ -4066,7 +4066,7 @@ const AdminSettingsTab = ({ currentDepartment }) => {
       return;
     }
 
-    if (newEmployeePassword === newAdminPassword) {
+    if (newAdminPassword && newEmployeePassword === newAdminPassword) {
       alert('Mitarbeiter- und Admin-Passwort müssen unterschiedlich sein');
       return;
     }
@@ -4087,7 +4087,7 @@ const AdminSettingsTab = ({ currentDepartment }) => {
       return;
     }
 
-    if (newEmployeePassword === newAdminPassword) {
+    if (newEmployeePassword && newEmployeePassword === newAdminPassword) {
       alert('Mitarbeiter- und Admin-Passwort müssen unterschiedlich sein');
       return;
     }
