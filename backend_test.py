@@ -4140,6 +4140,7 @@ class CanteenTester:
         
         # Additional critical tests
         critical_tests = [
+            ("🎯 Four Specific Bug Fixes", self.test_four_specific_bug_fixes),
             ("Critical Breakfast Ordering Fixes", self.test_critical_breakfast_ordering_fixes),
             ("Critical Bug Fixes", self.test_critical_bug_fixes),
             ("🔧 Daily Summary Toppings Fix - [object Object] Issue", self.test_daily_summary_toppings_fix),
