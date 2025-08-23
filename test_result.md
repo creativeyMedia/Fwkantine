@@ -627,13 +627,24 @@ agent_communication:
           comment: "🎉 NEW BOILED BREAKFAST EGGS FEATURE BACKEND TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new boiled breakfast eggs feature implementation completed with excellent results (6/6 core tests passed): ✅ 1) Data Model Updates - BreakfastOrder model correctly accepts and stores boiled_eggs field, order created with 3 boiled eggs (total: €4.20). ✅ 2) Pricing Integration - LunchSettings model includes boiled_eggs_price field (€0.60), PUT /api/lunch-settings/boiled-eggs-price endpoint working correctly, updated price to €0.75. ✅ 3) Order Pricing Calculation - Boiled eggs cost properly included in order total pricing (boiled_eggs * boiled_eggs_price). ✅ 4) Daily Summary Integration - GET /api/orders/daily-summary/{department_id} includes total_boiled_eggs field (7 eggs), employee_orders include boiled_eggs field per employee. ✅ 5) Order History Integration - GET /api/employees/{employee_id}/profile includes boiled eggs data in order history. ✅ 6) Backend API Endpoints - All boiled eggs related endpoints functional and properly integrated. Fixed KeyError issue in order creation by using .get() method for boiled_eggs_price access. The new boiled eggs feature is fully implemented in the backend and ready for frontend integration. Authentication tested with department credentials (password1-4) and admin credentials (admin1-4)."
 
 frontend:
+  - task: "CRITICAL BUG - Input Field and Checkbox Erratic Behavior"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL INPUT BUG REPORTED: (1) Boiled eggs number input field is unstable - numbers jump around and impossible to select/enter values properly, (2) Lunch checkbox behaves erratically - toggling repeatedly between on/off/on/off rapidly and uncontrollably. Both input behaviors prevent stable user interaction and need immediate fixing."
   - task: "NEW FEATURE - Boiled Breakfast Eggs Option"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/App.js, backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "testing"
