@@ -922,7 +922,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
             ? 'Bitte Brötchen auswählen'
             : toppingAssignments.some(a => !a.topping)
             ? `Noch ${toppingAssignments.filter(a => !a.topping).length} Belag(e) zuweisen`
-            : 'Bestellung hinzufügen'
+            : 'Bestellung vormerken'
           }
         </button>
       </div>
