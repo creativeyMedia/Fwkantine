@@ -502,7 +502,7 @@ const DepartmentDashboard = () => {
                 {employee.breakfast_balance > 0 && (
                   <p className="flex justify-between">
                     <span>Frühstück:</span> 
-                    <span className="font-medium">€{employee.breakfast_balance.toFixed(2)}</span>
+                    <span className="font-medium">{employee.breakfast_balance.toFixed(2)} €</span>
                   </p>
                 )}
                 {employee.drinks_sweets_balance > 0 && (
