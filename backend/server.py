@@ -262,56 +262,65 @@ async def initialize_default_data():
             department = Department(**dept_data)
             await db.departments.insert_one(department.dict())
     
-    # Check if menu items already exist
+    # Check if menu items already exist (check for department-specific items)
     existing_breakfast = await db.menu_breakfast.find().to_list(1)
     if existing_breakfast:
-        return {"message": "Daten erfolgreich aktualisiert (Admin-Passwörter korrigiert)"}
+        # Check if items have department_id (new format)
+        if any("department_id" in item for item in existing_breakfast):
+            return {"message": "Daten erfolgreich aktualisiert (Abteilungsspezifische Menüs bereits vorhanden)"}
+        else:
+            # Old global items exist, suggest migration
+            return {"message": "Daten aktualisiert. Führen Sie /api/migrate-to-department-specific für abteilungsspezifische Menüs aus."}
     
-    # Create default menu items (only if they don't exist)
-    breakfast_items = [
-        MenuItemBreakfast(roll_type=RollType.WHITE, price=0.50),
-        MenuItemBreakfast(roll_type=RollType.SEEDED, price=0.60)
-    ]
+    # Create department-specific default menu items for each department
+    departments = await db.departments.find().to_list(100)
     
-    toppings = [
-        MenuItemToppings(topping_type=ToppingType.SCRAMBLED_EGG, price=0.00),  # Free
-        MenuItemToppings(topping_type=ToppingType.FRIED_EGG, price=0.00),     # Free
-        MenuItemToppings(topping_type=ToppingType.EGG_SALAD, price=0.00),     # Free
-        MenuItemToppings(topping_type=ToppingType.SALAMI, price=0.00),        # Free
-        MenuItemToppings(topping_type=ToppingType.HAM, price=0.00),           # Free
-        MenuItemToppings(topping_type=ToppingType.CHEESE, price=0.00),        # Free
-        MenuItemToppings(topping_type=ToppingType.BUTTER, price=0.00)         # Free
-    ]
-    
-    drinks = [
-        MenuItemDrink(name="Kaffee", price=1.00),
-        MenuItemDrink(name="Tee", price=0.80),
-        MenuItemDrink(name="Wasser", price=0.50),
-        MenuItemDrink(name="Orangensaft", price=1.50),
-        MenuItemDrink(name="Apfelsaft", price=1.50),
-        MenuItemDrink(name="Cola", price=1.20)
-    ]
-    
-    sweets = [
-        MenuItemSweet(name="Schokoriegel", price=1.50),
-        MenuItemSweet(name="Keks", price=0.80),
-        MenuItemSweet(name="Apfel", price=0.60),
-        MenuItemSweet(name="Banane", price=0.50),
-        MenuItemSweet(name="Kuchen", price=2.00)
-    ]
+    for dept in departments:
+        # Create default menu items for this department
+        breakfast_items = [
+            MenuItemBreakfast(department_id=dept["id"], roll_type=RollType.WHITE, price=0.50),
+            MenuItemBreakfast(department_id=dept["id"], roll_type=RollType.SEEDED, price=0.60)
+        ]
+        
+        toppings = [
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.SCRAMBLED_EGG, price=0.00),  # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.FRIED_EGG, price=0.00),     # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.EGG_SALAD, price=0.00),     # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.SALAMI, price=0.00),        # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.HAM, price=0.00),           # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.CHEESE, price=0.00),        # Free
+            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.BUTTER, price=0.00)         # Free
+        ]
+        
+        drinks = [
+            MenuItemDrink(department_id=dept["id"], name="Kaffee", price=1.00),
+            MenuItemDrink(department_id=dept["id"], name="Tee", price=0.80),
+            MenuItemDrink(department_id=dept["id"], name="Wasser", price=0.50),
+            MenuItemDrink(department_id=dept["id"], name="Orangensaft", price=1.50),
+            MenuItemDrink(department_id=dept["id"], name="Apfelsaft", price=1.50),
+            MenuItemDrink(department_id=dept["id"], name="Cola", price=1.20)
+        ]
+        
+        sweets = [
+            MenuItemSweet(department_id=dept["id"], name="Schokoriegel", price=1.50),
+            MenuItemSweet(department_id=dept["id"], name="Keks", price=0.80),
+            MenuItemSweet(department_id=dept["id"], name="Apfel", price=0.60),
+            MenuItemSweet(department_id=dept["id"], name="Banane", price=0.50),
+            MenuItemSweet(department_id=dept["id"], name="Kuchen", price=2.00)
+        ]
+        
+        # Insert menu items for this department
+        for item in breakfast_items:
+            await db.menu_breakfast.insert_one(item.dict())
+        for item in toppings:
+            await db.menu_toppings.insert_one(item.dict())
+        for item in drinks:
+            await db.menu_drinks.insert_one(item.dict())
+        for item in sweets:
+            await db.menu_sweets.insert_one(item.dict())
     
     # Create default lunch settings
     lunch_settings = LunchSettings(price=0.0, enabled=True)
-    
-    # Insert menu items
-    for item in breakfast_items:
-        await db.menu_breakfast.insert_one(item.dict())
-    for item in toppings:
-        await db.menu_toppings.insert_one(item.dict())
-    for item in drinks:
-        await db.menu_drinks.insert_one(item.dict())
-    for item in sweets:
-        await db.menu_sweets.insert_one(item.dict())
     
     # Insert lunch settings
     await db.lunch_settings.insert_one(lunch_settings.dict())
