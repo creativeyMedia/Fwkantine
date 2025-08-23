@@ -4524,7 +4524,180 @@ class CanteenTester:
             print(f"\n🚨 DEPARTMENT-SPECIFIC MENU SYSTEM: MAJOR ISSUES DETECTED")
             return False
 
+    def test_drag_drop_employee_creation(self):
+        """Test employee creation and management for drag and drop functionality"""
+        print("\n=== Testing Employee Creation for Drag and Drop ===")
+        
+        success_count = 0
+        
+        # First, ensure we have department 1 available
+        if not self.departments:
+            # Try to get departments first
+            try:
+                response = self.session.get(f"{API_BASE}/departments")
+                if response.status_code == 200:
+                    self.departments = response.json()
+            except:
+                pass
+        
+        # Find department 1 (first department)
+        department_1 = None
+        for dept in self.departments:
+            if "1." in dept['name'] or dept['name'].endswith('A'):
+                department_1 = dept
+                break
+        
+        if not department_1:
+            # Use first available department
+            department_1 = self.departments[0] if self.departments else None
+        
+        if not department_1:
+            self.log_test("Find Department 1", False, "No departments available for testing")
+            return False
+        
+        self.log_test("Find Department 1", True, f"Using department: {department_1['name']}")
+        success_count += 1
+        
+        # Create the 3 specific test employees
+        test_employees = [
+            "Max Mustermann",
+            "Anna Schmidt", 
+            "Peter Weber"
+        ]
+        
+        created_employees = []
+        
+        for employee_name in test_employees:
+            try:
+                employee_data = {
+                    "name": employee_name,
+                    "department_id": department_1['id']
+                }
+                
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                
+                if response.status_code == 200:
+                    employee = response.json()
+                    created_employees.append(employee)
+                    
+                    # Verify employee data structure
+                    required_fields = ['id', 'name', 'department_id', 'breakfast_balance', 'drinks_sweets_balance']
+                    missing_fields = [field for field in required_fields if field not in employee]
+                    
+                    if not missing_fields:
+                        self.log_test(f"Create Employee: {employee_name}", True, 
+                                    f"Created with ID: {employee['id'][:8]}..., Balance: €{employee['breakfast_balance']:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test(f"Create Employee: {employee_name}", False, 
+                                    f"Missing fields: {missing_fields}")
+                else:
+                    self.log_test(f"Create Employee: {employee_name}", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Create Employee: {employee_name}", False, f"Exception: {str(e)}")
+        
+        # Test employee listing endpoint
+        try:
+            response = self.session.get(f"{API_BASE}/departments/{department_1['id']}/employees")
+            
+            if response.status_code == 200:
+                dept_employees = response.json()
+                
+                # Check if our created employees are in the list
+                created_names = [emp['name'] for emp in created_employees]
+                found_employees = [emp for emp in dept_employees if emp['name'] in created_names]
+                
+                if len(found_employees) >= len(created_employees):
+                    self.log_test("Employee Listing", True, 
+                                f"Found {len(found_employees)} employees in department listing")
+                    success_count += 1
+                    
+                    # Verify data structure for drag and drop
+                    for employee in found_employees:
+                        required_fields = ['id', 'name', 'department_id', 'breakfast_balance', 'drinks_sweets_balance']
+                        missing_fields = [field for field in required_fields if field not in employee]
+                        
+                        if not missing_fields:
+                            self.log_test(f"Employee Data Structure: {employee['name']}", True, 
+                                        "All required fields present for frontend")
+                            success_count += 1
+                        else:
+                            self.log_test(f"Employee Data Structure: {employee['name']}", False, 
+                                        f"Missing fields: {missing_fields}")
+                else:
+                    self.log_test("Employee Listing", False, 
+                                f"Expected {len(created_employees)} employees, found {len(found_employees)}")
+            else:
+                self.log_test("Employee Listing", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Employee Listing", False, f"Exception: {str(e)}")
+        
+        # Test individual employee data retrieval (for drag and drop functionality)
+        for employee in created_employees:
+            try:
+                # Test getting employee orders (needed for drag and drop context)
+                response = self.session.get(f"{API_BASE}/employees/{employee['id']}/orders")
+                
+                if response.status_code == 200:
+                    orders_data = response.json()
+                    if 'orders' in orders_data:
+                        self.log_test(f"Employee Orders: {employee['name']}", True, 
+                                    f"Orders endpoint accessible with {len(orders_data['orders'])} orders")
+                        success_count += 1
+                    else:
+                        self.log_test(f"Employee Orders: {employee['name']}", False, 
+                                    "Orders data structure incorrect")
+                else:
+                    self.log_test(f"Employee Orders: {employee['name']}", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"Employee Orders: {employee['name']}", False, f"Exception: {str(e)}")
+        
+        # Summary of created employees for drag and drop
+        if created_employees:
+            employee_names = [emp['name'] for emp in created_employees]
+            self.log_test("Drag and Drop Data Ready", True, 
+                        f"Created {len(created_employees)} employees: {', '.join(employee_names)}")
+            success_count += 1
+        
+        return success_count >= 6  # At least 6 successful operations
+
+    def run_drag_drop_test_only(self):
+        """Run only the drag and drop employee creation test"""
+        print("🚀 Starting Employee Creation and Management Test for Drag and Drop")
+        print(f"🌐 Testing against: {API_BASE}")
+        print("=" * 80)
+        
+        # Initialize data first
+        print("\n=== Initializing Test Data ===")
+        self.test_data_initialization()
+        self.test_get_departments()
+        
+        # Run the specific test
+        print(f"\n{'='*20} Drag and Drop Employee Test {'='*20}")
+        try:
+            if self.test_drag_drop_employee_creation():
+                print("✅ Drag and Drop Employee Test PASSED")
+                return True
+            else:
+                print("❌ Drag and Drop Employee Test FAILED")
+                return False
+        except Exception as e:
+            print(f"❌ Drag and Drop Employee Test FAILED with exception: {str(e)}")
+            return False
+
 if __name__ == "__main__":
     tester = CanteenTester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    
+    # Check if we should run only the drag and drop test
+    if len(sys.argv) > 1 and sys.argv[1] == "--drag-drop-only":
+        success = tester.run_drag_drop_test_only()
+        sys.exit(0 if success else 1)
+    else:
+        passed, failed = tester.run_all_tests()
+        sys.exit(0 if failed == 0 else 1)
