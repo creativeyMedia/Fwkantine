@@ -778,7 +778,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     // Convert assignments to the expected format
     const toppings = toppingAssignments.map(assignment => assignment.topping);
     
-    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch);
+    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch, totalCost);
     
     // Reset form
     setWhiteRolls(0);
