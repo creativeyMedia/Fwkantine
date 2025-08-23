@@ -177,10 +177,12 @@ class MenuItemCreate(BaseModel):
 class MenuItemCreateBreakfast(BaseModel):
     roll_type: RollType
     price: float
+    department_id: str
 
 class MenuItemCreateToppings(BaseModel):
     topping_type: ToppingType
     price: float
+    department_id: str
 
 # Initialize default data
 def get_department_data():
