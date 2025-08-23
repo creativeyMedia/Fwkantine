@@ -612,6 +612,50 @@ agent_communication:
       message: "🎉 CRITICAL BREAKFAST ORDERING FIXES TESTING COMPLETED SUCCESSFULLY! All requested critical fixes for the canteen management system are working perfectly: ✅ Order Submission Workflow - POST /api/orders with new breakfast format (total_halves, white_halves, seeded_halves, toppings, has_lunch) working correctly with proper validation and pricing. ✅ Order Persistence & Retrieval - GET /api/employees/{employee_id}/orders returns proper format, fixed MongoDB ObjectId serialization issue that was causing 500 errors. ✅ Admin Order Management - Department admin authentication working with admin1-4 credentials, order viewing and deletion functionality operational. ✅ Menu Integration - Dynamic pricing working correctly, menu price updates immediately affect order calculations. ✅ Validation - Proper error handling for invalid breakfast orders. Fixed critical backend bug in employee orders endpoint. All core breakfast ordering functionality is production-ready."
 
 frontend:
+  - task: "CRITICAL UI BUG - Detailed Employee Orders Toppings Display"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL UI BUG CONFIRMED: Under detailed employee orders, the toppings display still shows '(object Object)x' instead of the correct topping quantities. Previous fix was incomplete - there are multiple locations where this rendering issue occurs."
+  - task: "CRITICAL FUNCTIONALITY BUG - Lunch Ordering Checkbox"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL FUNCTIONALITY BUG: The checkbox for ordering lunch does not work properly and needs to be fixed. This breaks the lunch ordering functionality in the breakfast order form."
+  - task: "UI LOCALIZATION - Lunch Label Translation"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🔧 UI LOCALIZATION ISSUE: The label 'Lunch' should be changed to the German word 'Mittagessen' in the interface for proper German localization."
+  - task: "UI LOCALIZATION - Bread Roll Naming"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🔧 UI LOCALIZATION ISSUE: The term 'White rolls' should be changed to 'Helle Brötchen' in all displays and user interfaces for proper German localization."
   - task: "CRITICAL NEW BUG - Breakfast Ordering Price Error"
     implemented: true
     working: true
