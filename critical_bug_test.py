@@ -622,7 +622,7 @@ class CriticalBugTester:
             response = self.session.get(f"{API_BASE}/departments/{self.test_department['id']}/employees")
             if response.status_code == 200:
                 employees = response.json()
-                current_employee = next((emp for emp in employees if emp['id'] == self.test_employee['id']), None)
+                current_employee = next((emp for emp in employees if emp['id'] == test_employee['id']), None)
                 if current_employee:
                     current_balance = current_employee['breakfast_balance']
                     # Balance should reflect the updated order price
