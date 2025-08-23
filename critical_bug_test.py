@@ -654,9 +654,10 @@ class CriticalBugTester:
         
         # Create some test orders to ensure data exists
         try:
-            if self.test_employee:
+            test_employee = self.create_test_employee("SummaryTest")
+            if test_employee:
                 test_order = {
-                    "employee_id": self.test_employee['id'],
+                    "employee_id": test_employee['id'],
                     "department_id": self.test_department['id'],
                     "order_type": "breakfast",
                     "breakfast_items": [
