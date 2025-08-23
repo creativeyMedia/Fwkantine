@@ -4227,8 +4227,9 @@ const AdminSettingsTab = ({ currentDepartment }) => {
           <div className="mt-4 text-sm text-gray-600">
             <p><strong>Hinweis:</strong></p>
             <ul className="list-disc list-inside space-y-1">
+              <li>Passwörter können unabhängig voneinander geändert werden</li>
               <li>Beide Passwörter müssen unterschiedlich sein</li>
-              <li>Nach der Änderung müssen sich alle neu anmelden</li>
+              <li>Nach der Änderung müssen sich betroffene Benutzer neu anmelden</li>
               <li>Passwörter werden sofort für diese Wachabteilung geändert</li>
             </ul>
           </div>
