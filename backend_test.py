@@ -3104,6 +3104,187 @@ class CanteenTester:
         
         return success_count >= 5  # At least 5 out of 7 tests should pass
     
+    def test_daily_summary_data_structure_investigation(self):
+        """Investigate the data structure returned by GET /api/orders/daily-summary/{department_id} 
+        to identify why [object Object] appears in frontend table display"""
+        print("\n=== INVESTIGATING DAILY SUMMARY DATA STRUCTURE FOR [object Object] ISSUE ===")
+        
+        success_count = 0
+        
+        # Step 1: Authenticate with password1/admin1 for department 1
+        department_id = None
+        try:
+            # First get departments to find department 1
+            response = self.session.get(f"{API_BASE}/departments")
+            if response.status_code == 200:
+                departments = response.json()
+                dept_1 = next((dept for dept in departments if "1." in dept['name']), None)
+                if dept_1:
+                    department_id = dept_1['id']
+                    self.log_test("Find Department 1", True, f"Found department: {dept_1['name']}")
+                    success_count += 1
+                else:
+                    self.log_test("Find Department 1", False, "Department 1 not found")
+                    return False
+            else:
+                self.log_test("Get Departments", False, f"HTTP {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Find Department 1", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 2: Authenticate as department user
+        try:
+            login_data = {
+                "department_name": dept_1['name'],
+                "password": "password1"
+            }
+            response = self.session.post(f"{API_BASE}/login/department", json=login_data)
+            if response.status_code == 200:
+                self.log_test("Department Authentication", True, "Authenticated with password1")
+                success_count += 1
+            else:
+                self.log_test("Department Authentication", False, f"HTTP {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Department Authentication", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 3: Create a test employee for breakfast order
+        test_employee_id = None
+        try:
+            employee_data = {
+                "name": "Test Employee for Data Investigation",
+                "department_id": department_id
+            }
+            response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+            if response.status_code == 200:
+                employee = response.json()
+                test_employee_id = employee['id']
+                self.log_test("Create Test Employee", True, f"Created employee: {employee['name']}")
+                success_count += 1
+            else:
+                self.log_test("Create Test Employee", False, f"HTTP {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Create Test Employee", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 4: Create a breakfast order with the new format (total_halves, white_halves, seeded_halves)
+        try:
+            breakfast_order = {
+                "employee_id": test_employee_id,
+                "department_id": department_id,
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 3,
+                        "white_halves": 2,
+                        "seeded_halves": 1,
+                        "toppings": ["ruehrei", "kaese", "schinken"],  # 3 toppings for 3 halves
+                        "has_lunch": False,
+                        "boiled_eggs": 2
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+            if response.status_code == 200:
+                order = response.json()
+                self.log_test("Create Breakfast Order", True, 
+                            f"Created breakfast order with total: €{order['total_price']:.2f}")
+                success_count += 1
+                
+                # Log the exact order structure for analysis
+                print(f"   📋 Order Structure: {json.dumps(order, indent=2, default=str)}")
+            else:
+                self.log_test("Create Breakfast Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Create Breakfast Order", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 5: Retrieve daily summary and analyze the exact data structure
+        try:
+            response = self.session.get(f"{API_BASE}/orders/daily-summary/{department_id}")
+            if response.status_code == 200:
+                summary = response.json()
+                self.log_test("Get Daily Summary", True, "Retrieved daily summary successfully")
+                success_count += 1
+                
+                # Log the complete summary structure
+                print(f"\n   📋 COMPLETE DAILY SUMMARY STRUCTURE:")
+                print(f"   {json.dumps(summary, indent=2, default=str)}")
+                
+                # Focus on employee_orders section and toppings data format
+                employee_orders = summary.get('employee_orders', {})
+                if employee_orders:
+                    self.log_test("Employee Orders Section Present", True, 
+                                f"Found {len(employee_orders)} employee orders")
+                    success_count += 1
+                    
+                    # Analyze each employee's order data
+                    for employee_name, order_data in employee_orders.items():
+                        print(f"\n   👤 EMPLOYEE: {employee_name}")
+                        print(f"   📊 Order Data: {json.dumps(order_data, indent=4, default=str)}")
+                        
+                        # Check toppings data type specifically
+                        toppings = order_data.get('toppings', {})
+                        if toppings:
+                            self.log_test(f"Toppings Data Type for {employee_name}", True, 
+                                        f"Toppings type: {type(toppings)}, Content: {toppings}")
+                            success_count += 1
+                            
+                            # Check if toppings are objects or numbers
+                            for topping_name, topping_value in toppings.items():
+                                print(f"   🥪 Topping '{topping_name}': Type={type(topping_value)}, Value={topping_value}")
+                                
+                                # This is the key investigation - check if topping values are objects
+                                if isinstance(topping_value, dict):
+                                    self.log_test(f"FOUND OBJECT TOPPINGS", False, 
+                                                f"Topping '{topping_name}' is an object: {topping_value} - THIS CAUSES [object Object] in frontend!")
+                                elif isinstance(topping_value, (int, float)):
+                                    self.log_test(f"Topping Value Type", True, 
+                                                f"Topping '{topping_name}' is numeric: {topping_value}")
+                                else:
+                                    self.log_test(f"Unexpected Topping Type", False, 
+                                                f"Topping '{topping_name}' has unexpected type: {type(topping_value)}")
+                        else:
+                            self.log_test(f"No Toppings Data for {employee_name}", False, 
+                                        "Employee has no toppings data")
+                else:
+                    self.log_test("Employee Orders Section", False, "No employee_orders section found")
+                
+                # Also check the breakfast_summary section for comparison
+                breakfast_summary = summary.get('breakfast_summary', {})
+                if breakfast_summary:
+                    print(f"\n   🥐 BREAKFAST SUMMARY STRUCTURE:")
+                    for roll_type, roll_data in breakfast_summary.items():
+                        print(f"   Roll Type '{roll_type}': {json.dumps(roll_data, indent=4, default=str)}")
+                        
+                        # Check toppings in breakfast summary too
+                        summary_toppings = roll_data.get('toppings', {})
+                        for topping_name, topping_count in summary_toppings.items():
+                            print(f"   🥪 Summary Topping '{topping_name}': Type={type(topping_count)}, Value={topping_count}")
+                
+            else:
+                self.log_test("Get Daily Summary", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Daily Summary", False, f"Exception: {str(e)}")
+            return False
+        
+        # Step 6: Summary of findings
+        print(f"\n   🔍 INVESTIGATION SUMMARY:")
+        print(f"   - Created breakfast order with new format (total_halves, white_halves, seeded_halves)")
+        print(f"   - Retrieved daily summary and analyzed data structure")
+        print(f"   - Focused on employee_orders section and toppings data format")
+        print(f"   - Checked if toppings are returned as objects or numbers")
+        
+        return success_count >= 4
+    
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
