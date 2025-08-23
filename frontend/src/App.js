@@ -267,15 +267,9 @@ const Homepage = () => {
               onClick={() => handleDepartmentClick(department)}
               className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-6 sm:p-8 lg:p-10"
             >
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-blue-800 mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-center text-blue-800">
                 {department.name}
               </h2>
-              <div className="text-center">
-                <div className="text-4xl sm:text-5xl lg:text-6xl mb-4">🏢</div>
-                <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-medium">
-                  Klicken für Zugang
-                </p>
-              </div>
             </div>
           ))}
         </div>
