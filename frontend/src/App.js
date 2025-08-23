@@ -1240,7 +1240,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
             <input
               type="checkbox"
               checked={hasLunch}
-              onChange={(e) => setHasLunch(e.target.checked)}
+              onChange={handleLunchChange}
               className="mr-3 w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
             />
             <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
