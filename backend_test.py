@@ -2623,8 +2623,8 @@ class CanteenTester:
         return success_count >= 2
     
     def run_all_tests(self):
-        """Run all backend tests focusing on critical bug fixes"""
-        print("🧪 Starting Critical Bug Fixes Testing for German Canteen Management System")
+        """Run all backend tests focusing on Department-Specific Menu System"""
+        print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
         print(f"🌐 Testing against: {API_BASE}")
         print("=" * 60)
         
@@ -2637,7 +2637,16 @@ class CanteenTester:
             ("Menu Endpoints", self.test_menu_endpoints),
         ]
         
-        # Critical bug fix tests
+        # Department-Specific Menu System tests (main focus)
+        department_specific_tests = [
+            ("Department-Specific Migration", self.test_department_specific_migration),
+            ("Department-Specific Menu Endpoints", self.test_department_specific_menu_endpoints),
+            ("Backward Compatibility Menus", self.test_backward_compatibility_menus),
+            ("Department-Specific Order Creation", self.test_department_specific_order_creation),
+            ("Department Isolation & Data Integrity", self.test_department_isolation_data_integrity),
+        ]
+        
+        # Additional critical tests
         critical_tests = [
             ("Critical Breakfast Ordering Fixes", self.test_critical_breakfast_ordering_fixes),
             ("Critical Bug Fixes", self.test_critical_bug_fixes),
