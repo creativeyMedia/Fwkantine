@@ -1698,6 +1698,59 @@ async def delete_order(order_id: str):
     await db.orders.delete_one({"id": order_id})
     return {"message": "Bestellung erfolgreich gelöscht"}
 
+@api_router.delete("/department-admin/breakfast-day/{department_id}/{date}")
+async def delete_breakfast_day(department_id: str, date: str):
+    """Admin: Delete all breakfast orders for a specific date and adjust employee balances"""
+    try:
+        # Validate date format
+        parsed_date = datetime.fromisoformat(date).date()
+        start_of_day = datetime.combine(parsed_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        
+        # Find all breakfast orders for this department and date
+        breakfast_orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {
+                "$gte": start_of_day.isoformat(),
+                "$lte": end_of_day.isoformat()
+            }
+        }).to_list(1000)
+        
+        if not breakfast_orders:
+            raise HTTPException(status_code=404, detail="Keine Frühstücks-Bestellungen für dieses Datum gefunden")
+        
+        deleted_count = 0
+        total_amount_refunded = 0.0
+        
+        # Process each order
+        for order in breakfast_orders:
+            # Adjust employee balance
+            employee = await db.employees.find_one({"id": order["employee_id"]})
+            if employee:
+                new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
+                await db.employees.update_one(
+                    {"id": order["employee_id"]},
+                    {"$set": {"breakfast_balance": max(0, new_breakfast_balance)}}
+                )
+                total_amount_refunded += order["total_price"]
+            
+            # Delete the order
+            await db.orders.delete_one({"id": order["id"]})
+            deleted_count += 1
+        
+        return {
+            "message": f"Frühstücks-Tag erfolgreich gelöscht",
+            "deleted_orders": deleted_count,
+            "total_refunded": round(total_amount_refunded, 2),
+            "date": date
+        }
+    
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Löschen des Frühstücks-Tags: {str(e)}")
+
 @api_router.post("/admin/reset-balance/{employee_id}")
 async def reset_employee_balance(employee_id: str, balance_type: str):
     """Admin: Reset employee balance (breakfast or drinks_sweets)"""
