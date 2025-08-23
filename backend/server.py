@@ -183,7 +183,8 @@ class MenuItemCreateBreakfast(BaseModel):
     department_id: str
 
 class MenuItemCreateToppings(BaseModel):
-    topping_type: ToppingType
+    topping_id: str
+    topping_name: str
     price: float
     department_id: str
 
