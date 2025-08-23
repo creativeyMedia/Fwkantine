@@ -2907,6 +2907,11 @@ class CanteenTester:
             ("Critical Bug Fixes", self.test_critical_bug_fixes),
         ]
         
+        # NEW FEATURE TEST - Boiled Breakfast Eggs
+        new_feature_tests = [
+            ("🆕 NEW FEATURE - Boiled Breakfast Eggs", self.test_boiled_breakfast_eggs_feature),
+        ]
+        
         # Run setup tests
         print("\n--- Running Essential Setup Tests ---")
         setup_passed = 0
