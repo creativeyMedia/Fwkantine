@@ -2985,6 +2985,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           <td className="border border-gray-300 px-4 py-2 text-center font-bold text-orange-600">
                             {String(employeeData.seeded_halves || 0)}
                           </td>
+                          <td className="border border-gray-300 px-4 py-2 text-center font-bold text-yellow-600">
+                            {String(employeeData.boiled_eggs || 0)}
+                          </td>
                           <td className="border border-gray-300 px-4 py-2">
                             {Object.keys(employeeData.toppings).length > 0 ? (
                               <div className="flex flex-wrap gap-1">
