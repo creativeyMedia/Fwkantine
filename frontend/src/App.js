@@ -1092,7 +1092,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Weiße Brötchen (Hälften)</label>
+              <label className="block text-sm font-medium mb-2">Helle Brötchen (Hälften)</label>
               <input
                 type="number"
                 min="0"
