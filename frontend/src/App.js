@@ -3309,17 +3309,14 @@ const LunchManagementTab = () => {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-6">Lunch Preis verwalten</h3>
+      <h3 className="text-lg font-semibold mb-6">Mittagessen Preis verwalten</h3>
 
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
         <div className="mb-6">
-          <h4 className="text-md font-semibold mb-3 text-gray-700">Aktueller Lunch-Preis</h4>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Aktueller Mittagessen-Preis</h4>
           <div className="text-3xl font-bold text-orange-600 mb-4">
-            €{lunchSettings.price.toFixed(2)}
+            {lunchSettings.price.toFixed(2)} €
           </div>
-          <p className="text-sm text-gray-600">
-            Dieser Preis wird für alle Mitarbeiter angewendet, die Lunch als Zusatzoption zu ihrem Frühstück wählen.
-          </p>
         </div>
 
         <div className="border-t pt-6">
