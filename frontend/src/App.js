@@ -254,13 +254,13 @@ const Homepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center mb-8 sm:mb-12 lg:mb-16 text-gray-800 px-4">
           Feuerwache Lichterfelde Kantine
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 px-4">
           {departments.map((department) => (
             <div
               key={department.id}
