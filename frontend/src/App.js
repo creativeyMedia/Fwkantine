@@ -571,6 +571,57 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const { currentDepartment } = React.useContext(AuthContext);
 
+  // Load existing orders for today when component mounts
+  useEffect(() => {
+    loadExistingOrdersForToday();
+  }, [employee.id]);
+
+  const loadExistingOrdersForToday = async () => {
+    try {
+      setIsLoadingExistingOrders(true);
+      const response = await axios.get(`${API}/employees/${employee.id}/orders`);
+      const orders = response.data.orders || [];
+      
+      // Filter orders for today
+      const today = new Date().toDateString();
+      const todaysOrders = orders.filter(order => {
+        const orderDate = new Date(order.timestamp).toDateString();
+        return orderDate === today;
+      });
+
+      // Populate existing order data if available
+      const todaysOrder = {
+        breakfast_items: [],
+        drink_items: {},
+        sweet_items: {}
+      };
+
+      todaysOrders.forEach(order => {
+        if (order.order_type === 'breakfast' && order.breakfast_items) {
+          todaysOrder.breakfast_items.push(...order.breakfast_items);
+        } else if (order.order_type === 'drinks' && order.drink_items) {
+          Object.assign(todaysOrder.drink_items, order.drink_items);
+        } else if (order.order_type === 'sweets' && order.sweet_items) {
+          Object.assign(todaysOrder.sweet_items, order.sweet_items);
+        }
+      });
+
+      setOrder(todaysOrder);
+
+      // If there's breakfast data, pre-fill the form
+      if (todaysOrder.breakfast_items.length > 0) {
+        const latestBreakfast = todaysOrder.breakfast_items[0];
+        setBreakfastFormData(latestBreakfast);
+      }
+
+    } catch (error) {
+      console.error('Fehler beim Laden bestehender Bestellungen:', error);
+      // Continue with empty order if loading fails
+    } finally {
+      setIsLoadingExistingOrders(false);
+    }
+  };
+
   useEffect(() => {
     fetchMenus();
   }, []);
