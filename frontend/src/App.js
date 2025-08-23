@@ -1483,7 +1483,7 @@ const EmployeeProfileDetail = ({ profile, onBack, onClose }) => {
             </div>
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
-              <p className="text-2xl font-bold text-orange-600">€{(profile.breakfast_total + profile.drinks_sweets_total).toFixed(2)}</p>
+              <p className="text-2xl font-bold text-orange-600">{(profile.breakfast_total + profile.drinks_sweets_total).toFixed(2)} €</p>
             </div>
           </div>
 
