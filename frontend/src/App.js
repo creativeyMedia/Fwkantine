@@ -808,7 +808,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                 placeholder="0"
               />
               <span className="text-sm text-gray-600 ml-3">
-                à €0.50 = €{(whiteRolls * 0.5).toFixed(2)}
+                à €{whiteRollPrice.toFixed(2)} = €{(whiteRolls * whiteRollPrice).toFixed(2)}
               </span>
             </div>
             <div>
