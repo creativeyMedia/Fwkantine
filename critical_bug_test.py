@@ -82,23 +82,22 @@ class CriticalBugTester:
             self.log_test("Get Departments", False, f"Exception: {str(e)}")
             return False
         
-        # Create test employee
+        return True
+    
+    def create_test_employee(self, name_suffix=""):
+        """Create a new test employee"""
         try:
             employee_data = {
-                "name": "Max Mustermann",
+                "name": f"Test Employee {name_suffix}",
                 "department_id": self.test_department['id']
             }
             response = self.session.post(f"{API_BASE}/employees", json=employee_data)
             if response.status_code == 200:
-                self.test_employee = response.json()
-                self.log_test("Create Test Employee", True, f"Created employee: {self.test_employee['name']}")
-                return True
+                return response.json()
             else:
-                self.log_test("Create Test Employee", False, f"HTTP {response.status_code}")
-                return False
+                return None
         except Exception as e:
-            self.log_test("Create Test Employee", False, f"Exception: {str(e)}")
-            return False
+            return None
     
     def test_price_calculation_accuracy(self):
         """Test that breakfast pricing uses admin-set prices directly per half roll"""
