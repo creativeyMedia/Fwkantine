@@ -4738,16 +4738,16 @@ class CanteenTester:
         # Overall status
         if dept_specific_passed == len(department_specific_tests):
             print(f"\n🎉 DEPARTMENT-SPECIFIC MENU SYSTEM: ALL WORKING CORRECTLY!")
-            return True
+            return (total_passed, total_tests - total_passed)
         elif dept_specific_passed >= len(department_specific_tests) * 0.8:  # 80% pass rate
             print(f"\n✅ DEPARTMENT-SPECIFIC MENU SYSTEM: MOSTLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
-            return True
+            return (total_passed, total_tests - total_passed)
         elif dept_specific_passed > 0:
             print(f"\n⚠️  DEPARTMENT-SPECIFIC MENU SYSTEM: PARTIALLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
-            return False
+            return (total_passed, total_tests - total_passed)
         else:
             print(f"\n🚨 DEPARTMENT-SPECIFIC MENU SYSTEM: MAJOR ISSUES DETECTED")
-            return False
+            return (total_passed, total_tests - total_passed)
 
     def test_drag_drop_employee_creation(self):
         """Test employee creation and management for drag and drop functionality"""
