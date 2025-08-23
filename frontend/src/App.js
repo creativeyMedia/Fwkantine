@@ -715,7 +715,17 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const [toppingAssignments, setToppingAssignments] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
 
+  // Get actual prices from menu
+  const getBreakfastPrice = (rollType) => {
+    const menuItem = breakfastMenu.find(item => item.roll_type === rollType);
+    return menuItem ? menuItem.price : 0;
+  };
+
+  const whiteRollPrice = getBreakfastPrice('weiss');
+  const seededRollPrice = getBreakfastPrice('koerner');
+
   const totalHalves = whiteRolls + seededRolls;
+  const totalCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice);
 
   // Update topping assignments when roll counts change
   useEffect(() => {
