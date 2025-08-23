@@ -2753,7 +2753,7 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
-              <p className="text-2xl font-bold text-blue-600">€{employeeProfile.breakfast_total.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-blue-600">{employeeProfile.breakfast_total.toFixed(2)} €</p>
               <button
                 onClick={() => resetBalance('breakfast')}
                 className="mt-2 text-sm bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
