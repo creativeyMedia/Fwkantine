@@ -640,6 +640,11 @@ agent_communication:
 frontend:
   - task: "CRITICAL ERROR FIX - Breakfast Overview JavaScript Error"
     implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
   - task: "Admin Dashboard Order Management Display"
     implemented: true
     working: true
