@@ -1045,6 +1045,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         seeded_halves: seededRolls,
         toppings: toppings,
         has_lunch: hasLunch,
+        boiled_eggs: boiledEggs,  // Add boiled eggs
         item_cost: totalCost
       };
       onDirectSubmit(breakfastData);
