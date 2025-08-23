@@ -456,26 +456,13 @@ const DepartmentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* App Header with Logo */}
-      <div className="text-center bg-gradient-to-r from-blue-800 to-blue-600 text-white py-6 px-4 shadow-lg">
-        <img 
-          src="https://customer-assets.emergentagent.com/job_canteen-manager/artifacts/v6rzqop7_Feuerwehr-Lichterfelde-Logo.png" 
-          alt="Feuerwehr Lichterfelde Logo" 
-          className="w-20 h-20 mx-auto mb-4 rounded-lg border-2 border-white/30 bg-white/90 p-2 object-contain"
-          onError={(e) => {e.target.src='https://cdn-icons-png.flaticon.com/512/782/782000.png'}}
-        />
-        <h1 className="text-3xl font-bold">Feuerwache Lichterfelde</h1>
-        <p className="text-lg opacity-90">Kantinenverwaltung</p>
-      </div>
-      
-      <div className="p-4 sm:p-6 md:p-8 lg:p-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8 lg:mb-12 gap-4">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 text-center sm:text-left">
-              {currentDepartment.department_name}
-            </h1>
-            <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8 lg:mb-12 gap-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 text-center sm:text-left">
+            {currentDepartment.department_name}
+          </h1>
+          <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
             <button
               onClick={() => setShowBreakfastSummary(true)}
               className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base whitespace-nowrap"
