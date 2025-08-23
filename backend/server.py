@@ -1337,6 +1337,17 @@ async def get_breakfast_history(department_id: str, days: int = 7):
     return histories
 
 # Admin routes
+@api_router.delete("/department-admin/orders/{order_id}")
+async def delete_order_by_admin(order_id: str):
+    """Department Admin: Delete an employee order"""
+    try:
+        result = await db.orders.delete_one({"id": order_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+        return {"message": "Bestellung erfolgreich gelöscht"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting order: {str(e)}")
+
 @api_router.delete("/orders/{order_id}")
 async def delete_order(order_id: str):
     """Admin: Delete an order and adjust employee balance"""
