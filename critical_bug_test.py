@@ -311,7 +311,7 @@ class CriticalBugTester:
         # Attempt to create second breakfast order (should fail)
         try:
             second_order = {
-                "employee_id": self.test_employee['id'],
+                "employee_id": test_employee['id'],
                 "department_id": self.test_department['id'],
                 "order_type": "breakfast",
                 "breakfast_items": [
