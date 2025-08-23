@@ -485,7 +485,7 @@ const DepartmentDashboard = () => {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 text-center sm:text-left">
               {currentDepartment.department_name}
             </h1>
-          <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
+            <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
             <button
               onClick={() => setShowBreakfastSummary(true)}
               className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base whitespace-nowrap"
