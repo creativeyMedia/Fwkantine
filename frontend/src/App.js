@@ -356,9 +356,9 @@ const DepartmentDashboard = () => {
   };
 
   const handleEmployeeClick = (employee, event) => {
-    // Check if the click was on the "Verlauf" button
-    if (event.target.closest('.verlauf-button')) {
-      return; // Don't open order menu if clicking on Verlauf button
+    // Check if the click was on the "Verlauf" text
+    if (event.target.closest('.verlauf-text')) {
+      return; // Don't open order menu if clicking on Verlauf text
     }
     setSelectedEmployee(employee);
   };
