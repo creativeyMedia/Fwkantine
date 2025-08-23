@@ -3345,34 +3345,20 @@ const LunchManagementTab = () => {
           </div>
         </div>
 
-        <div className="mt-6 bg-white border border-orange-300 rounded-lg p-4">
-          <h4 className="font-semibold text-orange-800 mb-2">Information</h4>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• Mitarbeiter können Lunch als Zusatzoption beim Frühstück wählen</li>
-            <li>• Der Lunch-Preis wird pro Brötchen berechnet</li>
-            <li>• Preisänderungen wirken sich auf neue Bestellungen aus</li>
-            <li>• Bereits getätigte Bestellungen behalten ihren ursprünglichen Preis</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Boiled Eggs Price Management */}
+      {/* Gekochte Eier Preis Management */}
       <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
         <div className="mb-6">
-          <h4 className="text-md font-semibold mb-3 text-gray-700">Aktueller Kochei-Preis</h4>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Aktueller Gekochte Eier-Preis</h4>
           <div className="text-3xl font-bold text-yellow-600 mb-4">
-            €{(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} <span className="text-lg text-gray-500">pro Ei</span>
+            {(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} € <span className="text-lg text-gray-500">pro Ei</span>
           </div>
-          <p className="text-sm text-gray-600">
-            Dieser Preis wird für gekochte Frühstückseier berechnet, die Mitarbeiter zu ihrer Bestellung hinzufügen können.
-          </p>
         </div>
 
         <div className="border-t pt-6">
-          <h4 className="text-md font-semibold mb-3 text-gray-700">Kochei-Preis ändern</h4>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Preis ändern</h4>
           <div className="flex items-center gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Neuer Kochei-Preis (€ pro Ei)</label>
+              <label className="block text-sm font-medium mb-2">Neuer Preis (€ pro Ei)</label>
               <input
                 type="number"
                 step="0.01"
@@ -3388,20 +3374,10 @@ const LunchManagementTab = () => {
                 onClick={updateBoiledEggsPrice}
                 className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
               >
-                Kochei-Preis aktualisieren
+                Preis aktualisieren
               </button>
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 bg-white border border-yellow-300 rounded-lg p-4">
-          <h4 className="font-semibold text-yellow-800 mb-2">Information</h4>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• Mitarbeiter können gekochte Eier (0-10 Stück) zu ihrer Frühstücksbestellung hinzufügen</li>
-            <li>• Der Preis wird pro Ei berechnet und zur Gesamtsumme addiert</li>
-            <li>• Preisänderungen wirken sich auf neue Bestellungen aus</li>
-            <li>• Die Eier werden in der Frühstücks-Übersicht separat ausgewiesen</li>
-          </ul>
         </div>
       </div>
     </div>
