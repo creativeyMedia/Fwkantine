@@ -3815,6 +3815,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [breakfastHistory, setBreakfastHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
     fetchBreakfastHistory();
@@ -3829,6 +3830,23 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       console.error('Fehler beim Laden der Frühstück-Geschichte:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteBreakfastDay = async (date) => {
+    if (window.confirm(`Alle Frühstücks-Bestellungen für ${formatDate(date)} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und wird die Mitarbeiter-Salden entsprechend anpassen.`)) {
+      try {
+        setDeleting(date);
+        await axios.delete(`${API}/department-admin/breakfast-day/${currentDepartment.department_id}/${date}`);
+        alert('Frühstücks-Tag erfolgreich gelöscht');
+        // Refresh the history
+        await fetchBreakfastHistory();
+      } catch (error) {
+        console.error('Fehler beim Löschen des Frühstücks-Tags:', error);
+        alert('Fehler beim Löschen des Frühstücks-Tags');
+      } finally {
+        setDeleting(null);
+      }
     }
   };
 
