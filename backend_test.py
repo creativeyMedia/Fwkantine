@@ -1666,6 +1666,251 @@ class CanteenTester:
         
         return success_count >= 8  # Expect at least 8 successful tests
     
+    def test_critical_bug_fixes(self):
+        """Test the critical bug fixes for canteen management system"""
+        print("\n=== Testing Critical Bug Fixes ===")
+        
+        success_count = 0
+        
+        # 1. Test Employee Orders Management - GET /api/employees/{employee_id}/orders
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
+                
+                if response.status_code == 200:
+                    orders_data = response.json()
+                    if 'orders' in orders_data and isinstance(orders_data['orders'], list):
+                        self.log_test("Employee Orders Management - GET", True, 
+                                    f"Successfully fetched orders for employee: {len(orders_data['orders'])} orders")
+                        success_count += 1
+                    else:
+                        self.log_test("Employee Orders Management - GET", False, 
+                                    "Invalid response format - missing 'orders' field")
+                else:
+                    self.log_test("Employee Orders Management - GET", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Employee Orders Management - GET", False, f"Exception: {str(e)}")
+        
+        # 2. Test Order Creation with New Breakfast Format (dynamic pricing)
+        if self.employees and self.menu_items.get('breakfast'):
+            try:
+                test_employee = self.employees[0]
+                
+                # Create order with new breakfast format (white_halves, seeded_halves, item_cost)
+                new_format_order = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 4,
+                            "white_halves": 2,
+                            "seeded_halves": 2,
+                            "toppings": ["ruehrei", "kaese", "schinken", "butter"],
+                            "has_lunch": False
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=new_format_order)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    if order.get('total_price', 0) > 0:
+                        self.log_test("Order Creation - New Breakfast Format", True, 
+                                    f"Successfully created order with new format: €{order['total_price']:.2f}")
+                        success_count += 1
+                        
+                        # Verify the order structure is saved correctly
+                        if order.get('breakfast_items') and len(order['breakfast_items']) > 0:
+                            breakfast_item = order['breakfast_items'][0]
+                            if ('total_halves' in breakfast_item and 
+                                'white_halves' in breakfast_item and 
+                                'seeded_halves' in breakfast_item):
+                                self.log_test("Order Structure Validation", True, 
+                                            "New breakfast format correctly saved")
+                                success_count += 1
+                            else:
+                                self.log_test("Order Structure Validation", False, 
+                                            "New breakfast format not properly saved")
+                    else:
+                        self.log_test("Order Creation - New Breakfast Format", False, 
+                                    "Invalid total price calculation")
+                else:
+                    self.log_test("Order Creation - New Breakfast Format", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Order Creation - New Breakfast Format", False, f"Exception: {str(e)}")
+        
+        # 3. Test Menu Integration with Custom Names
+        if self.menu_items.get('toppings'):
+            try:
+                # First, update a topping with a custom name
+                topping_item = self.menu_items['toppings'][0]
+                custom_name = "Premium Rührei"
+                
+                update_data = {"name": custom_name}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/toppings/{topping_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    # Now fetch the menu to verify custom name is returned
+                    response = self.session.get(f"{API_BASE}/menu/toppings")
+                    
+                    if response.status_code == 200:
+                        toppings = response.json()
+                        updated_item = next((item for item in toppings if item['id'] == topping_item['id']), None)
+                        
+                        if updated_item and updated_item.get('name') == custom_name:
+                            self.log_test("Menu Integration - Custom Names", True, 
+                                        f"Custom name '{custom_name}' correctly returned in menu")
+                            success_count += 1
+                        else:
+                            self.log_test("Menu Integration - Custom Names", False, 
+                                        "Custom name not reflected in menu response")
+                    else:
+                        self.log_test("Menu Integration - Custom Names", False, 
+                                    f"Failed to fetch updated menu: HTTP {response.status_code}")
+                else:
+                    self.log_test("Menu Integration - Custom Names", False, 
+                                f"Failed to update topping name: HTTP {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test("Menu Integration - Custom Names", False, f"Exception: {str(e)}")
+        
+        # 4. Test Employee Deletion (Department Admin)
+        if self.departments:
+            try:
+                # Create a test employee for deletion
+                test_dept = self.departments[0]
+                employee_data = {
+                    "name": "Test Employee for Critical Bug Fix",
+                    "department_id": test_dept['id']
+                }
+                
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    test_employee = response.json()
+                    
+                    # Test deletion
+                    response = self.session.delete(f"{API_BASE}/department-admin/employees/{test_employee['id']}")
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        self.log_test("Employee Deletion - No Redirect Issues", True, 
+                                    f"Employee successfully deleted: {result.get('message', 'Success')}")
+                        success_count += 1
+                    else:
+                        self.log_test("Employee Deletion - No Redirect Issues", False, 
+                                    f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Employee Deletion - No Redirect Issues", False, 
+                                "Failed to create test employee for deletion")
+                    
+            except Exception as e:
+                self.log_test("Employee Deletion - No Redirect Issues", False, f"Exception: {str(e)}")
+        
+        # 5. Test Department Admin Order Deletion
+        if self.employees:
+            try:
+                test_employee = self.employees[0]
+                
+                # Create a test order
+                test_order = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_employee['department_id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["butter", "kaese"],
+                            "has_lunch": False
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=test_order)
+                if response.status_code == 200:
+                    order = response.json()
+                    
+                    # Test admin order deletion
+                    response = self.session.delete(f"{API_BASE}/department-admin/orders/{order['id']}")
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        self.log_test("Department Admin Order Deletion", True, 
+                                    f"Order successfully deleted by admin: {result.get('message', 'Success')}")
+                        success_count += 1
+                    else:
+                        self.log_test("Department Admin Order Deletion", False, 
+                                    f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Department Admin Order Deletion", False, 
+                                "Failed to create test order for deletion")
+                    
+            except Exception as e:
+                self.log_test("Department Admin Order Deletion", False, f"Exception: {str(e)}")
+        
+        # 6. Test Dynamic Pricing Integration
+        if self.menu_items.get('breakfast') and self.employees:
+            try:
+                # Update breakfast item price
+                breakfast_item = self.menu_items['breakfast'][0]
+                new_price = 0.75
+                
+                update_data = {"price": new_price}
+                response = self.session.put(f"{API_BASE}/department-admin/menu/breakfast/{breakfast_item['id']}", 
+                                          json=update_data)
+                
+                if response.status_code == 200:
+                    # Create order to test dynamic pricing
+                    test_employee = self.employees[0]
+                    pricing_test_order = {
+                        "employee_id": test_employee['id'],
+                        "department_id": test_employee['department_id'],
+                        "order_type": "breakfast",
+                        "breakfast_items": [
+                            {
+                                "total_halves": 2,
+                                "white_halves": 2,
+                                "seeded_halves": 0,
+                                "toppings": ["ruehrei", "kaese"],
+                                "has_lunch": False
+                            }
+                        ]
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/orders", json=pricing_test_order)
+                    
+                    if response.status_code == 200:
+                        order = response.json()
+                        expected_roll_cost = new_price * 2  # 2 white halves
+                        
+                        if order.get('total_price', 0) >= expected_roll_cost:
+                            self.log_test("Dynamic Pricing Integration", True, 
+                                        f"Order correctly uses updated price: €{order['total_price']:.2f}")
+                            success_count += 1
+                        else:
+                            self.log_test("Dynamic Pricing Integration", False, 
+                                        f"Price calculation incorrect: expected ≥€{expected_roll_cost:.2f}, got €{order.get('total_price', 0):.2f}")
+                    else:
+                        self.log_test("Dynamic Pricing Integration", False, 
+                                    f"Failed to create order for pricing test: HTTP {response.status_code}")
+                else:
+                    self.log_test("Dynamic Pricing Integration", False, 
+                                f"Failed to update breakfast price: HTTP {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test("Dynamic Pricing Integration", False, f"Exception: {str(e)}")
+        
+        return success_count >= 4  # At least 4 out of 6 critical tests should pass
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🧪 Starting German Canteen Management System Backend Tests")
