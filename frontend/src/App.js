@@ -1186,19 +1186,17 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         )}
 
         {/* Lunch Option */}
-        {totalHalves > 0 && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={hasLunch}
-                onChange={(e) => setHasLunch(e.target.checked)}
-                className="mr-3"
-              />
-              <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
-            </label>
-          </div>
-        )}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={hasLunch}
+              onChange={(e) => setHasLunch(e.target.checked)}
+              className="mr-3"
+            />
+            <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
+          </label>
+        </div>
       </div>
     </div>
   );
