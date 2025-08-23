@@ -1580,6 +1580,19 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
           </div>
         ))}
       </div>
+
+      {/* Employee Orders Management Modal */}
+      {showOrdersModal && selectedEmployeeForOrders && (
+        <EmployeeOrdersModal
+          employee={selectedEmployeeForOrders}
+          onClose={() => {
+            setShowOrdersModal(false);
+            setSelectedEmployeeForOrders(null);
+          }}
+          currentDepartment={currentDepartment}
+          onOrderUpdate={onEmployeeUpdate}
+        />
+      )}
     </div>
   );
 };
