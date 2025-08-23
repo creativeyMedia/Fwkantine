@@ -1007,7 +1007,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     
     // Add white roll topping slots
     for (let i = 0; i < whiteRolls; i++) {
-      const rollLabel = `Weißes Brötchen ${i + 1}`;
+      const rollLabel = `Helles Brötchen ${i + 1}`;
       newAssignments.push({
         id: `white_${i}`,
         rollType: 'weiss',
