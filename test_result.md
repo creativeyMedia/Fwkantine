@@ -627,6 +627,18 @@ agent_communication:
           agent: "testing"
           comment: "🎉 NEW BOILED BREAKFAST EGGS FEATURE BACKEND TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new boiled breakfast eggs feature implementation completed with excellent results (6/6 core tests passed): ✅ 1) Data Model Updates - BreakfastOrder model correctly accepts and stores boiled_eggs field, order created with 3 boiled eggs (total: €4.20). ✅ 2) Pricing Integration - LunchSettings model includes boiled_eggs_price field (€0.60), PUT /api/lunch-settings/boiled-eggs-price endpoint working correctly, updated price to €0.75. ✅ 3) Order Pricing Calculation - Boiled eggs cost properly included in order total pricing (boiled_eggs * boiled_eggs_price). ✅ 4) Daily Summary Integration - GET /api/orders/daily-summary/{department_id} includes total_boiled_eggs field (7 eggs), employee_orders include boiled_eggs field per employee. ✅ 5) Order History Integration - GET /api/employees/{employee_id}/profile includes boiled eggs data in order history. ✅ 6) Backend API Endpoints - All boiled eggs related endpoints functional and properly integrated. Fixed KeyError issue in order creation by using .get() method for boiled_eggs_price access. The new boiled eggs feature is fully implemented in the backend and ready for frontend integration. Authentication tested with department credentials (password1-4) and admin credentials (admin1-4)."
 
+  - task: "Daily Summary Data Structure Investigation - [object Object] Issue"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔍 ROOT CAUSE IDENTIFIED FOR [object Object] FRONTEND DISPLAY ISSUE! Investigation of GET /api/orders/daily-summary/{department_id} completed successfully. CRITICAL FINDING: In the employee_orders section, toppings are returned as complex objects with 'white' and 'seeded' properties (e.g., {'ruehrei': {'white': 13, 'seeded': 5}}) instead of simple numbers. When the frontend tries to display these objects in a table, JavaScript converts them to '[object Object]' strings. SPECIFIC EVIDENCE: ✅ Authenticated with password1/admin1 for department 1, ✅ Created test breakfast order with new format, ✅ Retrieved daily summary showing 18 employee orders, ❌ EVERY topping in employee_orders has structure like 'ruehrei': {'white': 1, 'seeded': 0} - these objects cause [object Object] display. COMPARISON: The breakfast_summary section correctly uses simple integers for toppings (e.g., 'ruehrei': 44), but employee_orders uses complex objects. SOLUTION NEEDED: Backend should flatten toppings data in employee_orders to use simple totals (sum of white + seeded) instead of breakdown objects for frontend table compatibility. Lines 943-958 in server.py create these complex topping objects."
+
   - task: "NEW FEATURE - Admin Boiled Eggs Pricing Management Backend"
     implemented: true
     working: true
