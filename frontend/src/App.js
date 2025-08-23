@@ -897,11 +897,29 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 };
 
 // Simplified Breakfast Order Form - Direct Roll Selection with Topping Assignment
-const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels, onDirectSubmit }) => {
+const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels, onDirectSubmit, existingOrderData }) => {
   const [whiteRolls, setWhiteRolls] = useState(0);
   const [seededRolls, setSeededRolls] = useState(0);
   const [toppingAssignments, setToppingAssignments] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
+
+  // Initialize form with existing order data if available
+  useEffect(() => {
+    if (existingOrderData) {
+      setWhiteRolls(existingOrderData.white_halves || 0);
+      setSeededRolls(existingOrderData.seeded_halves || 0);
+      setHasLunch(existingOrderData.has_lunch || false);
+      
+      // Reconstruct toppings assignments
+      if (existingOrderData.toppings && Array.isArray(existingOrderData.toppings)) {
+        const newToppings = {};
+        existingOrderData.toppings.forEach((topping, index) => {
+          newToppings[index] = topping;
+        });
+        setToppings(newToppings);
+      }
+    }
+  }, [existingOrderData]);
 
   // Get actual prices from menu (use admin-set prices directly)
   const getBreakfastPrice = (rollType) => {
