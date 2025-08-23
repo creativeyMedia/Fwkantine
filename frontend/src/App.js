@@ -3912,10 +3912,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
               {breakfastHistory.map((day, index) => (
                 <div
                   key={day.date}
-                  className={`p-6 hover:bg-gray-50 cursor-pointer ${
+                  className={`p-6 hover:bg-gray-50 ${
                     selectedDate === day.date ? 'bg-blue-50' : ''
                   }`}
-                  onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
                 >
                   {/* Day Summary Header */}
                   <div className="flex justify-between items-center">
