@@ -76,6 +76,7 @@ class Employee(BaseModel):
     
 class MenuItemBreakfast(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str  # Department-specific menu items
     roll_type: RollType
     name: Optional[str] = None  # Custom name, if None use default from roll_type
     price: float
