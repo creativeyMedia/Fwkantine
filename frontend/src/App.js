@@ -907,7 +907,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                     }, {})
                 ).map(([topping, count]) => (
                   <span key={topping} className="inline-block bg-green-200 px-2 py-1 rounded mr-2 mb-1">
-                    {count}x {finalToppingLabels[topping]}
+                    {count}x {toppingLabels[topping]}
                   </span>
                 ))}
               </div>
