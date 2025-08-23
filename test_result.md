@@ -580,6 +580,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "NEW FEATURE - Boiled Breakfast Eggs Backend Implementation"
     - "Department-Specific Menu System Implementation"
     - "Migration System Testing"
     - "Department-Specific Menu Endpoints"
@@ -587,7 +588,7 @@ test_plan:
     - "Department Isolation & Data Integrity"
   stuck_tasks: []
   test_all: false
-  test_priority: "department_specific_menu_system_complete"
+  test_priority: "boiled_eggs_feature_complete"
 
 agent_communication:
     - agent: "testing"
