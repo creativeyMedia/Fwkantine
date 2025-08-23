@@ -967,21 +967,6 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           </div>
         )}
       </div>
-
-      <div className="mt-6">
-        <button
-          onClick={handleAddItem}
-          disabled={totalHalves === 0 || toppingAssignments.some(a => !a.topping)}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-        >
-          {totalHalves === 0 
-            ? 'Bitte Brötchen auswählen'
-            : toppingAssignments.some(a => !a.topping)
-            ? `Noch ${toppingAssignments.filter(a => !a.topping).length} Belag(e) zuweisen`
-            : 'Bestellung vormerken'
-          }
-        </button>
-      </div>
     </div>
   );
 };
