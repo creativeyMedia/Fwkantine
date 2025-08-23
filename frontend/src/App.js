@@ -2589,8 +2589,8 @@ const AdminDashboard = () => {
                 <h3 className="font-semibold text-lg">{employee.name}</h3>
                 <p className="text-sm text-gray-600">{employee.department_name}</p>
                 <div className="text-sm text-gray-600 mt-2">
-                  <p>Frühstück: €{employee.breakfast_balance.toFixed(2)}</p>
-                  <p>Getränke/Süßes: €{employee.drinks_sweets_balance.toFixed(2)}</p>
+                  <p>Frühstück: {employee.breakfast_balance.toFixed(2)} €</p>
+                  <p>Getränke/Süßes: {employee.drinks_sweets_balance.toFixed(2)} €</p>
                 </div>
                 <p className="text-blue-600 text-sm mt-2">Klicken für Verlauf →</p>
               </div>
