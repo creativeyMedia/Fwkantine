@@ -899,7 +899,12 @@ async def get_daily_summary(department_id: str):
             employee_name = employee["name"] if employee else "Unknown"
             
             if employee_name not in employee_orders:
-                employee_orders[employee_name] = {"white_halves": 0, "seeded_halves": 0, "toppings": {}}
+                employee_orders[employee_name] = {
+                    "white_halves": 0, 
+                    "seeded_halves": 0, 
+                    "boiled_eggs": 0,  # Add boiled eggs tracking
+                    "toppings": {}
+                }
             
             for item in order["breakfast_items"]:
                 # Handle new format (total_halves, white_halves, seeded_halves)
