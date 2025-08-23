@@ -568,6 +568,21 @@ async def update_lunch_settings(price: float):
         "updated_orders": updated_orders
     }
 
+@api_router.put("/lunch-settings/boiled-eggs-price")
+async def update_boiled_eggs_price(price: float):
+    """Update boiled eggs price"""
+    lunch_settings = await db.lunch_settings.find_one()
+    if lunch_settings:
+        await db.lunch_settings.update_one(
+            {"id": lunch_settings["id"]},
+            {"$set": {"boiled_eggs_price": price}}
+        )
+    else:
+        new_settings = LunchSettings(boiled_eggs_price=price)
+        await db.lunch_settings.insert_one(new_settings.dict())
+    
+    return {"message": "Kochei-Preis erfolgreich aktualisiert", "price": price}
+
 # Menu routes
 @api_router.get("/menu/breakfast/{department_id}", response_model=List[MenuItemBreakfast])
 async def get_breakfast_menu(department_id: str):
