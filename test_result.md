@@ -572,6 +572,39 @@ agent_communication:
       message: "🎉 CRITICAL BREAKFAST ORDERING FIXES TESTING COMPLETED SUCCESSFULLY! All requested critical fixes for the canteen management system are working perfectly: ✅ Order Submission Workflow - POST /api/orders with new breakfast format (total_halves, white_halves, seeded_halves, toppings, has_lunch) working correctly with proper validation and pricing. ✅ Order Persistence & Retrieval - GET /api/employees/{employee_id}/orders returns proper format, fixed MongoDB ObjectId serialization issue that was causing 500 errors. ✅ Admin Order Management - Department admin authentication working with admin1-4 credentials, order viewing and deletion functionality operational. ✅ Menu Integration - Dynamic pricing working correctly, menu price updates immediately affect order calculations. ✅ Validation - Proper error handling for invalid breakfast orders. Fixed critical backend bug in employee orders endpoint. All core breakfast ordering functionality is production-ready."
 
 frontend:
+  - task: "CRITICAL BUG FIX - Menu Item Edit Saving"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL BUG REPORTED: When changing the name or price of rolls, toppings, or drinks/sweets, the changes are not saved. Edits do not persist. This breaks admin menu management functionality completely."
+  - task: "CRITICAL BUG FIX - Breakfast Toppings Selection"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL BUG REPORTED: (1) Employees can no longer select toppings when booking breakfast, (2) When employee changes number of rolls (e.g., from 4 to 5 halves), they cannot select corresponding number of toppings, (3) Logic should update selectable toppings when roll count changes. This breaks the entire breakfast ordering workflow."
+  - task: "CRITICAL BUG FIX - Payment History Display"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL BUG REPORTED: When Admin marks a saldo (balance) as paid, this is not shown in the employee's history log. Employee history should reflect payment completion similar to how bookings are shown. This breaks financial tracking and transparency."
   - task: "Critical UI Rendering Bug Fix - BreakfastSummaryTable"
     implemented: true
     working: true
