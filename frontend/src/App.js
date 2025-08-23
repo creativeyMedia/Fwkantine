@@ -3632,7 +3632,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                           <div className="space-y-2 text-sm">
                             {day.shopping_list.weiss && (
                               <div className="flex justify-between">
-                                <span>Weiße Brötchen:</span>
+                                <span>Helle Brötchen:</span>
                                 <span className="font-medium">{day.shopping_list.weiss.whole_rolls} Stück</span>
                               </div>
                             )}
