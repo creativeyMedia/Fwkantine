@@ -695,7 +695,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
               toppingsMenu={toppingsMenu}
               onAddItem={addBreakfastItem}
               rollTypeLabels={rollTypeLabels}
-              toppingLabels={toppingLabels}
+              toppingLabels={finalToppingLabels}
             />
           )}
 
