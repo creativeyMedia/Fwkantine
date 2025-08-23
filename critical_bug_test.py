@@ -269,8 +269,10 @@ class CriticalBugTester:
         """Test that employees can only have one breakfast order per day"""
         print("\n=== Testing Single Breakfast Order Constraint ===")
         
-        if not self.test_employee:
-            self.log_test("Single Order Constraint Test", False, "No test employee available")
+        # Create fresh employee for this test
+        test_employee = self.create_test_employee("SingleOrder")
+        if not test_employee:
+            self.log_test("Single Order Constraint Test", False, "Could not create test employee")
             return False
         
         success_count = 0
