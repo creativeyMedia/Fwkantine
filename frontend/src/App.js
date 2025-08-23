@@ -1266,7 +1266,7 @@ const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
           <div key={drink.id} className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
             <div>
               <span className="font-medium">{drink.name}</span>
-              <span className="text-gray-600 ml-2">(€{drink.price.toFixed(2)})</span>
+              <span className="text-gray-600 ml-2">({drink.price.toFixed(2)} €)</span>
             </div>
             <input
               type="number"
