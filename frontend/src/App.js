@@ -1035,9 +1035,10 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     setToppingAssignments(newAssignments);
   }, [whiteRolls, seededRolls]); // Removed toppingAssignments from dependencies to avoid infinite loop
 
-  // Update breakfast form data whenever form changes
+  // Only update form data when toppings are properly assigned (not on every input change)
   useEffect(() => {
-    if (totalHalves > 0 && !toppingAssignments.some(a => !a.topping) && onDirectSubmit) {
+    if (totalHalves > 0 && toppingAssignments.length === totalHalves && 
+        !toppingAssignments.some(a => !a.topping) && onDirectSubmit) {
       const toppings = toppingAssignments.map(assignment => assignment.topping);
       const breakfastData = {
         total_halves: totalHalves,
@@ -1045,14 +1046,14 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         seeded_halves: seededRolls,
         toppings: toppings,
         has_lunch: hasLunch,
-        boiled_eggs: boiledEggs,  // Add boiled eggs
+        boiled_eggs: boiledEggs,
         item_cost: totalCost
       };
       onDirectSubmit(breakfastData);
-    } else if (onDirectSubmit) {
-      onDirectSubmit(null); // Clear data if form is incomplete
+    } else if (onDirectSubmit && totalHalves === 0) {
+      onDirectSubmit(null); // Clear data if no rolls selected
     }
-  }, [totalHalves, whiteRolls, seededRolls, toppingAssignments, hasLunch, totalCost, onDirectSubmit]);
+  }, [toppingAssignments, totalHalves]); // Only depend on toppings completion, not individual input changes
 
   const handleToppingAssignment = (assignmentIndex, toppingType) => {
     setToppingAssignments(prev => {
