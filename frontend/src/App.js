@@ -709,6 +709,15 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
   };
 
+  const fetchLunchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/lunch-settings`);
+      setLunchSettings(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
+    }
+  };
+
   // Create dynamic labels from menu data
   const rollTypeLabels = {
     'weiss': 'Helles Brötchen',
