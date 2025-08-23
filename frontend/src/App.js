@@ -792,10 +792,10 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const [toppingAssignments, setToppingAssignments] = useState([]);
   const [hasLunch, setHasLunch] = useState(false);
 
-  // Get actual prices from menu
+  // Get actual prices from menu (prices are per whole roll, divide by 2 for half-roll pricing)
   const getBreakfastPrice = (rollType) => {
     const menuItem = breakfastMenu.find(item => item.roll_type === rollType);
-    return menuItem ? menuItem.price : 0;
+    return menuItem ? (menuItem.price / 2) : 0; // Divide by 2 since UI shows halves
   };
 
   const whiteRollPrice = getBreakfastPrice('weiss');
