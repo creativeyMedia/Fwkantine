@@ -1213,17 +1213,16 @@ const BreakfastOrderForm = React.memo(({ breakfastMenu, toppingsMenu, onAddItem,
               type="number"
               min="0"
               max="10"
+              step="1"
               value={boiledEggs}
               onChange={(e) => {
-                const value = e.target.value;
-                // Prevent invalid values and parse safely
-                if (value === '' || value === '0') {
+                const value = parseInt(e.target.value);
+                if (isNaN(value) || value < 0) {
                   setBoiledEggs(0);
+                } else if (value > 10) {
+                  setBoiledEggs(10);
                 } else {
-                  const parsed = parseInt(value);
-                  if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
-                    setBoiledEggs(parsed);
-                  }
+                  setBoiledEggs(value);
                 }
               }}
               className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
@@ -1236,16 +1235,12 @@ const BreakfastOrderForm = React.memo(({ breakfastMenu, toppingsMenu, onAddItem,
 
         {/* Lunch Option */}
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <label className="flex items-center">
+          <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={hasLunch}
-              onChange={(e) => {
-                // Prevent rapid toggling by checking if the event is synthetic
-                e.stopPropagation();
-                setHasLunch(e.target.checked);
-              }}
-              className="mr-3"
+              onChange={(e) => setHasLunch(e.target.checked)}
+              className="mr-3 w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
             />
             <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
           </label>
