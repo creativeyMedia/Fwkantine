@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://dept-order-system.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://canteen-manager.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class UpdatedCanteenTester:
