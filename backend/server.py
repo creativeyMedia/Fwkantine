@@ -1352,6 +1352,10 @@ async def update_toppings_menu_item(item_id: str, update_data: MenuItemUpdate, d
         update_fields["price"] = update_data.price
     if update_data.name is not None:
         update_fields["name"] = update_data.name
+        # BUGFIX: Also update topping_name when name is changed
+        update_fields["topping_name"] = update_data.name
+        # BUGFIX: Update topping_type to match the ID for consistency
+        update_fields["topping_type"] = item_id
     
     if update_fields:
         query = {"id": item_id}
