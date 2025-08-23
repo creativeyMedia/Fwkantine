@@ -2910,6 +2910,7 @@ class CanteenTester:
         # NEW FEATURE TEST - Boiled Breakfast Eggs
         new_feature_tests = [
             ("🆕 NEW FEATURE - Boiled Breakfast Eggs", self.test_boiled_breakfast_eggs_feature),
+            ("🆕 NEW FEATURE - Admin Boiled Eggs Pricing Management", self.test_admin_boiled_eggs_pricing_management),
         ]
         
         # Run setup tests
