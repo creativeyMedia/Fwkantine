@@ -1248,7 +1248,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
     </div>
   );
-});
+};
 
 // Drinks Order Form
 const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
