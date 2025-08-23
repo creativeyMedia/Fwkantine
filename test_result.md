@@ -475,10 +475,9 @@ metadata:
 test_plan:
   current_focus:
     - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
-  stuck_tasks:
-    - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+  stuck_tasks: []
   test_all: false
-  test_priority: "critical_fixes_required"
+  test_priority: "critical_fixes_completed"
 
 agent_communication:
     - agent: "testing"
