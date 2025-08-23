@@ -580,15 +580,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "NEW FEATURE - Admin Boiled Eggs Pricing Management Backend"
-    - "Department-Specific Menu System Implementation"
-    - "Migration System Testing"
-    - "Department-Specific Menu Endpoints"
-    - "Backward Compatibility Testing"
-    - "Department Isolation & Data Integrity"
+    - "Admin Dashboard Order Management Display Testing"
+    - "Admin Dashboard Payment History Integration Testing"
+    - "Breakfast History Swipe-to-Delete Functionality"
   stuck_tasks: []
   test_all: false
-  test_priority: "admin_boiled_eggs_pricing_complete"
+  test_priority: "admin_dashboard_features_verification"
 
 agent_communication:
     - agent: "testing"
