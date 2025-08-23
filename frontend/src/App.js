@@ -1547,15 +1547,21 @@ const DepartmentAdminDashboard = () => {
 
   const createMenuItem = async (category, nameOrType, price) => {
     try {
+      if (!currentDepartment?.department_id) {
+        alert('Fehler: Keine Abteilungs-ID verfügbar');
+        return;
+      }
+
       let requestData;
+      const departmentId = currentDepartment.department_id;
       
       if (category === 'breakfast') {
-        requestData = { roll_type: nameOrType, price: parseFloat(price) };
+        requestData = { roll_type: nameOrType, price: parseFloat(price), department_id: departmentId };
       } else if (category === 'toppings') {
-        requestData = { topping_type: nameOrType, price: parseFloat(price) };
+        requestData = { topping_type: nameOrType, price: parseFloat(price), department_id: departmentId };
       } else {
         // For drinks and sweets
-        requestData = { name: nameOrType, price: parseFloat(price) };
+        requestData = { name: nameOrType, price: parseFloat(price), department_id: departmentId };
       }
 
       await axios.post(`${API}/department-admin/menu/${category}`, requestData);
