@@ -579,13 +579,14 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete }) => {
     'butter': 'Butter'
   };
 
-  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch) => {
+  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, totalCost) => {
     const newItem = {
       total_halves: totalHalves,
       white_halves: whiteHalves,
       seeded_halves: seededHalves,
       toppings: selectedToppings,
-      has_lunch: hasLunch
+      has_lunch: hasLunch,
+      item_cost: totalCost
     };
     setOrder(prev => ({
       ...prev,
