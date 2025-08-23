@@ -3121,6 +3121,22 @@ const LunchManagementTab = () => {
     }
   };
 
+  const updateBoiledEggsPrice = async () => {
+    if (!newBoiledEggsPrice || isNaN(parseFloat(newBoiledEggsPrice))) {
+      alert('Bitte gültigen Kochei-Preis eingeben');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/lunch-settings/boiled-eggs-price?price=${parseFloat(newBoiledEggsPrice)}`);
+      await fetchLunchSettings();
+      alert('Kochei-Preis erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Kochei-Preises:', error);
+      alert('Fehler beim Aktualisieren des Kochei-Preises');
+    }
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-6">Lunch Preis verwalten</h3>
