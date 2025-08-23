@@ -1956,6 +1956,51 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
 const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate }) => {
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [selectedEmployeeForOrders, setSelectedEmployeeForOrders] = useState(null);
+  const [sortedEmployees, setSortedEmployees] = useState([]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  
+  // Initialize sorted employees when employees prop changes
+  useEffect(() => {
+    setSortedEmployees([...employees]);
+  }, [employees]);
+
+  // Drag and Drop handlers
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.outerHTML);
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1';
+    setDraggedIndex(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      return;
+    }
+
+    const newSortedEmployees = [...sortedEmployees];
+    const draggedEmployee = newSortedEmployees[draggedIndex];
+    
+    // Remove dragged employee from current position
+    newSortedEmployees.splice(draggedIndex, 1);
+    
+    // Insert at new position
+    newSortedEmployees.splice(dropIndex, 0, draggedEmployee);
+    
+    setSortedEmployees(newSortedEmployees);
+    setDraggedIndex(null);
+  };
   
   const markAsPaid = async (employee, balanceType) => {
     const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
