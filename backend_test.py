@@ -15,7 +15,10 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://shift-canteen.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+# Fix for None URL in preview environment
+if BACKEND_URL == 'https://None.preview.emergentagent.com':
+    BACKEND_URL = 'http://localhost:8001'
 API_BASE = f"{BACKEND_URL}/api"
 
 class CanteenTester:
