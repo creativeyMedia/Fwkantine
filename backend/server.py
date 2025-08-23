@@ -1534,9 +1534,9 @@ async def update_order(order_id: str, order_update: dict):
             # Recalculate total price for breakfast items
             total_price = 0.0
             
-            # Get current menu prices
-            breakfast_menu = await db.menu_breakfast.find({}).to_list(100)
-            toppings_menu = await db.menu_toppings.find({}).to_list(100)
+            # Get current menu prices (department-specific)
+            breakfast_menu = await db.menu_breakfast.find({"department_id": existing_order["department_id"]}).to_list(100)
+            toppings_menu = await db.menu_toppings.find({"department_id": existing_order["department_id"]}).to_list(100)
             
             breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
             toppings_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
