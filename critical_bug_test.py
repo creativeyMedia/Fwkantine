@@ -585,7 +585,7 @@ class CriticalBugTester:
         
         # Verify the order was updated correctly
         try:
-            response = self.session.get(f"{API_BASE}/employees/{self.test_employee['id']}/orders")
+            response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
             if response.status_code == 200:
                 orders_response = response.json()
                 orders = orders_response.get('orders', [])
