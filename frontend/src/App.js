@@ -2965,17 +2965,56 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       </div>
                     )}
                     
-                    {/* Toppings */}
+                    {/* Toppings with Roll Type Detail */}
                     {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
                       <div>
                         <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
                         <div className="ml-4 space-y-1">
-                          {Object.entries(dailySummary.total_toppings).map(([topping, count]) => (
-                            <div key={topping} className="flex justify-between items-center">
-                              <span className="text-gray-600">{String(finalToppingLabels[topping] || topping)}:</span>
-                              <span className="font-semibold text-orange-700">{String(count)}x</span>
-                            </div>
-                          ))}
+                          {(() => {
+                            // Calculate detailed topping breakdown by roll type
+                            const toppingBreakdown = {};
+                            
+                            // Process each employee's orders to get topping-roll type combinations
+                            Object.values(dailySummary.employee_orders).forEach(employeeData => {
+                              if (employeeData.toppings) {
+                                Object.entries(employeeData.toppings).forEach(([topping, count]) => {
+                                  if (!toppingBreakdown[topping]) {
+                                    toppingBreakdown[topping] = { white: 0, seeded: 0 };
+                                  }
+                                  
+                                  // Distribute toppings proportionally based on employee's roll selection
+                                  const whiteHalves = employeeData.white_halves || 0;
+                                  const seededHalves = employeeData.seeded_halves || 0;
+                                  const totalHalves = whiteHalves + seededHalves;
+                                  
+                                  if (totalHalves > 0) {
+                                    const whiteRatio = whiteHalves / totalHalves;
+                                    const seededRatio = seededHalves / totalHalves;
+                                    toppingBreakdown[topping].white += Math.round(count * whiteRatio);
+                                    toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
+                                  }
+                                });
+                              }
+                            });
+                            
+                            return Object.entries(toppingBreakdown).map(([topping, counts]) => {
+                              const toppingName = finalToppingLabels[topping] || topping;
+                              const items = [];
+                              
+                              if (counts.seeded > 0) {
+                                items.push(`${counts.seeded}x ${toppingName} Körner (Korn)`);
+                              }
+                              if (counts.white > 0) {
+                                items.push(`${counts.white}x ${toppingName} Hell`);
+                              }
+                              
+                              return items.map((item, index) => (
+                                <div key={`${topping}-${index}`} className="flex justify-between items-center">
+                                  <span className="text-gray-600">{item}</span>
+                                </div>
+                              ));
+                            }).flat();
+                          })()}
                         </div>
                       </div>
                     )}
