@@ -481,7 +481,7 @@ test_plan:
     - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
   stuck_tasks: []
   test_all: false
-  test_priority: "critical_ui_fixes_completed"
+  test_priority: "all_critical_fixes_verified_complete"
 
 agent_communication:
     - agent: "testing"
