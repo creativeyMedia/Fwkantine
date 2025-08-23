@@ -966,26 +966,35 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   // Update topping assignments when roll counts change
   useEffect(() => {
     const newAssignments = [];
+    const oldAssignmentsByLabel = {};
+    
+    // Create lookup of existing assignments by label to preserve selections
+    toppingAssignments.forEach(assignment => {
+      oldAssignmentsByLabel[assignment.rollLabel] = assignment.topping;
+    });
+    
     // Add white roll topping slots
     for (let i = 0; i < whiteRolls; i++) {
+      const rollLabel = `Weißes Brötchen ${i + 1}`;
       newAssignments.push({
         id: `white_${i}`,
         rollType: 'weiss',
-        rollLabel: `Weißes Brötchen ${i + 1}`,
-        topping: toppingAssignments[newAssignments.length]?.topping || ''
+        rollLabel: rollLabel,
+        topping: oldAssignmentsByLabel[rollLabel] || ''
       });
     }
     // Add seeded roll topping slots
     for (let i = 0; i < seededRolls; i++) {
+      const rollLabel = `Körnerbrötchen ${i + 1}`;
       newAssignments.push({
         id: `seeded_${i}`,
         rollType: 'koerner',
-        rollLabel: `Körnerbrötchen ${i + 1}`,
-        topping: toppingAssignments[newAssignments.length]?.topping || ''
+        rollLabel: rollLabel,
+        topping: oldAssignmentsByLabel[rollLabel] || ''
       });
     }
     setToppingAssignments(newAssignments);
-  }, [whiteRolls, seededRolls]);
+  }, [whiteRolls, seededRolls]); // Removed toppingAssignments from dependencies to avoid infinite loop
 
   // Update breakfast form data whenever form changes
   useEffect(() => {
