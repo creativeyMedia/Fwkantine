@@ -526,7 +526,7 @@ class CriticalBugTester:
         initial_price = 0.0
         try:
             initial_order = {
-                "employee_id": self.test_employee['id'],
+                "employee_id": test_employee['id'],
                 "department_id": self.test_department['id'],
                 "order_type": "breakfast",
                 "breakfast_items": [
