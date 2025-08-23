@@ -2967,8 +2967,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     <thead>
                       <tr className="bg-blue-100">
                         <th className="border border-gray-300 px-4 py-2 text-left">Mitarbeiter Name</th>
-                        <th className="border border-gray-300 px-4 py-2 text-center">Weiße Hälften</th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">Helle Hälften</th>
                         <th className="border border-gray-300 px-4 py-2 text-center">Körner Hälften</th>
+                        <th className="border border-gray-300 px-4 py-2 text-center">Gekochte Eier</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Beläge</th>
                       </tr>
                     </thead>
