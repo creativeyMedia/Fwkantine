@@ -1027,7 +1027,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           
           <div className="mt-4 p-3 bg-white border border-blue-300 rounded">
             <p className="text-sm font-medium">
-              Gesamt: {totalHalves} Brötchenhälften = {Math.ceil(totalHalves / 2)} ganze(s) Brötchen
+              Gesamt: {totalHalves} Brötchenhälften
             </p>
             <p className="text-sm text-gray-600">
               Kosten: €{totalCost.toFixed(2)}
