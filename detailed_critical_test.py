@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv('/app/frontend/.env')
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
-if BACKEND_URL == 'https://None.preview.emergentagent.com':
+if BACKEND_URL == 'https://dept-order-system.preview.emergentagent.com':
     BACKEND_URL = 'http://localhost:8001'
 API_BASE = f"{BACKEND_URL}/api"
 
