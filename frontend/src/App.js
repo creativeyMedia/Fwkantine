@@ -735,6 +735,10 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               onAddItem={addBreakfastItem}
               rollTypeLabels={rollTypeLabels}
               toppingLabels={finalToppingLabels}
+              onDirectSubmit={(breakfastData) => {
+                // This will be called directly when breakfast form is submitted
+                setBreakfastFormData(breakfastData);
+              }}
             />
           )}
 
