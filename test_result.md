@@ -616,7 +616,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Change Functionality Testing"
+    - "Breakfast Ordering Flexibility - No Rolls Required"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
