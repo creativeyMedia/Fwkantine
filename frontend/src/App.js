@@ -2877,13 +2877,13 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     {Object.entries(dailySummary.breakfast_summary).map(([rollType, data]) => (
                       <tr key={rollType} className="hover:bg-gray-50">
                         <td className="border border-gray-300 px-4 py-2 font-semibold">
-                          {rollTypeLabels[rollType] || rollType}
+                          {String(rollTypeLabels[rollType] || rollType)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
-                          {data.halves}
+                          {String(data.halves || 0)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2 text-center font-bold text-green-600">
-                          {Math.ceil(data.halves / 2)}
+                          {String(Math.ceil((data.halves || 0) / 2))}
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           {Object.keys(data.toppings).length > 0 ? (
