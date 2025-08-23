@@ -380,8 +380,10 @@ class CriticalBugTester:
         """Test that admin order deletion correctly updates employee balances"""
         print("\n=== Testing Balance Updates on Order Deletion ===")
         
-        if not self.test_employee:
-            self.log_test("Balance Update Test", False, "No test employee available")
+        # Create fresh employee for this test
+        test_employee = self.create_test_employee("BalanceTest")
+        if not test_employee:
+            self.log_test("Balance Update Test", False, "Could not create test employee")
             return False
         
         success_count = 0
