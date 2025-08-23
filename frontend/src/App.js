@@ -1242,7 +1242,7 @@ const BreakfastOrderForm = React.memo(({ breakfastMenu, toppingsMenu, onAddItem,
       </div>
     </div>
   );
-};
+});
 
 // Drinks Order Form
 const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
