@@ -610,6 +610,50 @@ agent_communication:
       message: "🎉 CRITICAL BREAKFAST ORDERING FIXES TESTING COMPLETED SUCCESSFULLY! All requested critical fixes for the canteen management system are working perfectly: ✅ Order Submission Workflow - POST /api/orders with new breakfast format (total_halves, white_halves, seeded_halves, toppings, has_lunch) working correctly with proper validation and pricing. ✅ Order Persistence & Retrieval - GET /api/employees/{employee_id}/orders returns proper format, fixed MongoDB ObjectId serialization issue that was causing 500 errors. ✅ Admin Order Management - Department admin authentication working with admin1-4 credentials, order viewing and deletion functionality operational. ✅ Menu Integration - Dynamic pricing working correctly, menu price updates immediately affect order calculations. ✅ Validation - Proper error handling for invalid breakfast orders. Fixed critical backend bug in employee orders endpoint. All core breakfast ordering functionality is production-ready."
 
 frontend:
+  - task: "CRITICAL NEW BUG - Breakfast Ordering Price Error"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL NEW BUG REPORTED: Seeded rolls (Körner Brötchen) are showing as costing 999€ instead of the price set in the Admin panel. Price calculation is incorrect. This is an urgent pricing error that breaks breakfast ordering functionality."
+  - task: "CRITICAL NEW BUG - Breakfast Overview Toppings Display"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL NEW BUG REPORTED: In the breakfast overview details under toppings, the display shows '(object Object)x' instead of the proper topping names and quantities. This is a data rendering issue that makes breakfast summaries unreadable."
+  - task: "CRITICAL NEW BUG - Toppings Selection Dropdowns"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL NEW BUG REPORTED: For some employees, the toppings selection dropdowns in the order form are broken or missing, preventing topping selection. This breaks the breakfast ordering workflow completely for affected users."
+  - task: "CRITICAL NEW BUG - Admin Dashboard Manage Orders Display"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL NEW BUG REPORTED: In the Admin Dashboard 'Manage Orders' section, details display very long numeric strings instead of the proper names of items (e.g., drink names). This makes order management unusable."
   - task: "CRITICAL BUG FIX - Menu Item Edit Saving"
     implemented: true
     working: true
