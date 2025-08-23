@@ -364,9 +364,14 @@ const DepartmentDashboard = () => {
   };
 
   const handleEmployeeProfileClick = async (employee, event) => {
-    event.stopPropagation(); // Prevent the employee order menu from opening
-    setSelectedEmployeeForProfile(employee);
-    setShowEmployeeProfile(true);
+    try {
+      event.stopPropagation(); // Prevent the employee order menu from opening
+      setSelectedEmployeeForProfile(employee);
+      setShowEmployeeProfile(true);
+    } catch (error) {
+      console.error('Error opening employee profile:', error);
+      alert('Fehler beim Öffnen des Mitarbeiterprofils');
+    }
   };
 
   const handleAdminLogin = async (password) => {
