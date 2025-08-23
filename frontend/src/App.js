@@ -3764,7 +3764,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
       {showNewTopping && (
         <NewToppingItemModal
           title="Neuer Belag hinzufügen"
-          onCreateItem={(toppingType, price) => onCreateMenuItem('toppings', toppingType, price)}
+          onCreateItem={(toppingId, toppingName, price) => onCreateMenuItem('toppings', toppingId, toppingName, price)}
           onClose={() => setShowNewTopping(false)}
         />
       )}
