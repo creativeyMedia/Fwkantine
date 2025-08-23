@@ -442,9 +442,21 @@ async def update_lunch_settings(price: float):
                 topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
                 
                 for item in order["breakfast_items"]:
-                    # Roll price
-                    roll_price = breakfast_prices.get(item["roll_type"], 0.0)
-                    new_total += roll_price * item.get("roll_halves", item.get("roll_count", 1))
+                    # Handle both old and new breakfast item formats
+                    if "roll_type" in item:
+                        # Old format
+                        roll_price = breakfast_prices.get(item["roll_type"], 0.0)
+                        new_total += roll_price * item.get("roll_halves", item.get("roll_count", 1))
+                    else:
+                        # New format with white_halves and seeded_halves
+                        white_halves = item.get("white_halves", 0)
+                        seeded_halves = item.get("seeded_halves", 0)
+                        
+                        white_price = breakfast_prices.get("weiss", 0.0)
+                        seeded_price = breakfast_prices.get("koerner", 0.0)
+                        
+                        # For the new format, prices are per-half
+                        new_total += (white_price * white_halves / 2) + (seeded_price * seeded_halves / 2)
                     
                     # Toppings price
                     for topping in item.get("toppings", []):
