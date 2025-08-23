@@ -467,14 +467,23 @@ const DepartmentDashboard = () => {
             >
               <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-800">{employee.name}</h3>
               <div className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 space-y-2">
-                <p className="flex justify-between">
-                  <span>Frühstück:</span> 
-                  <span className="font-medium">€{employee.breakfast_balance.toFixed(2)}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span>Getränke/Süßes:</span> 
-                  <span className="font-medium">€{employee.drinks_sweets_balance.toFixed(2)}</span>
-                </p>
+                {employee.breakfast_balance > 0 && (
+                  <p className="flex justify-between">
+                    <span>Frühstück:</span> 
+                    <span className="font-medium">€{employee.breakfast_balance.toFixed(2)}</span>
+                  </p>
+                )}
+                {employee.drinks_sweets_balance > 0 && (
+                  <p className="flex justify-between">
+                    <span>Getränke/Süßes:</span> 
+                    <span className="font-medium">€{employee.drinks_sweets_balance.toFixed(2)}</span>
+                  </p>
+                )}
+                {employee.breakfast_balance === 0 && employee.drinks_sweets_balance === 0 && (
+                  <p className="text-center text-gray-500 italic">
+                    Keine offenen Bestellungen
+                  </p>
+                )}
               </div>
               <div className="flex gap-2 sm:gap-3">
                 <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
