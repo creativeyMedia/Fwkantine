@@ -710,7 +710,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   // Create dynamic labels from menu data
   const rollTypeLabels = {
-    'weiss': 'Weißes Brötchen',
+    'weiss': 'Helles Brötchen',
     'koerner': 'Körnerbrötchen'
   };
 
