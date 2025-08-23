@@ -318,7 +318,6 @@ const Homepage = () => {
             onClose={() => setShowDepartmentLogin(false)}
           />
         )}
-        </div>
       </div>
     </div>
   );
