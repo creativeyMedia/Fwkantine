@@ -1461,6 +1461,8 @@ const DepartmentAdminDashboard = () => {
 
 // Employee Management Tab Component
 const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate }) => {
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [selectedEmployeeForOrders, setSelectedEmployeeForOrders] = useState(null);
   
   const markAsPaid = async (employee, balanceType) => {
     const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
