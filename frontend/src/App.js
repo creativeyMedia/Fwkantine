@@ -1013,6 +1013,16 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   
   const totalCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice) + boiledEggsCost;
 
+  // Event handlers - defined as stable functions
+  const handleBoiledEggsChange = (e) => {
+    const value = parseInt(e.target.value) || 0;
+    setBoiledEggs(Math.max(0, Math.min(10, value)));
+  };
+
+  const handleLunchChange = (e) => {
+    setHasLunch(e.target.checked);
+  };
+
   // Update topping assignments when roll counts change
   useEffect(() => {
     const newAssignments = [];
