@@ -911,14 +911,31 @@ async def get_employee_profile(employee_id: str):
         if order["order_type"] == "breakfast" and order.get("breakfast_items"):
             enriched_order["readable_items"] = []
             for item in order["breakfast_items"]:
-                roll_name = {"weiss": "Weißes Brötchen", "koerner": "Körnerbrötchen"}.get(item["roll_type"], item["roll_type"])
+                # Handle both old and new breakfast order formats
+                if "roll_type" in item:
+                    # Old format with roll_type
+                    roll_name = {"weiss": "Weißes Brötchen", "koerner": "Körnerbrötchen"}.get(item["roll_type"], item["roll_type"])
+                    roll_count = item.get('roll_halves', item.get('roll_count', 1))
+                    description = f"{roll_count}x {roll_name} Hälften" if 'roll_halves' in item else f"{roll_count}x {roll_name}"
+                else:
+                    # New format with total_halves, white_halves, seeded_halves
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                    total_halves = item.get("total_halves", white_halves + seeded_halves)
+                    
+                    parts = []
+                    if white_halves > 0:
+                        parts.append(f"{white_halves}x Weiße Brötchen Hälften")
+                    if seeded_halves > 0:
+                        parts.append(f"{seeded_halves}x Körnerbrötchen Hälften")
+                    description = ", ".join(parts) if parts else f"{total_halves} Brötchen Hälften"
+                
                 topping_names_german = {
                     "ruehrei": "Rührei", "spiegelei": "Spiegelei", "eiersalat": "Eiersalat",
                     "salami": "Salami", "schinken": "Schinken", "kaese": "Käse", "butter": "Butter"
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
-                roll_count = item.get('roll_halves', item.get('roll_count', 1))
-                description = f"{roll_count}x {roll_name} Hälften" if 'roll_halves' in item else f"{roll_count}x {roll_name}"
+                
                 if item.get("has_lunch"):
                     description += " (mit Mittagessen)"
                 enriched_order["readable_items"].append({
