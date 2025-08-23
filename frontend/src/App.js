@@ -3056,7 +3056,7 @@ const LunchManagementTab = () => {
     try {
       await axios.put(`${API}/lunch-settings?price=${parseFloat(newPrice)}`);
       await fetchLunchSettings();
-      alert('Lunch-Preis erfolgreich aktualisiert');
+      alert('Mittagessen-Preis erfolgreich aktualisiert');
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Lunch-Preises:', error);
       alert('Fehler beim Aktualisieren des Preises');
