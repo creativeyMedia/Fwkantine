@@ -513,8 +513,10 @@ class CriticalBugTester:
         """Test PUT /api/orders/{order_id} endpoint for updating orders"""
         print("\n=== Testing Order Update & Re-editing ===")
         
-        if not self.test_employee:
-            self.log_test("Order Update Test", False, "No test employee available")
+        # Create fresh employee for this test
+        test_employee = self.create_test_employee("UpdateTest")
+        if not test_employee:
+            self.log_test("Order Update Test", False, "Could not create test employee")
             return False
         
         success_count = 0
