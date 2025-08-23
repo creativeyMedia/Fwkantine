@@ -973,9 +973,9 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const [hasLunch, setHasLunch] = useState(false);
   const [boiledEggs, setBoiledEggs] = useState(0);
 
-  // Initialize form with existing order data if available
+  // Initialize form with existing order data if available (only once)
   useEffect(() => {
-    if (existingOrderData) {
+    if (existingOrderData && Object.keys(existingOrderData).length > 0) {
       setWhiteRolls(existingOrderData.white_halves || 0);
       setSeededRolls(existingOrderData.seeded_halves || 0);
       setHasLunch(existingOrderData.has_lunch || false);
@@ -995,7 +995,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         setToppingAssignments(newAssignments);
       }
     }
-  }, [existingOrderData]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Get actual prices from menu (use admin-set prices directly)
   const getBreakfastPrice = (rollType) => {
