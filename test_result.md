@@ -685,6 +685,9 @@ frontend:
     priority: "critical"
     needs_retesting: false
     status_history:
+        - working: false
+          agent: "user_report"
+          comment: "🚨 CRITICAL DISPLAY BUG CONFIRMED! User provided screenshot showing '[object Object]' displaying in detailed employee orders table instead of proper topping data. While the page loads without JavaScript errors, the data rendering is broken in the 'Detaillierte Mitarbeiter-Bestellungen' table. Shopping list shows correct data but employee table cells show object references instead of readable topping information. Need immediate fix for data processing/rendering logic in BreakfastSummaryTable component."
         - working: true
           agent: "main"
           comment: "✅ CRITICAL ERROR VERIFICATION COMPLETED! BreakfastSummaryTable component is working correctly. Testing results: (1) Successfully accessed 'Frühstück Verlauf' page without errors, (2) Summary cards displaying proper data (2 days, 58 orders, €185.60 revenue, €92.80 average), (3) Daily history entries showing Saturday and Friday with correct formatting, (4) No '[object Object]' display errors found, (5) No JavaScript console errors detected (only minor WebSocket connection issue unrelated to component), (6) Proper German localization maintained. The user-reported JavaScript error 'Frühstücksübersicht macht einen Error' has been successfully resolved."
