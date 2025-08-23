@@ -1008,8 +1008,7 @@ const BreakfastOrderForm = React.memo(({ breakfastMenu, toppingsMenu, onAddItem,
 
   const totalHalves = whiteRolls + seededRolls;
   
-  // Get boiled eggs price from lunch settings (will be added to backend response)
-  const boiledEggsPrice = 0.50; // Default price, should come from lunch settings
+  // Get boiled eggs price from props (passed from lunch settings)
   const boiledEggsCost = boiledEggs * boiledEggsPrice;
   
   const totalCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice) + boiledEggsCost;
