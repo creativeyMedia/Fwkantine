@@ -477,11 +477,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Critical UI Rendering Bug Fix - BreakfastSummaryTable"
-    - "Critical Bug Fixes - Order Update & Single Breakfast Constraint"
+    - "Department-Specific Menu System Implementation"
+    - "Migration System Testing"
+    - "Department-Specific Menu Endpoints"
+    - "Backward Compatibility Testing"
+    - "Department Isolation & Data Integrity"
   stuck_tasks: []
   test_all: false
-  test_priority: "all_critical_fixes_verified_complete"
+  test_priority: "department_specific_menu_system_complete"
 
 agent_communication:
     - agent: "testing"
