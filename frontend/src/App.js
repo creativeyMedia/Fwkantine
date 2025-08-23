@@ -439,32 +439,32 @@ const DepartmentDashboard = () => {
           <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
             <button
               onClick={() => setShowBreakfastSummary(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
               Frühstück Übersicht
             </button>
             <button
               onClick={() => setShowAdminLogin(true)}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+              className="bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
               Admin Login
             </button>
             <button
               onClick={() => setShowMasterLogin(true)}
-              className="bg-purple-600 text-white px-2 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+              className="bg-purple-600 text-white px-2 sm:px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm whitespace-nowrap"
             >
               Master
             </button>
             <button
               onClick={logout}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
               Abmelden
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 px-4">
           {employees.map((employee) => (
             <div
               key={employee.id}
