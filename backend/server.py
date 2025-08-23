@@ -662,9 +662,9 @@ async def create_order(order_data: OrderCreate):
     total_price = 0.0
     
     if order_data.order_type == OrderType.BREAKFAST and order_data.breakfast_items:
-        # Get breakfast menu prices and lunch settings
-        breakfast_menu = await db.menu_breakfast.find().to_list(100)
-        toppings_menu = await db.menu_toppings.find().to_list(100)
+        # Get department-specific breakfast menu prices and lunch settings
+        breakfast_menu = await db.menu_breakfast.find({"department_id": order_data.department_id}).to_list(100)
+        toppings_menu = await db.menu_toppings.find({"department_id": order_data.department_id}).to_list(100)
         lunch_settings = await db.lunch_settings.find_one()
         
         breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
