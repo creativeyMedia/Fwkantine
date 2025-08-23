@@ -520,6 +520,7 @@ const DepartmentDashboard = () => {
               fetchEmployees();
               setSelectedEmployee(null);
             }}
+            fetchEmployees={fetchEmployees}
           />
         )}
 
