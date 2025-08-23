@@ -1437,9 +1437,9 @@ async def update_order(order_id: str, order_update: dict):
                 white_halves = item.get("white_halves", 0)
                 seeded_halves = item.get("seeded_halves", 0)
                 
-                # Prices are per-whole roll, divide by 2 for half-roll pricing
-                white_price = breakfast_prices.get("weiss", 0.0) / 2
-                seeded_price = breakfast_prices.get("koerner", 0.0) / 2
+                # Prices are per-half roll as set by admin
+                white_price = breakfast_prices.get("weiss", 0.0)
+                seeded_price = breakfast_prices.get("koerner", 0.0)
                 
                 total_price += (white_halves * white_price) + (seeded_halves * seeded_price)
                 
