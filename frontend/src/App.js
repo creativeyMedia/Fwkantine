@@ -3028,30 +3028,48 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                 
                 {dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0 ? (
                   (() => {
-                    // Get all unique toppings across all employees
+                    // Filter employees who have any breakfast bookings
+                    const employeesWithBookings = Object.entries(dailySummary.employee_orders).filter(([employeeName, employeeData]) => {
+                      const hasRolls = (employeeData.white_halves || 0) > 0 || (employeeData.seeded_halves || 0) > 0;
+                      const hasEggs = (employeeData.boiled_eggs || 0) > 0;
+                      const hasToppings = employeeData.toppings && Object.keys(employeeData.toppings).length > 0;
+                      return hasRolls || hasEggs || hasToppings;
+                    });
+                    
+                    if (employeesWithBookings.length === 0) {
+                      return (
+                        <div className="text-center py-4 text-gray-500">
+                          Keine Mitarbeiter-Bestellungen für heute
+                        </div>
+                      );
+                    }
+                    
+                    // Get all unique toppings across employees with bookings
                     const allToppings = new Set();
-                    Object.values(dailySummary.employee_orders).forEach(employeeData => {
+                    employeesWithBookings.forEach(([employeeName, employeeData]) => {
                       Object.keys(employeeData.toppings || {}).forEach(topping => {
                         allToppings.add(topping);
                       });
                     });
                     const toppingsList = Array.from(allToppings);
                     
-                    // Calculate totals for each topping
+                    // Calculate totals for each topping by roll type
                     const toppingTotals = {};
                     toppingsList.forEach(topping => {
                       let whiteTotal = 0;
                       let seededTotal = 0;
                       
-                      Object.values(dailySummary.employee_orders).forEach(employeeData => {
+                      employeesWithBookings.forEach(([employeeName, employeeData]) => {
                         if (employeeData.toppings && employeeData.toppings[topping]) {
-                          // For now, we'll distribute toppings proportionally across roll types
-                          // This could be enhanced with more detailed tracking in the backend
                           const toppingCount = employeeData.toppings[topping];
-                          const totalHalves = (employeeData.white_halves || 0) + (employeeData.seeded_halves || 0);
+                          const whiteHalves = employeeData.white_halves || 0;
+                          const seededHalves = employeeData.seeded_halves || 0;
+                          const totalHalves = whiteHalves + seededHalves;
+                          
                           if (totalHalves > 0) {
-                            const whiteRatio = (employeeData.white_halves || 0) / totalHalves;
-                            const seededRatio = (employeeData.seeded_halves || 0) / totalHalves;
+                            // Proportional distribution based on roll selection
+                            const whiteRatio = whiteHalves / totalHalves;
+                            const seededRatio = seededHalves / totalHalves;
                             whiteTotal += Math.round(toppingCount * whiteRatio);
                             seededTotal += Math.round(toppingCount * seededRatio);
                           }
@@ -3078,67 +3096,87 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.entries(dailySummary.employee_orders).map(([employeeName, employeeData]) => (
+                            {employeesWithBookings.map(([employeeName, employeeData]) => (
                               <tr key={employeeName} className="hover:bg-gray-50">
                                 <td className="border border-gray-300 px-3 py-2 font-semibold">
                                   {String(employeeName)}
                                 </td>
                                 {toppingsList.map(topping => {
                                   const toppingCount = employeeData.toppings?.[topping] || 0;
+                                  
+                                  if (toppingCount === 0) {
+                                    return (
+                                      <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm text-gray-400">
+                                        -
+                                      </td>
+                                    );
+                                  }
+                                  
                                   const whiteHalves = employeeData.white_halves || 0;
                                   const seededHalves = employeeData.seeded_halves || 0;
                                   const totalHalves = whiteHalves + seededHalves;
                                   
-                                  let displayText = '';
-                                  if (toppingCount > 0 && totalHalves > 0) {
-                                    // Proportional distribution across roll types
-                                    const whiteRatio = whiteHalves / totalHalves;
-                                    const seededRatio = seededHalves / totalHalves;
-                                    const whiteCount = Math.round(toppingCount * whiteRatio);
-                                    const seededCount = Math.round(toppingCount * seededRatio);
-                                    
-                                    const parts = [];
-                                    if (whiteCount > 0) parts.push(`${whiteCount} Helle`);
-                                    if (seededCount > 0) parts.push(`${seededCount} Körner`);
-                                    displayText = parts.join(', ');
+                                  if (totalHalves === 0) {
+                                    return (
+                                      <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm text-gray-400">
+                                        -
+                                      </td>
+                                    );
                                   }
                                   
+                                  // Calculate counts using proportional distribution
+                                  const whiteRatio = whiteHalves / totalHalves;
+                                  const seededRatio = seededHalves / totalHalves;
+                                  const whiteCount = Math.round(toppingCount * whiteRatio);
+                                  const seededCount = Math.round(toppingCount * seededRatio);
+                                  
+                                  // Format using abbreviation system
+                                  const parts = [];
+                                  if (seededCount > 0) parts.push(`${seededCount}xK`);
+                                  if (whiteCount > 0) parts.push(`${whiteCount}x`);
+                                  const displayText = parts.join(' ');
+                                  
                                   return (
-                                    <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm">
+                                    <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
                                       {displayText || '-'}
                                     </td>
                                   );
                                 })}
-                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-50">
+                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-50 font-semibold">
                                   {employeeData.boiled_eggs || 0}
                                 </td>
                               </tr>
                             ))}
                             
                             {/* Totals Row */}
-                            <tr className="bg-gray-100 font-semibold">
+                            <tr className="bg-gray-100 font-bold">
                               <td className="border border-gray-300 px-3 py-2">
                                 <strong>Gesamt</strong>
                               </td>
                               {toppingsList.map(topping => {
                                 const totals = toppingTotals[topping];
                                 const parts = [];
-                                if (totals.white > 0) parts.push(`${totals.white} Helle`);
-                                if (totals.seeded > 0) parts.push(`${totals.seeded} Körner`);
-                                const displayText = parts.join(', ');
+                                if (totals.seeded > 0) parts.push(`${totals.seeded}xK`);
+                                if (totals.white > 0) parts.push(`${totals.white}x`);
+                                const displayText = parts.join(' ');
                                 
                                 return (
-                                  <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm">
+                                  <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-bold">
                                     {displayText || '-'}
                                   </td>
                                 );
                               })}
-                              <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-100">
-                                <strong>{dailySummary.total_boiled_eggs || 0}</strong>
+                              <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-100 font-bold">
+                                {dailySummary.total_boiled_eggs || 0}
                               </td>
                             </tr>
                           </tbody>
                         </table>
+                        
+                        {/* Legend */}
+                        <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                          <strong>Legende:</strong> K = Körnerbrötchen, ohne K = Helle Brötchen (z.B. "2xK 1x" = 2x auf Körnern + 1x auf Hell)
+                        </div>
                       </div>
                     );
                   })()
