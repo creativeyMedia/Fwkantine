@@ -103,8 +103,13 @@ class CriticalBugTester:
         """Test that breakfast pricing uses admin-set prices directly per half roll"""
         print("\n=== Testing Price Calculation Accuracy ===")
         
-        if not self.test_employee:
-            self.log_test("Price Calculation Test", False, "No test employee available")
+        # Create fresh employees for each test to avoid single order constraint
+        employee1 = self.create_test_employee("Price1")
+        employee2 = self.create_test_employee("Price2") 
+        employee3 = self.create_test_employee("Price3")
+        
+        if not employee1 or not employee2 or not employee3:
+            self.log_test("Price Calculation Test", False, "Could not create test employees")
             return False
         
         success_count = 0
