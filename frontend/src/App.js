@@ -923,6 +923,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               rollTypeLabels={rollTypeLabels}
               toppingLabels={finalToppingLabels}
               existingOrderData={breakfastFormData}
+              boiledEggsPrice={lunchSettings.boiled_eggs_price || 0.50}
               onDirectSubmit={(breakfastData) => {
                 // This will be called directly when breakfast form is submitted
                 setBreakfastFormData(breakfastData);
