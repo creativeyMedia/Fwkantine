@@ -3082,15 +3082,20 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Detaillierte Mitarbeiter-Bestellungen</h3>
                 
-                {dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0 ? (
+                {dailySummary && dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0 ? (
                   (() => {
+                    console.log('Processing employee orders:', dailySummary.employee_orders);
+                    
                     // Filter employees who have any breakfast bookings
                     const employeesWithBookings = Object.entries(dailySummary.employee_orders).filter(([employeeName, employeeData]) => {
                       const hasRolls = (employeeData.white_halves || 0) > 0 || (employeeData.seeded_halves || 0) > 0;
                       const hasEggs = (employeeData.boiled_eggs || 0) > 0;
                       const hasToppings = employeeData.toppings && Object.keys(employeeData.toppings).length > 0;
-                      return hasRolls || hasEggs || hasToppings;
+                      const hasLunch = employeeData.has_lunch;
+                      return hasRolls || hasEggs || hasToppings || hasLunch;
                     });
+                    
+                    console.log('Employees with bookings:', employeesWithBookings);
                     
                     if (employeesWithBookings.length === 0) {
                       return (
@@ -3103,14 +3108,20 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     // Get all unique toppings across employees with bookings
                     const allToppings = new Set();
                     employeesWithBookings.forEach(([employeeName, employeeData]) => {
-                      Object.keys(employeeData.toppings || {}).forEach(topping => {
-                        allToppings.add(topping);
-                      });
+                      if (employeeData.toppings) {
+                        Object.keys(employeeData.toppings).forEach(topping => {
+                          allToppings.add(topping);
+                        });
+                      }
                     });
                     const toppingsList = Array.from(allToppings);
                     
+                    console.log('All toppings found:', toppingsList);
+                    
                     // Calculate totals for each topping by roll type
                     const toppingTotals = {};
+                    let totalLunchCount = 0;
+                    
                     toppingsList.forEach(topping => {
                       let whiteTotal = 0;
                       let seededTotal = 0;
@@ -3122,17 +3133,28 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           const seededHalves = employeeData.seeded_halves || 0;
                           const totalHalves = whiteHalves + seededHalves;
                           
+                          console.log(`Employee ${employeeName}, topping ${topping}: count=${toppingCount}, white=${whiteHalves}, seeded=${seededHalves}`);
+                          
                           if (totalHalves > 0) {
                             // Proportional distribution based on roll selection
                             const whiteRatio = whiteHalves / totalHalves;
                             const seededRatio = seededHalves / totalHalves;
-                            whiteTotal += Math.round(toppingCount * whiteRatio);
-                            seededTotal += Math.round(toppingCount * seededRatio);
+                            const whiteCount = Math.round(toppingCount * whiteRatio);
+                            const seededCount = Math.round(toppingCount * seededRatio);
+                            whiteTotal += whiteCount;
+                            seededTotal += seededCount;
                           }
                         }
                       });
                       
                       toppingTotals[topping] = { white: whiteTotal, seeded: seededTotal };
+                    });
+                    
+                    // Count total lunch selections
+                    employeesWithBookings.forEach(([employeeName, employeeData]) => {
+                      if (employeeData.has_lunch) {
+                        totalLunchCount++;
+                      }
                     });
                     
                     return (
@@ -3149,6 +3171,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                               <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-yellow-50">
                                 🥚 Eier
                               </th>
+                              <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-purple-50">
+                                🍽️ Lunch
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
@@ -3159,6 +3184,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                 </td>
                                 {toppingsList.map(topping => {
                                   const toppingCount = employeeData.toppings?.[topping] || 0;
+                                  
+                                  console.log(`Rendering ${employeeName} - ${topping}: count=${toppingCount}`);
                                   
                                   if (toppingCount === 0) {
                                     return (
@@ -3174,8 +3201,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   
                                   if (totalHalves === 0) {
                                     return (
-                                      <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm text-gray-400">
-                                        -
+                                      <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm">
+                                        {toppingCount}
                                       </td>
                                     );
                                   }
@@ -3194,12 +3221,15 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   
                                   return (
                                     <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
-                                      {displayText || '-'}
+                                      {displayText || toppingCount}
                                     </td>
                                   );
                                 })}
                                 <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-50 font-semibold">
                                   {employeeData.boiled_eggs || 0}
+                                </td>
+                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-50 font-semibold">
+                                  {employeeData.has_lunch ? 'X' : '-'}
                                 </td>
                               </tr>
                             ))}
@@ -3225,13 +3255,16 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                               <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-100 font-bold">
                                 {dailySummary.total_boiled_eggs || 0}
                               </td>
+                              <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-100 font-bold">
+                                {totalLunchCount}
+                              </td>
                             </tr>
                           </tbody>
                         </table>
                         
                         {/* Legend */}
                         <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                          <strong>Legende:</strong> K = Körnerbrötchen, ohne K = Helle Brötchen (z.B. "2xK 1x" = 2x auf Körnern + 1x auf Hell)
+                          <strong>Legende:</strong> K = Körnerbrötchen, ohne K = Helle Brötchen (z.B. "2xK 1x" = 2x auf Körnern + 1x auf Hell), X = Mittagessen bestellt
                         </div>
                       </div>
                     );
