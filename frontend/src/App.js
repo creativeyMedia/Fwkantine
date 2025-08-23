@@ -2060,9 +2060,35 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {employees.map((employee) => (
-          <div key={employee.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="font-semibold text-lg mb-3">{employee.name}</h4>
+        {sortedEmployees.map((employee, index) => (
+          <div 
+            key={employee.id} 
+            className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all duration-200 ${
+              draggedIndex === index ? 'shadow-lg border-blue-400 bg-blue-50' : 'hover:shadow-md'
+            }`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, index)}
+          >
+            {/* Drag Handle */}
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-lg">{employee.name}</h4>
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="cursor-move text-gray-400 hover:text-gray-600"
+                  title="Zum Sortieren ziehen"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8,18H11V15H8V18M8,14H11V10H8V14M8,9H11V6H8V9M13,18H16V15H13V18M13,14H16V10H13V14M13,9H16V6H13V9Z" />
+                  </svg>
+                </div>
+                <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                  #{index + 1}
+                </span>
+              </div>
+            </div>
             
             {/* Breakfast Balance */}
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
