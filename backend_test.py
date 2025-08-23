@@ -4114,6 +4114,282 @@ class CanteenTester:
         
         return success_count >= 3  # At least 3 out of 4 bugs should be fixed
 
+    def test_breakfast_ordering_flexibility(self):
+        """Test new breakfast ordering flexibility that allows orders without rolls"""
+        print("\n=== Testing Breakfast Ordering Flexibility (No Rolls Required) ===")
+        
+        if not self.employees or not self.departments:
+            self.log_test("Breakfast Ordering Flexibility", False, "No employees or departments available")
+            return False
+        
+        success_count = 0
+        test_employee = self.employees[0]
+        test_dept = self.departments[0]
+        
+        # First authenticate with department 1 (password1)
+        try:
+            login_data = {
+                "department_name": "1. Wachabteilung",
+                "password": "password1"
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department", json=login_data)
+            if response.status_code == 200:
+                self.log_test("Department 1 Authentication", True, "Successfully authenticated with password1")
+                success_count += 1
+            else:
+                self.log_test("Department 1 Authentication", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Department 1 Authentication", False, f"Exception: {str(e)}")
+            return False
+        
+        # Get lunch settings to check boiled eggs price
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                boiled_eggs_price = lunch_settings.get('boiled_eggs_price', 0.50)
+                lunch_price = lunch_settings.get('price', 0.0)
+                self.log_test("Get Lunch Settings", True, f"Boiled eggs: €{boiled_eggs_price:.2f}, Lunch: €{lunch_price:.2f}")
+            else:
+                boiled_eggs_price = 0.50
+                lunch_price = 0.0
+                self.log_test("Get Lunch Settings", False, "Using default prices")
+        except Exception as e:
+            boiled_eggs_price = 0.50
+            lunch_price = 0.0
+            self.log_test("Get Lunch Settings", False, f"Exception: {str(e)}")
+        
+        # Test 1: Only Boiled Eggs (0 rolls, just boiled_eggs > 0)
+        try:
+            only_eggs_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": False,
+                        "boiled_eggs": 3
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=only_eggs_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                expected_price = boiled_eggs_price * 3
+                if abs(order['total_price'] - expected_price) < 0.01:
+                    self.log_test("Only Boiled Eggs Order", True, 
+                                f"Created order with 3 boiled eggs: €{order['total_price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Only Boiled Eggs Order", False, 
+                                f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+            else:
+                self.log_test("Only Boiled Eggs Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Only Boiled Eggs Order", False, f"Exception: {str(e)}")
+        
+        # Test 2: Only Lunch (0 rolls, just has_lunch = true)
+        try:
+            only_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": True,
+                        "boiled_eggs": 0
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=only_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                expected_price = lunch_price  # Just lunch price once (no rolls)
+                if abs(order['total_price'] - expected_price) < 0.01:
+                    self.log_test("Only Lunch Order", True, 
+                                f"Created order with only lunch: €{order['total_price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Only Lunch Order", False, 
+                                f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+            else:
+                self.log_test("Only Lunch Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Only Lunch Order", False, f"Exception: {str(e)}")
+        
+        # Test 3: Eggs + Lunch (0 rolls, boiled_eggs > 0 AND has_lunch = true)
+        try:
+            eggs_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": True,
+                        "boiled_eggs": 2
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=eggs_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                expected_price = lunch_price + (boiled_eggs_price * 2)
+                if abs(order['total_price'] - expected_price) < 0.01:
+                    self.log_test("Eggs + Lunch Order", True, 
+                                f"Created order with 2 eggs + lunch: €{order['total_price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Eggs + Lunch Order", False, 
+                                f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+            else:
+                self.log_test("Eggs + Lunch Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Eggs + Lunch Order", False, f"Exception: {str(e)}")
+        
+        # Test 4: Traditional Order (rolls + toppings still work normally)
+        try:
+            # Get breakfast menu prices
+            response = self.session.get(f"{API_BASE}/menu/breakfast/{test_employee['department_id']}")
+            if response.status_code == 200:
+                breakfast_menu = response.json()
+                white_price = next((item['price'] for item in breakfast_menu if item['roll_type'] == 'weiss'), 0.50)
+                seeded_price = next((item['price'] for item in breakfast_menu if item['roll_type'] == 'koerner'), 0.60)
+            else:
+                white_price = 0.50
+                seeded_price = 0.60
+            
+            traditional_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 2,
+                        "toppings": ["ruehrei", "kaese", "schinken", "butter"],
+                        "has_lunch": False,
+                        "boiled_eggs": 0
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=traditional_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                expected_price = (white_price * 2) + (seeded_price * 2)  # Toppings are free
+                if abs(order['total_price'] - expected_price) < 0.01:
+                    self.log_test("Traditional Order", True, 
+                                f"Created traditional order with rolls + toppings: €{order['total_price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Traditional Order", False, 
+                                f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+            else:
+                self.log_test("Traditional Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Traditional Order", False, f"Exception: {str(e)}")
+        
+        # Test 5: Mixed Order (rolls + eggs + lunch all together)
+        try:
+            mixed_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 2,
+                        "white_halves": 1,
+                        "seeded_halves": 1,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": True,
+                        "boiled_eggs": 1
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=mixed_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                expected_price = (white_price * 1) + (seeded_price * 1) + (lunch_price * 2) + (boiled_eggs_price * 1)
+                if abs(order['total_price'] - expected_price) < 0.01:
+                    self.log_test("Mixed Order", True, 
+                                f"Created mixed order (rolls + eggs + lunch): €{order['total_price']:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Mixed Order", False, 
+                                f"Price mismatch: expected €{expected_price:.2f}, got €{order['total_price']:.2f}")
+            else:
+                self.log_test("Mixed Order", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Mixed Order", False, f"Exception: {str(e)}")
+        
+        # Test 6: Invalid Order (no rolls, no eggs, no lunch)
+        try:
+            invalid_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_employee['department_id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": False,
+                        "boiled_eggs": 0
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=invalid_order)
+            
+            if response.status_code == 400:
+                self.log_test("Invalid Order Rejection", True, 
+                            "Correctly rejected order with no rolls, eggs, or lunch")
+                success_count += 1
+            else:
+                self.log_test("Invalid Order Rejection", False, 
+                            f"Should reject invalid order, got HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Invalid Order Rejection", False, f"Exception: {str(e)}")
+        
+        return success_count >= 5  # At least 5 out of 6 tests should pass
+
     def run_all_tests(self):
         """Run all backend tests focusing on Department-Specific Menu System"""
         print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
