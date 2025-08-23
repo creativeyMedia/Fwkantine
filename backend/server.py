@@ -96,6 +96,7 @@ class MenuItemDrink(BaseModel):
     
 class MenuItemSweet(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str  # Department-specific menu items
     name: str
     price: float
 
