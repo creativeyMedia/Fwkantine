@@ -2947,6 +2947,16 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                 </div>
               )}
 
+              {/* Boiled Eggs Summary */}
+              {dailySummary.total_boiled_eggs > 0 && (
+                <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4 text-yellow-800">🥚 Gekochte Frühstückseier</h3>
+                  <div className="text-xl font-bold text-yellow-700">
+                    {dailySummary.total_boiled_eggs} Eier gesamt
+                  </div>
+                </div>
+              )}
+
               {/* Detailed Employee Orders */}
               <h3 className="text-lg font-semibold mb-4">Detaillierte Mitarbeiter-Bestellungen</h3>
               
