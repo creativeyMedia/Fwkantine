@@ -200,6 +200,38 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
               </div>
             )}
           </div>
+
+          {/* Payment History */}
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">Zahlungsverlauf</h3>
+            {!employeeProfile.payment_history || employeeProfile.payment_history.length === 0 ? (
+              <p className="text-gray-600 text-center py-8">Keine Zahlungen vorhanden</p>
+            ) : (
+              <div className="space-y-4">
+                {employeeProfile.payment_history.map((payment, index) => (
+                  <div key={payment.id || index} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                          Zahlung
+                        </span>
+                        <span className="text-sm text-gray-600">{formatDate(payment.timestamp)}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600">€{payment.amount.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-700">
+                      <p><strong>Art:</strong> {payment.payment_type === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes'}</p>
+                      <p><strong>Admin:</strong> {payment.admin_user}</p>
+                      {payment.notes && <p><strong>Hinweise:</strong> {payment.notes}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
