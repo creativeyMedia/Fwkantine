@@ -2777,8 +2777,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                 
                 <div className="text-lg font-bold text-green-700 mb-4">
                   {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
-                    const rollLabel = rollTypeLabels[rollType] || rollType;
-                    return `${data.whole_rolls} ${rollLabel.replace(' Brötchen', '')}`;
+                    const rollLabel = String(rollTypeLabels[rollType] || rollType);
+                    const wholeRolls = String(data.whole_rolls || 0);
+                    return `${wholeRolls} ${rollLabel.replace(' Brötchen', '')}`;
                   }).join(', ')}
                 </div>
                 
