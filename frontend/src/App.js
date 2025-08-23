@@ -1504,6 +1504,11 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     }
   };
 
+  const viewEmployeeOrders = (employee) => {
+    setSelectedEmployeeForOrders(employee);
+    setShowOrdersModal(true);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
