@@ -2979,7 +2979,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                         );
                       }
                       return null;
-                    })()
+                    })()}
                     
                     {/* Toppings with Roll Type Detail */}
                     {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
