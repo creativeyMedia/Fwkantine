@@ -1512,6 +1512,16 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                 </button>
               )}
             </div>
+            
+            {/* Delete Button */}
+            <div className="mt-3">
+              <button
+                onClick={() => deleteEmployee(employee)}
+                className="w-full bg-red-600 text-white text-xs py-2 px-2 rounded hover:bg-red-700"
+              >
+                Mitarbeiter löschen
+              </button>
+            </div>
           </div>
         ))}
       </div>
