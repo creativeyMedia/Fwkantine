@@ -1195,7 +1195,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
                 onChange={(e) => setHasLunch(e.target.checked)}
                 className="mr-3"
               />
-              <span className="text-sm font-medium">Lunch hinzufügen (Preis wird vom Admin festgelegt)</span>
+              <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
             </label>
           </div>
         )}
