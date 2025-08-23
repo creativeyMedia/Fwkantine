@@ -2409,24 +2409,16 @@ const NewBreakfastItemModal = ({ title, onCreateItem, onClose }) => {
 
 // New Topping Item Modal
 const NewToppingItemModal = ({ title, onCreateItem, onClose }) => {
-  const [toppingType, setToppingType] = useState('');
+  const [toppingName, setToppingName] = useState('');
   const [price, setPrice] = useState('');
-
-  const toppingTypeOptions = [
-    { value: 'ruehrei', label: 'Rührei' },
-    { value: 'spiegelei', label: 'Spiegelei' },
-    { value: 'eiersalat', label: 'Eiersalat' },
-    { value: 'salami', label: 'Salami' },
-    { value: 'schinken', label: 'Schinken' },
-    { value: 'kaese', label: 'Käse' },
-    { value: 'butter', label: 'Butter' }
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (toppingType && price && !isNaN(parseFloat(price))) {
-      onCreateItem(toppingType, price);
-      setToppingType('');
+    if (toppingName.trim() && price && !isNaN(parseFloat(price))) {
+      // Create a unique ID from the name
+      const toppingId = toppingName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      onCreateItem(toppingId, toppingName, price);
+      setToppingName('');
       setPrice('');
     }
   };
@@ -2437,17 +2429,16 @@ const NewToppingItemModal = ({ title, onCreateItem, onClose }) => {
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Belag-Typ</label>
-            <select
-              value={toppingType}
-              onChange={(e) => setToppingType(e.target.value)}
+            <label className="block text-sm font-medium mb-2">Belag-Name</label>
+            <input
+              type="text"
+              value={toppingName}
+              onChange={(e) => setToppingName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="z.B. Rührei, Käse, Salami..."
               required
-            >
-              <option value="">-- Belag-Typ wählen --</option>
-              {toppingTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+            />
+          </div>
                 </option>
               ))}
             </select>
