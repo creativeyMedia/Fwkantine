@@ -1446,7 +1446,7 @@ const DepartmentAdminDashboard = () => {
 };
 
 // Employee Management Tab Component
-const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment }) => {
+const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate }) => {
   
   const markAsPaid = async (employee, balanceType) => {
     const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
@@ -1461,8 +1461,10 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       try {
         await axios.post(`${API}/department-admin/payment/${employee.id}?payment_type=${balanceType}&amount=${balanceAmount}&admin_department=${currentDepartment.department_name}`);
         alert('Zahlung erfolgreich verbucht');
-        // Stay in admin dashboard - just reload to refresh balances
-        window.location.reload();
+        // Refresh employee data instead of full page reload
+        if (onEmployeeUpdate) {
+          onEmployeeUpdate();
+        }
       } catch (error) {
         console.error('Fehler beim Verbuchen der Zahlung:', error);
         alert('Fehler beim Verbuchen der Zahlung');
@@ -1475,7 +1477,10 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       try {
         await axios.delete(`${API}/department-admin/employees/${employee.id}`);
         alert('Mitarbeiter erfolgreich gelöscht');
-        window.location.reload(); // Refresh to show updated employee list
+        // Refresh employee data instead of full page reload
+        if (onEmployeeUpdate) {
+          onEmployeeUpdate();
+        }
       } catch (error) {
         console.error('Fehler beim Löschen des Mitarbeiters:', error);
         alert('Fehler beim Löschen des Mitarbeiters');
