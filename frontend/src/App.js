@@ -2965,6 +2965,22 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       </div>
                     )}
                     
+                    {/* Lunch Count */}
+                    {(() => {
+                      const lunchCount = dailySummary.employee_orders ? 
+                        Object.values(dailySummary.employee_orders).filter(emp => emp.has_lunch).length : 0;
+                      
+                      if (lunchCount > 0) {
+                        return (
+                          <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                            <span className="font-semibold text-gray-700">Mittagessen:</span>
+                            <span className="text-lg font-bold text-purple-700">{lunchCount} Mitarbeiter</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()
+                    
                     {/* Toppings with Roll Type Detail */}
                     {dailySummary.total_toppings && Object.keys(dailySummary.total_toppings).length > 0 && (
                       <div>
