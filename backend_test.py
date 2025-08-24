@@ -5630,6 +5630,7 @@ class CanteenTester:
             ("🎯 CRITICAL: Data Persistence Fix Verification", self.test_data_persistence_critical),
             ("🚨 CRITICAL: Lunch Pricing Calculation Bug", self.test_critical_lunch_pricing_calculation),
             ("🥚 BOILED EGGS PRICE MANAGEMENT", self.test_boiled_eggs_price_management),
+            ("🍽️ DAILY LUNCH PRICE MANAGEMENT", self.test_daily_lunch_price_management),
             ("Department Authentication", self.test_department_authentication),
             ("Department Admin Authentication", self.test_department_admin_authentication),
             ("Employee Management", self.test_employee_management),
