@@ -599,20 +599,10 @@ async def update_lunch_settings(price: float):
                         boiled_eggs_price = lunch_settings_obj.get("boiled_eggs_price", 0.50)
                         new_total += boiled_eggs * boiled_eggs_price
                     
-                    # New lunch price (FIXED: lunch price should be per order or per total halves, not per roll_halves)
+                    # New lunch price (FIXED: lunch price should be per order, not per roll halves)
                     if item.get("has_lunch"):
-                        if "roll_type" in item:
-                            # Old format: multiply by roll halves
-                            roll_halves = item.get("roll_halves", item.get("roll_count", 1))
-                            new_total += price * roll_halves
-                        else:
-                            # New format: multiply by total halves or add once if no rolls
-                            total_halves = item.get("total_halves", item.get("white_halves", 0) + item.get("seeded_halves", 0))
-                            if total_halves > 0:
-                                new_total += price * total_halves
-                            else:
-                                # Lunch only order
-                                new_total += price
+                        # Add lunch price once per order, regardless of roll count
+                        new_total += price
                 
                 # Update order with new total price
                 old_total = order["total_price"]
