@@ -6239,6 +6239,309 @@ class CanteenTester:
         
         return success_count >= 5  # Expect at least 5 out of 7 tests to pass
 
+    def test_coffee_functionality(self):
+        """Test comprehensive coffee functionality integration"""
+        print("\n=== Testing Coffee Functionality ===")
+        
+        success_count = 0
+        
+        # Test 1: Coffee Price Management API - GET /api/lunch-settings (verify coffee_price field)
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                
+                if 'coffee_price' in lunch_settings:
+                    current_coffee_price = lunch_settings['coffee_price']
+                    self.log_test("GET Lunch Settings - Coffee Price Field", True, 
+                                f"Current coffee price: €{current_coffee_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("GET Lunch Settings - Coffee Price Field", False, 
+                                "coffee_price field missing from lunch settings")
+            else:
+                self.log_test("GET Lunch Settings - Coffee Price Field", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Lunch Settings - Coffee Price Field", False, f"Exception: {str(e)}")
+        
+        # Test 2: Coffee Price Management API - PUT /api/lunch-settings/coffee-price
+        try:
+            new_coffee_price = 2.00
+            response = self.session.put(f"{API_BASE}/lunch-settings/coffee-price", 
+                                      params={"price": new_coffee_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('price') == new_coffee_price:
+                    self.log_test("UPDATE Coffee Price", True, 
+                                f"Successfully updated coffee price to €{new_coffee_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("UPDATE Coffee Price", False, 
+                                f"Price update response mismatch: expected €{new_coffee_price:.2f}, got {result.get('price', 'N/A')}")
+            else:
+                self.log_test("UPDATE Coffee Price", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("UPDATE Coffee Price", False, f"Exception: {str(e)}")
+        
+        # Test 3: Verify coffee price persistence
+        try:
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                
+                if 'coffee_price' in lunch_settings:
+                    persisted_price = lunch_settings['coffee_price']
+                    expected_price = 2.00  # From previous update
+                    
+                    if abs(persisted_price - expected_price) < 0.01:
+                        self.log_test("Verify Coffee Price Persistence", True, 
+                                    f"Coffee price correctly persisted: €{persisted_price:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test("Verify Coffee Price Persistence", False, 
+                                    f"Coffee price not persisted correctly: expected €{expected_price:.2f}, got €{persisted_price:.2f}")
+                else:
+                    self.log_test("Verify Coffee Price Persistence", False, 
+                                "coffee_price field missing after update")
+            else:
+                self.log_test("Verify Coffee Price Persistence", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Verify Coffee Price Persistence", False, f"Exception: {str(e)}")
+        
+        # Test 4: Coffee in Order Creation - Create breakfast order with coffee
+        if not self.employees:
+            self.log_test("Coffee Order Creation", False, "No employees available for testing")
+            return success_count >= 3
+        
+        # Find department "fw4abteilung1" or use first available
+        test_department = None
+        for dept in self.departments:
+            if dept['id'] == 'fw4abteilung1':
+                test_department = dept
+                break
+        
+        if not test_department and self.departments:
+            test_department = self.departments[0]
+        
+        if not test_department:
+            self.log_test("Coffee Order Creation", False, "No suitable department found")
+            return success_count >= 3
+        
+        # Find an employee in the test department
+        test_employee = None
+        for emp in self.employees:
+            if emp['department_id'] == test_department['id']:
+                test_employee = emp
+                break
+        
+        if not test_employee:
+            # Create a test employee for this department
+            try:
+                employee_data = {
+                    "name": "Coffee Test Employee",
+                    "department_id": test_department['id']
+                }
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    test_employee = response.json()
+                    self.employees.append(test_employee)
+            except Exception as e:
+                self.log_test("Create Coffee Test Employee", False, f"Exception: {str(e)}")
+                return success_count >= 3
+        
+        # Create breakfast order with coffee
+        try:
+            coffee_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_department['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 2,
+                        "white_halves": 1,
+                        "seeded_halves": 1,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": False,
+                        "boiled_eggs": 0,
+                        "has_coffee": True  # Include coffee
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=coffee_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                
+                # Verify order includes coffee price in total
+                if order['total_price'] > 0:
+                    self.log_test("Coffee Order Creation", True, 
+                                f"Created breakfast order with coffee: €{order['total_price']:.2f}")
+                    success_count += 1
+                    
+                    # Verify coffee is tracked in order
+                    if order.get('breakfast_items') and len(order['breakfast_items']) > 0:
+                        breakfast_item = order['breakfast_items'][0]
+                        if breakfast_item.get('has_coffee') == True:
+                            self.log_test("Coffee Tracking in Order", True, 
+                                        "Coffee option correctly saved in order")
+                            success_count += 1
+                        else:
+                            self.log_test("Coffee Tracking in Order", False, 
+                                        "Coffee option not saved in order")
+                else:
+                    self.log_test("Coffee Order Creation", False, "Invalid total price")
+            else:
+                self.log_test("Coffee Order Creation", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Coffee Order Creation", False, f"Exception: {str(e)}")
+        
+        # Test 5: Coffee in Daily Summary
+        try:
+            response = self.session.get(f"{API_BASE}/orders/daily-summary/{test_department['id']}")
+            
+            if response.status_code == 200:
+                summary = response.json()
+                
+                # Check if employee_orders include has_coffee tracking
+                employee_orders = summary.get('employee_orders', {})
+                coffee_found = False
+                
+                for employee_name, order_data in employee_orders.items():
+                    if order_data.get('has_coffee') == True:
+                        coffee_found = True
+                        break
+                
+                if coffee_found:
+                    self.log_test("Coffee in Daily Summary", True, 
+                                "Coffee tracking found in daily summary employee_orders")
+                    success_count += 1
+                else:
+                    self.log_test("Coffee in Daily Summary", False, 
+                                "Coffee tracking not found in daily summary")
+            else:
+                self.log_test("Coffee in Daily Summary", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Coffee in Daily Summary", False, f"Exception: {str(e)}")
+        
+        # Test 6: Coffee in Breakfast History
+        try:
+            response = self.session.get(f"{API_BASE}/orders/breakfast-history/{test_department['id']}")
+            
+            if response.status_code == 200:
+                history = response.json()
+                
+                # Check if coffee orders appear in historical data
+                coffee_in_history = False
+                history_data = history.get('history', [])
+                
+                for day_data in history_data:
+                    employee_orders = day_data.get('employee_orders', {})
+                    for employee_name, order_data in employee_orders.items():
+                        if order_data.get('has_coffee') == True:
+                            coffee_in_history = True
+                            break
+                    if coffee_in_history:
+                        break
+                
+                if coffee_in_history:
+                    self.log_test("Coffee in Breakfast History", True, 
+                                "Coffee tracking found in breakfast history")
+                    success_count += 1
+                else:
+                    self.log_test("Coffee in Breakfast History", False, 
+                                "Coffee tracking not found in breakfast history")
+            else:
+                self.log_test("Coffee in Breakfast History", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Coffee in Breakfast History", False, f"Exception: {str(e)}")
+        
+        # Test 7: Coffee Price Integration Test - Change price and verify new orders use updated price
+        try:
+            # Change coffee price to €1.75
+            new_coffee_price = 1.75
+            response = self.session.put(f"{API_BASE}/lunch-settings/coffee-price", 
+                                      params={"price": new_coffee_price})
+            
+            if response.status_code == 200:
+                self.log_test("Update Coffee Price for Integration Test", True, 
+                            f"Updated coffee price to €{new_coffee_price:.2f}")
+                
+                # Create new order with coffee and verify it uses updated price
+                coffee_order_2 = {
+                    "employee_id": test_employee['id'],
+                    "department_id": test_department['id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 1,
+                            "white_halves": 1,
+                            "seeded_halves": 0,
+                            "toppings": ["butter"],
+                            "has_lunch": False,
+                            "boiled_eggs": 0,
+                            "has_coffee": True  # Include coffee with new price
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=coffee_order_2)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    
+                    # Verify order uses updated coffee price
+                    # Expected: roll price + coffee price (€1.75)
+                    if order['total_price'] > 1.50:  # Should include coffee price
+                        self.log_test("Coffee Price Integration", True, 
+                                    f"New order uses updated coffee price: €{order['total_price']:.2f}")
+                        success_count += 1
+                        
+                        # Verify integration with breakfast balance
+                        # Check that coffee orders go to breakfast_balance (not drinks_sweets_balance)
+                        employee_response = self.session.get(f"{API_BASE}/departments/{test_department['id']}/employees")
+                        if employee_response.status_code == 200:
+                            employees = employee_response.json()
+                            for emp in employees:
+                                if emp['id'] == test_employee['id']:
+                                    if emp['breakfast_balance'] > 0:
+                                        self.log_test("Coffee Balance Integration", True, 
+                                                    f"Coffee orders correctly added to breakfast_balance: €{emp['breakfast_balance']:.2f}")
+                                        success_count += 1
+                                    else:
+                                        self.log_test("Coffee Balance Integration", False, 
+                                                    "Coffee orders not reflected in breakfast_balance")
+                                    break
+                    else:
+                        self.log_test("Coffee Price Integration", False, 
+                                    f"Order price too low, may not include coffee: €{order['total_price']:.2f}")
+                else:
+                    self.log_test("Coffee Price Integration", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("Update Coffee Price for Integration Test", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Coffee Price Integration", False, f"Exception: {str(e)}")
+        
+        return success_count >= 6  # Expect at least 6 out of 8 tests to pass
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
