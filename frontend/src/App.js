@@ -3178,17 +3178,21 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                         Object.entries(toppingBreakdown).forEach(([topping, counts]) => {
                           const toppingName = finalToppingLabels[topping] || topping;
                           
-                          if (counts.seeded > 0) {
-                            toppingItems.push(
-                              <div key={`${topping}-seeded`} className="flex justify-between items-center">
-                                <span className="text-gray-600">{counts.seeded}x {toppingName} Körner (Korn)</span>
-                              </div>
-                            );
-                          }
+                          // Create parts array for Hell and Korn counts
+                          const parts = [];
                           if (counts.white > 0) {
+                            parts.push(`${counts.white}x Hell`);
+                          }
+                          if (counts.seeded > 0) {
+                            parts.push(`${counts.seeded}x Korn`);
+                          }
+                          
+                          // Only add if there are actual counts
+                          if (parts.length > 0) {
                             toppingItems.push(
-                              <div key={`${topping}-white`} className="flex justify-between items-center">
-                                <span className="text-gray-600">{counts.white}x {toppingName} Hell</span>
+                              <div key={topping} className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">{toppingName}:</span>
+                                <span className="text-gray-600">{parts.join(' | ')}</span>
                               </div>
                             );
                           }
