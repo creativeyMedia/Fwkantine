@@ -247,7 +247,8 @@ class BerlinTimezoneTest:
         
         # Test 1: Close breakfast for today
         try:
-            response = self.session.post(f"{API_BASE}/department-admin/close-breakfast/{self.department_id}")
+            response = self.session.post(f"{API_BASE}/department-admin/close-breakfast/{self.department_id}", 
+                                       params={"admin_name": "Test Admin"})
             
             if response.status_code == 200:
                 result = response.json()
