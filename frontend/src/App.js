@@ -1179,37 +1179,39 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         {/* Step 1: Select Roll Counts */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Helle Brötchen (Hälften)</span>
-            <span className="text-sm text-gray-600">{whiteRollPrice.toFixed(2)} € pro Hälfte</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Helle Brötchen (Hälften)</label>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={whiteRolls}
+                onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="0"
+              />
+              <span className="text-sm text-gray-600 ml-3">
+                à {whiteRollPrice.toFixed(2)} € = {(whiteRolls * whiteRollPrice).toFixed(2)} €
+              </span>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Körner Brötchen (Hälften)</label>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={seededRolls}
+                onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="0"
+              />
+              <span className="text-sm text-gray-600 ml-3">
+                à {seededRollPrice.toFixed(2)} € = {(seededRolls * seededRollPrice).toFixed(2)} €
+              </span>
+            </div>
           </div>
-          <input
-            type="number"
-            min="0"
-            max="10"
-            step="1"
-            value={whiteRolls}
-            onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-          />
         </div>
-        <div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Körnerbrötchen (Hälften)</span>
-            <span className="text-sm text-gray-600">{seededRollPrice.toFixed(2)} € pro Hälfte</span>
-          </div>
-          <input
-            type="number"
-            min="0"
-            max="10"
-            step="1"
-            value={seededRolls}
-            onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-          />
-        </div>
-      </div>
-    </div>
 
     {/* Step 2: Assign Toppings to Each Roll */}
     {totalHalves > 0 && (
