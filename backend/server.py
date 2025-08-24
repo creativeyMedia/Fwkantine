@@ -168,6 +168,7 @@ class BreakfastOrder(BaseModel):
     toppings: List[ToppingType]  # Exactly matches total_halves count
     has_lunch: bool = False
     boiled_eggs: int = 0  # Number of boiled breakfast eggs
+    has_coffee: bool = False  # Whether daily coffee is ordered
     
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
