@@ -3174,8 +3174,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           // Only add if there are actual counts
                           if (parts.length > 0) {
                             toppingItems.push(
-                              <div key={topping} className="flex justify-between items-center">
-                                <span className="text-gray-600 font-medium">{toppingName}:</span>
+                              <div key={topping} className="flex items-center gap-4">
+                                <span className="text-gray-600 font-medium min-w-[100px]">{toppingName}:</span>
                                 <span className="text-gray-600">{parts.join(' | ')}</span>
                               </div>
                             );
