@@ -2452,6 +2452,9 @@ const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteM
         </div>
       </div>
 
+        {/* Gekochte Eier */}
+        <BoiledEggsManagement />
+
       {/* New Item Modals */}
       {showNewDrink && (
         <NewMenuItemModal
