@@ -977,6 +977,10 @@ async def get_daily_summary(department_id: str):
                 boiled_eggs = item.get("boiled_eggs", 0)
                 employee_orders[employee_name]["boiled_eggs"] += boiled_eggs
                 
+                # Add lunch if present
+                if item.get("has_lunch", False):
+                    employee_orders[employee_name]["has_lunch"] = True
+                
                 # Update overall summary
                 if "weiss" not in breakfast_summary:
                     breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
