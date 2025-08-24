@@ -483,9 +483,27 @@ async def get_departments():
 # Employee routes
 @api_router.get("/departments/{department_id}/employees", response_model=List[Employee])
 async def get_department_employees(department_id: str):
-    """Get all employees for a specific department"""
-    employees = await db.employees.find({"department_id": department_id}).to_list(100)
+    """Get all employees for a specific department, sorted by sort_order"""
+    employees = await db.employees.find({"department_id": department_id}).sort("sort_order", 1).to_list(100)
     return [Employee(**emp) for emp in employees]
+
+@api_router.put("/departments/{department_id}/employees/sort-order")
+async def update_employees_sort_order(department_id: str, employee_ids: List[str]):
+    """Update sort order for employees based on drag & drop"""
+    try:
+        # Update each employee's sort_order based on their position in the list
+        for index, employee_id in enumerate(employee_ids):
+            await db.employees.update_one(
+                {"id": employee_id, "department_id": department_id},
+                {"$set": {"sort_order": index}}
+            )
+        
+        return {
+            "message": "Mitarbeiter-Sortierung erfolgreich gespeichert",
+            "updated_count": len(employee_ids)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Speichern der Sortierung: {str(e)}")
 
 @api_router.post("/employees", response_model=Employee)
 async def create_employee(employee_data: EmployeeCreate):
