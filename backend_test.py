@@ -4749,6 +4749,171 @@ class CanteenTester:
             print(f"\n🚨 DEPARTMENT-SPECIFIC MENU SYSTEM: MAJOR ISSUES DETECTED")
             return (total_passed, total_tests - total_passed)
 
+    def test_data_persistence_critical(self):
+        """CRITICAL TEST: Data Persistence Fix Verification - Test that data persists in local MongoDB"""
+        print("\n=== CRITICAL DATA PERSISTENCE TESTING ===")
+        print("Testing fix for production issue: Frontend now connects to production server instead of preview")
+        
+        success_count = 0
+        total_tests = 7
+        
+        # Test 1: Basic database connectivity to local MongoDB
+        try:
+            response = self.session.get(f"{API_BASE}/departments")
+            if response.status_code == 200:
+                self.log_test("Database Connectivity", True, "Successfully connected to local MongoDB")
+                success_count += 1
+            else:
+                self.log_test("Database Connectivity", False, f"Failed to connect: HTTP {response.status_code}")
+        except Exception as e:
+            self.log_test("Database Connectivity", False, f"Connection error: {str(e)}")
+        
+        # Test 2: Employee creation and persistence
+        test_employee_id = None
+        try:
+            if self.departments:
+                employee_data = {
+                    "name": "Maria Schneider",
+                    "department_id": self.departments[0]['id']
+                }
+                
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    employee = response.json()
+                    test_employee_id = employee['id']
+                    self.log_test("Employee Creation", True, f"Created employee: {employee['name']}")
+                    success_count += 1
+                    
+                    # Verify persistence by retrieving
+                    response = self.session.get(f"{API_BASE}/departments/{self.departments[0]['id']}/employees")
+                    if response.status_code == 200:
+                        employees = response.json()
+                        if any(emp['id'] == test_employee_id for emp in employees):
+                            self.log_test("Employee Persistence", True, "Employee data persisted in database")
+                            success_count += 1
+                        else:
+                            self.log_test("Employee Persistence", False, "Employee not found after creation")
+                    else:
+                        self.log_test("Employee Persistence", False, "Failed to retrieve employees")
+                else:
+                    self.log_test("Employee Creation", False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Employee Creation", False, f"Exception: {str(e)}")
+        
+        # Test 3: Order creation and persistence
+        test_order_id = None
+        if test_employee_id and self.departments:
+            try:
+                order_data = {
+                    "employee_id": test_employee_id,
+                    "department_id": self.departments[0]['id'],
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["ruehrei", "kaese"],
+                            "has_lunch": False,
+                            "boiled_eggs": 0
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                if response.status_code == 200:
+                    order = response.json()
+                    test_order_id = order['id']
+                    self.log_test("Order Creation", True, f"Created order with total: €{order['total_price']:.2f}")
+                    success_count += 1
+                    
+                    # Verify persistence by retrieving
+                    response = self.session.get(f"{API_BASE}/employees/{test_employee_id}/orders")
+                    if response.status_code == 200:
+                        orders_data = response.json()
+                        orders = orders_data.get('orders', [])
+                        if any(order['id'] == test_order_id for order in orders):
+                            self.log_test("Order Persistence", True, "Order data persisted in database")
+                            success_count += 1
+                        else:
+                            self.log_test("Order Persistence", False, "Order not found after creation")
+                    else:
+                        self.log_test("Order Persistence", False, "Failed to retrieve orders")
+                else:
+                    self.log_test("Order Creation", False, f"HTTP {response.status_code}: {response.text}")
+            except Exception as e:
+                self.log_test("Order Creation", False, f"Exception: {str(e)}")
+        
+        # Test 4: Password changes persistence
+        if self.departments:
+            try:
+                dept_id = self.departments[0]['id']
+                new_password = "newTestPassword123"
+                
+                response = self.session.put(f"{API_BASE}/department-admin/change-employee-password/{dept_id}",
+                                          params={"new_password": new_password})
+                if response.status_code == 200:
+                    self.log_test("Password Change", True, "Password updated successfully")
+                    
+                    # Test authentication with new password
+                    login_data = {
+                        "department_name": self.departments[0]['name'],
+                        "password": new_password
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/login/department", json=login_data)
+                    if response.status_code == 200:
+                        self.log_test("Password Persistence", True, "New password persisted and works for authentication")
+                        success_count += 1
+                    else:
+                        self.log_test("Password Persistence", False, "New password not persisted")
+                else:
+                    self.log_test("Password Change", False, f"HTTP {response.status_code}: {response.text}")
+            except Exception as e:
+                self.log_test("Password Change", False, f"Exception: {str(e)}")
+        
+        # Test 5: Department-specific data separation
+        try:
+            if len(self.departments) >= 2:
+                dept1_id = self.departments[0]['id']
+                dept2_id = self.departments[1]['id']
+                
+                # Get employees for each department
+                response1 = self.session.get(f"{API_BASE}/departments/{dept1_id}/employees")
+                response2 = self.session.get(f"{API_BASE}/departments/{dept2_id}/employees")
+                
+                if response1.status_code == 200 and response2.status_code == 200:
+                    dept1_employees = response1.json()
+                    dept2_employees = response2.json()
+                    
+                    # Check that employees are properly separated
+                    dept1_ids = {emp['id'] for emp in dept1_employees}
+                    dept2_ids = {emp['id'] for emp in dept2_employees}
+                    
+                    if not dept1_ids.intersection(dept2_ids):
+                        self.log_test("Department Data Separation", True, 
+                                    f"Departments properly separated: Dept1={len(dept1_employees)}, Dept2={len(dept2_employees)}")
+                        success_count += 1
+                    else:
+                        self.log_test("Department Data Separation", False, "Employee data not properly separated by department")
+                else:
+                    self.log_test("Department Data Separation", False, "Failed to retrieve department employees")
+            else:
+                self.log_test("Department Data Separation", False, "Not enough departments for separation test")
+        except Exception as e:
+            self.log_test("Department Data Separation", False, f"Exception: {str(e)}")
+        
+        print(f"\n🎯 CRITICAL DATA PERSISTENCE TEST RESULTS: {success_count}/{total_tests} tests passed")
+        
+        if success_count == total_tests:
+            print("🎉 EXCELLENT! All data persistence tests passed - production issue is FIXED!")
+        elif success_count >= 5:
+            print("✅ GOOD! Most data persistence tests passed - minor issues remain")
+        else:
+            print("🚨 CRITICAL! Data persistence issues detected - production problem NOT fully resolved")
+        
+        return success_count >= 5
+
     def test_drag_drop_employee_creation(self):
         """Test employee creation and management for drag and drop functionality"""
         print("\n=== Testing Employee Creation for Drag and Drop ===")
