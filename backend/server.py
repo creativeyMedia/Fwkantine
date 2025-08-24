@@ -73,6 +73,7 @@ class Employee(BaseModel):
     department_id: str
     breakfast_balance: float = 0.0
     drinks_sweets_balance: float = 0.0
+    sort_order: int = 0  # For drag & drop sorting
     
 class MenuItemBreakfast(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
