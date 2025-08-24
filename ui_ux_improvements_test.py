@@ -46,7 +46,7 @@ class UIUXImprovementsTester:
         })
     
     def setup_test_environment(self):
-        """Setup test environment with department and employee"""
+        """Setup test environment with department and multiple employees"""
         print("\n=== Setting Up Test Environment ===")
         
         # Get first available department
@@ -84,23 +84,37 @@ class UIUXImprovementsTester:
             self.log_test("Department Authentication", False, f"Exception: {str(e)}")
             return False
         
-        # Create test employee
-        try:
-            employee_data = {
-                "name": "UI Test Employee",
-                "department_id": self.department_id
-            }
-            response = self.session.post(f"{API_BASE}/employees", json=employee_data)
-            if response.status_code == 200:
-                employee = response.json()
-                self.employee_id = employee['id']
-                self.log_test("Create Test Employee", True, f"Created employee: {employee['name']} (ID: {self.employee_id})")
-                return True
-            else:
-                self.log_test("Create Test Employee", False, f"HTTP {response.status_code}: {response.text}")
-                return False
-        except Exception as e:
-            self.log_test("Create Test Employee", False, f"Exception: {str(e)}")
+        # Create multiple test employees for different order types
+        self.test_employees = []
+        employee_names = [
+            "UI Test Employee 1",
+            "UI Test Employee 2", 
+            "UI Test Employee 3",
+            "UI Test Employee 4",
+            "UI Test Employee 5"
+        ]
+        
+        for name in employee_names:
+            try:
+                employee_data = {
+                    "name": name,
+                    "department_id": self.department_id
+                }
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    employee = response.json()
+                    self.test_employees.append(employee)
+                    self.log_test(f"Create {name}", True, f"Created employee: {employee['name']} (ID: {employee['id']})")
+                else:
+                    self.log_test(f"Create {name}", False, f"HTTP {response.status_code}: {response.text}")
+            except Exception as e:
+                self.log_test(f"Create {name}", False, f"Exception: {str(e)}")
+        
+        if len(self.test_employees) >= 3:
+            self.employee_id = self.test_employees[0]['id']  # Set primary employee for backward compatibility
+            return True
+        else:
+            self.log_test("Setup Test Employees", False, "Failed to create enough test employees")
             return False
     
     def test_enhanced_daily_summary_with_lunch_tracking(self):
