@@ -63,25 +63,39 @@ def test_critical_lunch_pricing_bug():
     # Step 2: Authenticate with department credentials
     print("\n2️⃣ Authenticating with department credentials...")
     
-    # Try different password combinations
-    passwords_to_try = ["password1", "passwordA", "admin1", "adminA"]
-    authenticated = False
+    # Try master password first
+    try:
+        response = session.post(f"{API_BASE}/login/master", 
+                               params={"department_name": test_dept['name'], "master_password": "master123dev"})
+        if response.status_code == 200:
+            print("✅ Master authentication successful")
+            authenticated = True
+        else:
+            print(f"❌ Master authentication failed: {response.status_code}")
+            authenticated = False
+    except Exception as e:
+        print(f"❌ Master authentication error: {str(e)}")
+        authenticated = False
     
-    for password in passwords_to_try:
-        try:
-            login_data = {
-                "department_name": test_dept['name'],
-                "password": password
-            }
-            response = session.post(f"{API_BASE}/login/department", json=login_data)
-            if response.status_code == 200:
-                print(f"✅ Department authentication successful with password: {password}")
-                authenticated = True
-                break
-            else:
-                print(f"❌ Password '{password}' failed: {response.status_code}")
-        except Exception as e:
-            print(f"❌ Authentication error with '{password}': {str(e)}")
+    if not authenticated:
+        # Try different password combinations
+        passwords_to_try = ["password1", "passwordA", "admin1", "adminA"]
+        
+        for password in passwords_to_try:
+            try:
+                login_data = {
+                    "department_name": test_dept['name'],
+                    "password": password
+                }
+                response = session.post(f"{API_BASE}/login/department", json=login_data)
+                if response.status_code == 200:
+                    print(f"✅ Department authentication successful with password: {password}")
+                    authenticated = True
+                    break
+                else:
+                    print(f"❌ Password '{password}' failed: {response.status_code}")
+            except Exception as e:
+                print(f"❌ Authentication error with '{password}': {str(e)}")
     
     if not authenticated:
         print("❌ All authentication attempts failed")
