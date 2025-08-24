@@ -3954,6 +3954,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [editingLunchPrice, setEditingLunchPrice] = useState(null); // date being edited
+  const [lunchPriceInput, setLunchPriceInput] = useState(''); // temporary input value
+  const [updatingLunchPrice, setUpdatingLunchPrice] = useState(null); // date being updated
 
   useEffect(() => {
     fetchBreakfastHistory();
