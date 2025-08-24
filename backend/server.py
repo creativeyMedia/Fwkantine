@@ -1531,7 +1531,8 @@ async def close_breakfast_for_day(department_id: str, admin_name: str):
 @api_router.get("/breakfast-status/{department_id}")
 async def get_breakfast_status(department_id: str):
     """Check if breakfast is closed for today"""
-    today = datetime.now(timezone.utc).date().isoformat()
+    # Use Berlin timezone for current day
+    today = get_berlin_date().isoformat()
     
     setting = await db.breakfast_settings.find_one({
         "department_id": department_id,
