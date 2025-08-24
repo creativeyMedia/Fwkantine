@@ -720,6 +720,18 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
   };
 
+  const fetchBreakfastStatus = async () => {
+    try {
+      if (!currentDepartment?.department_id) {
+        return;
+      }
+      const response = await axios.get(`${API}/breakfast-status/${currentDepartment.department_id}`);
+      setBreakfastStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Frühstück-Status:', error);
+    }
+  };
+
   // Create dynamic labels from menu data
   const rollTypeLabels = {
     'weiss': 'Helles Brötchen',
