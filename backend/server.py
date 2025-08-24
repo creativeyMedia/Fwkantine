@@ -895,7 +895,20 @@ async def create_order(order_data: OrderCreate):
         
         breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
         topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
-        lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
+        
+        # Get daily lunch price for today
+        today = datetime.now(timezone.utc).date().strftime('%Y-%m-%d')
+        daily_price = await db.daily_lunch_prices.find_one({
+            "department_id": order_data.department_id,
+            "date": today
+        })
+        
+        if daily_price:
+            lunch_price = daily_price["lunch_price"]
+        else:
+            # Fall back to global lunch settings
+            lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
+        
         boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50  # Default €0.50 per egg
         
         for breakfast_item in order_data.breakfast_items:
