@@ -681,7 +681,7 @@ async def update_boiled_eggs_price(price: float):
 @api_router.get("/daily-lunch-settings/{department_id}")
 async def get_daily_lunch_settings(department_id: str):
     """Get daily lunch prices for a department (last 30 days)"""
-    end_date = datetime.now(timezone.utc).date()
+    end_date = get_berlin_date()
     start_date = end_date - timedelta(days=30)
     
     daily_prices = []
