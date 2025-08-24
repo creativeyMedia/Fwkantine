@@ -682,7 +682,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CRITICAL BUG FIXES - Drag&Drop persistence, incorrect saldo calculation on breakfast updates, retroactive lunch pricing errors"
+    - "CRITICAL BUG FIXES - Drag&Drop persistence, incorrect saldo calculation on breakfast updates, retroactive lunch pricing errors - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
