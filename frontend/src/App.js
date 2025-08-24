@@ -1179,155 +1179,137 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         {/* Step 1: Select Roll Counts */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Helle Brötchen (Hälften)</label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={whiteRolls}
-                onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="0"
-              />
-              <span className="text-sm text-gray-600 ml-3">
-                à {whiteRollPrice.toFixed(2)} € = {(whiteRolls * whiteRollPrice).toFixed(2)} €
-              </span>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Körner Brötchen (Hälften)</label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={seededRolls}
-                onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="0"
-              />
-              <span className="text-sm text-gray-600 ml-3">
-                à {seededRollPrice.toFixed(2)} € = {(seededRolls * seededRollPrice).toFixed(2)} €
-              </span>
-            </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Helle Brötchen (Hälften)</span>
+            <span className="text-sm text-gray-600">{whiteRollPrice.toFixed(2)} € pro Hälfte</span>
           </div>
-          
-          <div className="mt-4 p-4 bg-white border border-blue-300 rounded-lg">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Brötchen ({totalHalves} Hälften):</span>
-                <span className="text-sm font-medium">{rollsCost.toFixed(2)} €</span>
-              </div>
-              {boiledEggs > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Gekochte Eier ({boiledEggs} Stück):</span>
-                  <span className="text-sm text-gray-600">{boiledEggsCost.toFixed(2)} €</span>
-                </div>
-              )}
-              {hasLunch && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-purple-600">Mittagessen:</span>
-                  <span className="text-sm text-purple-600">wird vom Admin berechnet</span>
-                </div>
-              )}
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold">Brötchen + Eier Gesamt:</span>
-                  <span className="font-bold">{totalCost.toFixed(2)} €</span>
-                </div>
-                {hasLunch && (
-                  <p className="text-xs text-gray-500 mt-1">+ Mittagessen-Preis wird automatisch hinzugefügt</p>
-                )}
-              </div>
-            </div>
-          </div>
+          <input
+            type="number"
+            min="0"
+            max="10"
+            step="1"
+            value={whiteRolls}
+            onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          />
         </div>
-
-        {/* Step 2: Assign Toppings to Each Roll */}
-        {totalHalves > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <h4 className="font-semibold mb-4">2. Beläge zuweisen (kostenlos)</h4>
-            <p className="text-sm text-gray-600 mb-4">
-              Weisen Sie jedem Brötchen einen Belag zu. Gleiche Beläge können mehrfach verwendet werden.
-            </p>
-            
-            <div className="space-y-3">
-              {toppingAssignments.map((assignment, index) => (
-                <div key={assignment.id} className="flex items-center gap-4 p-3 bg-white border border-green-300 rounded">
-                  <div className="w-40">
-                    <span className="text-sm font-medium">{assignment.rollLabel}</span>
-                  </div>
-                  <div className="flex-1">
-                    <select
-                      value={assignment.topping}
-                      onChange={(e) => handleToppingAssignment(index, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
-                    >
-                      <option value="">-- Belag wählen --</option>
-                      {toppingsMenu.map((item) => (
-                        <option key={item.id} value={item.topping_type}>
-                          {toppingLabels[item.topping_type]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 p-3 bg-white border border-green-300 rounded">
-              <h5 className="text-sm font-medium mb-2">Belag-Übersicht:</h5>
-              <div className="text-xs text-gray-700">
-                {Object.entries(
-                  toppingAssignments
-                    .filter(a => a.topping)
-                    .reduce((acc, a) => {
-                      acc[a.topping] = (acc[a.topping] || 0) + 1;
-                      return acc;
-                    }, {})
-                ).map(([topping, count]) => (
-                  <span key={topping} className="inline-block bg-green-200 px-2 py-1 rounded mr-2 mb-1">
-                    {count}x {toppingLabels[topping]}
-                  </span>
-                ))}
-              </div>
-            </div>
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Körnerbrötchen (Hälften)</span>
+            <span className="text-sm text-gray-600">{seededRollPrice.toFixed(2)} € pro Hälfte</span>
           </div>
-        )}
-
-        {/* Boiled Eggs Option */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <label className="block text-sm font-medium mb-3">Gekochte Frühstückseier</label>
-          <div className="flex items-center space-x-4">
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="1"
-              value={boiledEggs}
-              onChange={handleBoiledEggsChange}
-              className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
-            />
-            <span className="text-sm text-gray-600">
-              Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
-            </span>
-          </div>
-        </div>
-
-        {/* Mittagessen Option */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hasLunch}
-              onChange={handleLunchChange}
-              className="mr-3 w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
-            />
-            <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
-          </label>
+          <input
+            type="number"
+            min="0"
+            max="10"
+            step="1"
+            value={seededRolls}
+            onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          />
         </div>
       </div>
     </div>
+
+    {/* Step 2: Assign Toppings to Each Roll */}
+    {totalHalves > 0 && (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+        <h4 className="font-semibold mb-4">2. Beläge zuweisen (kostenlos)</h4>
+        <p className="text-sm text-gray-600 mb-4">
+          Weisen Sie jedem Brötchen einen Belag zu. Gleiche Beläge können mehrfach verwendet werden.
+        </p>
+        
+        <div className="space-y-3">
+          {toppingAssignments.map((assignment, index) => (
+            <div key={assignment.id} className="flex items-center gap-4 p-3 bg-white border border-green-300 rounded">
+              <div className="w-40">
+                <span className="text-sm font-medium">{assignment.rollLabel}</span>
+              </div>
+              <div className="flex-1">
+                <select
+                  value={assignment.topping}
+                  onChange={(e) => handleToppingAssignment(index, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+                >
+                  <option value="">-- Belag wählen --</option>
+                  {toppingsMenu.map((item) => (
+                    <option key={item.id} value={item.topping_type}>
+                      {toppingLabels[item.topping_type]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Boiled Eggs Option */}
+    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <label className="block text-sm font-medium mb-3">Gekochte Frühstückseier</label>
+      <div className="flex items-center space-x-4">
+        <input
+          type="number"
+          min="0"
+          max="10"
+          step="1"
+          value={boiledEggs}
+          onChange={handleBoiledEggsChange}
+          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
+        />
+        <span className="text-sm text-gray-600">
+          Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
+        </span>
+      </div>
+    </div>
+
+    {/* Mittagessen Option */}
+    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+      <label className="flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={hasLunch}
+          onChange={handleLunchChange}
+          className="mr-3 w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+        />
+        <span className="text-sm font-medium">Mittagessen hinzufügen (Preis wird vom Admin festgelegt)</span>
+      </label>
+    </div>
+
+    {/* Gesamtrechnung nach unten verschoben */}
+    <div className="mt-4 p-4 bg-gray-50 border border-gray-300 rounded-lg">
+      <h4 className="font-semibold mb-3 text-gray-800">📋 Bestellzusammenfassung</h4>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-medium">Brötchen ({totalHalves} Hälften):</span>
+          <span className="text-sm font-medium">{rollsCost.toFixed(2)} €</span>
+        </div>
+        {boiledEggs > 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Gekochte Eier ({boiledEggs} Stück):</span>
+            <span className="text-sm text-gray-600">{boiledEggsCost.toFixed(2)} €</span>
+          </div>
+        )}
+        {hasLunch && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-purple-600">Mittagessen:</span>
+            <span className="text-sm text-purple-600">wird vom Admin berechnet</span>
+          </div>
+        )}
+        <div className="border-t pt-2 mt-2">
+          <div className="flex justify-between items-center">
+            <span className="font-bold">Brötchen + Eier Gesamt:</span>
+            <span className="font-bold">{totalCost.toFixed(2)} €</span>
+          </div>
+          {hasLunch && (
+            <p className="text-xs text-gray-500 mt-1">+ Mittagessen-Preis wird automatisch hinzugefügt</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   );
 };
 
