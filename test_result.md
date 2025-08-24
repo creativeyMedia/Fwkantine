@@ -105,6 +105,18 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
+  - task: "UI/UX IMPROVEMENTS BACKEND - Enhanced daily summary with lunch tracking"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "✅ BACKEND ENHANCEMENTS IMPLEMENTED: Extended daily summary endpoint to properly track has_lunch property for each employee in employee_orders. Added has_lunch: False initialization and has_lunch: True update logic when breakfast items contain lunch option. This ensures frontend can properly display lunch counts and 'X' markers in overview table. Ready for backend testing to verify lunch tracking works correctly across all order types."
+
   - task: "Department-Specific Products & Pricing Implementation - Phase 1 Backend"
     implemented: true
     working: true
