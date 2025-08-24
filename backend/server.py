@@ -235,6 +235,64 @@ async def cleanup_departments():
     
     return {"message": "Departments cleaned up successfully", "count": 4}
 
+@api_router.post("/migrate-department-ids")
+async def migrate_department_ids():
+    """Migrate all existing data from old UUID department_ids to new fixed IDs"""
+    
+    # Mapping von alten zu neuen IDs (muss dynamisch ermittelt werden)
+    old_to_new_mapping = {
+        "18bf8701-aef9-4be3-8370-339f3756cca0": "fw4abteilung1",
+        "e751452b-164c-4b59-849f-11f170acbef9": "fw4abteilung2", 
+        "b84ed34f-96ee-481b-835b-63f7856c982c": "fw4abteilung3",
+        "7dc22a9e-dfe2-4eb6-8a8e-f7fd110ff092": "fw4abteilung4"
+    }
+    
+    migration_results = {}
+    
+    # 1. Migrate employees
+    for old_id, new_id in old_to_new_mapping.items():
+        result = await db.employees.update_many(
+            {"department_id": old_id},
+            {"$set": {"department_id": new_id}}
+        )
+        migration_results[f"employees_{old_id}"] = result.modified_count
+    
+    # 2. Migrate menu items
+    collections = ["menu_breakfast", "menu_toppings", "menu_drinks", "menu_sweets"]
+    for collection_name in collections:
+        collection = getattr(db, collection_name)
+        for old_id, new_id in old_to_new_mapping.items():
+            result = await collection.update_many(
+                {"department_id": old_id},
+                {"$set": {"department_id": new_id}}
+            )
+            migration_results[f"{collection_name}_{old_id}"] = result.modified_count
+    
+    # 3. Migrate orders
+    order_collections = ["breakfast_orders", "drink_orders", "sweet_orders"]
+    for collection_name in order_collections:
+        collection = getattr(db, collection_name)
+        for old_id, new_id in old_to_new_mapping.items():
+            result = await collection.update_many(
+                {"department_id": old_id},
+                {"$set": {"department_id": new_id}}
+            )
+            migration_results[f"{collection_name}_{old_id}"] = result.modified_count
+    
+    # 4. Migrate lunch settings
+    for old_id, new_id in old_to_new_mapping.items():
+        result = await db.lunch_settings.update_many(
+            {"department_id": old_id},
+            {"$set": {"department_id": new_id}}
+        )
+        migration_results[f"lunch_settings_{old_id}"] = result.modified_count
+    
+    return {
+        "message": "Department ID migration completed",
+        "migration_results": migration_results,
+        "mapping_used": old_to_new_mapping
+    }
+
 @api_router.post("/cleanup-duplicate-departments")
 async def cleanup_duplicate_departments():
     """Remove old departments with UUID-IDs, keep only fixed IDs"""
