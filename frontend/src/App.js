@@ -1212,13 +1212,34 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
             </div>
           </div>
           
-          <div className="mt-4 p-3 bg-white border border-blue-300 rounded">
-            <p className="text-sm font-medium">
-              Gesamt: {totalHalves} Brötchenhälften
-            </p>
-            <p className="text-sm text-gray-600">
-              Kosten: {totalCost.toFixed(2)} €
-            </p>
+          <div className="mt-4 p-4 bg-white border border-blue-300 rounded-lg">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Brötchen ({totalHalves} Hälften):</span>
+                <span className="text-sm font-medium">{rollsCost.toFixed(2)} €</span>
+              </div>
+              {boiledEggs > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Gekochte Eier ({boiledEggs} Stück):</span>
+                  <span className="text-sm text-gray-600">{boiledEggsCost.toFixed(2)} €</span>
+                </div>
+              )}
+              {hasLunch && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-purple-600">Mittagessen:</span>
+                  <span className="text-sm text-purple-600">wird vom Admin berechnet</span>
+                </div>
+              )}
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold">Brötchen + Eier Gesamt:</span>
+                  <span className="font-bold">{totalCost.toFixed(2)} €</span>
+                </div>
+                {hasLunch && (
+                  <p className="text-xs text-gray-500 mt-1">+ Mittagessen-Preis wird automatisch hinzugefügt</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
