@@ -20,6 +20,14 @@ def debug_password_issue():
     
     print("=== DEBUG: Password Persistence Issue ===")
     
+    # Initialize data first
+    print("0. Initializing data...")
+    response = session.post(f"{API_BASE}/init-data")
+    if response.status_code == 200:
+        print("✅ Data initialization successful")
+    else:
+        print(f"❌ Data initialization failed: {response.status_code}")
+    
     # Get departments
     response = session.get(f"{API_BASE}/departments")
     if response.status_code != 200:
@@ -27,6 +35,10 @@ def debug_password_issue():
         return
     
     departments = response.json()
+    if not departments:
+        print("No departments found!")
+        return
+    
     test_dept = departments[0]
     print(f"Testing with department: {test_dept['name']} (ID: {test_dept['id']})")
     
