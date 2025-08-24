@@ -939,8 +939,8 @@ async def create_order(order_data: OrderCreate):
         breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
         topping_prices = {item["topping_type"]: item["price"] for item in toppings_menu}
         
-        # Get daily lunch price for today
-        today = datetime.now(timezone.utc).date().strftime('%Y-%m-%d')
+        # Get daily lunch price for today (Berlin timezone)
+        today = get_berlin_date().strftime('%Y-%m-%d')
         daily_price = await db.daily_lunch_prices.find_one({
             "department_id": order_data.department_id,
             "date": today
