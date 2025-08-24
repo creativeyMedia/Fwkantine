@@ -3766,6 +3766,9 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
           </div>
         </div>
 
+        {/* Gekochte Eier */}
+        <BoiledEggsManagement />
+
         {/* Drinks */}
         <div>
           <div className="flex justify-between items-center mb-4">
