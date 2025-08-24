@@ -554,7 +554,8 @@ async def update_lunch_settings(price: float):
                     if "roll_type" in item:
                         # Old format
                         roll_price = breakfast_prices.get(item["roll_type"], 0.0)
-                        new_total += roll_price * item.get("roll_halves", item.get("roll_count", 1))
+                        roll_halves = item.get("roll_halves", item.get("roll_count", 1))
+                        new_total += roll_price * roll_halves
                     else:
                         # New format with white_halves and seeded_halves
                         white_halves = item.get("white_halves", 0)
@@ -563,17 +564,36 @@ async def update_lunch_settings(price: float):
                         white_price = breakfast_prices.get("weiss", 0.0)
                         seeded_price = breakfast_prices.get("koerner", 0.0)
                         
-                        # For the new format, prices are per-half
-                        new_total += (white_price * white_halves / 2) + (seeded_price * seeded_halves / 2)
+                        # Prices are per-half (NOT divided by 2)
+                        new_total += (white_price * white_halves) + (seeded_price * seeded_halves)
                     
                     # Toppings price
                     for topping in item.get("toppings", []):
                         topping_price = topping_prices.get(topping, 0.0)
                         new_total += topping_price
                     
-                    # New lunch price
+                    # Add boiled eggs price if applicable
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    if boiled_eggs > 0:
+                        # Get boiled eggs price from lunch settings
+                        lunch_settings_obj = await db.lunch_settings.find_one({}) or {}
+                        boiled_eggs_price = lunch_settings_obj.get("boiled_eggs_price", 0.50)
+                        new_total += boiled_eggs * boiled_eggs_price
+                    
+                    # New lunch price (FIXED: lunch price should be per order or per total halves, not per roll_halves)
                     if item.get("has_lunch"):
-                        new_total += price * item.get("roll_halves", item.get("roll_count", 1))
+                        if "roll_type" in item:
+                            # Old format: multiply by roll halves
+                            roll_halves = item.get("roll_halves", item.get("roll_count", 1))
+                            new_total += price * roll_halves
+                        else:
+                            # New format: multiply by total halves or add once if no rolls
+                            total_halves = item.get("total_halves", item.get("white_halves", 0) + item.get("seeded_halves", 0))
+                            if total_halves > 0:
+                                new_total += price * total_halves
+                            else:
+                                # Lunch only order
+                                new_total += price
                 
                 # Update order with new total price
                 old_total = order["total_price"]
