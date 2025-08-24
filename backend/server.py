@@ -62,7 +62,7 @@ class ToppingType(str, Enum):
 
 # Models
 class Department(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str  # KEINE automatischen UUIDs mehr - manuell setzen
     name: str
     password_hash: str = os.environ.get('DEPARTMENT_PASSWORD_DEFAULT', 'password1')
     admin_password_hash: str = os.environ.get('ADMIN_PASSWORD_DEFAULT', 'admin1')
