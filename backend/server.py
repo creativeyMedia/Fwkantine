@@ -1553,7 +1553,8 @@ async def get_breakfast_status(department_id: str):
 @api_router.post("/department-admin/reopen-breakfast/{department_id}")
 async def reopen_breakfast_for_day(department_id: str):
     """Reopen breakfast ordering for the day (admin only)"""
-    today = datetime.now(timezone.utc).date().isoformat()
+    # Use Berlin timezone for current day
+    today = get_berlin_date().isoformat()
     
     await db.breakfast_settings.update_one(
         {"department_id": department_id, "date": today},
