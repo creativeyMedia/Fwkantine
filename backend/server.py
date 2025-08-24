@@ -255,13 +255,11 @@ async def initialize_default_data():
     for dept_data in departments_data:
         existing_dept = await db.departments.find_one({"name": dept_data["name"]})
         if existing_dept:
-            # Update existing department with correct admin password
-            await db.departments.update_one(
-                {"name": dept_data["name"]}, 
-                {"$set": {"admin_password_hash": dept_data["admin_password_hash"]}}
-            )
+            # NEVER update existing department passwords - only check if department exists
+            # This preserves user-changed passwords
+            pass  # Department exists, do nothing to preserve custom passwords
         else:
-            # Create new department
+            # Create new department only if it doesn't exist
             department = Department(**dept_data)
             await db.departments.insert_one(department.dict())
     
