@@ -648,6 +648,141 @@ async def update_boiled_eggs_price(price: float):
     
     return {"message": "Kochei-Preis erfolgreich aktualisiert", "price": price}
 
+@api_router.get("/daily-lunch-settings/{department_id}")
+async def get_daily_lunch_settings(department_id: str):
+    """Get daily lunch prices for a department (last 30 days)"""
+    end_date = datetime.now(timezone.utc).date()
+    start_date = end_date - timedelta(days=30)
+    
+    daily_prices = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        date_str = current_date.strftime('%Y-%m-%d')
+        
+        # Check if we have a specific price for this day
+        daily_price = await db.daily_lunch_prices.find_one({
+            "department_id": department_id,
+            "date": date_str
+        })
+        
+        if daily_price:
+            daily_prices.append({
+                "date": date_str,
+                "lunch_price": daily_price["lunch_price"]
+            })
+        else:
+            # Fall back to global lunch settings
+            lunch_settings = await db.lunch_settings.find_one()
+            default_price = lunch_settings["price"] if lunch_settings else 0.0
+            daily_prices.append({
+                "date": date_str,
+                "lunch_price": default_price
+            })
+        
+        current_date += timedelta(days=1)
+    
+    return {"daily_prices": daily_prices}
+
+@api_router.put("/daily-lunch-settings/{department_id}/{date}")
+async def set_daily_lunch_price(department_id: str, date: str, lunch_price: float):
+    """Set lunch price for a specific day and department"""
+    
+    # Validate date format
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    
+    # Check if daily price already exists
+    existing_price = await db.daily_lunch_prices.find_one({
+        "department_id": department_id,
+        "date": date
+    })
+    
+    if existing_price:
+        # Update existing
+        await db.daily_lunch_prices.update_one(
+            {"department_id": department_id, "date": date},
+            {"$set": {"lunch_price": lunch_price}}
+        )
+    else:
+        # Create new
+        daily_price = DailyLunchPrice(
+            department_id=department_id,
+            date=date,
+            lunch_price=lunch_price
+        )
+        await db.daily_lunch_prices.insert_one(daily_price.dict())
+    
+    # Now retroactively update all lunch orders from that specific day
+    start_of_day = datetime.strptime(date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+    end_of_day = start_of_day + timedelta(days=1) - timedelta(seconds=1)
+    
+    updated_orders = 0
+    
+    # Find all breakfast orders with lunch from that day
+    orders_cursor = db.orders.find({
+        "department_id": department_id,
+        "order_type": "breakfast",
+        "has_lunch": True,
+        "timestamp": {
+            "$gte": start_of_day,
+            "$lte": end_of_day
+        }
+    })
+    
+    async for order in orders_cursor:
+        # Get current lunch price from order
+        current_lunch_price = order.get("lunch_price", 0.0)
+        price_difference = lunch_price - current_lunch_price
+        
+        if abs(price_difference) > 0.01:  # Only update if significant difference
+            # Update order
+            new_total = order["total_price"] + price_difference
+            await db.orders.update_one(
+                {"id": order["id"]},
+                {
+                    "$set": {
+                        "lunch_price": lunch_price,
+                        "total_price": new_total
+                    }
+                }
+            )
+            
+            # Update employee balance (lunch goes to breakfast_balance)
+            await db.employees.update_one(
+                {"id": order["employee_id"]},
+                {"$inc": {"breakfast_balance": price_difference}}
+            )
+            
+            updated_orders += 1
+    
+    return {
+        "message": "Tages-Mittagessen-Preis erfolgreich gesetzt",
+        "date": date,
+        "lunch_price": lunch_price,
+        "updated_orders": updated_orders
+    }
+
+@api_router.get("/daily-lunch-price/{department_id}/{date}")
+async def get_daily_lunch_price(department_id: str, date: str):
+    """Get lunch price for a specific day"""
+    
+    # Check if we have a specific price for this day
+    daily_price = await db.daily_lunch_prices.find_one({
+        "department_id": department_id,
+        "date": date
+    })
+    
+    if daily_price:
+        return {"date": date, "lunch_price": daily_price["lunch_price"]}
+    else:
+        # Fall back to global lunch settings
+        lunch_settings = await db.lunch_settings.find_one()
+        default_price = lunch_settings["price"] if lunch_settings else 0.0
+        return {"date": date, "lunch_price": default_price}
+
 # Menu routes
 @api_router.get("/menu/breakfast/{department_id}", response_model=List[MenuItemBreakfast])
 async def get_breakfast_menu(department_id: str):
