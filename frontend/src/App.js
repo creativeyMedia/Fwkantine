@@ -804,6 +804,12 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     try {
       let breakfastItems = [];
       
+      // For breakfast category, check if breakfast is closed first
+      if (activeCategory === 'breakfast' && breakfastStatus.is_closed) {
+        alert('Frühstück ist für heute geschlossen. Nur Getränke und Süßigkeiten können bestellt werden.');
+        return;
+      }
+      
       // For breakfast category, use form data if available, otherwise use order array
       if (activeCategory === 'breakfast') {
         if (breakfastFormData) {
