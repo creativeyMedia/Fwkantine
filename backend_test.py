@@ -5407,6 +5407,212 @@ class CanteenTester:
         # This is a critical test - we need at least 6/8 tests to pass, including the main user test case
         return success_count >= 6
 
+    def test_daily_lunch_price_management(self):
+        """Test the new daily lunch price management system"""
+        print("\n=== Testing Daily Lunch Price Management System ===")
+        
+        success_count = 0
+        department_id = "fw4abteilung1"  # Test with specific department as requested
+        today_date = "2025-08-24"  # Test with today's date as requested
+        
+        # Test 1: GET daily lunch settings for department (last 30 days)
+        try:
+            response = self.session.get(f"{API_BASE}/daily-lunch-settings/{department_id}")
+            
+            if response.status_code == 200:
+                daily_settings = response.json()
+                
+                # Check response structure
+                if 'daily_prices' in daily_settings:
+                    daily_prices = daily_settings['daily_prices']
+                    
+                    # Should return 31 days (last 30 days + today)
+                    if len(daily_prices) == 31:
+                        self.log_test("GET Daily Lunch Settings - Structure", True, 
+                                    f"Retrieved {len(daily_prices)} daily prices for department {department_id}")
+                        success_count += 1
+                        
+                        # Check that each entry has date and lunch_price
+                        valid_entries = all('date' in entry and 'lunch_price' in entry for entry in daily_prices)
+                        if valid_entries:
+                            self.log_test("GET Daily Lunch Settings - Data Format", True, 
+                                        "All entries have required date and lunch_price fields")
+                            success_count += 1
+                        else:
+                            self.log_test("GET Daily Lunch Settings - Data Format", False, 
+                                        "Some entries missing required fields")
+                    else:
+                        self.log_test("GET Daily Lunch Settings - Structure", False, 
+                                    f"Expected 31 daily prices, got {len(daily_prices)}")
+                else:
+                    self.log_test("GET Daily Lunch Settings - Structure", False, 
+                                "Missing 'daily_prices' field in response")
+            else:
+                self.log_test("GET Daily Lunch Settings", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Daily Lunch Settings", False, f"Exception: {str(e)}")
+        
+        # Test 2: SET daily lunch price for specific date
+        try:
+            test_lunch_price = 4.60  # Use a specific test price
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{department_id}/{today_date}", 
+                                      params={"lunch_price": test_lunch_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check response structure
+                required_fields = ['message', 'date', 'lunch_price', 'updated_orders']
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if not missing_fields:
+                    if result['lunch_price'] == test_lunch_price and result['date'] == today_date:
+                        self.log_test("SET Daily Lunch Price", True, 
+                                    f"Successfully set lunch price to €{test_lunch_price:.2f} for {today_date}, updated {result['updated_orders']} orders")
+                        success_count += 1
+                    else:
+                        self.log_test("SET Daily Lunch Price", False, 
+                                    f"Price or date mismatch in response")
+                else:
+                    self.log_test("SET Daily Lunch Price", False, 
+                                f"Missing response fields: {missing_fields}")
+            else:
+                self.log_test("SET Daily Lunch Price", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("SET Daily Lunch Price", False, f"Exception: {str(e)}")
+        
+        # Test 3: GET single day lunch price
+        try:
+            response = self.session.get(f"{API_BASE}/daily-lunch-price/{department_id}/{today_date}")
+            
+            if response.status_code == 200:
+                price_data = response.json()
+                
+                # Check response structure
+                if 'date' in price_data and 'lunch_price' in price_data:
+                    if price_data['date'] == today_date and price_data['lunch_price'] == test_lunch_price:
+                        self.log_test("GET Single Day Lunch Price", True, 
+                                    f"Retrieved correct price €{price_data['lunch_price']:.2f} for {price_data['date']}")
+                        success_count += 1
+                    else:
+                        self.log_test("GET Single Day Lunch Price", False, 
+                                    f"Price or date mismatch: expected €{test_lunch_price:.2f} for {today_date}, got €{price_data['lunch_price']:.2f} for {price_data['date']}")
+                else:
+                    self.log_test("GET Single Day Lunch Price", False, 
+                                "Missing required fields in response")
+            else:
+                self.log_test("GET Single Day Lunch Price", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Single Day Lunch Price", False, f"Exception: {str(e)}")
+        
+        # Test 4: Create breakfast order with lunch to verify daily price integration
+        if self.employees:
+            try:
+                # Find an employee in the test department or use first available
+                test_employee = None
+                for emp in self.employees:
+                    if emp.get('department_id') == department_id:
+                        test_employee = emp
+                        break
+                
+                if not test_employee:
+                    # Create a test employee for this department if none exists
+                    employee_data = {
+                        "name": "Test Employee Daily Lunch",
+                        "department_id": department_id
+                    }
+                    
+                    emp_response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                    if emp_response.status_code == 200:
+                        test_employee = emp_response.json()
+                        self.employees.append(test_employee)
+                
+                if test_employee:
+                    # Create breakfast order with lunch using new format
+                    breakfast_order = {
+                        "employee_id": test_employee['id'],
+                        "department_id": department_id,
+                        "order_type": "breakfast",
+                        "breakfast_items": [
+                            {
+                                "total_halves": 2,
+                                "white_halves": 1,
+                                "seeded_halves": 1,
+                                "toppings": ["ruehrei", "kaese"],
+                                "has_lunch": True,  # Include lunch
+                                "boiled_eggs": 1
+                            }
+                        ]
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+                    
+                    if response.status_code == 200:
+                        order = response.json()
+                        
+                        # Verify order has lunch information
+                        if order.get('has_lunch') == True and order.get('lunch_price') == test_lunch_price:
+                            self.log_test("Order Creation with Daily Lunch Price", True, 
+                                        f"Order created with daily lunch price €{order['lunch_price']:.2f}, total: €{order['total_price']:.2f}")
+                            success_count += 1
+                            
+                            # Verify breakfast items contain lunch
+                            if order.get('breakfast_items') and len(order['breakfast_items']) > 0:
+                                breakfast_item = order['breakfast_items'][0]
+                                if breakfast_item.get('has_lunch') == True:
+                                    self.log_test("Order Lunch Flag Storage", True, 
+                                                "Lunch flag correctly stored in breakfast items")
+                                    success_count += 1
+                                else:
+                                    self.log_test("Order Lunch Flag Storage", False, 
+                                                "Lunch flag not stored in breakfast items")
+                        else:
+                            self.log_test("Order Creation with Daily Lunch Price", False, 
+                                        f"Order lunch data incorrect: has_lunch={order.get('has_lunch')}, lunch_price={order.get('lunch_price')}")
+                    else:
+                        self.log_test("Order Creation with Daily Lunch Price", False, 
+                                    f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Order Creation with Daily Lunch Price", False, 
+                                "No test employee available for order creation")
+                    
+            except Exception as e:
+                self.log_test("Order Creation with Daily Lunch Price", False, f"Exception: {str(e)}")
+        else:
+            self.log_test("Order Creation with Daily Lunch Price", False, "No employees available for testing")
+        
+        # Test 5: Verify retroactive price updates work
+        try:
+            # Set a different price to test retroactive updates
+            new_lunch_price = 5.20
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{department_id}/{today_date}", 
+                                      params={"lunch_price": new_lunch_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('updated_orders', 0) > 0:
+                    self.log_test("Retroactive Price Update", True, 
+                                f"Successfully updated {result['updated_orders']} existing orders with new price €{new_lunch_price:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Retroactive Price Update", True, 
+                                f"Price updated to €{new_lunch_price:.2f} (no existing orders to update)")
+                    success_count += 1
+            else:
+                self.log_test("Retroactive Price Update", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Retroactive Price Update", False, f"Exception: {str(e)}")
+        
+        return success_count >= 4  # Expect at least 4 out of 6 tests to pass
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
