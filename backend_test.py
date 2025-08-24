@@ -4614,6 +4614,434 @@ class CanteenTester:
         
         return success_count >= 6  # At least 6 out of the main tests should pass
 
+    def test_critical_menu_management_bug_fix(self):
+        """Test the critical menu management bug fix - menu changes should persist to DB"""
+        print("\n=== Testing CRITICAL Menu Management Bug Fix ===")
+        
+        if not self.departments:
+            self.log_test("Critical Menu Management Bug Fix", False, "No departments available")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        
+        # First authenticate as department admin
+        admin_auth_success = False
+        try:
+            admin_login_data = {
+                "department_name": test_dept['name'],
+                "admin_password": "admin1"  # Using updated admin password
+            }
+            
+            response = self.session.post(f"{API_BASE}/login/department-admin", json=admin_login_data)
+            if response.status_code == 200:
+                admin_auth_success = True
+                self.log_test("Department Admin Authentication", True, "Successfully authenticated as department admin")
+                success_count += 1
+            else:
+                self.log_test("Department Admin Authentication", False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Department Admin Authentication", False, f"Exception: {str(e)}")
+        
+        if not admin_auth_success:
+            return False
+        
+        # Test 1: Add new topping and verify persistence
+        try:
+            new_topping_data = {
+                "topping_id": "custom_jam",
+                "topping_name": "Hausgemachte Marmelade",
+                "price": 0.75,
+                "department_id": test_dept['id']
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", json=new_topping_data)
+            
+            if response.status_code == 200:
+                new_topping = response.json()
+                self.log_test("Add New Topping", True, f"Created topping: {new_topping.get('name', 'Unknown')}")
+                success_count += 1
+                
+                # Verify persistence by fetching toppings menu
+                response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                if response.status_code == 200:
+                    toppings = response.json()
+                    topping_found = any(t.get('id') == new_topping['id'] for t in toppings)
+                    if topping_found:
+                        self.log_test("Topping Persistence Verification", True, "New topping persisted in database")
+                        success_count += 1
+                    else:
+                        self.log_test("Topping Persistence Verification", False, "New topping not found in database")
+                else:
+                    self.log_test("Topping Persistence Verification", False, f"Failed to fetch toppings: {response.status_code}")
+            else:
+                self.log_test("Add New Topping", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Add New Topping", False, f"Exception: {str(e)}")
+        
+        # Test 2: Edit existing topping and verify persistence
+        try:
+            # Get first topping to edit
+            response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+            if response.status_code == 200:
+                toppings = response.json()
+                if toppings:
+                    topping_to_edit = toppings[0]
+                    original_price = topping_to_edit['price']
+                    new_price = original_price + 0.25
+                    
+                    update_data = {
+                        "price": new_price,
+                        "name": "Premium " + topping_to_edit.get('name', 'Topping')
+                    }
+                    
+                    response = self.session.put(f"{API_BASE}/department-admin/menu/toppings/{topping_to_edit['id']}", 
+                                              json=update_data, params={"department_id": test_dept['id']})
+                    
+                    if response.status_code == 200:
+                        self.log_test("Edit Topping", True, f"Updated topping price to €{new_price:.2f}")
+                        success_count += 1
+                        
+                        # Verify persistence
+                        response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                        if response.status_code == 200:
+                            updated_toppings = response.json()
+                            updated_topping = next((t for t in updated_toppings if t['id'] == topping_to_edit['id']), None)
+                            if updated_topping and updated_topping['price'] == new_price:
+                                self.log_test("Topping Edit Persistence", True, "Topping price update persisted in database")
+                                success_count += 1
+                            else:
+                                self.log_test("Topping Edit Persistence", False, "Topping price update not persisted")
+                        else:
+                            self.log_test("Topping Edit Persistence", False, f"Failed to verify update: {response.status_code}")
+                    else:
+                        self.log_test("Edit Topping", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Edit Topping", False, "No toppings available to edit")
+            else:
+                self.log_test("Edit Topping", False, f"Failed to fetch toppings: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Edit Topping", False, f"Exception: {str(e)}")
+        
+        # Test 3: Delete topping and verify persistence
+        try:
+            # Get toppings to find one to delete
+            response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+            if response.status_code == 200:
+                toppings = response.json()
+                if len(toppings) > 1:  # Make sure we have at least 2 toppings
+                    topping_to_delete = toppings[-1]  # Delete the last one
+                    
+                    response = self.session.delete(f"{API_BASE}/menu/toppings/{topping_to_delete['id']}")
+                    
+                    if response.status_code == 200:
+                        self.log_test("Delete Topping", True, f"Deleted topping: {topping_to_delete.get('name', 'Unknown')}")
+                        success_count += 1
+                        
+                        # Verify persistence
+                        response = self.session.get(f"{API_BASE}/menu/toppings/{test_dept['id']}")
+                        if response.status_code == 200:
+                            remaining_toppings = response.json()
+                            topping_still_exists = any(t['id'] == topping_to_delete['id'] for t in remaining_toppings)
+                            if not topping_still_exists:
+                                self.log_test("Topping Deletion Persistence", True, "Topping deletion persisted in database")
+                                success_count += 1
+                            else:
+                                self.log_test("Topping Deletion Persistence", False, "Topping still exists after deletion")
+                        else:
+                            self.log_test("Topping Deletion Persistence", False, f"Failed to verify deletion: {response.status_code}")
+                    else:
+                        self.log_test("Delete Topping", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Delete Topping", False, "Not enough toppings to safely delete one")
+            else:
+                self.log_test("Delete Topping", False, f"Failed to fetch toppings: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Delete Topping", False, f"Exception: {str(e)}")
+        
+        return success_count >= 5  # At least 5 out of 7 tests should pass
+
+    def test_critical_breakfast_ordering_bug_fix(self):
+        """Test the critical breakfast ordering bug fix - orders should save properly"""
+        print("\n=== Testing CRITICAL Breakfast Ordering Bug Fix ===")
+        
+        if not self.departments or not self.employees:
+            self.log_test("Critical Breakfast Ordering Bug Fix", False, "Missing departments or employees")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        test_employee = self.employees[0] if self.employees else None
+        
+        if not test_employee:
+            # Create a test employee
+            try:
+                employee_data = {
+                    "name": "Test Employee for Breakfast Order",
+                    "department_id": test_dept['id']
+                }
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    test_employee = response.json()
+                    self.log_test("Create Test Employee", True, "Created employee for breakfast order testing")
+                    success_count += 1
+                else:
+                    self.log_test("Create Test Employee", False, f"HTTP {response.status_code}: {response.text}")
+                    return False
+            except Exception as e:
+                self.log_test("Create Test Employee", False, f"Exception: {str(e)}")
+                return False
+        
+        # Test 1: Create breakfast order with new format and verify persistence
+        try:
+            breakfast_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 2,
+                        "toppings": ["ruehrei", "kaese", "schinken", "butter"],
+                        "has_lunch": True,
+                        "boiled_eggs": 2
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                order_id = order['id']
+                self.log_test("Create Breakfast Order", True, f"Created breakfast order: €{order['total_price']:.2f}")
+                success_count += 1
+                
+                # Verify order persistence by fetching employee orders
+                response = self.session.get(f"{API_BASE}/employees/{test_employee['id']}/orders")
+                if response.status_code == 200:
+                    orders_data = response.json()
+                    orders = orders_data.get('orders', [])
+                    order_found = any(o['id'] == order_id for o in orders)
+                    if order_found:
+                        self.log_test("Breakfast Order Persistence", True, "Breakfast order persisted in database")
+                        success_count += 1
+                        
+                        # Verify order structure
+                        saved_order = next((o for o in orders if o['id'] == order_id), None)
+                        if saved_order and saved_order.get('breakfast_items'):
+                            breakfast_item = saved_order['breakfast_items'][0]
+                            if (breakfast_item.get('total_halves') == 4 and 
+                                breakfast_item.get('white_halves') == 2 and
+                                breakfast_item.get('seeded_halves') == 2 and
+                                breakfast_item.get('has_lunch') == True and
+                                breakfast_item.get('boiled_eggs') == 2):
+                                self.log_test("Breakfast Order Structure", True, "Order structure correctly saved")
+                                success_count += 1
+                            else:
+                                self.log_test("Breakfast Order Structure", False, "Order structure not correctly saved")
+                        else:
+                            self.log_test("Breakfast Order Structure", False, "No breakfast items found in saved order")
+                    else:
+                        self.log_test("Breakfast Order Persistence", False, "Breakfast order not found in database")
+                else:
+                    self.log_test("Breakfast Order Persistence", False, f"Failed to fetch employee orders: {response.status_code}")
+            else:
+                self.log_test("Create Breakfast Order", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create Breakfast Order", False, f"Exception: {str(e)}")
+        
+        # Test 2: Test order with only lunch (no rolls)
+        try:
+            lunch_only_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": True,
+                        "boiled_eggs": 0
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=lunch_only_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                self.log_test("Lunch Only Order", True, f"Created lunch-only order: €{order['total_price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Lunch Only Order", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Lunch Only Order", False, f"Exception: {str(e)}")
+        
+        # Test 3: Test order with only boiled eggs
+        try:
+            eggs_only_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": False,
+                        "boiled_eggs": 3
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=eggs_only_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                self.log_test("Eggs Only Order", True, f"Created eggs-only order: €{order['total_price']:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Eggs Only Order", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Eggs Only Order", False, f"Exception: {str(e)}")
+        
+        return success_count >= 4  # At least 4 out of 6 tests should pass
+
+    def test_critical_drinks_sweets_management_bug_fix(self):
+        """Test drinks and sweets management bug fix - changes should persist to DB"""
+        print("\n=== Testing CRITICAL Drinks & Sweets Management Bug Fix ===")
+        
+        if not self.departments:
+            self.log_test("Critical Drinks & Sweets Management Bug Fix", False, "No departments available")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        
+        # Test Drinks Management
+        try:
+            # Get existing drinks
+            response = self.session.get(f"{API_BASE}/menu/drinks/{test_dept['id']}")
+            if response.status_code == 200:
+                drinks = response.json()
+                if drinks:
+                    drink_to_edit = drinks[0]
+                    original_price = drink_to_edit['price']
+                    new_price = original_price + 0.30
+                    
+                    # Edit drink price
+                    update_data = {"price": new_price, "name": f"Premium {drink_to_edit['name']}"}
+                    response = self.session.put(f"{API_BASE}/department-admin/menu/drinks/{drink_to_edit['id']}", 
+                                              json=update_data, params={"department_id": test_dept['id']})
+                    
+                    if response.status_code == 200:
+                        self.log_test("Edit Drink", True, f"Updated drink price to €{new_price:.2f}")
+                        success_count += 1
+                        
+                        # Verify persistence
+                        response = self.session.get(f"{API_BASE}/menu/drinks/{test_dept['id']}")
+                        if response.status_code == 200:
+                            updated_drinks = response.json()
+                            updated_drink = next((d for d in updated_drinks if d['id'] == drink_to_edit['id']), None)
+                            if updated_drink and updated_drink['price'] == new_price:
+                                self.log_test("Drink Edit Persistence", True, "Drink price update persisted")
+                                success_count += 1
+                            else:
+                                self.log_test("Drink Edit Persistence", False, "Drink price update not persisted")
+                    else:
+                        self.log_test("Edit Drink", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Edit Drink", False, "No drinks available to edit")
+            else:
+                self.log_test("Edit Drink", False, f"Failed to fetch drinks: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Edit Drink", False, f"Exception: {str(e)}")
+        
+        # Test Sweets Management
+        try:
+            # Get existing sweets
+            response = self.session.get(f"{API_BASE}/menu/sweets/{test_dept['id']}")
+            if response.status_code == 200:
+                sweets = response.json()
+                if sweets:
+                    sweet_to_edit = sweets[0]
+                    original_price = sweet_to_edit['price']
+                    new_price = original_price + 0.40
+                    
+                    # Edit sweet price
+                    update_data = {"price": new_price, "name": f"Deluxe {sweet_to_edit['name']}"}
+                    response = self.session.put(f"{API_BASE}/department-admin/menu/sweets/{sweet_to_edit['id']}", 
+                                              json=update_data, params={"department_id": test_dept['id']})
+                    
+                    if response.status_code == 200:
+                        self.log_test("Edit Sweet", True, f"Updated sweet price to €{new_price:.2f}")
+                        success_count += 1
+                        
+                        # Verify persistence
+                        response = self.session.get(f"{API_BASE}/menu/sweets/{test_dept['id']}")
+                        if response.status_code == 200:
+                            updated_sweets = response.json()
+                            updated_sweet = next((s for s in updated_sweets if s['id'] == sweet_to_edit['id']), None)
+                            if updated_sweet and updated_sweet['price'] == new_price:
+                                self.log_test("Sweet Edit Persistence", True, "Sweet price update persisted")
+                                success_count += 1
+                            else:
+                                self.log_test("Sweet Edit Persistence", False, "Sweet price update not persisted")
+                    else:
+                        self.log_test("Edit Sweet", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("Edit Sweet", False, "No sweets available to edit")
+            else:
+                self.log_test("Edit Sweet", False, f"Failed to fetch sweets: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Edit Sweet", False, f"Exception: {str(e)}")
+        
+        # Test creating new drink
+        try:
+            new_drink_data = {
+                "name": "Frischer Orangensaft",
+                "price": 2.20,
+                "department_id": test_dept['id']
+            }
+            
+            response = self.session.post(f"{API_BASE}/department-admin/menu/drinks", json=new_drink_data)
+            
+            if response.status_code == 200:
+                new_drink = response.json()
+                self.log_test("Create New Drink", True, f"Created drink: {new_drink['name']}")
+                success_count += 1
+                
+                # Verify persistence
+                response = self.session.get(f"{API_BASE}/menu/drinks/{test_dept['id']}")
+                if response.status_code == 200:
+                    drinks = response.json()
+                    drink_found = any(d['id'] == new_drink['id'] for d in drinks)
+                    if drink_found:
+                        self.log_test("New Drink Persistence", True, "New drink persisted in database")
+                        success_count += 1
+                    else:
+                        self.log_test("New Drink Persistence", False, "New drink not found in database")
+            else:
+                self.log_test("Create New Drink", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create New Drink", False, f"Exception: {str(e)}")
+        
+        return success_count >= 4  # At least 4 out of 6 tests should pass
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
