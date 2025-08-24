@@ -4047,7 +4047,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-6">Frühstück Verlauf - {currentDepartment.department_name}</h3>
+      <h3 className="text-lg font-semibold mb-6">Bestellverlauf - {currentDepartment.department_name}</h3>
 
       {breakfastHistory.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
