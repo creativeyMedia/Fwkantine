@@ -530,23 +530,39 @@ class BerlinTimezoneTest:
             response = self.session.put(f"{API_BASE}/orders/{test_order_id}", json=update_data)
             
             if response.status_code == 200:
-                updated_order = response.json()
-                updated_price = updated_order['total_price']
+                result = response.json()
                 
-                # Check if the order uses daily lunch price (should be 4.60 as set earlier)
-                lunch_price_used = updated_order.get('lunch_price', 0)
-                
-                if abs(lunch_price_used - 4.60) < 0.01:
-                    self.log_test("Order Update Uses Daily Lunch Price", True, 
-                                f"Updated order uses correct daily lunch price: €{lunch_price_used:.2f}")
-                    success_count += 1
+                # Get the updated order to check lunch price
+                order_response = self.session.get(f"{API_BASE}/employees/{test_employee_id}/orders")
+                if order_response.status_code == 200:
+                    orders_data = order_response.json()
+                    orders = orders_data.get('orders', [])
+                    
+                    # Find our updated order
+                    updated_order = None
+                    for order in orders:
+                        if order['id'] == test_order_id:
+                            updated_order = order
+                            break
+                    
+                    if updated_order:
+                        lunch_price_used = updated_order.get('lunch_price', 0)
+                        
+                        if abs(lunch_price_used - 4.60) < 0.01:
+                            self.log_test("Order Update Uses Daily Lunch Price", True, 
+                                        f"Updated order uses correct daily lunch price: €{lunch_price_used:.2f}")
+                            success_count += 1
+                        else:
+                            self.log_test("Order Update Uses Daily Lunch Price", False, 
+                                        f"Expected daily lunch price €4.60, got €{lunch_price_used:.2f}")
+                        
+                        self.log_test("Order Update Successful", True, 
+                                    f"Order updated successfully")
+                        success_count += 1
+                    else:
+                        self.log_test("Order Update", False, "Could not find updated order")
                 else:
-                    self.log_test("Order Update Uses Daily Lunch Price", False, 
-                                f"Expected daily lunch price €4.60, got €{lunch_price_used:.2f}")
-                
-                self.log_test("Order Update Successful", True, 
-                            f"Order updated successfully, new price: €{updated_price:.2f}")
-                success_count += 1
+                    self.log_test("Order Update", False, "Could not retrieve updated order")
                 
             else:
                 self.log_test("Order Update", False, 
