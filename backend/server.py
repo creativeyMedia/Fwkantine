@@ -1763,14 +1763,8 @@ async def update_order(order_id: str, order_update: dict):
                 # Add lunch price if applicable
                 if item.get("has_lunch"):
                     lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
-                    # Lunch price is per order, not per roll half
-                    total_halves = item.get("total_halves", white_halves + seeded_halves)
-                    if total_halves > 0:
-                        # If there are rolls, multiply lunch price by total halves (traditional logic)
-                        total_price += lunch_settings["price"] * total_halves
-                    else:
-                        # If no rolls (lunch only order), add lunch price once
-                        total_price += lunch_settings["price"]
+                    # Lunch price should be added once per order, not multiplied by roll halves
+                    total_price += lunch_settings["price"]
             
             update_fields["total_price"] = total_price
         
