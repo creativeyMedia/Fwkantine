@@ -2632,6 +2632,190 @@ class CanteenTester:
         
         return success_count >= 1
 
+    def test_critical_bugs_investigation(self):
+        """Test the critical bugs reported by the user"""
+        print("\n=== CRITICAL BUGS INVESTIGATION ===")
+        
+        success_count = 0
+        
+        # Bug 1: Test Orders Investigation - Check for Hans Mueller in department 2
+        print("\n--- Bug 1: Test Orders Investigation ---")
+        try:
+            # Get employees from department fw4abteilung2
+            response = self.session.get(f"{API_BASE}/departments/fw4abteilung2/employees")
+            
+            if response.status_code == 200:
+                employees = response.json()
+                hans_mueller = None
+                
+                # Look for Hans Mueller
+                for emp in employees:
+                    if "Hans Mueller" in emp.get('name', '') or "Hans Müller" in emp.get('name', ''):
+                        hans_mueller = emp
+                        break
+                
+                if hans_mueller:
+                    self.log_test("Found Hans Mueller", True, 
+                                f"Found Hans Mueller in department 2: {hans_mueller['name']}")
+                    
+                    # Check his recent orders
+                    response = self.session.get(f"{API_BASE}/employees/{hans_mueller['id']}/orders")
+                    if response.status_code == 200:
+                        orders_data = response.json()
+                        orders = orders_data.get('orders', [])
+                        
+                        # Check for today's orders
+                        today = datetime.now().date().isoformat()
+                        today_orders = []
+                        for order in orders:
+                            if order.get('timestamp'):
+                                order_date = order['timestamp'][:10]  # Extract date part
+                                if order_date == today:
+                                    today_orders.append(order)
+                        
+                        if today_orders:
+                            self.log_test("Hans Mueller Today Orders", True, 
+                                        f"Found {len(today_orders)} orders from today that may need cleanup")
+                            success_count += 1
+                        else:
+                            self.log_test("Hans Mueller Today Orders", True, 
+                                        f"No orders from today found. Total orders: {len(orders)}")
+                            success_count += 1
+                    else:
+                        self.log_test("Hans Mueller Orders Check", False, 
+                                    f"Failed to get orders: HTTP {response.status_code}")
+                else:
+                    self.log_test("Found Hans Mueller", False, 
+                                f"Hans Mueller not found in department 2. Found {len(employees)} employees")
+            else:
+                self.log_test("Department 2 Employees", False, 
+                            f"Failed to get employees: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Test Orders Investigation", False, f"Exception: {str(e)}")
+        
+        # Bug 2: Boiled Eggs Price Bug - €999 reversion issue
+        print("\n--- Bug 2: Boiled Eggs Price Bug Investigation ---")
+        try:
+            # Step 1: Check current boiled_eggs_price
+            response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            if response.status_code == 200:
+                lunch_settings = response.json()
+                current_price = lunch_settings.get('boiled_eggs_price', 'NOT_FOUND')
+                
+                self.log_test("Current Boiled Eggs Price", True, 
+                            f"Current boiled_eggs_price: €{current_price}")
+                
+                # Check if it's the problematic €999 price
+                if current_price == 999 or current_price == 999.0 or current_price == 999.99:
+                    self.log_test("€999 Price Bug Detected", False, 
+                                f"CRITICAL: Boiled eggs price is €{current_price} - this is the reported bug!")
+                else:
+                    self.log_test("€999 Price Bug Check", True, 
+                                f"Price is not €999 (current: €{current_price})")
+                
+                # Step 2: Try to update to €0.75 and verify persistence
+                test_price = 0.75
+                response = self.session.put(f"{API_BASE}/lunch-settings/boiled-eggs-price", 
+                                          params={"price": test_price})
+                
+                if response.status_code == 200:
+                    self.log_test("Update Boiled Eggs Price", True, 
+                                f"Successfully updated to €{test_price}")
+                    
+                    # Step 3: Immediately check if price persists
+                    response = self.session.get(f"{API_BASE}/lunch-settings")
+                    if response.status_code == 200:
+                        updated_settings = response.json()
+                        persisted_price = updated_settings.get('boiled_eggs_price', 'NOT_FOUND')
+                        
+                        if abs(persisted_price - test_price) < 0.01:
+                            self.log_test("Price Persistence Test", True, 
+                                        f"Price correctly persisted: €{persisted_price}")
+                            success_count += 1
+                        else:
+                            self.log_test("Price Persistence Test", False, 
+                                        f"CRITICAL BUG: Price reverted! Expected €{test_price}, got €{persisted_price}")
+                    else:
+                        self.log_test("Price Persistence Check", False, 
+                                    f"Failed to verify persistence: HTTP {response.status_code}")
+                else:
+                    self.log_test("Update Boiled Eggs Price", False, 
+                                f"Failed to update price: HTTP {response.status_code}")
+            else:
+                self.log_test("Get Lunch Settings", False, 
+                            f"Failed to get lunch settings: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Boiled Eggs Price Bug Investigation", False, f"Exception: {str(e)}")
+        
+        # Bug 3: Booking Form Reset Issue - Daily summary for department 2
+        print("\n--- Bug 3: Booking Form Reset Issue Investigation ---")
+        try:
+            # Check daily summary for department 2
+            response = self.session.get(f"{API_BASE}/orders/daily-summary/fw4abteilung2")
+            
+            if response.status_code == 200:
+                daily_summary = response.json()
+                
+                # Check the date
+                summary_date = daily_summary.get('date', 'NOT_FOUND')
+                today = datetime.now().date().isoformat()
+                
+                self.log_test("Daily Summary Date", True, 
+                            f"Daily summary date: {summary_date} (today: {today})")
+                
+                # Check if there are old orders that should be reset
+                employee_orders = daily_summary.get('employee_orders', {})
+                breakfast_summary = daily_summary.get('breakfast_summary', {})
+                
+                if employee_orders:
+                    self.log_test("Employee Orders in Summary", True, 
+                                f"Found {len(employee_orders)} employees with orders")
+                    
+                    # Check if these are from today or old orders
+                    if summary_date != today:
+                        self.log_test("Old Orders Issue", False, 
+                                    f"CRITICAL BUG: Daily summary shows date {summary_date} but today is {today}")
+                    else:
+                        self.log_test("Date Consistency", True, 
+                                    f"Daily summary date matches today")
+                        success_count += 1
+                else:
+                    self.log_test("Employee Orders in Summary", True, 
+                                f"No employee orders found (clean state)")
+                    success_count += 1
+                
+                # Check breakfast summary structure
+                if breakfast_summary:
+                    total_halves = 0
+                    for roll_type, data in breakfast_summary.items():
+                        halves = data.get('halves', 0)
+                        total_halves += halves
+                    
+                    if total_halves > 0:
+                        self.log_test("Breakfast Orders Present", True, 
+                                    f"Found {total_halves} total roll halves in breakfast summary")
+                    else:
+                        self.log_test("Breakfast Orders Present", True, 
+                                    f"No breakfast orders found (clean state)")
+                        success_count += 1
+                else:
+                    self.log_test("Breakfast Summary Structure", True, 
+                                f"Empty breakfast summary (clean state)")
+                    success_count += 1
+                    
+            else:
+                self.log_test("Daily Summary Department 2", False, 
+                            f"Failed to get daily summary: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Booking Form Reset Issue Investigation", False, f"Exception: {str(e)}")
+        
+        print(f"\n🔍 CRITICAL BUGS INVESTIGATION SUMMARY: {success_count}/3 areas investigated successfully")
+        return success_count >= 2
+
     def test_department_isolation_data_integrity(self):
         """Test that departments have isolated menu items and proper data integrity"""
         print("\n=== Testing Department Isolation & Data Integrity ===")
