@@ -667,7 +667,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "UI/UX IMPROVEMENTS - Auto-close popup, improved breakfast closure, enhanced breakfast overview, complete order display"
+    - "CRITICAL BUG FIXES - Drag&Drop persistence, incorrect saldo calculation on breakfast updates, retroactive lunch pricing errors"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
