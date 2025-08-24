@@ -6087,7 +6087,8 @@ class CanteenTester:
             ("Lunch Management System", self.test_lunch_management_system),
             ("Breakfast with Lunch Option", self.test_breakfast_with_lunch_option),
             ("Admin Employee Management", self.test_admin_employee_management),
-            ("Order Deletion", self.test_order_deletion)
+            ("Order Deletion", self.test_order_deletion),
+            ("🕐 BERLIN TIMEZONE FIX", self.test_berlin_timezone_fix)
         ]
         
         passed_tests = 0
