@@ -883,11 +883,24 @@ async def create_order(order_data: OrderCreate):
     
     # For breakfast orders, check if breakfast is closed
     if order_data.order_type == OrderType.BREAKFAST:
-        today = datetime.now(timezone.utc).date().isoformat()
+        # Use Berlin timezone for date calculation
+        today = get_berlin_date().isoformat()
         breakfast_status = await db.breakfast_settings.find_one({
             "department_id": order_data.department_id,
             "date": today
         })
+        
+        # Auto-reopen breakfast if it's a new day (Berlin time)
+        if breakfast_status and breakfast_status["is_closed"]:
+            # Check if the breakfast was closed on a previous day
+            closed_date = breakfast_status.get("date", today)
+            if closed_date != today:
+                # New day - automatically reopen breakfast
+                await db.breakfast_settings.update_one(
+                    {"department_id": order_data.department_id, "date": closed_date},
+                    {"$set": {"is_closed": False, "closed_by": "", "closed_at": None}}
+                )
+                breakfast_status = None  # Treat as open
         
         if breakfast_status and breakfast_status["is_closed"]:
             raise HTTPException(
@@ -896,15 +909,15 @@ async def create_order(order_data: OrderCreate):
             )
         
         # Check for existing breakfast order today (single breakfast order constraint)
-        start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_of_day = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59, microsecond=999999)
+        # Use Berlin timezone for day boundaries
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(today)
         
         existing_breakfast = await db.orders.find_one({
             "employee_id": order_data.employee_id,
             "order_type": "breakfast",
             "timestamp": {
-                "$gte": start_of_day.isoformat(),
-                "$lte": end_of_day.isoformat()
+                "$gte": start_of_day_utc.isoformat(),
+                "$lte": end_of_day_utc.isoformat()
             }
         })
         
