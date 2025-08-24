@@ -1170,16 +1170,16 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
 @api_router.get("/orders/daily-summary/{department_id}")
 async def get_daily_summary(department_id: str):
     """Get daily summary of all orders for a department"""
-    today = datetime.now(timezone.utc).date()
-    start_of_day = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
-    end_of_day = datetime.combine(today, datetime.max.time()).replace(tzinfo=timezone.utc)
+    # Use Berlin timezone for current day calculation
+    today = get_berlin_date()
+    start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(today)
     
-    # Get today's orders
+    # Get today's orders (Berlin time)
     orders = await db.orders.find({
         "department_id": department_id,
         "timestamp": {
-            "$gte": start_of_day.isoformat(),
-            "$lte": end_of_day.isoformat()
+            "$gte": start_of_day_utc.isoformat(),
+            "$lte": end_of_day_utc.isoformat()
         }
     }).to_list(1000)
     
