@@ -1072,10 +1072,11 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   
   // Get boiled eggs price from props (passed from lunch settings)
   const boiledEggsCost = boiledEggs * boiledEggsPrice;
+  const coffeeCost = hasCoffee ? coffeePrice : 0;
   
   // Calculate separate cost components for better display
   const rollsCost = (whiteRolls * whiteRollPrice) + (seededRolls * seededRollPrice);
-  const totalCost = rollsCost + boiledEggsCost; // Lunch is handled separately by backend
+  const totalCost = rollsCost + boiledEggsCost + coffeeCost; // Lunch is handled separately by backend
 
   // Event handlers - defined as stable functions
   const handleBoiledEggsChange = (e) => {
