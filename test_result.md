@@ -710,6 +710,18 @@ metadata:
           agent: "testing"
           comment: "🍽️ DAILY LUNCH PRICE MANAGEMENT SYSTEM TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new daily lunch price management system completed with excellent results (5/6 tests passed, 83% success rate): ✅ 1) GET Daily Lunch Settings - GET /api/daily-lunch-settings/{department_id} working perfectly, retrieved 31 daily prices for department fw4abteilung1 with proper data structure (date and lunch_price fields). ✅ 2) SET Daily Lunch Price - PUT /api/daily-lunch-settings/{department_id}/{date} working correctly, successfully set lunch price to €4.60 for 2025-08-24 with proper response structure (message, date, lunch_price, updated_orders). ✅ 3) GET Single Day Lunch Price - GET /api/daily-lunch-price/{department_id}/{date} working perfectly, retrieved correct price €4.60 for 2025-08-24 with proper response format. ✅ 4) Retroactive Price Updates - Successfully updated existing orders when daily lunch price changed to €5.20, demonstrating proper retroactive functionality. ✅ 5) API Integration - All three new daily lunch price endpoints are fully functional and properly integrated with existing lunch management system. ⚠️ 6) Order Creation with Daily Price - Could not fully test order creation with daily lunch price due to employee availability in test department fw4abteilung1, but API endpoints are working correctly. The core functionality of daily-specific lunch pricing is working correctly and integrates properly with the existing order system as requested. All expected results achieved: (1) Daily lunch settings API returns last 30 days of prices, (2) Set daily lunch price API saves and retrieves prices correctly, (3) Single day price API works properly, (4) Order creation system is ready to use daily prices, (5) Retroactive price updates function correctly. The daily lunch price management system is production-ready and fully functional."
 
+  - task: "Critical Bugs Investigation - User Reported Issues"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔍 CRITICAL BUGS INVESTIGATION COMPLETED! Successfully investigated all 3 user-reported bugs: ✅ 1) Test Orders Investigation - Found Hans Mueller in department 2 (fw4abteilung2) with 1 order from today that may need cleanup. This confirms test data exists and should be cleaned up. ✅ 2) Boiled Eggs Price Bug - CONFIRMED the €999.99 price reversion issue exists! Current boiled_eggs_price shows €999.99 which is the reported bug. However, price updates work correctly (successfully updated to €0.75) and persist when changed, indicating the bug may be in initialization or reset logic. ❌ 3) Booking Form Reset Issue - CONFIRMED date inconsistency bug where daily summary shows date 2025-08-25 but today is 2025-08-24, indicating timezone calculation issue in daily summary endpoint. This causes employees to see wrong day's orders in booking form. CRITICAL FINDINGS: (a) €999.99 boiled eggs price bug is real and needs fixing in initialization logic, (b) Date calculation bug in daily summary API needs timezone fix, (c) Test data cleanup needed for Hans Mueller's orders in department 2."
+
   - task: "Berlin Timezone Fix - Day Handling and Auto-Reopening"
     implemented: true
     working: true
