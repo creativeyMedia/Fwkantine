@@ -4000,6 +4000,43 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     });
   };
 
+  const startEditingLunchPrice = (date, currentPrice) => {
+    setEditingLunchPrice(date);
+    setLunchPriceInput(currentPrice.toFixed(2));
+  };
+
+  const cancelEditingLunchPrice = () => {
+    setEditingLunchPrice(null);
+    setLunchPriceInput('');
+  };
+
+  const updateLunchPrice = async (date) => {
+    const newPrice = parseFloat(lunchPriceInput);
+    if (isNaN(newPrice) || newPrice < 0) {
+      alert('Bitte gültigen Preis eingeben');
+      return;
+    }
+
+    try {
+      setUpdatingLunchPrice(date);
+      await axios.put(`${API}/daily-lunch-settings/${currentDepartment.department_id}/${date}?lunch_price=${newPrice}`);
+      
+      // Refresh the history to show updated prices
+      await fetchBreakfastHistory();
+      
+      // Clear editing state
+      setEditingLunchPrice(null);
+      setLunchPriceInput('');
+      
+      alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf €${newPrice.toFixed(2)} aktualisiert`);
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Mittagessen-Preises:', error);
+      alert('Fehler beim Aktualisieren des Mittagessen-Preises');
+    } finally {
+      setUpdatingLunchPrice(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
