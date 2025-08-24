@@ -1130,13 +1130,13 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     const hasRolls = totalHalves > 0;
     const hasValidRollOrder = hasRolls && toppingAssignments.length === totalHalves && 
                               !toppingAssignments.some(a => !a.topping);
-    const hasEggsOrLunch = boiledEggs > 0 || hasLunch;
+    const hasExtras = boiledEggs > 0 || hasLunch || hasCoffee;
     
     // Allow submission if user has:
     // 1. Valid roll order (rolls + toppings), OR
-    // 2. Just eggs or lunch without rolls, OR  
-    // 3. Any combination of rolls, eggs, and/or lunch
-    if ((hasValidRollOrder || (hasEggsOrLunch && !hasRolls) || (hasRolls && hasEggsOrLunch)) && onDirectSubmit) {
+    // 2. Just extras (eggs, lunch, coffee) without rolls, OR  
+    // 3. Any combination of rolls and extras
+    if ((hasValidRollOrder || (hasExtras && !hasRolls) || (hasRolls && hasExtras)) && onDirectSubmit) {
       const toppings = hasRolls ? toppingAssignments.map(assignment => assignment.topping) : [];
       const breakfastData = {
         total_halves: totalHalves,
@@ -1145,13 +1145,14 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         toppings: toppings,
         has_lunch: hasLunch,
         boiled_eggs: boiledEggs,
+        has_coffee: hasCoffee,
         item_cost: totalCost
       };
       onDirectSubmit(breakfastData);
-    } else if (onDirectSubmit && totalHalves === 0 && !hasEggsOrLunch) {
+    } else if (onDirectSubmit && totalHalves === 0 && !hasExtras) {
       onDirectSubmit(null); // Clear data if nothing selected
     }
-  }, [toppingAssignments, totalHalves, hasLunch, boiledEggs, totalCost, onDirectSubmit]); // Include all form fields that affect submission
+  }, [toppingAssignments, totalHalves, hasLunch, boiledEggs, hasCoffee, totalCost, onDirectSubmit]); // Include all form fields that affect submission
 
   const handleToppingAssignment = (assignmentIndex, toppingType) => {
     setToppingAssignments(prev => {
