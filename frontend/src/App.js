@@ -3097,141 +3097,138 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
         <div className="p-6">
           {dailySummary && dailySummary.shopping_list && Object.keys(dailySummary.shopping_list).length > 0 ? (
             <div>
-              {/* Combined Shopping List */}
-              <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-green-800">🛒 Einkaufsliste</h3>
-                  <div className="text-lg font-semibold text-purple-700">
-                    {(() => {
-                      const lunchCount = dailySummary.employee_orders ? 
-                        Object.values(dailySummary.employee_orders).filter(emp => emp.has_lunch).length : 0;
-                      return lunchCount > 0 ? `${lunchCount} Mittagessen bestellt` : '';
-                    })()}
-                  </div>
-                </div>
-                
-                <div className="bg-white border border-green-300 rounded-lg p-4">
-                  <div className="space-y-3">
-                    {/* Bread Rolls */}
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                      <span className="font-semibold text-gray-700">Brötchen gesamt:</span>
-                      <div className="text-right">
-                        {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
-                          const rollLabel = rollTypeLabels[rollType] || rollType;
-                          const wholeRolls = data.whole_rolls || 0;
+              {/* Combined Shopping List with Lunch Box */}
+              <div className="mb-8 flex gap-4">
+                {/* Main Shopping List Box */}
+                <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-4 text-green-800">🛒 Einkaufsliste</h3>
+                  
+                  <div className="bg-white border border-green-300 rounded-lg p-4">
+                    <div className="space-y-3">
+                      {/* Bread Rolls */}
+                      <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                        <span className="font-semibold text-gray-700">Brötchen gesamt:</span>
+                        <div className="text-right">
+                          {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
+                            const rollLabel = rollTypeLabels[rollType] || rollType;
+                            const wholeRolls = data.whole_rolls || 0;
+                            return (
+                              <div key={rollType} className="text-lg font-bold text-green-700">
+                                {wholeRolls} {rollLabel.replace(' Brötchen', '')}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      {/* Boiled Eggs */}
+                      {dailySummary.total_boiled_eggs > 0 && (
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                          <span className="font-semibold text-gray-700">Gekochte Eier:</span>
+                          <span className="text-lg font-bold text-yellow-700">{dailySummary.total_boiled_eggs} Stück</span>
+                        </div>
+                      )}
+                      
+                      {/* Toppings with Roll Type Detail */}
+                      {(() => {
+                        // Check if we have employee orders data
+                        if (!dailySummary.employee_orders || Object.keys(dailySummary.employee_orders).length === 0) {
+                          return null;
+                        }
+                        
+                        // Calculate toppings from employee orders
+                        const toppingBreakdown = {};
+                        
+                        try {
+                          Object.values(dailySummary.employee_orders).forEach(employeeData => {
+                            if (employeeData && employeeData.toppings) {
+                              Object.entries(employeeData.toppings).forEach(([topping, count]) => {
+                                if (!toppingBreakdown[topping]) {
+                                  toppingBreakdown[topping] = { white: 0, seeded: 0 };
+                                }
+                                
+                                const whiteHalves = employeeData.white_halves || 0;
+                                const seededHalves = employeeData.seeded_halves || 0;
+                                const totalHalves = whiteHalves + seededHalves;
+                                
+                                if (totalHalves > 0) {
+                                  const whiteRatio = whiteHalves / totalHalves;
+                                  const seededRatio = seededHalves / totalHalves;
+                                  toppingBreakdown[topping].white += Math.round(count * whiteRatio);
+                                  toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
+                                }
+                              });
+                            }
+                          });
+                        } catch (error) {
+                          console.error('Error processing toppings:', error);
                           return (
-                            <div key={rollType} className="text-lg font-bold text-green-700">
-                              {wholeRolls} {rollLabel.replace(' Brötchen', '')}
+                            <div>
+                              <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
+                              <div className="ml-4 text-red-500 text-sm">Fehler beim Laden der Beläge</div>
                             </div>
                           );
-                        })}
-                      </div>
-                    </div>
-                    
-                    {/* Boiled Eggs */}
-                    {dailySummary.total_boiled_eggs > 0 && (
-                      <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700">Gekochte Eier:</span>
-                        <span className="text-lg font-bold text-yellow-700">{dailySummary.total_boiled_eggs} Stück</span>
-                      </div>
-                    )}
-                    
-                    {/* Lunch Count */}
-                    {(() => {
-                      const lunchCount = dailySummary.employee_orders ? 
-                        Object.values(dailySummary.employee_orders).filter(emp => emp.has_lunch).length : 0;
-                      
-                      if (lunchCount > 0) {
-                        return (
-                          <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                            <span className="font-semibold text-gray-700">Mittagessen:</span>
-                            <span className="text-lg font-bold text-purple-700">{lunchCount} Mitarbeiter</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
-                    
-                    {/* Toppings with Roll Type Detail */}
-                    {(() => {
-                      // Check if we have employee orders data
-                      if (!dailySummary.employee_orders || Object.keys(dailySummary.employee_orders).length === 0) {
-                        return null;
-                      }
-                      
-                      // Calculate toppings from employee orders
-                      const toppingBreakdown = {};
-                      
-                      try {
-                        Object.values(dailySummary.employee_orders).forEach(employeeData => {
-                          if (employeeData && employeeData.toppings) {
-                            Object.entries(employeeData.toppings).forEach(([topping, count]) => {
-                              if (!toppingBreakdown[topping]) {
-                                toppingBreakdown[topping] = { white: 0, seeded: 0 };
-                              }
-                              
-                              const whiteHalves = employeeData.white_halves || 0;
-                              const seededHalves = employeeData.seeded_halves || 0;
-                              const totalHalves = whiteHalves + seededHalves;
-                              
-                              if (totalHalves > 0) {
-                                const whiteRatio = whiteHalves / totalHalves;
-                                const seededRatio = seededHalves / totalHalves;
-                                toppingBreakdown[topping].white += Math.round(count * whiteRatio);
-                                toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
-                              }
-                            });
+                        }
+                        
+                        if (Object.keys(toppingBreakdown).length === 0) {
+                          return null;
+                        }
+                        
+                        const toppingItems = [];
+                        Object.entries(toppingBreakdown).forEach(([topping, counts]) => {
+                          const toppingName = finalToppingLabels[topping] || topping;
+                          
+                          if (counts.seeded > 0) {
+                            toppingItems.push(
+                              <div key={`${topping}-seeded`} className="flex justify-between items-center">
+                                <span className="text-gray-600">{counts.seeded}x {toppingName} Körner (Korn)</span>
+                              </div>
+                            );
+                          }
+                          if (counts.white > 0) {
+                            toppingItems.push(
+                              <div key={`${topping}-white`} className="flex justify-between items-center">
+                                <span className="text-gray-600">{counts.white}x {toppingName} Hell</span>
+                              </div>
+                            );
                           }
                         });
-                      } catch (error) {
-                        console.error('Error processing toppings:', error);
+                        
+                        if (toppingItems.length === 0) {
+                          return null;
+                        }
+                        
                         return (
                           <div>
                             <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
-                            <div className="ml-4 text-red-500 text-sm">Fehler beim Laden der Beläge</div>
+                            <div className="ml-4 space-y-1">
+                              {toppingItems}
+                            </div>
                           </div>
                         );
-                      }
-                      
-                      if (Object.keys(toppingBreakdown).length === 0) {
-                        return null;
-                      }
-                      
-                      const toppingItems = [];
-                      Object.entries(toppingBreakdown).forEach(([topping, counts]) => {
-                        const toppingName = finalToppingLabels[topping] || topping;
-                        
-                        if (counts.seeded > 0) {
-                          toppingItems.push(
-                            <div key={`${topping}-seeded`} className="flex justify-between items-center">
-                              <span className="text-gray-600">{counts.seeded}x {toppingName} Körner (Korn)</span>
-                            </div>
-                          );
-                        }
-                        if (counts.white > 0) {
-                          toppingItems.push(
-                            <div key={`${topping}-white`} className="flex justify-between items-center">
-                              <span className="text-gray-600">{counts.white}x {toppingName} Hell</span>
-                            </div>
-                          );
-                        }
-                      });
-                      
-                      if (toppingItems.length === 0) {
-                        return null;
-                      }
-                      
-                      return (
-                        <div>
-                          <div className="font-semibold text-gray-700 mb-2">Beläge:</div>
-                          <div className="ml-4 space-y-1">
-                            {toppingItems}
-                          </div>
-                        </div>
-                      );
-                    })()}
+                      })()}
+                    </div>
                   </div>
                 </div>
+                
+                {/* Lunch Summary Box */}
+                {(() => {
+                  const lunchCount = dailySummary.employee_orders ? 
+                    Object.values(dailySummary.employee_orders).filter(emp => emp.has_lunch).length : 0;
+                  
+                  if (lunchCount > 0) {
+                    return (
+                      <div className="w-48 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <h4 className="text-lg font-semibold text-orange-800 mb-3">🍽️ Mittagessen</h4>
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-orange-700 mb-1">{lunchCount}</div>
+                          <div className="text-sm text-orange-600">Bestellungen</div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
 
               {/* Matrix-Style Employee Orders Table */}
