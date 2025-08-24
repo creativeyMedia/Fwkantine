@@ -257,24 +257,26 @@ async def initialize_default_data():
     
     for i in range(1, 5):
         dept_name = f"{i}. Wachabteilung"
+        dept_id = f"fw4abteilung{i}"  # FESTE, LESBARE ID!
         
-        # Check if department already exists
-        existing_dept = await db.departments.find_one({"name": dept_name})
+        # Check if department already exists BY ID
+        existing_dept = await db.departments.find_one({"id": dept_id})
         
         if existing_dept:
             # Department exists - DO NOT UPDATE PASSWORDS
             # This preserves user-changed passwords
-            print(f"🔧 DEBUG: Department '{dept_name}' exists - preserving passwords")
+            print(f"🔧 DEBUG: Department '{dept_name}' (ID: {dept_id}) exists - preserving passwords")
             departments_preserved += 1
             continue
         
-        # Department doesn't exist - create it with default passwords
+        # Department doesn't exist - create it with FIXED ID
         dept_password = os.environ.get(f'DEPT_{i}_PASSWORD', f'password{i}')
         admin_password = os.environ.get(f'DEPT_{i}_ADMIN_PASSWORD', f'admin{i}')
         
-        print(f"🔧 DEBUG: Creating department '{dept_name}' with passwords: emp='{dept_password}', admin='{admin_password}'")
+        print(f"🔧 DEBUG: Creating department '{dept_name}' with FIXED ID: {dept_id}")
         
         new_department = Department(
+            id=dept_id,  # FESTE ID VERWENDEN!
             name=dept_name,
             password_hash=dept_password,
             admin_password_hash=admin_password
