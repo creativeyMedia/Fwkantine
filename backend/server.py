@@ -1098,13 +1098,28 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 whole_rolls = (data["halves"] + 1) // 2
                 shopping_list[roll_type] = {"halves": data["halves"], "whole_rolls": whole_rolls}
             
+            # Get daily lunch price for this date
+            date_str = current_date.isoformat()
+            daily_price = await db.daily_lunch_prices.find_one({
+                "department_id": department_id,
+                "date": date_str
+            })
+            
+            daily_lunch_price = daily_price["lunch_price"] if daily_price else 0.0
+            
+            # If no daily price set, fall back to global lunch settings
+            if daily_lunch_price == 0.0:
+                lunch_settings = await db.lunch_settings.find_one()
+                daily_lunch_price = lunch_settings["price"] if lunch_settings else 0.0
+            
             history.append({
                 "date": current_date.isoformat(),
                 "total_orders": total_orders,
                 "total_amount": total_amount,
                 "breakfast_summary": breakfast_summary,
                 "employee_orders": employee_orders,
-                "shopping_list": shopping_list
+                "shopping_list": shopping_list,
+                "daily_lunch_price": daily_lunch_price  # Add daily lunch price
             })
         
         current_date += timedelta(days=1)
