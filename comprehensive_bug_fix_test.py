@@ -17,7 +17,7 @@ load_dotenv('/app/frontend/.env')
 # Get backend URL from environment
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:8001')
 # Fix for None URL in preview environment
-if BACKEND_URL == 'https://wach-canteen.preview.emergentagent.com':
+if BACKEND_URL == 'https://stable-canteen.preview.emergentagent.com':
     BACKEND_URL = 'http://localhost:8001'
 API_BASE = f"{BACKEND_URL}/api"
 
