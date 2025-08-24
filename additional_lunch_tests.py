@@ -34,9 +34,12 @@ def run_additional_lunch_tests():
     session.post(f"{API_BASE}/login/master", 
                 params={"department_name": test_dept['name'], "master_password": "master123dev"})
     
-    # Create test employee
-    employee_data = {"name": "Additional Test User", "department_id": test_dept['id']}
-    test_employee = session.post(f"{API_BASE}/employees", json=employee_data).json()
+    # Create different employees for each test to avoid "one order per day" constraint
+    test_employees = []
+    for i in range(5):
+        employee_data = {"name": f"Test User {i+1}", "department_id": test_dept['id']}
+        employee = session.post(f"{API_BASE}/employees", json=employee_data).json()
+        test_employees.append(employee)
     
     # Set prices
     session.put(f"{API_BASE}/lunch-settings", params={"price": 3.00})
@@ -60,7 +63,7 @@ def run_additional_lunch_tests():
     print("\n1️⃣ Testing lunch-only order...")
     try:
         lunch_only_order = {
-            "employee_id": test_employee['id'],
+            "employee_id": test_employees[0]['id'],
             "department_id": test_dept['id'],
             "order_type": "breakfast",
             "breakfast_items": [{
@@ -96,7 +99,7 @@ def run_additional_lunch_tests():
     print("\n2️⃣ Testing rolls+lunch order...")
     try:
         rolls_lunch_order = {
-            "employee_id": test_employee['id'],
+            "employee_id": test_employees[1]['id'],
             "department_id": test_dept['id'],
             "order_type": "breakfast",
             "breakfast_items": [{
@@ -133,7 +136,7 @@ def run_additional_lunch_tests():
     print("\n3️⃣ Testing eggs+lunch order...")
     try:
         eggs_lunch_order = {
-            "employee_id": test_employee['id'],
+            "employee_id": test_employees[2]['id'],
             "department_id": test_dept['id'],
             "order_type": "breakfast",
             "breakfast_items": [{
@@ -169,7 +172,7 @@ def run_additional_lunch_tests():
     print("\n4️⃣ Testing multiple eggs+lunch order...")
     try:
         multi_eggs_lunch_order = {
-            "employee_id": test_employee['id'],
+            "employee_id": test_employees[3]['id'],
             "department_id": test_dept['id'],
             "order_type": "breakfast",
             "breakfast_items": [{
@@ -205,7 +208,7 @@ def run_additional_lunch_tests():
     print("\n5️⃣ Testing complex order (rolls + eggs + lunch)...")
     try:
         complex_order = {
-            "employee_id": test_employee['id'],
+            "employee_id": test_employees[4]['id'],
             "department_id": test_dept['id'],
             "order_type": "breakfast",
             "breakfast_items": [{
