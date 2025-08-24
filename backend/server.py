@@ -949,6 +949,7 @@ async def get_daily_summary(department_id: str):
                     "white_halves": 0, 
                     "seeded_halves": 0, 
                     "boiled_eggs": 0,  # Add boiled eggs tracking
+                    "has_lunch": False,  # Add lunch tracking
                     "toppings": {}
                 }
             
