@@ -1001,6 +1001,10 @@ async def create_order(order_data: OrderCreate):
             # Boiled eggs price
             if breakfast_item.boiled_eggs > 0:
                 total_price += boiled_eggs_price * breakfast_item.boiled_eggs
+            
+            # Coffee price (daily flat rate)
+            if breakfast_item.has_coffee:
+                total_price += coffee_price
     
     elif order_data.order_type == OrderType.DRINKS and order_data.drink_items:
         drinks_menu = await db.menu_drinks.find({"department_id": order_data.department_id}).to_list(100)
