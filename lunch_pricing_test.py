@@ -45,6 +45,9 @@ def test_critical_lunch_pricing_bug():
         if response.status_code == 200:
             departments = response.json()
             if departments:
+                print(f"✅ Found {len(departments)} departments:")
+                for i, dept in enumerate(departments):
+                    print(f"   {i+1}. {dept['name']} (ID: {dept['id']})")
                 test_dept = departments[0]
                 print(f"✅ Using department: {test_dept['name']}")
             else:
