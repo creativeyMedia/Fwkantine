@@ -235,6 +235,18 @@ async def cleanup_departments():
     
     return {"message": "Departments cleaned up successfully", "count": 4}
 
+@api_router.post("/cleanup-duplicate-departments")
+async def cleanup_duplicate_departments():
+    """Remove old departments with UUID-IDs, keep only fixed IDs"""
+    
+    # Delete all departments with UUID pattern (contain hyphens)
+    result = await db.departments.delete_many({
+        "id": {"$regex": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"}
+    })
+    
+    return {"message": f"Deleted {result.deleted_count} duplicate departments with UUIDs", 
+            "remaining_departments": await db.departments.count_documents({})}
+
 @api_router.post("/init-data")
 async def initialize_default_data():
     """Initialize the database with default departments and menu items
