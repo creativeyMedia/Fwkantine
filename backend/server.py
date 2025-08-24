@@ -1120,7 +1120,15 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     employee_name = employee["name"] if employee else "Unknown"
                     
                     if employee_name not in employee_orders:
-                        employee_orders[employee_name] = {"white_halves": 0, "seeded_halves": 0, "toppings": {}, "total_amount": 0}
+                        employee_orders[employee_name] = {
+                            "white_halves": 0, 
+                            "seeded_halves": 0, 
+                            "boiled_eggs": 0,  # Add boiled eggs tracking
+                            "has_lunch": False,  # Add lunch tracking
+                            "has_coffee": False,  # Add coffee tracking
+                            "toppings": {}, 
+                            "total_amount": 0
+                        }
                     
                     employee_orders[employee_name]["total_amount"] += order.get("total_price", 0)
                     
