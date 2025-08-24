@@ -45,6 +45,30 @@ def parse_from_mongo(item):
             item['timestamp'] = datetime.fromisoformat(item['timestamp'])
     return item
 
+# Berlin timezone helper functions
+def get_berlin_now():
+    """Get current time in Berlin timezone"""
+    return datetime.now(BERLIN_TZ)
+
+def get_berlin_date():
+    """Get current date in Berlin timezone"""
+    return get_berlin_now().date()
+
+def get_berlin_day_bounds(date_obj):
+    """Get start and end of day in Berlin timezone for a given date"""
+    if isinstance(date_obj, str):
+        date_obj = datetime.strptime(date_obj, '%Y-%m-%d').date()
+    
+    # Create datetime objects for start and end of day in Berlin timezone
+    start_of_day = BERLIN_TZ.localize(datetime.combine(date_obj, datetime.min.time()))
+    end_of_day = BERLIN_TZ.localize(datetime.combine(date_obj, datetime.max.time()))
+    
+    # Convert to UTC for database storage
+    start_of_day_utc = start_of_day.astimezone(timezone.utc)
+    end_of_day_utc = end_of_day.astimezone(timezone.utc)
+    
+    return start_of_day_utc, end_of_day_utc
+
 # Enums
 class OrderType(str, Enum):
     BREAKFAST = "breakfast"
