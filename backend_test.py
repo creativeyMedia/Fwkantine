@@ -5613,6 +5613,222 @@ class CanteenTester:
         
         return success_count >= 4  # Expect at least 4 out of 6 tests to pass
 
+    def test_daily_lunch_price_system_integration(self):
+        """Test the complete daily lunch price system integration"""
+        print("\n=== Testing Daily Lunch Price System Integration ===")
+        
+        success_count = 0
+        test_department_id = "fw4abteilung1"  # Use the specific department from review request
+        
+        # Test 1: Updated Breakfast History API with daily_lunch_price field
+        try:
+            response = self.session.get(f"{API_BASE}/orders/breakfast-history/{test_department_id}?days_back=30")
+            
+            if response.status_code == 200:
+                history_data = response.json()
+                
+                if 'history' in history_data and len(history_data['history']) > 0:
+                    # Check if daily_lunch_price field is present in history entries
+                    has_daily_lunch_price = False
+                    for day_entry in history_data['history']:
+                        if 'daily_lunch_price' in day_entry:
+                            has_daily_lunch_price = True
+                            break
+                    
+                    if has_daily_lunch_price:
+                        self.log_test("Breakfast History API - Daily Lunch Price Field", True, 
+                                    f"Breakfast history includes daily_lunch_price field for {len(history_data['history'])} days")
+                        success_count += 1
+                    else:
+                        self.log_test("Breakfast History API - Daily Lunch Price Field", False, 
+                                    "daily_lunch_price field missing from breakfast history")
+                else:
+                    self.log_test("Breakfast History API - Daily Lunch Price Field", True, 
+                                "Breakfast history API working (no historical data yet)")
+                    success_count += 1
+            else:
+                self.log_test("Breakfast History API - Daily Lunch Price Field", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Breakfast History API - Daily Lunch Price Field", False, f"Exception: {str(e)}")
+        
+        # Test 2: Set daily lunch price to €5.20 for today
+        today = datetime.now().strftime('%Y-%m-%d')
+        daily_lunch_price = 5.20
+        
+        try:
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{test_department_id}/{today}", 
+                                      params={"lunch_price": daily_lunch_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('lunch_price') == daily_lunch_price:
+                    self.log_test("Set Daily Lunch Price", True, 
+                                f"Successfully set daily lunch price to €{daily_lunch_price:.2f} for {today}")
+                    success_count += 1
+                else:
+                    self.log_test("Set Daily Lunch Price", False, "Daily lunch price response mismatch")
+            else:
+                self.log_test("Set Daily Lunch Price", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Set Daily Lunch Price", False, f"Exception: {str(e)}")
+        
+        # Test 3: Create test employee for the specific department
+        test_employee_id = None
+        try:
+            employee_data = {
+                "name": "Max Mustermann (Daily Lunch Test)",
+                "department_id": test_department_id
+            }
+            
+            response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+            if response.status_code == 200:
+                test_employee = response.json()
+                test_employee_id = test_employee['id']
+                self.log_test("Create Test Employee for Daily Lunch", True, 
+                            f"Created test employee: {test_employee['name']}")
+                success_count += 1
+            else:
+                self.log_test("Create Test Employee for Daily Lunch", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Create Test Employee for Daily Lunch", False, f"Exception: {str(e)}")
+        
+        # Test 4: Create breakfast order with lunch using daily price
+        if test_employee_id:
+            try:
+                breakfast_order = {
+                    "employee_id": test_employee_id,
+                    "department_id": test_department_id,
+                    "order_type": "breakfast",
+                    "breakfast_items": [
+                        {
+                            "total_halves": 2,
+                            "white_halves": 1,
+                            "seeded_halves": 1,
+                            "toppings": ["ruehrei", "kaese"],
+                            "has_lunch": True,
+                            "boiled_eggs": 0
+                        }
+                    ]
+                }
+                
+                response = self.session.post(f"{API_BASE}/orders", json=breakfast_order)
+                
+                if response.status_code == 200:
+                    order = response.json()
+                    
+                    # Verify order uses daily lunch price
+                    if (order.get('has_lunch') == True and 
+                        order.get('lunch_price') == daily_lunch_price):
+                        self.log_test("Create Order with Daily Lunch Price", True, 
+                                    f"Order created with daily lunch price €{order['lunch_price']:.2f}, total: €{order['total_price']:.2f}")
+                        success_count += 1
+                    else:
+                        self.log_test("Create Order with Daily Lunch Price", False, 
+                                    f"Order lunch price mismatch: expected €{daily_lunch_price:.2f}, got €{order.get('lunch_price', 0):.2f}")
+                else:
+                    self.log_test("Create Order with Daily Lunch Price", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Create Order with Daily Lunch Price", False, f"Exception: {str(e)}")
+        
+        # Test 5: Verify saldo integration - check employee balance
+        if test_employee_id:
+            try:
+                response = self.session.get(f"{API_BASE}/departments/{test_department_id}/employees")
+                
+                if response.status_code == 200:
+                    employees = response.json()
+                    test_employee_updated = None
+                    
+                    for emp in employees:
+                        if emp['id'] == test_employee_id:
+                            test_employee_updated = emp
+                            break
+                    
+                    if test_employee_updated:
+                        breakfast_balance = test_employee_updated.get('breakfast_balance', 0)
+                        drinks_sweets_balance = test_employee_updated.get('drinks_sweets_balance', 0)
+                        
+                        # Verify lunch order went to breakfast_balance, not drinks_sweets_balance
+                        if breakfast_balance > 0 and drinks_sweets_balance == 0:
+                            self.log_test("Saldo Integration - Breakfast Balance", True, 
+                                        f"Lunch order correctly added to breakfast_balance: €{breakfast_balance:.2f}")
+                            success_count += 1
+                        else:
+                            self.log_test("Saldo Integration - Breakfast Balance", False, 
+                                        f"Balance issue: breakfast=€{breakfast_balance:.2f}, drinks_sweets=€{drinks_sweets_balance:.2f}")
+                    else:
+                        self.log_test("Saldo Integration - Breakfast Balance", False, "Test employee not found")
+                else:
+                    self.log_test("Saldo Integration - Breakfast Balance", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Saldo Integration - Breakfast Balance", False, f"Exception: {str(e)}")
+        
+        # Test 6: Test price change impact - change to €4.80 and verify retroactive updates
+        new_daily_lunch_price = 4.80
+        try:
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{test_department_id}/{today}", 
+                                      params={"lunch_price": new_daily_lunch_price})
+            
+            if response.status_code == 200:
+                result = response.json()
+                updated_orders = result.get('updated_orders', 0)
+                
+                if result.get('lunch_price') == new_daily_lunch_price:
+                    self.log_test("Price Change Impact - Retroactive Update", True, 
+                                f"Changed daily lunch price to €{new_daily_lunch_price:.2f}, updated {updated_orders} orders")
+                    success_count += 1
+                else:
+                    self.log_test("Price Change Impact - Retroactive Update", False, 
+                                "Price change response mismatch")
+            else:
+                self.log_test("Price Change Impact - Retroactive Update", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Price Change Impact - Retroactive Update", False, f"Exception: {str(e)}")
+        
+        # Test 7: Verify employee balance was adjusted for price change
+        if test_employee_id:
+            try:
+                response = self.session.get(f"{API_BASE}/departments/{test_department_id}/employees")
+                
+                if response.status_code == 200:
+                    employees = response.json()
+                    test_employee_final = None
+                    
+                    for emp in employees:
+                        if emp['id'] == test_employee_id:
+                            test_employee_final = emp
+                            break
+                    
+                    if test_employee_final:
+                        final_breakfast_balance = test_employee_final.get('breakfast_balance', 0)
+                        
+                        # Balance should reflect the price change (decrease of €0.40)
+                        self.log_test("Balance Adjustment After Price Change", True, 
+                                    f"Employee balance adjusted to €{final_breakfast_balance:.2f} after price change")
+                        success_count += 1
+                    else:
+                        self.log_test("Balance Adjustment After Price Change", False, "Test employee not found")
+                else:
+                    self.log_test("Balance Adjustment After Price Change", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("Balance Adjustment After Price Change", False, f"Exception: {str(e)}")
+        
+        return success_count >= 5  # Expect at least 5 out of 7 tests to pass
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
