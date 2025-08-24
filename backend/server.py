@@ -1718,10 +1718,24 @@ async def update_order(order_id: str, order_update: dict):
                 for topping in item.get("toppings", []):
                     total_price += toppings_prices.get(topping, 0.0)
                 
+                # Add boiled eggs price if applicable
+                boiled_eggs = item.get("boiled_eggs", 0)
+                if boiled_eggs > 0:
+                    lunch_settings = await db.lunch_settings.find_one({}) or {"boiled_eggs_price": 0.50}
+                    boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50)
+                    total_price += boiled_eggs * boiled_eggs_price
+                
                 # Add lunch price if applicable
                 if item.get("has_lunch"):
                     lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
-                    total_price += lunch_settings["price"]
+                    # Lunch price is per order, not per roll half
+                    total_halves = item.get("total_halves", white_halves + seeded_halves)
+                    if total_halves > 0:
+                        # If there are rolls, multiply lunch price by total halves (traditional logic)
+                        total_price += lunch_settings["price"] * total_halves
+                    else:
+                        # If no rolls (lunch only order), add lunch price once
+                        total_price += lunch_settings["price"]
             
             update_fields["total_price"] = total_price
         
