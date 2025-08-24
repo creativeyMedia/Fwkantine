@@ -652,11 +652,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CRITICAL PASSWORD PERSISTENCE FIX VERIFICATION"
-  stuck_tasks:
-    - "CRITICAL PASSWORD PERSISTENCE FIX VERIFICATION"
+    - "UI/UX IMPROVEMENTS - Auto-close popup, improved breakfast closure, enhanced breakfast overview, complete order display"
+  stuck_tasks: []
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
