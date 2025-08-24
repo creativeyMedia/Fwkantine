@@ -5042,6 +5042,245 @@ class CanteenTester:
         
         return success_count >= 4  # At least 4 out of 6 tests should pass
 
+    def test_critical_lunch_pricing_calculation(self):
+        """CRITICAL TEST: Test the exact lunch pricing calculation bug reported by user"""
+        print("\n=== CRITICAL LUNCH PRICING CALCULATION TEST ===")
+        
+        if not self.departments or not self.employees:
+            self.log_test("Critical Lunch Pricing", False, "Missing departments or employees")
+            return False
+        
+        success_count = 0
+        test_dept = self.departments[0]
+        test_employee = self.employees[0]
+        
+        # Step 1: Set lunch price to 3.00€ as per user's test case
+        try:
+            lunch_price = 3.00
+            response = self.session.put(f"{API_BASE}/lunch-settings", params={"price": lunch_price})
+            if response.status_code == 200:
+                self.log_test("Set Lunch Price to €3.00", True, f"Lunch price set to €{lunch_price:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Set Lunch Price to €3.00", False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Set Lunch Price to €3.00", False, f"Exception: {str(e)}")
+        
+        # Step 2: Set boiled eggs price to 0.50€
+        try:
+            boiled_eggs_price = 0.50
+            response = self.session.put(f"{API_BASE}/lunch-settings/boiled-eggs-price", params={"price": boiled_eggs_price})
+            if response.status_code == 200:
+                self.log_test("Set Boiled Eggs Price to €0.50", True, f"Boiled eggs price set to €{boiled_eggs_price:.2f}")
+                success_count += 1
+            else:
+                self.log_test("Set Boiled Eggs Price to €0.50", False, f"HTTP {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Set Boiled Eggs Price to €0.50", False, f"Exception: {str(e)}")
+        
+        # Step 3: Update roll prices to match user's test case (weiss=0.50€, koerner=0.60€)
+        try:
+            # Get current breakfast menu to find roll items
+            response = self.session.get(f"{API_BASE}/menu/breakfast/{test_dept['id']}")
+            if response.status_code == 200:
+                breakfast_menu = response.json()
+                
+                # Update white roll price to 0.50€
+                white_roll = next((item for item in breakfast_menu if item['roll_type'] == 'weiss'), None)
+                if white_roll:
+                    update_data = {"price": 0.50}
+                    response = self.session.put(f"{API_BASE}/department-admin/menu/breakfast/{white_roll['id']}", 
+                                              json=update_data, params={"department_id": test_dept['id']})
+                    if response.status_code == 200:
+                        self.log_test("Set White Roll Price to €0.50", True, "White roll price updated")
+                        success_count += 1
+                
+                # Update seeded roll price to 0.60€
+                seeded_roll = next((item for item in breakfast_menu if item['roll_type'] == 'koerner'), None)
+                if seeded_roll:
+                    update_data = {"price": 0.60}
+                    response = self.session.put(f"{API_BASE}/department-admin/menu/breakfast/{seeded_roll['id']}", 
+                                              json=update_data, params={"department_id": test_dept['id']})
+                    if response.status_code == 200:
+                        self.log_test("Set Seeded Roll Price to €0.60", True, "Seeded roll price updated")
+                        success_count += 1
+        except Exception as e:
+            self.log_test("Update Roll Prices", False, f"Exception: {str(e)}")
+        
+        # Step 4: Create the EXACT order from user's test case
+        # 1x white roll (0.50€) + 1x seeded roll (0.60€) + 1x boiled egg (0.50€) + lunch (3.00€) = 4.60€
+        try:
+            critical_test_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 2,
+                        "white_halves": 1,  # 1x white roll half (0.50€)
+                        "seeded_halves": 1,  # 1x seeded roll half (0.60€)
+                        "toppings": ["butter", "butter"],  # 2 toppings for 2 roll halves
+                        "boiled_eggs": 1,  # 1x boiled egg (0.50€)
+                        "has_lunch": True  # 1x lunch (3.00€)
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=critical_test_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                actual_total = order['total_price']
+                expected_total = 4.60  # 0.50 + 0.60 + 0.50 + 3.00 = 4.60€
+                
+                if abs(actual_total - expected_total) < 0.01:  # Allow for floating point precision
+                    self.log_test("CRITICAL USER TEST CASE", True, 
+                                f"✅ CORRECT! Expected €{expected_total:.2f}, got €{actual_total:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("CRITICAL USER TEST CASE", False, 
+                                f"❌ WRONG! Expected €{expected_total:.2f}, got €{actual_total:.2f} - BUG STILL EXISTS!")
+                    
+                    # Log detailed breakdown for debugging
+                    print(f"   🔍 DETAILED BREAKDOWN:")
+                    print(f"   - White roll half: €0.50")
+                    print(f"   - Seeded roll half: €0.60")
+                    print(f"   - Boiled egg: €0.50")
+                    print(f"   - Lunch: €3.00")
+                    print(f"   - Expected total: €4.60")
+                    print(f"   - Actual total: €{actual_total:.2f}")
+                    print(f"   - Difference: €{actual_total - expected_total:.2f}")
+            else:
+                self.log_test("CRITICAL USER TEST CASE", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("CRITICAL USER TEST CASE", False, f"Exception: {str(e)}")
+        
+        # Step 5: Additional test cases from the review request
+        
+        # Test lunch-only order (should be 3.00€)
+        try:
+            lunch_only_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "boiled_eggs": 0,
+                        "has_lunch": True  # Only lunch
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=lunch_only_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                actual_total = order['total_price']
+                expected_total = 3.00
+                
+                if abs(actual_total - expected_total) < 0.01:
+                    self.log_test("Lunch-Only Order Test", True, 
+                                f"✅ CORRECT! Lunch-only order: €{actual_total:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Lunch-Only Order Test", False, 
+                                f"❌ WRONG! Expected €{expected_total:.2f}, got €{actual_total:.2f}")
+            else:
+                self.log_test("Lunch-Only Order Test", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Lunch-Only Order Test", False, f"Exception: {str(e)}")
+        
+        # Test rolls+lunch (2 halves + lunch): should be 1.10€ + 3.00€ = 4.10€
+        try:
+            rolls_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 2,
+                        "white_halves": 1,  # 0.50€
+                        "seeded_halves": 1,  # 0.60€
+                        "toppings": ["butter", "butter"],
+                        "boiled_eggs": 0,  # No eggs
+                        "has_lunch": True  # 3.00€
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=rolls_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                actual_total = order['total_price']
+                expected_total = 4.10  # 0.50 + 0.60 + 3.00 = 4.10€
+                
+                if abs(actual_total - expected_total) < 0.01:
+                    self.log_test("Rolls+Lunch Order Test", True, 
+                                f"✅ CORRECT! Rolls+lunch order: €{actual_total:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Rolls+Lunch Order Test", False, 
+                                f"❌ WRONG! Expected €{expected_total:.2f}, got €{actual_total:.2f}")
+            else:
+                self.log_test("Rolls+Lunch Order Test", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Rolls+Lunch Order Test", False, f"Exception: {str(e)}")
+        
+        # Test eggs+lunch (no rolls): should be 0.50€ + 3.00€ = 3.50€
+        try:
+            eggs_lunch_order = {
+                "employee_id": test_employee['id'],
+                "department_id": test_dept['id'],
+                "order_type": "breakfast",
+                "breakfast_items": [
+                    {
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "boiled_eggs": 1,  # 0.50€
+                        "has_lunch": True  # 3.00€
+                    }
+                ]
+            }
+            
+            response = self.session.post(f"{API_BASE}/orders", json=eggs_lunch_order)
+            
+            if response.status_code == 200:
+                order = response.json()
+                actual_total = order['total_price']
+                expected_total = 3.50  # 0.50 + 3.00 = 3.50€
+                
+                if abs(actual_total - expected_total) < 0.01:
+                    self.log_test("Eggs+Lunch Order Test", True, 
+                                f"✅ CORRECT! Eggs+lunch order: €{actual_total:.2f}")
+                    success_count += 1
+                else:
+                    self.log_test("Eggs+Lunch Order Test", False, 
+                                f"❌ WRONG! Expected €{expected_total:.2f}, got €{actual_total:.2f}")
+            else:
+                self.log_test("Eggs+Lunch Order Test", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Eggs+Lunch Order Test", False, f"Exception: {str(e)}")
+        
+        print(f"\n🎯 CRITICAL LUNCH PRICING TEST SUMMARY: {success_count}/8 tests passed")
+        
+        # This is a critical test - we need at least 6/8 tests to pass, including the main user test case
+        return success_count >= 6
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
