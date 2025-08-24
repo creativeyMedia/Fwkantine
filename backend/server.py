@@ -745,9 +745,8 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
         )
         await db.daily_lunch_prices.insert_one(daily_price.dict())
     
-    # Now retroactively update all lunch orders from that specific day
-    start_of_day = datetime.strptime(date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-    end_of_day = start_of_day + timedelta(days=1) - timedelta(seconds=1)
+    # Now retroactively update all lunch orders from that specific day (Berlin timezone)
+    start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(date)
     
     updated_orders = 0
     
@@ -757,8 +756,8 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
         "order_type": "breakfast",
         "has_lunch": True,
         "timestamp": {
-            "$gte": start_of_day,
-            "$lte": end_of_day
+            "$gte": start_of_day_utc.isoformat(),
+            "$lte": end_of_day_utc.isoformat()
         }
     })
     
