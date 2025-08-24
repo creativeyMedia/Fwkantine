@@ -3683,8 +3683,8 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
           </div>
         </div>
 
-        {/* Gekochte Eier */}
-        <BoiledEggsManagement />
+        {/* Eier & Kaffee */}
+        <CoffeeAndEggsManagement />
 
         {/* Drinks */}
         <div>
