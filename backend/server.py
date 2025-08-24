@@ -1493,7 +1493,8 @@ async def get_employee_profile(employee_id: str):
 @api_router.post("/department-admin/close-breakfast/{department_id}")
 async def close_breakfast_for_day(department_id: str, admin_name: str):
     """Close breakfast ordering for the day"""
-    today = datetime.now(timezone.utc).date().isoformat()
+    # Use Berlin timezone for current day
+    today = get_berlin_date().isoformat()
     
     # Check if already closed
     existing_setting = await db.breakfast_settings.find_one({
