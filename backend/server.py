@@ -237,31 +237,39 @@ async def cleanup_departments():
 
 @api_router.post("/init-data")
 async def initialize_default_data():
-    """Initialize the database with default departments and menu items"""
+    """Initialize the database with default departments and menu items
     
-    # Always update departments with correct admin passwords using environment variables
-    departments_data = []
+    CRITICAL: This function NEVER updates existing department passwords.
+    It only creates new departments if they don't exist.
+    This preserves user-changed passwords permanently.
+    """
+    
+    # CRITICAL FIX: Only create departments that don't exist
+    # NEVER update existing department passwords to preserve user changes
     for i in range(1, 5):
+        dept_name = f"{i}. Wachabteilung"
+        
+        # Check if department already exists
+        existing_dept = await db.departments.find_one({"name": dept_name})
+        
+        if existing_dept:
+            # Department exists - DO NOT UPDATE PASSWORDS
+            # This preserves user-changed passwords
+            print(f"Department '{dept_name}' exists - preserving existing passwords")
+            continue
+        
+        # Department doesn't exist - create it with default passwords
         dept_password = os.environ.get(f'DEPT_{i}_PASSWORD', f'password{i}')
         admin_password = os.environ.get(f'DEPT_{i}_ADMIN_PASSWORD', f'admin{i}')
         
-        departments_data.append({
-            "name": f"{i}. Wachabteilung", 
-            "password_hash": dept_password, 
-            "admin_password_hash": admin_password
-        })
-    
-    # Update or create departments
-    for dept_data in departments_data:
-        existing_dept = await db.departments.find_one({"name": dept_data["name"]})
-        if existing_dept:
-            # NEVER update existing department passwords - only check if department exists
-            # This preserves user-changed passwords
-            pass  # Department exists, do nothing to preserve custom passwords
-        else:
-            # Create new department only if it doesn't exist
-            department = Department(**dept_data)
-            await db.departments.insert_one(department.dict())
+        new_department = Department(
+            name=dept_name,
+            password_hash=dept_password,
+            admin_password_hash=admin_password
+        )
+        
+        await db.departments.insert_one(new_department.dict())
+        print(f"Created new department: '{dept_name}'")
     
     # Check if menu items already exist (check for department-specific items)
     existing_breakfast = await db.menu_breakfast.find().to_list(1)
