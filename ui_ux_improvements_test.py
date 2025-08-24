@@ -244,16 +244,18 @@ class UIUXImprovementsTester:
         """Test POST /api/orders endpoint with different order types"""
         print("\n=== Testing Order Creation with Various Combinations ===")
         
-        if not self.department_id or not self.employee_id:
-            self.log_test("Order Creation Various Combinations", False, "Missing department or employee for testing")
+        if not self.department_id or not hasattr(self, 'test_employees') or len(self.test_employees) < 4:
+            self.log_test("Order Creation Various Combinations", False, "Missing department or employees for testing")
             return False
         
         success_count = 0
         
-        # Test 1: Only breakfast rolls with toppings
+        # Test 1: Only breakfast rolls with toppings - Employee 2 (if not already used)
         try:
+            # Use employee 2 or 3 depending on availability
+            employee_idx = 2 if len(self.test_employees) > 2 else 1
             rolls_only_order = {
-                "employee_id": self.employee_id,
+                "employee_id": self.test_employees[employee_idx]['id'],
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
@@ -281,10 +283,11 @@ class UIUXImprovementsTester:
         except Exception as e:
             self.log_test("Only Breakfast Rolls with Toppings", False, f"Exception: {str(e)}")
         
-        # Test 2: Only boiled eggs (no rolls)
+        # Test 2: Only boiled eggs (no rolls) - Employee 3
         try:
+            employee_idx = 3 if len(self.test_employees) > 3 else 2
             eggs_only_order = {
-                "employee_id": self.employee_id,
+                "employee_id": self.test_employees[employee_idx]['id'],
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
@@ -312,10 +315,11 @@ class UIUXImprovementsTester:
         except Exception as e:
             self.log_test("Only Boiled Eggs (no rolls)", False, f"Exception: {str(e)}")
         
-        # Test 3: Only lunch (no rolls, no eggs)
+        # Test 3: Only lunch (no rolls, no eggs) - Employee 4
         try:
+            employee_idx = 4 if len(self.test_employees) > 4 else 3
             lunch_only_order = {
-                "employee_id": self.employee_id,
+                "employee_id": self.test_employees[employee_idx]['id'],
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
@@ -343,10 +347,26 @@ class UIUXImprovementsTester:
         except Exception as e:
             self.log_test("Only Lunch (no rolls, no eggs)", False, f"Exception: {str(e)}")
         
-        # Test 4: Mixed orders (rolls + eggs + lunch)
+        # Test 4: Mixed orders (rolls + eggs + lunch) - Create new employee if needed
         try:
+            # Create a new employee for mixed order if we don't have enough
+            if len(self.test_employees) < 5:
+                employee_data = {
+                    "name": "Mixed Order Employee",
+                    "department_id": self.department_id
+                }
+                response = self.session.post(f"{API_BASE}/employees", json=employee_data)
+                if response.status_code == 200:
+                    mixed_employee = response.json()
+                    mixed_employee_id = mixed_employee['id']
+                else:
+                    # Fallback to existing employee
+                    mixed_employee_id = self.test_employees[0]['id']
+            else:
+                mixed_employee_id = self.test_employees[4]['id']
+            
             mixed_order = {
-                "employee_id": self.employee_id,
+                "employee_id": mixed_employee_id,
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
