@@ -976,7 +976,23 @@ async def create_order(order_data: OrderCreate):
             total_price += sweet_price * quantity
     
     # Create order
-    order = Order(**order_data.dict(), total_price=total_price)
+    order_has_lunch = False
+    order_lunch_price = None
+    
+    # Check if this is a breakfast order with lunch
+    if order_data.order_type == OrderType.BREAKFAST and order_data.breakfast_items:
+        for breakfast_item in order_data.breakfast_items:
+            if breakfast_item.has_lunch:
+                order_has_lunch = True
+                order_lunch_price = lunch_price  # Use the daily lunch price we calculated above
+                break
+    
+    order = Order(
+        **order_data.dict(), 
+        total_price=total_price,
+        has_lunch=order_has_lunch,
+        lunch_price=order_lunch_price
+    )
     order_dict = prepare_for_mongo(order.dict())
     await db.orders.insert_one(order_dict)
     
