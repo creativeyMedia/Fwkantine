@@ -3242,7 +3242,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   🥚 Eier
                                 </th>
                                 <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-purple-50">
-                                  🍽️ Lunch
+                                  🍽️ Mittagessen
                                 </th>
                               </tr>
                             </thead>
