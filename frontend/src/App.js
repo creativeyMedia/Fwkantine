@@ -2037,6 +2037,20 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     
     setSortedEmployees(newSortedEmployees);
     setDraggedIndex(null);
+    
+    // Save the new order to backend
+    saveSortOrder(newSortedEmployees);
+  };
+  
+  const saveSortOrder = async (sortedEmployees) => {
+    try {
+      const employeeIds = sortedEmployees.map(emp => emp.id);
+      await axios.put(`${API}/departments/${currentDepartment.department_id}/employees/sort-order`, employeeIds);
+      console.log('Sortierung erfolgreich gespeichert');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Sortierung:', error);
+      alert('Fehler beim Speichern der Sortierung. Die Änderungen gehen beim Neuladen verloren.');
+    }
   };
   
   const markAsPaid = async (employee, balanceType) => {
