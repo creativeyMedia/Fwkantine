@@ -388,8 +388,8 @@ async def initialize_default_data():
         for item in sweets:
             await db.menu_sweets.insert_one(item.dict())
     
-    # Create default lunch settings
-    lunch_settings = LunchSettings(price=0.0, enabled=True)
+    # Create default lunch settings with explicit boiled eggs price
+    lunch_settings = LunchSettings(price=0.0, enabled=True, boiled_eggs_price=0.50)
     
     # Insert lunch settings
     await db.lunch_settings.insert_one(lunch_settings.dict())
