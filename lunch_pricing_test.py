@@ -59,19 +59,29 @@ def test_critical_lunch_pricing_bug():
     
     # Step 2: Authenticate with department credentials
     print("\n2️⃣ Authenticating with department credentials...")
-    try:
-        login_data = {
-            "department_name": test_dept['name'],
-            "password": "password1"
-        }
-        response = session.post(f"{API_BASE}/login/department", json=login_data)
-        if response.status_code == 200:
-            print("✅ Department authentication successful")
-        else:
-            print(f"❌ Department authentication failed: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Authentication error: {str(e)}")
+    
+    # Try different password combinations
+    passwords_to_try = ["password1", "passwordA", "admin1", "adminA"]
+    authenticated = False
+    
+    for password in passwords_to_try:
+        try:
+            login_data = {
+                "department_name": test_dept['name'],
+                "password": password
+            }
+            response = session.post(f"{API_BASE}/login/department", json=login_data)
+            if response.status_code == 200:
+                print(f"✅ Department authentication successful with password: {password}")
+                authenticated = True
+                break
+            else:
+                print(f"❌ Password '{password}' failed: {response.status_code}")
+        except Exception as e:
+            print(f"❌ Authentication error with '{password}': {str(e)}")
+    
+    if not authenticated:
+        print("❌ All authentication attempts failed")
         return False
     
     # Step 3: Create a test employee
