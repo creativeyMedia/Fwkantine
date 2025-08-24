@@ -3465,9 +3465,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
 
 // Lunch Management Tab Component
 const LunchManagementTab = () => {
-  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true, boiled_eggs_price: 0.50 });
+  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
   const [newPrice, setNewPrice] = useState('');
-  const [newBoiledEggsPrice, setNewBoiledEggsPrice] = useState('');
 
   useEffect(() => {
     fetchLunchSettings();
@@ -3478,7 +3477,6 @@ const LunchManagementTab = () => {
       const response = await axios.get(`${API}/lunch-settings`);
       setLunchSettings(response.data);
       setNewPrice(response.data.price.toFixed(2));
-      setNewBoiledEggsPrice((response.data.boiled_eggs_price || 0.50).toFixed(2));
     } catch (error) {
       console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
     }
@@ -3497,22 +3495,6 @@ const LunchManagementTab = () => {
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Lunch-Preises:', error);
       alert('Fehler beim Aktualisieren des Preises');
-    }
-  };
-
-  const updateBoiledEggsPrice = async () => {
-    if (!newBoiledEggsPrice || isNaN(parseFloat(newBoiledEggsPrice))) {
-      alert('Bitte gültigen Kochei-Preis eingeben');
-      return;
-    }
-
-    try {
-      await axios.put(`${API}/lunch-settings/boiled-eggs-price?price=${parseFloat(newBoiledEggsPrice)}`);
-      await fetchLunchSettings();
-      alert('Kochei-Preis erfolgreich aktualisiert');
-    } catch (error) {
-      console.error('Fehler beim Aktualisieren des Kochei-Preises:', error);
-      alert('Fehler beim Aktualisieren des Kochei-Preises');
     }
   };
 
