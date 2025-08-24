@@ -1978,9 +1978,26 @@ async def update_order(order_id: str, order_update: dict):
                 
                 # Add lunch price if applicable
                 if item.get("has_lunch"):
-                    lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
+                    # Get daily lunch price for today (Berlin timezone)
+                    today = get_berlin_date().strftime('%Y-%m-%d')
+                    daily_price = await db.daily_lunch_prices.find_one({
+                        "department_id": existing_order["department_id"],
+                        "date": today
+                    })
+                    
+                    if daily_price:
+                        lunch_price = daily_price["lunch_price"]
+                    else:
+                        # Fall back to global lunch settings
+                        lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
+                        lunch_price = lunch_settings["price"]
+                    
                     # Lunch price should be added once per order, not multiplied by roll halves
-                    total_price += lunch_settings["price"]
+                    total_price += lunch_price
+                    
+                    # Update the order's lunch information
+                    update_fields["has_lunch"] = True
+                    update_fields["lunch_price"] = lunch_price
             
             update_fields["total_price"] = total_price
         
