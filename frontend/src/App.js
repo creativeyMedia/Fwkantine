@@ -4392,6 +4392,86 @@ const AdminSettingsTab = ({ currentDepartment }) => {
   );
 };
 
+// Boiled Eggs Management Component
+const BoiledEggsManagement = () => {
+  const [lunchSettings, setLunchSettings] = useState({ boiled_eggs_price: 0.50 });
+  const [newBoiledEggsPrice, setNewBoiledEggsPrice] = useState('');
+
+  const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
+  useEffect(() => {
+    fetchLunchSettings();
+  }, []);
+
+  const fetchLunchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/api/lunch-settings`);
+      setLunchSettings(response.data);
+      setNewBoiledEggsPrice((response.data.boiled_eggs_price || 0.50).toFixed(2));
+    } catch (error) {
+      console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
+    }
+  };
+
+  const updateBoiledEggsPrice = async () => {
+    if (!newBoiledEggsPrice || isNaN(parseFloat(newBoiledEggsPrice))) {
+      alert('Bitte gültigen Kochei-Preis eingeben');
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/api/lunch-settings/boiled-eggs-price?price=${parseFloat(newBoiledEggsPrice)}`);
+      await fetchLunchSettings();
+      alert('Kochei-Preis erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Kochei-Preises:', error);
+      alert('Fehler beim Aktualisieren des Kochei-Preises');
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-md font-semibold text-gray-700 border-b pb-2">🥚 Gekochte Eier</h4>
+      </div>
+      
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="mb-4">
+          <div className="text-lg font-bold text-yellow-600 mb-2">
+            {(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} € <span className="text-sm text-gray-500">pro Ei</span>
+          </div>
+        </div>
+
+        <div className="border-t border-yellow-300 pt-4">
+          <h5 className="text-sm font-semibold mb-3 text-gray-700">Preis ändern</h5>
+          <div className="flex items-center gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1">Neuer Preis (€ pro Ei)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={newBoiledEggsPrice}
+                onChange={(e) => setNewBoiledEggsPrice(e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-yellow-500 text-sm"
+                placeholder="0.50"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={updateBoiledEggsPrice}
+                className="bg-yellow-600 text-white px-3 py-2 rounded hover:bg-yellow-700 transition-colors text-sm"
+              >
+                Aktualisieren
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
