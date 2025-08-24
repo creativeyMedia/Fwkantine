@@ -3906,9 +3906,6 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
         </div>
       </div>
 
-        {/* Gekochte Eier */}
-        <BoiledEggsManagement />
-
       {/* New Item Modals */}
       {showNewDrink && (
         <NewMenuItemModal
