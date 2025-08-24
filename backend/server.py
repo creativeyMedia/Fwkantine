@@ -680,6 +680,27 @@ async def update_boiled_eggs_price(price: float):
     
     return {"message": "Kochei-Preis erfolgreich aktualisiert", "price": price}
 
+@api_router.put("/lunch-settings/coffee-price")
+async def update_coffee_price(price: float):
+    """Update coffee price"""
+    if price < 0:
+        raise HTTPException(status_code=400, detail="Preis muss mindestens 0.00 € betragen")
+    
+    # Get current settings
+    lunch_settings = await db.lunch_settings.find_one()
+    
+    if lunch_settings:
+        await db.lunch_settings.update_one(
+            {"id": lunch_settings["id"]},
+            {"$set": {"coffee_price": price}}
+        )
+    else:
+        # Create new settings if none exist
+        new_settings = LunchSettings(price=0.0, enabled=True, boiled_eggs_price=0.50, coffee_price=price)
+        await db.lunch_settings.insert_one(new_settings.dict())
+
+    return {"message": "Kaffee-Preis erfolgreich aktualisiert", "price": price}
+
 @api_router.get("/daily-lunch-settings/{department_id}")
 async def get_daily_lunch_settings(department_id: str):
     """Get daily lunch prices for a department (last 30 days)"""
