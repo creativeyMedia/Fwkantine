@@ -105,6 +105,18 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
+  - task: "CRITICAL BUG FIXES BACKEND - Drag&Drop persistence, breakfast update calculations, retroactive lunch pricing"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "🔧 CRITICAL BUG FIXES IMPLEMENTED: (1) DRAG&DROP PERSISTENCE: Added sort_order field to Employee model, created PUT /departments/{department_id}/employees/sort-order endpoint to save drag&drop sorting, modified GET employees endpoint to return sorted list. (2) BREAKFAST UPDATE CALCULATION FIX: Fixed update_order endpoint to properly calculate boiled_eggs price and correct lunch pricing logic (lunch price per order/total_halves, not per individual roll). (3) RETROACTIVE LUNCH PRICING FIX: Fixed update_lunch_settings to use correct price calculation (no division by 2), proper boiled_eggs handling, and correct lunch price multiplication logic. These fixes address user-reported calculation errors and missing persistence."
+
   - task: "UI/UX IMPROVEMENTS BACKEND - Enhanced daily summary with lunch tracking"
     implemented: true
     working: true
