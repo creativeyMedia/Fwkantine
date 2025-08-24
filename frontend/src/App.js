@@ -2333,8 +2333,8 @@ const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMen
           </div>
         </div>
 
-        {/* Gekochte Eier */}
-        <BoiledEggsManagement />
+        {/* Eier & Kaffee */}
+        <CoffeeAndEggsManagement />
 
         {/* Drinks */}
         <div>
