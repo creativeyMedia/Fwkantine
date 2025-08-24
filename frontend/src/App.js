@@ -2338,6 +2338,9 @@ const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMen
           </div>
         </div>
 
+        {/* Gekochte Eier */}
+        <BoiledEggsManagement />
+
         {/* Drinks */}
         <div>
           <h4 className="text-md font-semibold mb-3 text-gray-700">Getränke</h4>
