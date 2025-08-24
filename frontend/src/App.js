@@ -4108,6 +4108,62 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span>Helle: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
                       <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
+                      
+                      {/* Lunch Price Management */}
+                      <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">
+                        <span className="font-medium text-orange-800">Mittagessen:</span>
+                        {editingLunchPrice === day.date ? (
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={lunchPriceInput}
+                              onChange={(e) => setLunchPriceInput(e.target.value)}
+                              className="w-16 px-2 py-1 text-xs border border-orange-300 rounded focus:outline-none focus:border-orange-500"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateLunchPrice(day.date);
+                                } else if (e.key === 'Escape') {
+                                  cancelEditingLunchPrice();
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <span className="text-orange-600">€</span>
+                            <button
+                              onClick={() => updateLunchPrice(day.date)}
+                              disabled={updatingLunchPrice === day.date}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-400"
+                            >
+                              {updatingLunchPrice === day.date ? '...' : '✓'}
+                            </button>
+                            <button
+                              onClick={cancelEditingLunchPrice}
+                              className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-1">
+                            <span className="font-semibold text-orange-600">
+                              €{(day.daily_lunch_price || 0).toFixed(2)}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditingLunchPrice(day.date, day.daily_lunch_price || 0);
+                              }}
+                              className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
+                              title="Mittagessen-Preis bearbeiten"
+                            >
+                              ✏️
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      
                       <div className="flex items-center space-x-2 ml-4">
                         {/* Delete Button */}
                         <button
