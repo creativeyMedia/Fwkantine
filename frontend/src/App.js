@@ -1273,22 +1273,43 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
     )}
 
-    {/* Boiled Eggs Option */}
-    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <label className="block text-sm font-medium mb-3">Gekochte Frühstückseier</label>
-      <div className="flex items-center space-x-4">
-        <input
-          type="number"
-          min="0"
-          max="10"
-          step="1"
-          value={boiledEggs}
-          onChange={handleBoiledEggsChange}
-          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
-        />
-        <span className="text-sm text-gray-600">
-          Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
-        </span>
+    {/* Boiled Eggs and Coffee Options - Side by Side */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Boiled Eggs Option */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <label className="block text-sm font-medium mb-3">🥚 Gekochte Frühstückseier</label>
+        <div className="flex items-center space-x-4">
+          <input
+            type="number"
+            min="0"
+            max="10"
+            step="1"
+            value={boiledEggs}
+            onChange={handleBoiledEggsChange}
+            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
+          />
+          <span className="text-sm text-gray-600">
+            Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
+          </span>
+        </div>
+      </div>
+
+      {/* Coffee Option */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={hasCoffee}
+            onChange={handleCoffeeChange}
+            className="mr-3 w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-2"
+          />
+          <div>
+            <span className="text-sm font-medium block">☕ Kaffee</span>
+            <span className="text-sm text-gray-600">
+              {coffeePrice.toFixed(2)} € pro Tag{hasCoffee ? ` = ${coffeeCost.toFixed(2)} €` : ''}
+            </span>
+          </div>
+        </label>
       </div>
     </div>
 
