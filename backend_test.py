@@ -4615,139 +4615,72 @@ class CanteenTester:
         return success_count >= 6  # At least 6 out of the main tests should pass
 
     def run_all_tests(self):
-        """Run all backend tests focusing on Department-Specific Menu System"""
-        print("🧪 Starting Department-Specific Menu System Testing for German Canteen Management System")
-        print(f"🌐 Testing against: {API_BASE}")
-        print("=" * 60)
+        """Run all test suites with focus on data persistence"""
+        print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
+        print(f"🔗 Testing against: {API_BASE}")
+        print("📋 Context: Testing fix for production issue where data was disappearing")
+        print("🔧 Fix Applied: Frontend now connects to production server instead of preview environment")
+        print("=" * 80)
         
-        # Run essential setup tests first
-        setup_tests = [
-            ("Data Initialization", self.test_data_initialization),
-            ("Department Retrieval", self.test_get_departments),
+        # Initialize data first
+        self.test_data_initialization()
+        self.test_get_departments()
+        
+        # Core functionality tests with focus on data persistence
+        tests = [
+            ("🎯 CRITICAL: Data Persistence Fix Verification", self.test_data_persistence_critical),
+            ("Department Authentication", self.test_department_authentication),
             ("Department Admin Authentication", self.test_department_admin_authentication),
             ("Employee Management", self.test_employee_management),
             ("Menu Endpoints", self.test_menu_endpoints),
+            ("Order Processing", self.test_order_processing),
+            ("Daily Summary", self.test_daily_summary),
+            ("Employee Profile", self.test_employee_profile_endpoint),
+            ("Department Admin Menu Management", self.test_department_admin_menu_management),
+            ("Data Integrity", self.test_data_integrity),
+            ("Admin Functions", self.test_admin_functions),
+            ("Lunch Management System", self.test_lunch_management_system),
+            ("Breakfast with Lunch Option", self.test_breakfast_with_lunch_option),
+            ("Admin Employee Management", self.test_admin_employee_management),
+            ("Order Deletion", self.test_order_deletion)
         ]
         
-        # Department-Specific Menu System tests (main focus)
-        department_specific_tests = [
-            ("Department-Specific Migration", self.test_department_specific_migration),
-            ("Department-Specific Menu Endpoints", self.test_department_specific_menu_endpoints),
-            ("Backward Compatibility Menus", self.test_backward_compatibility_menus),
-            ("Department-Specific Order Creation", self.test_department_specific_order_creation),
-            ("Department Isolation & Data Integrity", self.test_department_isolation_data_integrity),
-        ]
+        passed_tests = 0
+        total_tests = len(tests)
         
-        # Additional critical tests
-        critical_tests = [
-            ("🎯 Topping System Bugs Testing", self.test_topping_system_bugs),  # Add the new topping test
-            ("🎯 Four Specific Bug Fixes", self.test_four_specific_bug_fixes),
-            ("Critical Breakfast Ordering Fixes", self.test_critical_breakfast_ordering_fixes),
-            ("Critical Bug Fixes", self.test_critical_bug_fixes),
-            ("🔧 Daily Summary Toppings Fix - [object Object] Issue", self.test_daily_summary_toppings_fix),
-            ("🆕 NEW FEATURE - Breakfast Day Deletion", self.test_breakfast_day_deletion),
-            ("🔐 PASSWORD CHANGE FUNCTIONALITY", self.test_password_change_functionality),
-            ("🆕 BREAKFAST ORDERING FLEXIBILITY - No Rolls Required", self.test_breakfast_ordering_flexibility),
-        ]
-        
-        # NEW FEATURE TEST - Boiled Breakfast Eggs
-        new_feature_tests = [
-            ("🆕 NEW FEATURE - Boiled Breakfast Eggs", self.test_boiled_breakfast_eggs_feature),
-            ("🆕 NEW FEATURE - Admin Boiled Eggs Pricing Management", self.test_admin_boiled_eggs_pricing_management),
-        ]
-        
-        # Run setup tests
-        print("\n--- Running Essential Setup Tests ---")
-        setup_passed = 0
-        for test_name, test_func in setup_tests:
+        for test_name, test_func in tests:
+            print(f"\n{'='*20} {test_name} {'='*20}")
             try:
                 if test_func():
-                    setup_passed += 1
-                    print(f"✅ {test_name}: PASSED")
+                    passed_tests += 1
+                    print(f"✅ {test_name} PASSED")
                 else:
-                    print(f"❌ {test_name}: FAILED")
+                    print(f"❌ {test_name} FAILED")
             except Exception as e:
-                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
+                print(f"💥 {test_name} CRASHED: {str(e)}")
         
-        print(f"\nSetup Tests: {setup_passed}/{len(setup_tests)} passed")
+        # Print final summary
+        print("\n" + "="*80)
+        print("🎯 FINAL TEST SUMMARY - DATA PERSISTENCE VERIFICATION")
+        print("="*80)
         
-        # Run Department-Specific Menu System tests (main focus)
-        print("\n--- Running Department-Specific Menu System Tests ---")
-        dept_specific_passed = 0
-        for test_name, test_func in department_specific_tests:
-            try:
-                if test_func():
-                    dept_specific_passed += 1
-                    print(f"✅ {test_name}: PASSED")
-                else:
-                    print(f"❌ {test_name}: FAILED")
-            except Exception as e:
-                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
+        success_rate = (passed_tests / total_tests) * 100
+        print(f"📊 Tests Passed: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
-        # Run additional critical tests
-        print("\n--- Running Additional Critical Tests ---")
-        critical_passed = 0
-        for test_name, test_func in critical_tests:
-            try:
-                if test_func():
-                    critical_passed += 1
-                    print(f"✅ {test_name}: PASSED")
-                else:
-                    print(f"❌ {test_name}: FAILED")
-            except Exception as e:
-                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
-        
-        # Run NEW FEATURE tests - Boiled Breakfast Eggs
-        print("\n--- Running NEW FEATURE Tests - Boiled Breakfast Eggs ---")
-        new_feature_passed = 0
-        for test_name, test_func in new_feature_tests:
-            try:
-                if test_func():
-                    new_feature_passed += 1
-                    print(f"✅ {test_name}: PASSED")
-                else:
-                    print(f"❌ {test_name}: FAILED")
-            except Exception as e:
-                print(f"❌ CRITICAL ERROR in {test_name}: {str(e)}")
-        
-        # Print summary
-        print("\n" + "=" * 60)
-        print("🎯 BACKEND TESTING SUMMARY - INCLUDING NEW BOILED EGGS FEATURE")
-        print("=" * 60)
-        
-        total_tests = len(setup_tests) + len(department_specific_tests) + len(critical_tests) + len(new_feature_tests)
-        total_passed = setup_passed + dept_specific_passed + critical_passed + new_feature_passed
-        
-        print(f"✅ Setup Tests: {setup_passed}/{len(setup_tests)}")
-        print(f"🏢 Department-Specific Tests: {dept_specific_passed}/{len(department_specific_tests)}")
-        print(f"🔧 Additional Critical Tests: {critical_passed}/{len(critical_tests)}")
-        print(f"🆕 NEW FEATURE - Boiled Eggs Tests: {new_feature_passed}/{len(new_feature_tests)}")
-        print(f"📊 Overall: {total_passed}/{total_tests}")
-        
-        # Print individual test results for department-specific tests
-        print(f"\n📋 Department-Specific Menu System Test Details:")
-        dept_specific_results = [result for result in self.test_results 
-                               if any(keyword in result['test'] for keyword in 
-                                    ['Migration', 'Department-Specific', 'Backward Compatible', 
-                                     'Department Isolation', 'Department ID Integrity'])]
-        
-        for result in dept_specific_results:
-            status = "✅" if result['success'] else "❌"
-            print(f"   {status} {result['test']}: {result['message']}")
-        
-        # Overall status
-        if dept_specific_passed == len(department_specific_tests):
-            print(f"\n🎉 DEPARTMENT-SPECIFIC MENU SYSTEM: ALL WORKING CORRECTLY!")
-            return (total_passed, total_tests - total_passed)
-        elif dept_specific_passed >= len(department_specific_tests) * 0.8:  # 80% pass rate
-            print(f"\n✅ DEPARTMENT-SPECIFIC MENU SYSTEM: MOSTLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
-            return (total_passed, total_tests - total_passed)
-        elif dept_specific_passed > 0:
-            print(f"\n⚠️  DEPARTMENT-SPECIFIC MENU SYSTEM: PARTIALLY WORKING ({dept_specific_passed}/{len(department_specific_tests)})")
-            return (total_passed, total_tests - total_passed)
+        if success_rate >= 80:
+            print("🎉 EXCELLENT! Data persistence fix is working - production issue RESOLVED!")
+        elif success_rate >= 60:
+            print("⚠️  GOOD! Most functionality working but some data persistence issues remain.")
         else:
-            print(f"\n🚨 DEPARTMENT-SPECIFIC MENU SYSTEM: MAJOR ISSUES DETECTED")
-            return (total_passed, total_tests - total_passed)
+            print("🚨 CRITICAL! Major data persistence issues detected - production problem NOT resolved.")
+        
+        # Print detailed results
+        print("\n📋 Detailed Test Results:")
+        for result in self.test_results:
+            status = "✅" if result['success'] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+        
+        return (passed_tests, total_tests - passed_tests)
 
     def test_data_persistence_critical(self):
         """CRITICAL TEST: Data Persistence Fix Verification - Test that data persists in local MongoDB"""
