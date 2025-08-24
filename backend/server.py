@@ -134,6 +134,7 @@ class LunchSettings(BaseModel):
     price: float = 0.0
     enabled: bool = True
     boiled_eggs_price: float = 0.50  # Default price per boiled egg
+    coffee_price: float = 1.50  # Default price for daily coffee
 
 class DailyLunchPrice(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
