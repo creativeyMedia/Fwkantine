@@ -932,19 +932,34 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
         <div className="p-6">
           {activeCategory === 'breakfast' && (
-            <BreakfastOrderForm
-              breakfastMenu={breakfastMenu}
-              toppingsMenu={toppingsMenu}
-              onAddItem={addBreakfastItem}
-              rollTypeLabels={rollTypeLabels}
-              toppingLabels={finalToppingLabels}
-              existingOrderData={breakfastFormData}
-              boiledEggsPrice={lunchSettings.boiled_eggs_price || 0.50}
-              onDirectSubmit={(breakfastData) => {
-                // This will be called directly when breakfast form is submitted
-                setBreakfastFormData(breakfastData);
-              }}
-            />
+            breakfastStatus.is_closed ? (
+              <div className="text-center py-8">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                  <div className="text-orange-800 mb-4">
+                    <svg className="mx-auto h-16 w-16 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-orange-800 mb-2">Frühstück ist für heute geschlossen</h3>
+                  <p className="text-orange-600">Die Frühstücksbestellung wurde vom Administrator beendet.</p>
+                  <p className="text-orange-600">Getränke und Süßigkeiten können weiterhin bestellt werden.</p>
+                </div>
+              </div>
+            ) : (
+              <BreakfastOrderForm
+                breakfastMenu={breakfastMenu}
+                toppingsMenu={toppingsMenu}
+                onAddItem={addBreakfastItem}
+                rollTypeLabels={rollTypeLabels}
+                toppingLabels={finalToppingLabels}
+                existingOrderData={breakfastFormData}
+                boiledEggsPrice={lunchSettings.boiled_eggs_price || 0.50}
+                onDirectSubmit={(breakfastData) => {
+                  // This will be called directly when breakfast form is submitted
+                  setBreakfastFormData(breakfastData);
+                }}
+              />
+            )
           )}
 
           {activeCategory === 'drinks' && (
