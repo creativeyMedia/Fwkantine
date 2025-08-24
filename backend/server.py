@@ -806,12 +806,8 @@ async def create_order(order_data: OrderCreate):
             
             # Lunch price calculation (can be without rolls now)
             if breakfast_item.has_lunch:
-                if has_rolls:
-                    # If has rolls, multiply by total halves (traditional logic)
-                    total_price += lunch_price * breakfast_item.total_halves
-                else:
-                    # If no rolls, just add lunch price once
-                    total_price += lunch_price
+                # Lunch price should be added once per order, not multiplied by roll halves
+                total_price += lunch_price
             
             # Boiled eggs price
             if breakfast_item.boiled_eggs > 0:
