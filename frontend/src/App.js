@@ -1087,6 +1087,10 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     setHasLunch(e.target.checked);
   };
 
+  const handleCoffeeChange = (e) => {
+    setHasCoffee(e.target.checked);
+  };
+
   // Update topping assignments when roll counts change
   useEffect(() => {
     const newAssignments = [];
