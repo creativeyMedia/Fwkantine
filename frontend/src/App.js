@@ -3062,7 +3062,16 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
             <div>
               {/* Combined Shopping List */}
               <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-green-800">🛒 Einkaufsliste</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-green-800">🛒 Einkaufsliste</h3>
+                  <div className="text-lg font-semibold text-purple-700">
+                    {(() => {
+                      const lunchCount = dailySummary.employee_orders ? 
+                        Object.values(dailySummary.employee_orders).filter(emp => emp.has_lunch).length : 0;
+                      return lunchCount > 0 ? `${lunchCount} Mittagessen bestellt` : '';
+                    })()}
+                  </div>
+                </div>
                 
                 <div className="bg-white border border-green-300 rounded-lg p-4">
                   <div className="space-y-3">
