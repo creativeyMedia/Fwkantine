@@ -244,8 +244,17 @@ async def initialize_default_data():
     This preserves user-changed passwords permanently.
     """
     
+    print("🔧 DEBUG: Starting initialize_default_data...")
+    
+    # Check current departments
+    existing_depts = await db.departments.find().to_list(100)
+    print(f"🔧 DEBUG: Found {len(existing_depts)} existing departments")
+    
     # CRITICAL FIX: Only create departments that don't exist
     # NEVER update existing department passwords to preserve user changes
+    departments_created = 0
+    departments_preserved = 0
+    
     for i in range(1, 5):
         dept_name = f"{i}. Wachabteilung"
         
@@ -255,12 +264,15 @@ async def initialize_default_data():
         if existing_dept:
             # Department exists - DO NOT UPDATE PASSWORDS
             # This preserves user-changed passwords
-            print(f"Department '{dept_name}' exists - preserving existing passwords")
+            print(f"🔧 DEBUG: Department '{dept_name}' exists - preserving passwords")
+            departments_preserved += 1
             continue
         
         # Department doesn't exist - create it with default passwords
         dept_password = os.environ.get(f'DEPT_{i}_PASSWORD', f'password{i}')
         admin_password = os.environ.get(f'DEPT_{i}_ADMIN_PASSWORD', f'admin{i}')
+        
+        print(f"🔧 DEBUG: Creating department '{dept_name}' with passwords: emp='{dept_password}', admin='{admin_password}'")
         
         new_department = Department(
             name=dept_name,
@@ -268,8 +280,17 @@ async def initialize_default_data():
             admin_password_hash=admin_password
         )
         
-        await db.departments.insert_one(new_department.dict())
-        print(f"Created new department: '{dept_name}'")
+        result = await db.departments.insert_one(new_department.dict())
+        print(f"🔧 DEBUG: Inserted department with ID: {result.inserted_id}")
+        departments_created += 1
+    
+    print(f"🔧 DEBUG: Summary - Created: {departments_created}, Preserved: {departments_preserved}")
+    
+    # Check final departments
+    final_depts = await db.departments.find().to_list(100)
+    print(f"🔧 DEBUG: Final count: {len(final_depts)} departments")
+    for dept in final_depts:
+        print(f"🔧 DEBUG: Final dept: {dept['name']} - emp_pass: {dept['password_hash']}, admin_pass: {dept['admin_password_hash']}")
     
     # Check if menu items already exist (check for department-specific items)
     existing_breakfast = await db.menu_breakfast.find().to_list(1)
