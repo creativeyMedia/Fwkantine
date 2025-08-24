@@ -123,6 +123,7 @@ def run_additional_lunch_tests():
                 test_results.append(False)
         else:
             print(f"❌ Rolls+lunch order failed: {response.status_code}")
+            print(f"   Response: {response.text}")
             test_results.append(False)
     except Exception as e:
         print(f"❌ Rolls+lunch test error: {str(e)}")
