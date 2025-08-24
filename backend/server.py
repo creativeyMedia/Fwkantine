@@ -1261,6 +1261,10 @@ async def get_daily_summary(department_id: str):
                 if item.get("has_lunch", False):
                     employee_orders[employee_name]["has_lunch"] = True
                 
+                # Add coffee if present
+                if item.get("has_coffee", False):
+                    employee_orders[employee_name]["has_coffee"] = True
+                
                 # Update overall summary
                 if "weiss" not in breakfast_summary:
                     breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
