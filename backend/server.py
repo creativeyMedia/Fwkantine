@@ -1059,24 +1059,23 @@ async def create_order(order_data: OrderCreate):
 async def get_breakfast_history(department_id: str, days_back: int = 30):
     """Get historical breakfast summaries for a department"""
     
-    # Get date range
-    end_date = datetime.now(timezone.utc).date()
+    # Get date range (Berlin timezone)
+    end_date = get_berlin_date()
     start_date = end_date - timedelta(days=days_back)
     
     history = []
     current_date = start_date
     
     while current_date <= end_date:
-        # Get orders for this specific date
-        start_of_day = datetime.combine(current_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-        end_of_day = datetime.combine(current_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        # Get orders for this specific date using Berlin timezone boundaries
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(current_date)
         
         orders = await db.orders.find({
             "department_id": department_id,
             "order_type": "breakfast",
             "timestamp": {
-                "$gte": start_of_day.isoformat(),
-                "$lte": end_of_day.isoformat()
+                "$gte": start_of_day_utc.isoformat(),
+                "$lte": end_of_day_utc.isoformat()
             }
         }).to_list(1000)
         
