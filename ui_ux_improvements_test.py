@@ -121,17 +121,17 @@ class UIUXImprovementsTester:
         """Test GET /api/orders/daily-summary/{department_id} endpoint for lunch tracking"""
         print("\n=== Testing Enhanced Daily Summary with Lunch Tracking ===")
         
-        if not self.department_id or not self.employee_id:
-            self.log_test("Enhanced Daily Summary", False, "Missing department or employee for testing")
+        if not self.department_id or not hasattr(self, 'test_employees') or len(self.test_employees) < 2:
+            self.log_test("Enhanced Daily Summary", False, "Missing department or employees for testing")
             return False
         
         success_count = 0
         
-        # Create test breakfast orders with has_lunch=true and has_lunch=false
+        # Create test breakfast orders with has_lunch=true and has_lunch=false using different employees
         try:
-            # Order 1: Breakfast with lunch (has_lunch=true)
+            # Order 1: Breakfast with lunch (has_lunch=true) - Employee 1
             breakfast_with_lunch = {
-                "employee_id": self.employee_id,
+                "employee_id": self.test_employees[0]['id'],
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
@@ -156,9 +156,9 @@ class UIUXImprovementsTester:
                 self.log_test("Create Breakfast Order with Lunch", False, 
                             f"HTTP {response.status_code}: {response.text}")
             
-            # Order 2: Breakfast without lunch (has_lunch=false)
+            # Order 2: Breakfast without lunch (has_lunch=false) - Employee 2
             breakfast_without_lunch = {
-                "employee_id": self.employee_id,
+                "employee_id": self.test_employees[1]['id'],
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [
@@ -197,37 +197,39 @@ class UIUXImprovementsTester:
                 if 'employee_orders' in summary:
                     employee_orders = summary['employee_orders']
                     
-                    # Find our test employee in the summary
-                    test_employee_found = False
+                    # Find employees with has_lunch property
+                    employees_with_lunch_property = 0
+                    employees_with_lunch_true = 0
+                    employees_with_lunch_false = 0
+                    
                     for employee_name, employee_data in employee_orders.items():
                         if 'has_lunch' in employee_data:
-                            test_employee_found = True
+                            employees_with_lunch_property += 1
                             has_lunch_value = employee_data['has_lunch']
-                            self.log_test("Employee has_lunch Property", True, 
-                                        f"Employee '{employee_name}' has has_lunch property: {has_lunch_value}")
-                            success_count += 1
-                            break
+                            if has_lunch_value:
+                                employees_with_lunch_true += 1
+                            else:
+                                employees_with_lunch_false += 1
                     
-                    if not test_employee_found:
+                    if employees_with_lunch_property >= 2:
+                        self.log_test("Employee has_lunch Property", True, 
+                                    f"Found {employees_with_lunch_property} employees with has_lunch property")
+                        success_count += 1
+                    else:
                         self.log_test("Employee has_lunch Property", False, 
-                                    "No employee found with has_lunch property in daily summary")
+                                    f"Only found {employees_with_lunch_property} employees with has_lunch property")
+                    
+                    # Verify lunch count is calculated correctly
+                    if employees_with_lunch_true > 0:
+                        self.log_test("Lunch Count Calculation", True, 
+                                    f"Found {employees_with_lunch_true} employees with lunch orders")
+                        success_count += 1
+                    else:
+                        self.log_test("Lunch Count Calculation", False, 
+                                    "No lunch orders found in daily summary")
                 else:
                     self.log_test("Daily Summary Structure", False, 
                                 "employee_orders section missing from daily summary")
-                
-                # Verify lunch count is calculated correctly
-                lunch_count = 0
-                for employee_name, employee_data in employee_orders.items():
-                    if employee_data.get('has_lunch', False):
-                        lunch_count += 1
-                
-                if lunch_count > 0:
-                    self.log_test("Lunch Count Calculation", True, 
-                                f"Found {lunch_count} employees with lunch orders")
-                    success_count += 1
-                else:
-                    self.log_test("Lunch Count Calculation", False, 
-                                "No lunch orders found in daily summary")
                 
             else:
                 self.log_test("Get Daily Summary", False, 
