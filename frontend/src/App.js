@@ -871,7 +871,10 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         fetchEmployees();
       }
       
-      // DON'T reset the form data or close the modal - keep it open for editing
+      // Auto-close popup after successful order submission and return to dashboard
+      if (onOrderComplete) {
+        onOrderComplete();
+      }
       
     } catch (error) {
       console.error('Fehler beim Speichern der Bestellung:', error);
