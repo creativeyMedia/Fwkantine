@@ -954,16 +954,17 @@ async def create_order(order_data: OrderCreate):
             lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
         
         boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50  # Default €0.50 per egg
+        coffee_price = lunch_settings.get("coffee_price", 1.50) if lunch_settings else 1.50  # Default €1.50 for coffee
         
         for breakfast_item in order_data.breakfast_items:
-            # Allow orders without rolls (just eggs and/or lunch)
+            # Allow orders without rolls (just eggs, coffee and/or lunch)
             has_rolls = breakfast_item.total_halves > 0
-            has_eggs_or_lunch = breakfast_item.boiled_eggs > 0 or breakfast_item.has_lunch
+            has_extras = breakfast_item.boiled_eggs > 0 or breakfast_item.has_lunch or breakfast_item.has_coffee
             
-            if not has_rolls and not has_eggs_or_lunch:
+            if not has_rolls and not has_extras:
                 raise HTTPException(
                     status_code=400, 
-                    detail="Bitte wählen Sie mindestens Brötchen, Frühstückseier oder Mittagessen"
+                    detail="Bitte wählen Sie mindestens Brötchen, Frühstückseier, Kaffee oder Mittagessen"
                 )
             
             # Validate roll calculation only if rolls are selected
