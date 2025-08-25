@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """
-UI IMPROVEMENTS BACKEND TESTING
+PROBLEM 2 - ORDER HISTORY LUNCH PRICE DISPLAY FIX TESTING
 
-FOCUS: Test three specific UI improvements that were just implemented:
-1. Shopping List Formatting - GET /api/orders/daily-summary/{department_id}
-2. Order History Lunch Price - GET /api/employees/{employee_id}/profile
-3. Admin Dashboard Menu Names - GET /api/menu/drinks/{department_id} and GET /api/menu/sweets/{department_id}
+FOCUS: Test the specific fix for Problem 2 - Order History Lunch Price Display:
+Verify that breakfast orders with lunch now show "1x Mittagessen" WITHOUT the problematic "(€0.00 Tagespreis)" text in the readable_items.
+
+Test specifically:
+1. Create a breakfast order with lunch for a test employee
+2. Retrieve the employee profile GET /api/employees/{employee_id}/profile 
+3. Verify that lunch orders in the order history have:
+   - description: "1x Mittagessen" 
+   - unit_price: "" (empty, not showing Tagespreis)
+   - total_price: correct lunch price amount
 
 BACKEND URL: https://fireguard-menu.preview.emergentagent.com/api
-DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
-CREDENTIALS: Employee: password1, Admin: admin1
+DEPARTMENT: 2. Wachabteilung (fw4abteilung2) 
+CREDENTIALS: Employee: password2, Admin: admin2
 
-PURPOSE: Verify that the backend data structures are properly formatted for the new frontend UI improvements.
+PURPOSE: Verify that the user-reported bug where "(€0.00 Tagespreis)" was still showing in the order history details is fixed.
 """
 
 import requests
