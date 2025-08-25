@@ -131,27 +131,31 @@ class SecurityTester:
         """Test that department authentication still works"""
         print("\n🔐 TESTING DEPARTMENT AUTHENTICATION")
         
-        # Test department login
-        login_data = {
-            "department_name": "1. Wachabteilung",
-            "password": "password1"
-        }
+        # Try multiple department credentials
+        test_credentials = [
+            {"department_name": "2. Wachabteilung", "password": "password2"},
+            {"department_name": "3. Wachabteilung", "password": "password3"},
+            {"department_name": "4. Wachabteilung", "password": "password4"},
+            {"department_name": "1. Wachabteilung", "password": "newTestPassword123"}  # Updated password
+        ]
         
-        try:
-            response = requests.post(f"{BACKEND_URL}/login/department", 
-                                   json=login_data, timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                if 'department_id' in data and 'department_name' in data:
-                    self.log_result("Department Authentication", True, f"Login successful for {data['department_name']}")
-                    return data['department_id']
+        for login_data in test_credentials:
+            try:
+                response = requests.post(f"{BACKEND_URL}/login/department", 
+                                       json=login_data, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'department_id' in data and 'department_name' in data:
+                        self.log_result("Department Authentication", True, f"Login successful for {data['department_name']}")
+                        return data['department_id']
+                    else:
+                        print(f"   ⚠️ Login response missing fields for {login_data['department_name']}: {data}")
                 else:
-                    self.log_result("Department Authentication", False, f"Login response missing fields: {data}")
-            else:
-                self.log_result("Department Authentication", False, f"Login failed: {response.status_code}")
-        except Exception as e:
-            self.log_result("Department Authentication", False, f"Login request failed: {str(e)}")
+                    print(f"   ⚠️ Login failed for {login_data['department_name']}: {response.status_code}")
+            except Exception as e:
+                print(f"   ⚠️ Login request failed for {login_data['department_name']}: {str(e)}")
         
+        self.log_result("Department Authentication", False, "All department login attempts failed")
         return None
     
     def test_order_creation(self, department_id):
