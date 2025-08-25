@@ -25,14 +25,12 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 DEPARTMENT_PASSWORD = "password1"
 ADMIN_PASSWORD = "admin1"
 
-class LiveSystemTester:
+class UIImprovementsTester:
     def __init__(self):
         self.session = requests.Session()
         self.department_id = None
-        self.employee_list = []
+        self.test_employee_id = None
         self.test_results = []
-        self.breakfast_menu = []
-        self.toppings_menu = []
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
@@ -52,8 +50,8 @@ class LiveSystemTester:
             print(f"   Error: {error}")
         print()
     
-    def test_live_authentication(self):
-        """Test authentication on fw-kantine.de with credentials costa/lenny"""
+    def setup_authentication(self):
+        """Setup authentication and get department ID"""
         try:
             # Test employee authentication
             response = self.session.post(f"{BASE_URL}/login/department", json={
@@ -66,182 +64,33 @@ class LiveSystemTester:
                 self.department_id = data.get("department_id")
                 
                 self.log_result(
-                    "Live Employee Authentication", 
+                    "Department Authentication", 
                     True, 
-                    f"Successfully authenticated as employee with department_id: {self.department_id}"
+                    f"Successfully authenticated with department_id: {self.department_id}"
                 )
-                
-                # Test admin authentication
-                admin_response = self.session.post(f"{BASE_URL}/login/department-admin", json={
-                    "department_name": DEPARTMENT_NAME,
-                    "admin_password": ADMIN_PASSWORD
-                })
-                
-                if admin_response.status_code == 200:
-                    admin_data = admin_response.json()
-                    self.log_result(
-                        "Live Admin Authentication", 
-                        True, 
-                        f"Successfully authenticated as admin with role: {admin_data.get('role')}"
-                    )
-                    return True
-                else:
-                    self.log_result(
-                        "Live Admin Authentication", 
-                        False, 
-                        error=f"Admin auth failed: HTTP {admin_response.status_code}: {admin_response.text}"
-                    )
-                    return False
-                
-            else:
-                self.log_result(
-                    "Live Employee Authentication", 
-                    False, 
-                    error=f"Employee auth failed: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Live Authentication", False, error=str(e))
-            return False
-    
-    def check_employee_list_live(self):
-        """Check employee list in department fw4abteilung2 on LIVE system"""
-        if not self.department_id:
-            self.log_result(
-                "Live Employee List Check", 
-                False, 
-                error="Department ID not available"
-            )
-            return False
-        
-        try:
-            response = self.session.get(f"{BASE_URL}/departments/{self.department_id}/employees")
-            
-            if response.status_code == 200:
-                employees = response.json()
-                self.employee_list = employees
-                
-                self.log_result(
-                    "Live Employee List Check",
-                    True,
-                    f"Found {len(employees)} employees in department {self.department_id}. Names: {[emp.get('name', 'Unknown') for emp in employees]}"
-                )
-                
-                # Check if list is empty (as expected after user cleanup)
-                if len(employees) == 0:
-                    self.log_result(
-                        "Employee List Empty Verification",
-                        True,
-                        "Employee list is empty as expected after user cleanup"
-                    )
-                
                 return True
-                
             else:
                 self.log_result(
-                    "Live Employee List Check", 
+                    "Department Authentication", 
                     False, 
-                    error=f"HTTP {response.status_code}: {response.text}"
+                    error=f"Auth failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Live Employee List Check", False, error=str(e))
+            self.log_result("Department Authentication", False, error=str(e))
             return False
     
-    def verify_menu_items_live(self):
-        """Verify menu items exist on fw-kantine.de (not preview system)"""
+    def setup_test_data(self):
+        """Create test employee and orders for testing"""
         if not self.department_id:
-            self.log_result(
-                "Live Menu Items Verification", 
-                False, 
-                error="Department ID not available"
-            )
+            self.log_result("Test Data Setup", False, error="Department ID not available")
             return False
         
-        success_count = 0
-        total_checks = 2
-        
-        # Check breakfast menu
         try:
-            response = self.session.get(f"{BASE_URL}/menu/breakfast/{self.department_id}")
-            
-            if response.status_code == 200:
-                breakfast_items = response.json()
-                self.breakfast_menu = breakfast_items
-                
-                if breakfast_items:
-                    self.log_result(
-                        "Live Breakfast Menu Verification",
-                        True,
-                        f"Found {len(breakfast_items)} breakfast items on LIVE system. Items: {[item.get('roll_type', 'Unknown') + ' (€' + str(item.get('price', 0)) + ')' for item in breakfast_items]}"
-                    )
-                    success_count += 1
-                else:
-                    self.log_result(
-                        "Live Breakfast Menu Verification",
-                        False,
-                        error=f"No breakfast items found for department {self.department_id} on LIVE system. This explains breakfast order failures!"
-                    )
-            else:
-                self.log_result(
-                    "Live Breakfast Menu Verification",
-                    False,
-                    error=f"HTTP {response.status_code}: {response.text}"
-                )
-                
-        except Exception as e:
-            self.log_result("Live Breakfast Menu Verification", False, error=str(e))
-        
-        # Check toppings menu
-        try:
-            response = self.session.get(f"{BASE_URL}/menu/toppings/{self.department_id}")
-            
-            if response.status_code == 200:
-                toppings_items = response.json()
-                self.toppings_menu = toppings_items
-                
-                if toppings_items:
-                    self.log_result(
-                        "Live Toppings Menu Verification",
-                        True,
-                        f"Found {len(toppings_items)} topping items on LIVE system. Items: {[item.get('topping_type', item.get('name', 'Unknown')) + ' (€' + str(item.get('price', 0)) + ')' for item in toppings_items]}"
-                    )
-                    success_count += 1
-                else:
-                    self.log_result(
-                        "Live Toppings Menu Verification",
-                        False,
-                        error=f"No topping items found for department {self.department_id} on LIVE system. This explains breakfast order failures!"
-                    )
-            else:
-                self.log_result(
-                    "Live Toppings Menu Verification",
-                    False,
-                    error=f"HTTP {response.status_code}: {response.text}"
-                )
-                
-        except Exception as e:
-            self.log_result("Live Toppings Menu Verification", False, error=str(e))
-        
-        return success_count == total_checks
-    
-    def test_breakfast_order_creation_live(self):
-        """Test actual breakfast order creation on LIVE system"""
-        if not self.department_id or not self.breakfast_menu or not self.toppings_menu:
-            self.log_result(
-                "Live Breakfast Order Creation", 
-                False, 
-                error="Missing required data (department_id or menu items)"
-            )
-            return False
-        
-        # First, we need to create a test employee since user deleted all employees
-        try:
-            # Create a test employee
+            # Create test employee
             employee_data = {
-                "name": "Test Employee for Order",
+                "name": "UI Test Employee",
                 "department_id": self.department_id
             }
             
@@ -249,26 +98,26 @@ class LiveSystemTester:
             
             if employee_response.status_code == 200:
                 test_employee = employee_response.json()
-                test_employee_id = test_employee.get("id")
+                self.test_employee_id = test_employee.get("id")
                 
                 self.log_result(
                     "Test Employee Creation",
                     True,
-                    f"Created test employee with ID: {test_employee_id}"
+                    f"Created test employee with ID: {self.test_employee_id}"
                 )
                 
-                # Now try to create a breakfast order
+                # Create test breakfast order with lunch
                 order_data = {
-                    "employee_id": test_employee_id,
+                    "employee_id": self.test_employee_id,
                     "department_id": self.department_id,
                     "order_type": "breakfast",
                     "breakfast_items": [{
-                        "total_halves": 2,
-                        "white_halves": 1,
-                        "seeded_halves": 1,
-                        "toppings": ["ruehrei", "kaese"],
-                        "has_lunch": False,
-                        "boiled_eggs": 0,
+                        "total_halves": 4,
+                        "white_halves": 2,
+                        "seeded_halves": 2,
+                        "toppings": ["ruehrei", "kaese", "salami", "butter"],
+                        "has_lunch": True,
+                        "boiled_eggs": 2,
                         "has_coffee": False
                     }]
                 }
@@ -278,23 +127,16 @@ class LiveSystemTester:
                 if order_response.status_code == 200:
                     order_result = order_response.json()
                     self.log_result(
-                        "Live Breakfast Order Creation",
+                        "Test Breakfast Order Creation",
                         True,
-                        f"✅ BREAKTHROUGH! Order created successfully on LIVE system! Total: €{order_result.get('total_price', 'N/A')}. The backend is working correctly."
+                        f"Created test order with lunch. Total: €{order_result.get('total_price', 'N/A')}"
                     )
                     return True
                 else:
-                    error_detail = order_response.text
-                    try:
-                        error_json = order_response.json()
-                        error_detail = error_json.get('detail', error_detail)
-                    except:
-                        pass
-                    
                     self.log_result(
-                        "Live Breakfast Order Creation",
+                        "Test Breakfast Order Creation",
                         False,
-                        error=f"🚨 CONFIRMED BUG! Order creation failed on LIVE system: HTTP {order_response.status_code}: {error_detail}"
+                        error=f"Order creation failed: HTTP {order_response.status_code}: {order_response.text}"
                     )
                     return False
                     
@@ -302,187 +144,298 @@ class LiveSystemTester:
                 self.log_result(
                     "Test Employee Creation",
                     False,
-                    error=f"Could not create test employee: HTTP {employee_response.status_code}: {employee_response.text}"
+                    error=f"Employee creation failed: HTTP {employee_response.status_code}: {employee_response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Live Breakfast Order Creation", False, error=str(e))
+            self.log_result("Test Data Setup", False, error=str(e))
             return False
     
-    def check_for_hidden_database_issues(self):
-        """Check for hidden database issues on LIVE MongoDB instance"""
+    def test_shopping_list_formatting(self):
+        """Test 1: Shopping List Formatting - GET /api/orders/daily-summary/{department_id}"""
         if not self.department_id:
-            self.log_result(
-                "Hidden Database Issues Check", 
-                False, 
-                error="Department ID not available"
-            )
+            self.log_result("Shopping List Formatting Test", False, error="Department ID not available")
             return False
         
         try:
-            # Check for any existing orders (should be empty after cleanup)
-            today = datetime.now().date().isoformat()
+            response = self.session.get(f"{BASE_URL}/orders/daily-summary/{self.department_id}")
             
-            # Check daily summary
-            summary_response = self.session.get(f"{BASE_URL}/orders/daily-summary/{self.department_id}")
-            
-            if summary_response.status_code == 200:
-                summary_data = summary_response.json()
+            if response.status_code == 200:
+                data = response.json()
                 
-                breakfast_summary = summary_data.get("breakfast_summary", {})
-                employee_orders = summary_data.get("employee_orders", {})
+                # Check required fields for shopping list formatting
+                required_fields = ["date", "breakfast_summary", "employee_orders", "shopping_list", "total_toppings", "total_boiled_eggs"]
+                missing_fields = [field for field in required_fields if field not in data]
                 
-                if not breakfast_summary and not employee_orders:
+                if missing_fields:
                     self.log_result(
-                        "Daily Summary Clean Check",
-                        True,
-                        "Daily summary is clean - no existing orders found as expected after cleanup"
-                    )
-                else:
-                    self.log_result(
-                        "Daily Summary Clean Check",
+                        "Shopping List Formatting Test",
                         False,
-                        error=f"🚨 HIDDEN ORDERS FOUND! Breakfast summary: {breakfast_summary}, Employee orders: {list(employee_orders.keys())}. This may be blocking new orders!"
+                        error=f"Missing required fields: {missing_fields}"
                     )
                     return False
-                    
-            else:
-                self.log_result(
-                    "Daily Summary Clean Check",
-                    False,
-                    error=f"Could not check daily summary: HTTP {summary_response.status_code}: {summary_response.text}"
-                )
-                return False
-            
-            # Check lunch settings
-            lunch_response = self.session.get(f"{BASE_URL}/lunch-settings")
-            
-            if lunch_response.status_code == 200:
-                lunch_data = lunch_response.json()
-                self.log_result(
-                    "Lunch Settings Check",
-                    True,
-                    f"Lunch settings found: Price €{lunch_data.get('price', 0)}, Enabled: {lunch_data.get('enabled', False)}, Boiled eggs: €{lunch_data.get('boiled_eggs_price', 0)}"
-                )
-            else:
-                self.log_result(
-                    "Lunch Settings Check",
-                    False,
-                    error=f"Could not check lunch settings: HTTP {lunch_response.status_code}: {lunch_response.text}"
-                )
-                return False
-            
-            return True
                 
-        except Exception as e:
-            self.log_result("Hidden Database Issues Check", False, error=str(e))
-            return False
-    
-    def verify_no_stale_orders_live(self):
-        """Verify no stale orders exist on LIVE system"""
-        if not self.department_id:
-            self.log_result(
-                "Stale Orders Check", 
-                False, 
-                error="Department ID not available"
-            )
-            return False
-        
-        try:
-            # Check breakfast history for any existing orders
-            history_response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{self.department_id}?days_back=7")
-            
-            if history_response.status_code == 200:
-                history_data = history_response.json()
-                history_list = history_data.get("history", [])
-                
-                if not history_list:
+                # Check shopping list structure
+                shopping_list = data.get("shopping_list", {})
+                if not shopping_list:
                     self.log_result(
-                        "Stale Orders Check",
+                        "Shopping List Formatting Test",
+                        False,
+                        error="Shopping list is empty"
+                    )
+                    return False
+                
+                # Verify shopping list has proper structure for left-aligned formatting
+                shopping_list_valid = True
+                shopping_details = []
+                
+                for roll_type, roll_data in shopping_list.items():
+                    if not isinstance(roll_data, dict) or "halves" not in roll_data or "whole_rolls" not in roll_data:
+                        shopping_list_valid = False
+                        break
+                    shopping_details.append(f"{roll_type}: {roll_data['halves']} halves → {roll_data['whole_rolls']} whole rolls")
+                
+                # Check employee orders structure for frontend display
+                employee_orders = data.get("employee_orders", {})
+                employee_details = []
+                
+                for employee_name, order_data in employee_orders.items():
+                    required_employee_fields = ["white_halves", "seeded_halves", "boiled_eggs", "has_lunch", "toppings"]
+                    if all(field in order_data for field in required_employee_fields):
+                        lunch_status = "with lunch" if order_data["has_lunch"] else "no lunch"
+                        employee_details.append(f"{employee_name}: {order_data['white_halves']}W + {order_data['seeded_halves']}S halves, {order_data['boiled_eggs']} eggs, {lunch_status}")
+                
+                if shopping_list_valid and employee_details:
+                    self.log_result(
+                        "Shopping List Formatting Test",
                         True,
-                        "No breakfast history found - system is clean as expected after user cleanup"
+                        f"Shopping list structure valid for left-aligned formatting. Shopping: {'; '.join(shopping_details)}. Employees: {'; '.join(employee_details[:2])}"
                     )
                     return True
                 else:
-                    total_orders = sum(day.get("total_orders", 0) for day in history_list)
                     self.log_result(
-                        "Stale Orders Check",
+                        "Shopping List Formatting Test",
                         False,
-                        error=f"🚨 STALE ORDERS FOUND! Found {len(history_list)} days with orders, total {total_orders} orders. This may be interfering with new order creation!"
+                        error="Shopping list or employee orders structure invalid for frontend formatting"
                     )
-                    
-                    # Show details of found orders
-                    for day in history_list[:3]:  # Show first 3 days
-                        date = day.get("date", "Unknown")
-                        orders = day.get("total_orders", 0)
-                        if orders > 0:
-                            print(f"   • {date}: {orders} orders")
-                    
                     return False
                     
             else:
                 self.log_result(
-                    "Stale Orders Check",
+                    "Shopping List Formatting Test",
                     False,
-                    error=f"Could not check breakfast history: HTTP {history_response.status_code}: {history_response.text}"
+                    error=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Stale Orders Check", False, error=str(e))
+            self.log_result("Shopping List Formatting Test", False, error=str(e))
             return False
     
-    def run_live_system_investigation(self):
-        """Run the complete live system investigation"""
-        print("🔍 CRITICAL LIVE SYSTEM INVESTIGATION")
+    def test_order_history_lunch_price(self):
+        """Test 2: Order History Lunch Price - GET /api/employees/{employee_id}/profile"""
+        if not self.test_employee_id:
+            self.log_result("Order History Lunch Price Test", False, error="Test employee ID not available")
+            return False
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/employees/{self.test_employee_id}/profile")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields for employee profile
+                required_fields = ["employee", "order_history", "totals"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_result(
+                        "Order History Lunch Price Test",
+                        False,
+                        error=f"Missing required fields: {missing_fields}"
+                    )
+                    return False
+                
+                # Check order history for lunch tracking
+                order_history = data.get("order_history", [])
+                if not order_history:
+                    self.log_result(
+                        "Order History Lunch Price Test",
+                        False,
+                        error="No order history found"
+                    )
+                    return False
+                
+                # Find breakfast orders with lunch
+                lunch_orders = []
+                for order in order_history:
+                    if order.get("order_type") == "breakfast" and order.get("has_lunch"):
+                        lunch_price = order.get("lunch_price")
+                        total_price = order.get("total_price")
+                        description = order.get("description", "")
+                        
+                        # Check if lunch is properly tracked in backend
+                        if lunch_price is not None and "lunch" in description.lower():
+                            lunch_orders.append({
+                                "lunch_price": lunch_price,
+                                "total_price": total_price,
+                                "description": description
+                            })
+                
+                if lunch_orders:
+                    lunch_details = [f"€{order['lunch_price']} lunch in €{order['total_price']} total" for order in lunch_orders[:2]]
+                    self.log_result(
+                        "Order History Lunch Price Test",
+                        True,
+                        f"Lunch tracking working correctly in employee profile. Found {len(lunch_orders)} lunch orders: {'; '.join(lunch_details)}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Order History Lunch Price Test",
+                        False,
+                        error="No breakfast orders with lunch found in employee profile, but lunch order was created"
+                    )
+                    return False
+                    
+            else:
+                self.log_result(
+                    "Order History Lunch Price Test",
+                    False,
+                    error=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Order History Lunch Price Test", False, error=str(e))
+            return False
+    
+    def test_admin_dashboard_menu_names(self):
+        """Test 3: Admin Dashboard Menu Names - GET /api/menu/drinks/{department_id} and GET /api/menu/sweets/{department_id}"""
+        if not self.department_id:
+            self.log_result("Admin Dashboard Menu Names Test", False, error="Department ID not available")
+            return False
+        
+        try:
+            # Test drinks menu
+            drinks_response = self.session.get(f"{BASE_URL}/menu/drinks/{self.department_id}")
+            
+            if drinks_response.status_code != 200:
+                self.log_result(
+                    "Admin Dashboard Menu Names Test",
+                    False,
+                    error=f"Drinks menu failed: HTTP {drinks_response.status_code}: {drinks_response.text}"
+                )
+                return False
+            
+            drinks_data = drinks_response.json()
+            
+            # Test sweets menu
+            sweets_response = self.session.get(f"{BASE_URL}/menu/sweets/{self.department_id}")
+            
+            if sweets_response.status_code != 200:
+                self.log_result(
+                    "Admin Dashboard Menu Names Test",
+                    False,
+                    error=f"Sweets menu failed: HTTP {sweets_response.status_code}: {sweets_response.text}"
+                )
+                return False
+            
+            sweets_data = sweets_response.json()
+            
+            # Check drinks menu structure for admin dashboard
+            drinks_valid = True
+            drinks_details = []
+            
+            for drink in drinks_data:
+                if not isinstance(drink, dict) or "id" not in drink or "name" not in drink:
+                    drinks_valid = False
+                    break
+                drinks_details.append(f"ID:{drink['id'][-8:]}→{drink['name']}")
+            
+            # Check sweets menu structure for admin dashboard
+            sweets_valid = True
+            sweets_details = []
+            
+            for sweet in sweets_data:
+                if not isinstance(sweet, dict) or "id" not in sweet or "name" not in sweet:
+                    sweets_valid = False
+                    break
+                sweets_details.append(f"ID:{sweet['id'][-8:]}→{sweet['name']}")
+            
+            if drinks_valid and sweets_valid and drinks_details and sweets_details:
+                self.log_result(
+                    "Admin Dashboard Menu Names Test",
+                    True,
+                    f"Menu names properly structured for admin dashboard UUID replacement. Drinks ({len(drinks_details)}): {'; '.join(drinks_details[:2])}. Sweets ({len(sweets_details)}): {'; '.join(sweets_details[:2])}"
+                )
+                return True
+            else:
+                error_details = []
+                if not drinks_valid or not drinks_details:
+                    error_details.append("drinks menu structure invalid")
+                if not sweets_valid or not sweets_details:
+                    error_details.append("sweets menu structure invalid")
+                
+                self.log_result(
+                    "Admin Dashboard Menu Names Test",
+                    False,
+                    error=f"Menu structure issues: {'; '.join(error_details)}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Admin Dashboard Menu Names Test", False, error=str(e))
+            return False
+    
+    def run_ui_improvements_tests(self):
+        """Run all UI improvements tests"""
+        print("🎨 UI IMPROVEMENTS BACKEND TESTING")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME}")
-        print(f"Focus: Breakfast order failures after complete database cleanup")
-        print(f"Expected Department ID: fw4abteilung2")
+        print(f"Focus: Three UI improvements data structure validation")
         print("=" * 80)
         print()
         
-        # CRITICAL CHECK 1: Live Authentication
-        print("🔍 CRITICAL CHECK 1: Live Authentication")
-        auth_ok = self.test_live_authentication()
+        # Setup
+        print("🔧 SETUP PHASE")
+        auth_ok = self.setup_authentication()
+        if not auth_ok:
+            return False
         
-        # CRITICAL CHECK 2: Employee List Check
-        print("🔍 CRITICAL CHECK 2: Employee List Check")
-        employee_ok = self.check_employee_list_live()
+        data_ok = self.setup_test_data()
+        if not data_ok:
+            return False
         
-        # CRITICAL CHECK 3: Menu Items Verification
-        print("🔍 CRITICAL CHECK 3: Menu Items Verification")
-        menu_ok = self.verify_menu_items_live()
+        # Test 1: Shopping List Formatting
+        print("🧪 TEST 1: Shopping List Formatting")
+        test1_ok = self.test_shopping_list_formatting()
         
-        # CRITICAL CHECK 4: Breakfast Order Creation
-        print("🔍 CRITICAL CHECK 4: Breakfast Order Creation")
-        order_ok = self.test_breakfast_order_creation_live()
+        # Test 2: Order History Lunch Price
+        print("🧪 TEST 2: Order History Lunch Price")
+        test2_ok = self.test_order_history_lunch_price()
         
-        # CRITICAL CHECK 5: Hidden Database Issues
-        print("🔍 CRITICAL CHECK 5: Hidden Database Issues")
-        db_ok = self.check_for_hidden_database_issues()
+        # Test 3: Admin Dashboard Menu Names
+        print("🧪 TEST 3: Admin Dashboard Menu Names")
+        test3_ok = self.test_admin_dashboard_menu_names()
         
-        # CRITICAL CHECK 6: Stale Orders Check
-        print("🔍 CRITICAL CHECK 6: Stale Orders Check")
-        stale_ok = self.verify_no_stale_orders_live()
+        # Summary
+        self.print_test_summary()
         
-        # Summary and Root Cause Analysis
-        self.print_live_system_summary()
-        
-        return all([auth_ok, employee_ok, menu_ok, order_ok, db_ok, stale_ok])
+        return all([test1_ok, test2_ok, test3_ok])
     
-    def print_live_system_summary(self):
-        """Print live system investigation summary with root cause analysis"""
+    def print_test_summary(self):
+        """Print test summary"""
         print("\n" + "=" * 80)
-        print("🔍 LIVE SYSTEM INVESTIGATION SUMMARY")
+        print("🎨 UI IMPROVEMENTS TESTING SUMMARY")
         print("=" * 80)
         
         passed = sum(1 for result in self.test_results if "✅ PASS" in result["status"])
         failed = sum(1 for result in self.test_results if "❌ FAIL" in result["status"])
         
-        print(f"Total Checks: {len(self.test_results)}")
+        print(f"Total Tests: {len(self.test_results)}")
         print(f"Passed: {passed}")
         print(f"Failed: {failed}")
         print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%" if self.test_results else "0%")
@@ -491,63 +444,24 @@ class LiveSystemTester:
         # Show failed tests
         failed_tests = [r for r in self.test_results if "❌ FAIL" in r["status"]]
         if failed_tests:
-            print("❌ FAILED CHECKS:")
+            print("❌ FAILED TESTS:")
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['error']}")
             print()
-        
-        # ROOT CAUSE ANALYSIS
-        print("🔍 ROOT CAUSE ANALYSIS:")
-        
-        # Check for authentication issues
-        auth_check = next((r for r in self.test_results if "Live Employee Authentication" in r["test"]), None)
-        if auth_check and "❌ FAIL" in auth_check["status"]:
-            print("   🚨 CRITICAL: Authentication failed!")
-            print(f"   • Credentials costa/lenny may be incorrect")
-            print("   • Department '2. Wachabteilung' may not exist")
-            print("   • This is likely the PRIMARY ROOT CAUSE of all failures")
-        
-        # Check for menu item issues
-        menu_checks = [r for r in self.test_results if "Menu" in r["test"] and "❌ FAIL" in r["status"]]
-        if menu_checks:
-            print("   🚨 MENU ITEM ISSUES:")
-            for check in menu_checks:
-                print(f"   • {check['test']}: {check['error']}")
-        
-        # Check for order creation issues
-        order_check = next((r for r in self.test_results if "Live Breakfast Order Creation" in r["test"]), None)
-        if order_check and "❌ FAIL" in order_check["status"]:
-            print("   🚨 ORDER CREATION FAILURE CONFIRMED:")
-            print(f"   • {order_check['error']}")
-            print("   • This confirms the user-reported bug exists on live system")
-        
-        # Check for database issues
-        db_checks = [r for r in self.test_results if ("Database" in r["test"] or "Stale" in r["test"]) and "❌ FAIL" in r["status"]]
-        if db_checks:
-            print("   🚨 DATABASE ISSUES:")
-            for check in db_checks:
-                print(f"   • {check['test']}: {check['error']}")
-        
-        # Recommendations
-        print("\n🔧 RECOMMENDED FIXES:")
-        if failed_tests:
-            print("   1. Verify credentials costa/lenny are correct for department '2. Wachabteilung'")
-            print("   2. Check if department exists in live database")
-            print("   3. Ensure menu items were properly recreated after cleanup")
-            print("   4. Investigate backend order creation logic for bugs")
-            print("   5. Check for any remaining stale data interfering with orders")
         else:
-            print("   ✅ All live system checks passed - backend is working correctly")
-            print("   • The issue may be frontend-specific or user-interface related")
+            print("✅ ALL UI IMPROVEMENTS TESTS PASSED!")
+            print("   • Shopping list data structure ready for left-aligned formatting")
+            print("   • Order history properly tracks lunch prices for employee profiles")
+            print("   • Menu endpoints provide proper name fields for admin dashboard UUID replacement")
         
         print("\n" + "=" * 80)
 
 def main():
     """Main function"""
-    tester = LiveSystemTester()
+    tester = UIImprovementsTester()
     
     try:
-        success = tester.run_live_system_investigation()
+        success = tester.run_ui_improvements_tests()
         
         # Exit with appropriate code
         failed_tests = [r for r in tester.test_results if "❌ FAIL" in r["status"]]
@@ -557,7 +471,7 @@ def main():
             sys.exit(0)  # All tests passed
             
     except KeyboardInterrupt:
-        print("\n⚠️ Investigation interrupted by user")
+        print("\n⚠️ Testing interrupted by user")
         sys.exit(130)
     except Exception as e:
         print(f"\n💥 CRITICAL ERROR: {str(e)}")
