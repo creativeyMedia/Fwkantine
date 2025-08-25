@@ -393,8 +393,24 @@ async def initialize_default_data():
     # Create default lunch settings with explicit boiled eggs price and coffee price
     lunch_settings = LunchSettings(price=0.0, enabled=True, boiled_eggs_price=0.50, coffee_price=1.50)
     
-    # Insert lunch settings
-    await db.lunch_settings.insert_one(lunch_settings.dict())
+    # Check if lunch settings already exist
+    existing_lunch_settings = await db.lunch_settings.find_one()
+    if not existing_lunch_settings:
+        # Insert new lunch settings
+        await db.lunch_settings.insert_one(lunch_settings.dict())
+    else:
+        # Update existing lunch settings to ensure proper defaults if missing
+        update_fields = {}
+        if "boiled_eggs_price" not in existing_lunch_settings or existing_lunch_settings["boiled_eggs_price"] == 999.99:
+            update_fields["boiled_eggs_price"] = 0.50
+        if "coffee_price" not in existing_lunch_settings:
+            update_fields["coffee_price"] = 1.50
+        
+        if update_fields:
+            await db.lunch_settings.update_one(
+                {"id": existing_lunch_settings["id"]},
+                {"$set": update_fields}
+            )
     
     return {"message": "Daten erfolgreich initialisiert"}
 
