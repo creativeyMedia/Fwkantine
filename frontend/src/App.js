@@ -195,10 +195,15 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                     {order.readable_items && order.readable_items.length > 0 && (
                       <div className="space-y-1">
                         {order.readable_items.map((item, idx) => (
-                          <div key={idx} className="text-sm">
-                            <span className="font-medium">{item.description}</span>
-                            {item.toppings && <span className="text-gray-600"> mit {item.toppings}</span>}
-                            {item.unit_price && <span className="text-gray-600"> ({item.unit_price} pro Stück)</span>}
+                          <div key={idx} className="text-sm flex justify-between items-start">
+                            <div className="flex-1">
+                              <span className="font-medium">{item.description}</span>
+                              {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
+                              {item.unit_price && <span className="text-gray-500 block text-xs">({item.unit_price})</span>}
+                            </div>
+                            {item.total_price && (
+                              <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
+                            )}
                           </div>
                         ))}
                         
