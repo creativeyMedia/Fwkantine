@@ -607,15 +607,6 @@ const DepartmentDashboard = () => {
           />
         )}
 
-        {/* Master Login Modal */}
-        {showMasterLogin && (
-          <LoginModal
-            title={`Master Login für ${currentDepartment.department_name}`}
-            onLogin={handleMasterLogin}
-            onClose={() => setShowMasterLogin(false)}
-          />
-        )}
-
         {/* New Employee Modal */}
         {showNewEmployee && (
           <NewEmployeeModal
