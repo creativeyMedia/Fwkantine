@@ -343,13 +343,13 @@ async def initialize_default_data():
         ]
         
         toppings = [
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.SCRAMBLED_EGG, price=0.00),  # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.FRIED_EGG, price=0.00),     # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.EGG_SALAD, price=0.00),     # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.SALAMI, price=0.00),        # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.HAM, price=0.00),           # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.CHEESE, price=0.00),        # Free
-            MenuItemToppings(department_id=dept["id"], topping_type=ToppingType.BUTTER, price=0.00)         # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="ruehrei", price=0.00),  # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="spiegelei", price=0.00),     # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="eiersalat", price=0.00),     # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="salami", price=0.00),        # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="schinken", price=0.00),           # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="kaese", price=0.00),        # Free
+            MenuItemToppings(department_id=dept["id"], topping_type="butter", price=0.00)         # Free
         ]
         
         drinks = [
