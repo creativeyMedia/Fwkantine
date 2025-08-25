@@ -567,12 +567,27 @@ async def master_login(department_name: str, master_password: str):
 
 @api_router.post("/login/department-admin")
 async def department_admin_login(login_data: DepartmentAdminLogin):
-    """Login for department admin with admin password"""
+    """Login for department admin with admin password or master password"""
     dept = await db.departments.find_one({"name": login_data.department_name})
-    if not dept or dept["admin_password_hash"] != login_data.admin_password:
-        raise HTTPException(status_code=401, detail="Ungültiger Name oder Admin-Passwort")
+    if not dept:
+        raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
     
-    return {"department_id": dept["id"], "department_name": dept["name"], "role": "department_admin"}
+    # Check master password first (with master admin rights)
+    master_password_env = os.environ.get('MASTER_PASSWORD', 'master123dev')
+    if login_data.admin_password == master_password_env:
+        return {
+            "department_id": dept["id"], 
+            "department_name": dept["name"], 
+            "role": "master_admin",
+            "access_level": "master"
+        }
+    
+    # Check normal admin password
+    if dept["admin_password_hash"] == login_data.admin_password:
+        return {"department_id": dept["id"], "department_name": dept["name"], "role": "department_admin"}
+    
+    # Neither password matched
+    raise HTTPException(status_code=401, detail="Ungültiger Name oder Admin-Passwort")
 
 @api_router.post("/login/admin") 
 async def admin_login(login_data: AdminLogin):
