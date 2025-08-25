@@ -1961,10 +1961,41 @@ const DepartmentAdminDashboard = () => {
 const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpdate }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [drinksMenu, setDrinksMenu] = useState([]);
+  const [sweetsMenu, setSweetsMenu] = useState([]);
 
   useEffect(() => {
     fetchEmployeeOrders();
+    fetchMenus();
   }, [employee.id]);
+
+  const fetchMenus = async () => {
+    try {
+      if (!currentDepartment?.department_id) {
+        return;
+      }
+      const departmentId = currentDepartment.department_id;
+      const [drinks, sweets] = await Promise.all([
+        axios.get(`${API}/menu/drinks/${departmentId}`),
+        axios.get(`${API}/menu/sweets/${departmentId}`)
+      ]);
+      setDrinksMenu(drinks.data);
+      setSweetsMenu(sweets.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Menüs:', error);
+      // Fallback to old endpoints if department-specific ones fail
+      try {
+        const [drinks, sweets] = await Promise.all([
+          axios.get(`${API}/menu/drinks`),
+          axios.get(`${API}/menu/sweets`)
+        ]);
+        setDrinksMenu(drinks.data);
+        setSweetsMenu(sweets.data);
+      } catch (fallbackError) {
+        console.error('Fallback menu loading also failed:', fallbackError);
+      }
+    }
+  };
 
   const fetchEmployeeOrders = async () => {
     try {
