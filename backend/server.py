@@ -1613,7 +1613,7 @@ async def get_employee_profile(employee_id: str):
                 
                 # Add lunch as separate item if present
                 if item.get("has_lunch"):
-                    lunch_price = item.get("lunch_price", 0.0)  # Get actual lunch price from order
+                    lunch_price = order.get("lunch_price", 0.0)  # Get actual lunch price from order level
                     enriched_order["readable_items"].append({
                         "description": "1x Mittagessen",
                         "unit_price": "",  # Remove price display as requested by user
