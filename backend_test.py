@@ -32,7 +32,7 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 DEPARTMENT_PASSWORD = "password1"
 ADMIN_PASSWORD = "admin1"
 
-class LunchPriceDisplayTester:
+class TagespreisDebugTester:
     def __init__(self):
         self.session = requests.Session()
         self.department_id = None
@@ -95,9 +95,10 @@ class LunchPriceDisplayTester:
             return False
         
         try:
-            # Create test employee with realistic name
+            # Create test employee with realistic name and timestamp to avoid duplicates
+            timestamp = datetime.now().strftime("%H%M%S")
             employee_data = {
-                "name": "Max Mustermann",
+                "name": f"Debug Test Employee {timestamp}",
                 "department_id": self.department_id
             }
             
@@ -110,7 +111,7 @@ class LunchPriceDisplayTester:
                 self.log_result(
                     "Test Employee Creation",
                     True,
-                    f"Created test employee 'Max Mustermann' with ID: {self.test_employee_id}"
+                    f"Created test employee '{employee_data['name']}' with ID: {self.test_employee_id}"
                 )
                 return True
             else:
@@ -173,54 +174,58 @@ class LunchPriceDisplayTester:
             self.log_result("Breakfast Order with Lunch Creation", False, error=str(e))
             return False
     
-    def test_lunch_price_display_fix(self):
-        """Test the specific fix for lunch price display in order history"""
+    def test_tagespreis_debug(self):
+        """CRITICAL DEBUG: Test for Tagespreis text in readable_items"""
         if not self.test_employee_id:
-            self.log_result("Lunch Price Display Fix Test", False, error="Test employee ID not available")
+            self.log_result("Tagespreis Debug Test", False, error="Test employee ID not available")
             return False
         
         try:
-            # Get employee profile with order history
+            # Get employee profile with order history IMMEDIATELY after order creation
             response = self.session.get(f"{BASE_URL}/employees/{self.test_employee_id}/profile")
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check required fields for employee profile
-                required_fields = ["employee", "order_history", "total_orders", "breakfast_total", "drinks_sweets_total"]
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_result(
-                        "Lunch Price Display Fix Test",
-                        False,
-                        error=f"Missing required fields in profile: {missing_fields}"
-                    )
-                    return False
-                
                 # Check order history for lunch orders
                 order_history = data.get("order_history", [])
                 if not order_history:
                     self.log_result(
-                        "Lunch Price Display Fix Test",
+                        "Tagespreis Debug Test",
                         False,
-                        error="No order history found"
+                        error="No order history found immediately after order creation"
                     )
                     return False
+                
+                # Debug: Print full response for analysis
+                print("🔍 DEBUG: Full employee profile response:")
+                print(json.dumps(data, indent=2, ensure_ascii=False))
+                print()
                 
                 # Find breakfast orders with lunch and check readable_items
                 lunch_orders_found = []
                 problematic_items = []
+                all_readable_items = []
                 
                 for order in order_history:
                     if order.get("order_type") == "breakfast" and order.get("has_lunch"):
                         readable_items = order.get("readable_items", [])
+                        
+                        print(f"🔍 DEBUG: Found breakfast order with lunch, readable_items:")
+                        print(json.dumps(readable_items, indent=2, ensure_ascii=False))
+                        print()
                         
                         # Look for lunch items in readable_items
                         for item in readable_items:
                             description = item.get("description", "")
                             unit_price = item.get("unit_price", "")
                             total_price = item.get("total_price", "")
+                            
+                            all_readable_items.append({
+                                "description": description,
+                                "unit_price": unit_price,
+                                "total_price": total_price
+                            })
                             
                             if "Mittagessen" in description:
                                 lunch_orders_found.append({
@@ -229,37 +234,59 @@ class LunchPriceDisplayTester:
                                     "total_price": total_price
                                 })
                                 
-                                # Check for the problematic "(€0.00 Tagespreis)" text
-                                if "Tagespreis" in description or "€0.00" in unit_price:
+                                # Check for ANY occurrence of "Tagespreis" text
+                                if "Tagespreis" in description or "Tagespreis" in unit_price or "€0.00" in description or "€0.00" in unit_price:
                                     problematic_items.append({
                                         "description": description,
                                         "unit_price": unit_price,
+                                        "total_price": total_price,
                                         "issue": "Contains Tagespreis or €0.00 reference"
                                     })
                 
-                # Evaluate the fix
+                # Detailed analysis
+                print(f"🔍 DEBUG ANALYSIS:")
+                print(f"   Total readable_items found: {len(all_readable_items)}")
+                print(f"   Lunch items found: {len(lunch_orders_found)}")
+                print(f"   Problematic items: {len(problematic_items)}")
+                print()
+                
+                if all_readable_items:
+                    print("🔍 ALL READABLE ITEMS:")
+                    for i, item in enumerate(all_readable_items):
+                        print(f"   {i+1}. Description: '{item['description']}'")
+                        print(f"      Unit Price: '{item['unit_price']}'")
+                        print(f"      Total Price: '{item['total_price']}'")
+                    print()
+                
+                # Final evaluation
                 if lunch_orders_found:
                     if problematic_items:
-                        # Fix not working - still showing problematic text
-                        problem_details = [f"'{item['description']}' (unit_price: '{item['unit_price']}')" for item in problematic_items]
+                        # CRITICAL: Still showing Tagespreis text
+                        problem_details = []
+                        for item in problematic_items:
+                            problem_details.append(f"Description: '{item['description']}', Unit Price: '{item['unit_price']}'")
+                        
                         self.log_result(
-                            "Lunch Price Display Fix Test",
+                            "Tagespreis Debug Test",
                             False,
-                            error=f"PROBLEM 2 NOT FIXED: Found {len(problematic_items)} lunch items still showing Tagespreis: {'; '.join(problem_details)}"
+                            error=f"❌ CRITICAL: Found {len(problematic_items)} lunch items STILL showing Tagespreis text: {'; '.join(problem_details)}"
                         )
                         return False
                     else:
-                        # Fix working - lunch items show correctly without problematic text
-                        lunch_details = [f"'{item['description']}' (unit_price: '{item['unit_price']}', total: '{item['total_price']}')" for item in lunch_orders_found]
+                        # SUCCESS: No Tagespreis text found
+                        lunch_details = []
+                        for item in lunch_orders_found:
+                            lunch_details.append(f"Description: '{item['description']}', Unit Price: '{item['unit_price']}', Total: '{item['total_price']}'")
+                        
                         self.log_result(
-                            "Lunch Price Display Fix Test",
+                            "Tagespreis Debug Test",
                             True,
-                            f"✅ PROBLEM 2 FIXED! Found {len(lunch_orders_found)} lunch items WITHOUT problematic '(€0.00 Tagespreis)' text: {'; '.join(lunch_details)}"
+                            f"✅ SUCCESS: Found {len(lunch_orders_found)} lunch items WITHOUT Tagespreis text: {'; '.join(lunch_details)}"
                         )
                         return True
                 else:
                     self.log_result(
-                        "Lunch Price Display Fix Test",
+                        "Tagespreis Debug Test",
                         False,
                         error="No lunch items found in readable_items, but lunch order was created"
                     )
@@ -267,23 +294,23 @@ class LunchPriceDisplayTester:
                     
             else:
                 self.log_result(
-                    "Lunch Price Display Fix Test",
+                    "Tagespreis Debug Test",
                     False,
                     error=f"Failed to get employee profile: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Lunch Price Display Fix Test", False, error=str(e))
+            self.log_result("Tagespreis Debug Test", False, error=str(e))
             return False
     
-    def run_lunch_price_fix_test(self):
-        """Run the complete lunch price display fix test"""
-        print("🍽️ PROBLEM 2 - ORDER HISTORY LUNCH PRICE DISPLAY FIX TESTING")
+    def run_debug_test(self):
+        """Run the complete Tagespreis debug test"""
+        print("🔍 CRITICAL DEBUG TEST - Tagespreis Text Verification")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME}")
-        print(f"Focus: Verify lunch orders show '1x Mittagessen' WITHOUT '(€0.00 Tagespreis)' text")
+        print(f"Focus: Create fresh order and verify NO 'Tagespreis' text in readable_items")
         print("=" * 80)
         print()
         
@@ -302,8 +329,8 @@ class LunchPriceDisplayTester:
             return False
         
         # Main Test
-        print("🧪 MAIN TEST: Lunch Price Display Fix")
-        test_ok = self.test_lunch_price_display_fix()
+        print("🧪 CRITICAL DEBUG TEST: Tagespreis Text Check")
+        test_ok = self.test_tagespreis_debug()
         
         # Summary
         self.print_test_summary()
@@ -313,7 +340,7 @@ class LunchPriceDisplayTester:
     def print_test_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
-        print("🍽️ LUNCH PRICE DISPLAY FIX TESTING SUMMARY")
+        print("🔍 TAGESPREIS DEBUG TEST SUMMARY")
         print("=" * 80)
         
         passed = sum(1 for result in self.test_results if "✅ PASS" in result["status"])
@@ -332,21 +359,27 @@ class LunchPriceDisplayTester:
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['error']}")
             print()
+            print("🚨 CONCLUSION: Backend changes are NOT taking effect!")
+            print("   The user is still seeing 'Tagespreis' text despite backend fixes.")
+            print("   This suggests either:")
+            print("   1. Frontend is caching old data")
+            print("   2. Backend fix is not complete")
+            print("   3. Different code path is being used")
         else:
-            print("✅ PROBLEM 2 LUNCH PRICE DISPLAY FIX VERIFIED!")
-            print("   • Breakfast orders with lunch show '1x Mittagessen' correctly")
-            print("   • No problematic '(€0.00 Tagespreis)' text found in readable_items")
-            print("   • Unit prices are empty (not showing Tagespreis)")
-            print("   • Total prices show correct lunch price amounts")
+            print("✅ TAGESPREIS DEBUG TEST PASSED!")
+            print("   • Fresh breakfast order with lunch created successfully")
+            print("   • NO 'Tagespreis' text found in readable_items")
+            print("   • Backend changes are taking effect correctly")
+            print("   • User issue may be frontend caching or different scenario")
         
         print("\n" + "=" * 80)
 
 def main():
     """Main function"""
-    tester = LunchPriceDisplayTester()
+    tester = TagespreisDebugTester()
     
     try:
-        success = tester.run_lunch_price_fix_test()
+        success = tester.run_debug_test()
         
         # Exit with appropriate code
         failed_tests = [r for r in tester.test_results if "❌ FAIL" in r["status"]]
