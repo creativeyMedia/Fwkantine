@@ -1489,8 +1489,18 @@ async def get_employee_profile(employee_id: str):
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
                 
+                # Add boiled eggs if present
+                boiled_eggs = item.get("boiled_eggs", 0)
+                if boiled_eggs > 0:
+                    description += f" + {boiled_eggs}x Gekochte Eier"
+                
+                # Add coffee if present
+                if item.get("has_coffee"):
+                    description += " + Kaffee"
+                
+                # Add lunch if present
                 if item.get("has_lunch"):
-                    description += " (mit Mittagessen)"
+                    description += " + Mittagessen"
                 enriched_order["readable_items"].append({
                     "description": description,
                     "toppings": toppings_str if toppings_str else "Ohne Belag"
