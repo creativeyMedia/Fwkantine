@@ -247,10 +247,20 @@ def get_department_data():
 async def initialize_default_data():
     """Initialize the database with default departments and menu items
     
+    ⚠️ SICHERHEITSWARNUNG: Dieser Endpoint ist für Production-Umgebungen DEAKTIVIERT!
+    Er kann echte Benutzerdaten überschreiben und sollte nur in Development verwendet werden.
+    
     CRITICAL: This function NEVER updates existing department passwords.
     It only creates new departments if they don't exist.
     This preserves user-changed passwords permanently.
     """
+    
+    # SICHERHEITSCHECK: Verhindere Ausführung in Production
+    if os.getenv('ENVIRONMENT') == 'production':
+        raise HTTPException(
+            status_code=403, 
+            detail="Initialisierung in Production-Umgebung nicht erlaubt! Gefahr von Datenverlust."
+        )
     
     print("🔧 DEBUG: Starting initialize_default_data...")
     
