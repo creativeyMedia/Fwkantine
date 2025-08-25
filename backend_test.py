@@ -73,6 +73,63 @@ class CanteenTester:
             self.log_result("Department Authentication", False, error=str(e))
             return False
     
+    def authenticate_admin(self):
+        """Authenticate with admin credentials for employee creation"""
+        try:
+            response = self.session.post(f"{BASE_URL}/login/department-admin", json={
+                "department_name": DEPARTMENT_NAME,
+                "admin_password": ADMIN_PASSWORD
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log_result(
+                    "Admin Authentication", 
+                    True, 
+                    f"Authenticated as admin for {DEPARTMENT_NAME}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Admin Authentication", 
+                    False, 
+                    error=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Admin Authentication", False, error=str(e))
+            return False
+    
+    def create_julian_takke(self):
+        """Create Julian Takke employee for testing"""
+        try:
+            response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": "Julian Takke",
+                "department_id": self.department_id
+            })
+            
+            if response.status_code == 200:
+                employee_data = response.json()
+                self.julian_id = employee_data.get("id")
+                self.log_result(
+                    "Julian Takke Creation", 
+                    True, 
+                    f"Created Julian Takke (ID: {self.julian_id})"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Julian Takke Creation", 
+                    False, 
+                    error=f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Julian Takke Creation", False, error=str(e))
+            return False
+    
     def get_employees(self):
         """Get all employees and find Julian Takke and Jonas Parlow"""
         try:
