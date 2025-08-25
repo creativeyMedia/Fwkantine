@@ -40,11 +40,11 @@ DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_PASSWORD = "costa"  # User-provided credentials
 ADMIN_PASSWORD = "lenny"       # User-provided credentials
 
-class IDConsistencyTester:
+class LiveSystemTester:
     def __init__(self):
         self.session = requests.Session()
         self.department_id = None
-        self.jonas_id = None
+        self.employee_list = []
         self.test_results = []
         self.breakfast_menu = []
         self.toppings_menu = []
@@ -67,9 +67,10 @@ class IDConsistencyTester:
             print(f"   Error: {error}")
         print()
     
-    def verify_department_id(self):
-        """CRITICAL CHECK 1: Verify department '2. Wachabteilung' has correct ID 'fw4abteilung2'"""
+    def test_live_authentication(self):
+        """Test authentication on fw-kantine.de with credentials costa/lenny"""
         try:
+            # Test employee authentication
             response = self.session.post(f"{BASE_URL}/login/department", json={
                 "department_name": DEPARTMENT_NAME,
                 "password": DEPARTMENT_PASSWORD
@@ -78,41 +79,52 @@ class IDConsistencyTester:
             if response.status_code == 200:
                 data = response.json()
                 self.department_id = data.get("department_id")
-                expected_id = "fw4abteilung2"
-                
-                id_matches = self.department_id == expected_id
                 
                 self.log_result(
-                    "Department ID Verification", 
-                    id_matches, 
-                    f"Expected: {expected_id}, Got: {self.department_id}, Match: {id_matches}"
+                    "Live Employee Authentication", 
+                    True, 
+                    f"Successfully authenticated as employee with department_id: {self.department_id}"
                 )
                 
-                if not id_matches:
-                    self.log_result(
-                        "CRITICAL ID MISMATCH DETECTED",
-                        False,
-                        error=f"Department '{DEPARTMENT_NAME}' has ID '{self.department_id}' but expected 'fw4abteilung2'. This is likely the root cause of breakfast order failures!"
-                    )
+                # Test admin authentication
+                admin_response = self.session.post(f"{BASE_URL}/login/department-admin", json={
+                    "department_name": DEPARTMENT_NAME,
+                    "admin_password": ADMIN_PASSWORD
+                })
                 
-                return id_matches
+                if admin_response.status_code == 200:
+                    admin_data = admin_response.json()
+                    self.log_result(
+                        "Live Admin Authentication", 
+                        True, 
+                        f"Successfully authenticated as admin with role: {admin_data.get('role')}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Live Admin Authentication", 
+                        False, 
+                        error=f"Admin auth failed: HTTP {admin_response.status_code}: {admin_response.text}"
+                    )
+                    return False
+                
             else:
                 self.log_result(
-                    "Department ID Verification", 
+                    "Live Employee Authentication", 
                     False, 
-                    error=f"Authentication failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Employee auth failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Department ID Verification", False, error=str(e))
+            self.log_result("Live Authentication", False, error=str(e))
             return False
     
-    def verify_employee_consistency(self):
-        """CRITICAL CHECK 2: Get employees from department and check Jonas Parlow employee record"""
+    def check_employee_list_live(self):
+        """Check employee list in department fw4abteilung2 on LIVE system"""
         if not self.department_id:
             self.log_result(
-                "Employee ID Consistency", 
+                "Live Employee List Check", 
                 False, 
                 error="Department ID not available"
             )
@@ -123,59 +135,41 @@ class IDConsistencyTester:
             
             if response.status_code == 200:
                 employees = response.json()
+                self.employee_list = employees
                 
-                # Find Jonas Parlow
-                jonas_employee = None
-                for emp in employees:
-                    if "Jonas Parlow" in emp.get("name", ""):
-                        jonas_employee = emp
-                        self.jonas_id = emp["id"]
-                        break
+                self.log_result(
+                    "Live Employee List Check",
+                    True,
+                    f"Found {len(employees)} employees in department {self.department_id}. Names: {[emp.get('name', 'Unknown') for emp in employees]}"
+                )
                 
-                if jonas_employee:
-                    # Verify employee belongs to correct department_id
-                    emp_dept_id = jonas_employee.get("department_id")
-                    dept_id_matches = emp_dept_id == self.department_id
-                    
+                # Check if list is empty (as expected after user cleanup)
+                if len(employees) == 0:
                     self.log_result(
-                        "Employee ID Consistency",
-                        dept_id_matches,
-                        f"Jonas Parlow found (ID: {self.jonas_id}). Employee dept_id: {emp_dept_id}, Expected: {self.department_id}, Match: {dept_id_matches}"
+                        "Employee List Empty Verification",
+                        True,
+                        "Employee list is empty as expected after user cleanup"
                     )
-                    
-                    if not dept_id_matches:
-                        self.log_result(
-                            "CRITICAL EMPLOYEE DEPT MISMATCH",
-                            False,
-                            error=f"Jonas Parlow has department_id '{emp_dept_id}' but should be '{self.department_id}'. This causes order creation failures!"
-                        )
-                    
-                    return dept_id_matches
-                else:
-                    self.log_result(
-                        "Employee ID Consistency",
-                        False,
-                        error=f"Jonas Parlow not found in department {self.department_id}. Found {len(employees)} employees: {[emp.get('name') for emp in employees]}"
-                    )
-                    return False
+                
+                return True
                 
             else:
                 self.log_result(
-                    "Employee ID Consistency", 
+                    "Live Employee List Check", 
                     False, 
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Employee ID Consistency", False, error=str(e))
+            self.log_result("Live Employee List Check", False, error=str(e))
             return False
     
-    def verify_menu_item_ids(self):
-        """CRITICAL CHECK 3: Verify menu items exist and have correct department_id"""
+    def verify_menu_items_live(self):
+        """Verify menu items exist on fw-kantine.de (not preview system)"""
         if not self.department_id:
             self.log_result(
-                "Menu Item ID Verification", 
+                "Live Menu Items Verification", 
                 False, 
                 error="Department ID not available"
             )
@@ -193,41 +187,27 @@ class IDConsistencyTester:
                 self.breakfast_menu = breakfast_items
                 
                 if breakfast_items:
-                    # Verify all items have correct department_id
-                    dept_id_mismatches = []
-                    for item in breakfast_items:
-                        item_dept_id = item.get("department_id")
-                        if item_dept_id != self.department_id:
-                            dept_id_mismatches.append(f"Item {item.get('id', 'unknown')} has dept_id '{item_dept_id}'")
-                    
-                    if dept_id_mismatches:
-                        self.log_result(
-                            "Breakfast Menu ID Verification",
-                            False,
-                            error=f"Department ID mismatches found: {dept_id_mismatches}"
-                        )
-                    else:
-                        self.log_result(
-                            "Breakfast Menu ID Verification",
-                            True,
-                            f"Found {len(breakfast_items)} breakfast items, all have correct department_id: {self.department_id}"
-                        )
-                        success_count += 1
+                    self.log_result(
+                        "Live Breakfast Menu Verification",
+                        True,
+                        f"Found {len(breakfast_items)} breakfast items on LIVE system. Items: {[item.get('roll_type', 'Unknown') + ' (€' + str(item.get('price', 0)) + ')' for item in breakfast_items]}"
+                    )
+                    success_count += 1
                 else:
                     self.log_result(
-                        "Breakfast Menu ID Verification",
+                        "Live Breakfast Menu Verification",
                         False,
-                        error=f"No breakfast items found for department {self.department_id}. This explains breakfast order failures!"
+                        error=f"No breakfast items found for department {self.department_id} on LIVE system. This explains breakfast order failures!"
                     )
             else:
                 self.log_result(
-                    "Breakfast Menu ID Verification",
+                    "Live Breakfast Menu Verification",
                     False,
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
                 
         except Exception as e:
-            self.log_result("Breakfast Menu ID Verification", False, error=str(e))
+            self.log_result("Live Breakfast Menu Verification", False, error=str(e))
         
         # Check toppings menu
         try:
@@ -238,227 +218,280 @@ class IDConsistencyTester:
                 self.toppings_menu = toppings_items
                 
                 if toppings_items:
-                    # Verify all items have correct department_id
-                    dept_id_mismatches = []
-                    for item in toppings_items:
-                        item_dept_id = item.get("department_id")
-                        if item_dept_id != self.department_id:
-                            dept_id_mismatches.append(f"Item {item.get('id', 'unknown')} has dept_id '{item_dept_id}'")
-                    
-                    if dept_id_mismatches:
-                        self.log_result(
-                            "Toppings Menu ID Verification",
-                            False,
-                            error=f"Department ID mismatches found: {dept_id_mismatches}"
-                        )
-                    else:
-                        self.log_result(
-                            "Toppings Menu ID Verification",
-                            True,
-                            f"Found {len(toppings_items)} topping items, all have correct department_id: {self.department_id}"
-                        )
-                        success_count += 1
+                    self.log_result(
+                        "Live Toppings Menu Verification",
+                        True,
+                        f"Found {len(toppings_items)} topping items on LIVE system. Items: {[item.get('topping_type', item.get('name', 'Unknown')) + ' (€' + str(item.get('price', 0)) + ')' for item in toppings_items]}"
+                    )
+                    success_count += 1
                 else:
                     self.log_result(
-                        "Toppings Menu ID Verification",
+                        "Live Toppings Menu Verification",
                         False,
-                        error=f"No topping items found for department {self.department_id}. This explains breakfast order failures!"
+                        error=f"No topping items found for department {self.department_id} on LIVE system. This explains breakfast order failures!"
                     )
             else:
                 self.log_result(
-                    "Toppings Menu ID Verification",
+                    "Live Toppings Menu Verification",
                     False,
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
                 
         except Exception as e:
-            self.log_result("Toppings Menu ID Verification", False, error=str(e))
+            self.log_result("Live Toppings Menu Verification", False, error=str(e))
         
         return success_count == total_checks
     
-    def cross_reference_id_matching(self):
-        """CRITICAL CHECK 4: Compare department_id in menu items vs department authentication"""
-        if not self.department_id or not self.breakfast_menu:
+    def test_breakfast_order_creation_live(self):
+        """Test actual breakfast order creation on LIVE system"""
+        if not self.department_id or not self.breakfast_menu or not self.toppings_menu:
             self.log_result(
-                "Cross-Reference ID Matching", 
+                "Live Breakfast Order Creation", 
                 False, 
-                error="Missing department_id or menu data"
+                error="Missing required data (department_id or menu items)"
             )
             return False
         
+        # First, we need to create a test employee since user deleted all employees
         try:
-            # Check if all menu items reference the same department_id as authentication
-            auth_dept_id = self.department_id
-            menu_dept_ids = set()
+            # Create a test employee
+            employee_data = {
+                "name": "Test Employee for Order",
+                "department_id": self.department_id
+            }
             
-            for item in self.breakfast_menu:
-                menu_dept_ids.add(item.get("department_id"))
+            employee_response = self.session.post(f"{BASE_URL}/employees", json=employee_data)
             
-            for item in self.toppings_menu:
-                menu_dept_ids.add(item.get("department_id"))
-            
-            # Remove None values
-            menu_dept_ids.discard(None)
-            
-            if len(menu_dept_ids) == 1 and auth_dept_id in menu_dept_ids:
+            if employee_response.status_code == 200:
+                test_employee = employee_response.json()
+                test_employee_id = test_employee.get("id")
+                
                 self.log_result(
-                    "Cross-Reference ID Matching",
+                    "Test Employee Creation",
                     True,
-                    f"All menu items consistently reference department_id: {auth_dept_id}"
+                    f"Created test employee with ID: {test_employee_id}"
                 )
-                return True
+                
+                # Now try to create a breakfast order
+                order_data = {
+                    "employee_id": test_employee_id,
+                    "department_id": self.department_id,
+                    "order_type": "breakfast",
+                    "breakfast_items": [{
+                        "total_halves": 2,
+                        "white_halves": 1,
+                        "seeded_halves": 1,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": False,
+                        "boiled_eggs": 0,
+                        "has_coffee": False
+                    }]
+                }
+                
+                order_response = self.session.post(f"{BASE_URL}/orders", json=order_data)
+                
+                if order_response.status_code == 200:
+                    order_result = order_response.json()
+                    self.log_result(
+                        "Live Breakfast Order Creation",
+                        True,
+                        f"✅ BREAKTHROUGH! Order created successfully on LIVE system! Total: €{order_result.get('total_price', 'N/A')}. The backend is working correctly."
+                    )
+                    return True
+                else:
+                    error_detail = order_response.text
+                    try:
+                        error_json = order_response.json()
+                        error_detail = error_json.get('detail', error_detail)
+                    except:
+                        pass
+                    
+                    self.log_result(
+                        "Live Breakfast Order Creation",
+                        False,
+                        error=f"🚨 CONFIRMED BUG! Order creation failed on LIVE system: HTTP {order_response.status_code}: {error_detail}"
+                    )
+                    return False
+                    
             else:
                 self.log_result(
-                    "Cross-Reference ID Matching",
+                    "Test Employee Creation",
                     False,
-                    error=f"ID mismatch! Auth dept_id: {auth_dept_id}, Menu dept_ids: {menu_dept_ids}. This causes order creation failures!"
+                    error=f"Could not create test employee: HTTP {employee_response.status_code}: {employee_response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Cross-Reference ID Matching", False, error=str(e))
+            self.log_result("Live Breakfast Order Creation", False, error=str(e))
             return False
     
-    def trace_order_creation_id_flow(self):
-        """CRITICAL CHECK 5: Trace an order creation request to see which IDs are being passed"""
-        if not self.department_id or not self.jonas_id or not self.breakfast_menu or not self.toppings_menu:
+    def check_for_hidden_database_issues(self):
+        """Check for hidden database issues on LIVE MongoDB instance"""
+        if not self.department_id:
             self.log_result(
-                "Order Creation ID Flow", 
+                "Hidden Database Issues Check", 
                 False, 
-                error="Missing required data (department_id, employee_id, or menu items)"
+                error="Department ID not available"
             )
             return False
         
         try:
-            # First check if Jonas already has orders today
-            today_orders_response = self.session.get(f"{BASE_URL}/employee/{self.jonas_id}/today-orders")
+            # Check for any existing orders (should be empty after cleanup)
+            today = datetime.now().date().isoformat()
             
-            if today_orders_response.status_code == 200:
-                today_orders = today_orders_response.json()
-                breakfast_orders_today = [order for order in today_orders if order.get("order_type") == "breakfast"]
+            # Check daily summary
+            summary_response = self.session.get(f"{BASE_URL}/orders/daily-summary/{self.department_id}")
+            
+            if summary_response.status_code == 200:
+                summary_data = summary_response.json()
                 
-                if breakfast_orders_today:
+                breakfast_summary = summary_data.get("breakfast_summary", {})
+                employee_orders = summary_data.get("employee_orders", {})
+                
+                if not breakfast_summary and not employee_orders:
                     self.log_result(
-                        "Existing Order Check",
+                        "Daily Summary Clean Check",
                         True,
-                        f"Jonas Parlow already has {len(breakfast_orders_today)} breakfast order(s) today. This explains the order creation failure - system correctly prevents duplicate breakfast orders."
+                        "Daily summary is clean - no existing orders found as expected after cleanup"
                     )
+                else:
+                    self.log_result(
+                        "Daily Summary Clean Check",
+                        False,
+                        error=f"🚨 HIDDEN ORDERS FOUND! Breakfast summary: {breakfast_summary}, Employee orders: {list(employee_orders.keys())}. This may be blocking new orders!"
+                    )
+                    return False
                     
-                    # This is actually correct behavior, not an ID consistency issue
-                    self.log_result(
-                        "Order Creation ID Flow",
-                        True,
-                        f"Order creation correctly blocked due to existing breakfast order. All IDs are consistent. System working as designed."
-                    )
-                    return True
-            
-            # Create a test breakfast order with detailed ID tracing
-            order_data = {
-                "employee_id": self.jonas_id,
-                "department_id": self.department_id,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 2,
-                    "white_halves": 1,
-                    "seeded_halves": 1,
-                    "toppings": ["ruehrei", "kaese"],
-                    "has_lunch": False,
-                    "boiled_eggs": 0,
-                    "has_coffee": False
-                }]
-            }
-            
-            # Log the exact IDs being sent
-            id_trace = f"Sending order with employee_id: {self.jonas_id}, department_id: {self.department_id}"
-            print(f"🔍 ID TRACE: {id_trace}")
-            
-            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            
-            if response.status_code == 200:
-                order_result = response.json()
-                self.log_result(
-                    "Order Creation ID Flow",
-                    True,
-                    f"Order created successfully! Total: €{order_result.get('total_price', 'N/A')}. All IDs are consistent."
-                )
-                return True
             else:
-                error_detail = response.text
-                try:
-                    error_json = response.json()
-                    error_detail = error_json.get('detail', error_detail)
-                except:
-                    pass
+                self.log_result(
+                    "Daily Summary Clean Check",
+                    False,
+                    error=f"Could not check daily summary: HTTP {summary_response.status_code}: {summary_response.text}"
+                )
+                return False
+            
+            # Check lunch settings
+            lunch_response = self.session.get(f"{BASE_URL}/lunch-settings")
+            
+            if lunch_response.status_code == 200:
+                lunch_data = lunch_response.json()
+                self.log_result(
+                    "Lunch Settings Check",
+                    True,
+                    f"Lunch settings found: Price €{lunch_data.get('price', 0)}, Enabled: {lunch_data.get('enabled', False)}, Boiled eggs: €{lunch_data.get('boiled_eggs_price', 0)}"
+                )
+            else:
+                self.log_result(
+                    "Lunch Settings Check",
+                    False,
+                    error=f"Could not check lunch settings: HTTP {lunch_response.status_code}: {lunch_response.text}"
+                )
+                return False
+            
+            return True
                 
-                # Check if this is the expected "already has order" error
-                if "bereits eine Frühstücksbestellung" in error_detail:
+        except Exception as e:
+            self.log_result("Hidden Database Issues Check", False, error=str(e))
+            return False
+    
+    def verify_no_stale_orders_live(self):
+        """Verify no stale orders exist on LIVE system"""
+        if not self.department_id:
+            self.log_result(
+                "Stale Orders Check", 
+                False, 
+                error="Department ID not available"
+            )
+            return False
+        
+        try:
+            # Check breakfast history for any existing orders
+            history_response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{self.department_id}?days_back=7")
+            
+            if history_response.status_code == 200:
+                history_data = history_response.json()
+                history_list = history_data.get("history", [])
+                
+                if not history_list:
                     self.log_result(
-                        "Order Creation ID Flow",
+                        "Stale Orders Check",
                         True,
-                        f"Order creation correctly blocked due to existing breakfast order: {error_detail}. All IDs are consistent. System working as designed."
+                        "No breakfast history found - system is clean as expected after user cleanup"
                     )
                     return True
                 else:
+                    total_orders = sum(day.get("total_orders", 0) for day in history_list)
                     self.log_result(
-                        "Order Creation ID Flow",
+                        "Stale Orders Check",
                         False,
-                        error=f"Order creation failed: HTTP {response.status_code}: {error_detail}. This confirms ID consistency issues!"
+                        error=f"🚨 STALE ORDERS FOUND! Found {len(history_list)} days with orders, total {total_orders} orders. This may be interfering with new order creation!"
                     )
                     
-                    # Additional debugging - check if it's a menu item lookup failure
-                    if "menu" in error_detail.lower() or "item" in error_detail.lower():
-                        self.log_result(
-                            "ROOT CAUSE IDENTIFIED",
-                            False,
-                            error="Order creation fails during menu item lookup - confirms department_id mismatch between order request and menu items!"
-                        )
+                    # Show details of found orders
+                    for day in history_list[:3]:  # Show first 3 days
+                        date = day.get("date", "Unknown")
+                        orders = day.get("total_orders", 0)
+                        if orders > 0:
+                            print(f"   • {date}: {orders} orders")
                     
                     return False
+                    
+            else:
+                self.log_result(
+                    "Stale Orders Check",
+                    False,
+                    error=f"Could not check breakfast history: HTTP {history_response.status_code}: {history_response.text}"
+                )
+                return False
                 
         except Exception as e:
-            self.log_result("Order Creation ID Flow", False, error=str(e))
+            self.log_result("Stale Orders Check", False, error=str(e))
             return False
     
-    def run_id_consistency_investigation(self):
-        """Run the complete ID consistency investigation"""
-        print("🔍 CRITICAL ID CONSISTENCY INVESTIGATION")
+    def run_live_system_investigation(self):
+        """Run the complete live system investigation"""
+        print("🔍 CRITICAL LIVE SYSTEM INVESTIGATION")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME}")
-        print(f"Focus: ID mismatches causing breakfast order failures")
+        print(f"Focus: Breakfast order failures after complete database cleanup")
         print(f"Expected Department ID: fw4abteilung2")
         print("=" * 80)
         print()
         
-        # CRITICAL CHECK 1: Department ID Verification
-        print("🔍 CRITICAL CHECK 1: Department ID Verification")
-        dept_id_ok = self.verify_department_id()
+        # CRITICAL CHECK 1: Live Authentication
+        print("🔍 CRITICAL CHECK 1: Live Authentication")
+        auth_ok = self.test_live_authentication()
         
-        # CRITICAL CHECK 2: Employee ID Consistency
-        print("🔍 CRITICAL CHECK 2: Employee ID Consistency")
-        employee_id_ok = self.verify_employee_consistency()
+        # CRITICAL CHECK 2: Employee List Check
+        print("🔍 CRITICAL CHECK 2: Employee List Check")
+        employee_ok = self.check_employee_list_live()
         
-        # CRITICAL CHECK 3: Menu Item ID Verification
-        print("🔍 CRITICAL CHECK 3: Menu Item ID Verification")
-        menu_id_ok = self.verify_menu_item_ids()
+        # CRITICAL CHECK 3: Menu Items Verification
+        print("🔍 CRITICAL CHECK 3: Menu Items Verification")
+        menu_ok = self.verify_menu_items_live()
         
-        # CRITICAL CHECK 4: Cross-Reference ID Matching
-        print("🔍 CRITICAL CHECK 4: Cross-Reference ID Matching")
-        cross_ref_ok = self.cross_reference_id_matching()
+        # CRITICAL CHECK 4: Breakfast Order Creation
+        print("🔍 CRITICAL CHECK 4: Breakfast Order Creation")
+        order_ok = self.test_breakfast_order_creation_live()
         
-        # CRITICAL CHECK 5: Order Creation ID Flow
-        print("🔍 CRITICAL CHECK 5: Order Creation ID Flow")
-        order_flow_ok = self.trace_order_creation_id_flow()
+        # CRITICAL CHECK 5: Hidden Database Issues
+        print("🔍 CRITICAL CHECK 5: Hidden Database Issues")
+        db_ok = self.check_for_hidden_database_issues()
+        
+        # CRITICAL CHECK 6: Stale Orders Check
+        print("🔍 CRITICAL CHECK 6: Stale Orders Check")
+        stale_ok = self.verify_no_stale_orders_live()
         
         # Summary and Root Cause Analysis
-        self.print_id_consistency_summary()
+        self.print_live_system_summary()
         
-        return all([dept_id_ok, employee_id_ok, menu_id_ok, cross_ref_ok, order_flow_ok])
+        return all([auth_ok, employee_ok, menu_ok, order_ok, db_ok, stale_ok])
     
-    def print_id_consistency_summary(self):
-        """Print ID consistency investigation summary with root cause analysis"""
+    def print_live_system_summary(self):
+        """Print live system investigation summary with root cause analysis"""
         print("\n" + "=" * 80)
-        print("🔍 ID CONSISTENCY INVESTIGATION SUMMARY")
+        print("🔍 LIVE SYSTEM INVESTIGATION SUMMARY")
         print("=" * 80)
         
         passed = sum(1 for result in self.test_results if "✅ PASS" in result["status"])
@@ -481,14 +514,13 @@ class IDConsistencyTester:
         # ROOT CAUSE ANALYSIS
         print("🔍 ROOT CAUSE ANALYSIS:")
         
-        # Check for department ID mismatch
-        dept_check = next((r for r in self.test_results if "Department ID Verification" in r["test"]), None)
-        if dept_check and "❌ FAIL" in dept_check["status"]:
-            print("   🚨 CRITICAL: Department ID mismatch detected!")
-            print(f"   • Expected: fw4abteilung2")
-            print(f"   • Actual: {self.department_id}")
-            print("   • This is likely the PRIMARY ROOT CAUSE of breakfast order failures")
-            print("   • Frontend may be using wrong department ID in API calls")
+        # Check for authentication issues
+        auth_check = next((r for r in self.test_results if "Live Employee Authentication" in r["test"]), None)
+        if auth_check and "❌ FAIL" in auth_check["status"]:
+            print("   🚨 CRITICAL: Authentication failed!")
+            print(f"   • Credentials costa/lenny may be incorrect")
+            print("   • Department '2. Wachabteilung' may not exist")
+            print("   • This is likely the PRIMARY ROOT CAUSE of all failures")
         
         # Check for menu item issues
         menu_checks = [r for r in self.test_results if "Menu" in r["test"] and "❌ FAIL" in r["status"]]
@@ -497,37 +529,40 @@ class IDConsistencyTester:
             for check in menu_checks:
                 print(f"   • {check['test']}: {check['error']}")
         
-        # Check for employee issues
-        emp_check = next((r for r in self.test_results if "Employee ID Consistency" in r["test"]), None)
-        if emp_check and "❌ FAIL" in emp_check["status"]:
-            print("   🚨 EMPLOYEE ID ISSUES:")
-            print(f"   • {emp_check['error']}")
-        
         # Check for order creation issues
-        order_check = next((r for r in self.test_results if "Order Creation ID Flow" in r["test"]), None)
+        order_check = next((r for r in self.test_results if "Live Breakfast Order Creation" in r["test"]), None)
         if order_check and "❌ FAIL" in order_check["status"]:
             print("   🚨 ORDER CREATION FAILURE CONFIRMED:")
             print(f"   • {order_check['error']}")
+            print("   • This confirms the user-reported bug exists on live system")
+        
+        # Check for database issues
+        db_checks = [r for r in self.test_results if ("Database" in r["test"] or "Stale" in r["test"]) and "❌ FAIL" in r["status"]]
+        if db_checks:
+            print("   🚨 DATABASE ISSUES:")
+            for check in db_checks:
+                print(f"   • {check['test']}: {check['error']}")
         
         # Recommendations
         print("\n🔧 RECOMMENDED FIXES:")
         if failed_tests:
-            print("   1. Verify department ID consistency in database")
-            print("   2. Check frontend API calls use correct department_id")
-            print("   3. Ensure menu items have correct department_id")
-            print("   4. Verify employee records have correct department_id")
-            print("   5. Check order creation logic uses consistent IDs")
+            print("   1. Verify credentials costa/lenny are correct for department '2. Wachabteilung'")
+            print("   2. Check if department exists in live database")
+            print("   3. Ensure menu items were properly recreated after cleanup")
+            print("   4. Investigate backend order creation logic for bugs")
+            print("   5. Check for any remaining stale data interfering with orders")
         else:
-            print("   ✅ All ID consistency checks passed - no issues detected")
+            print("   ✅ All live system checks passed - backend is working correctly")
+            print("   • The issue may be frontend-specific or user-interface related")
         
         print("\n" + "=" * 80)
 
 def main():
     """Main function"""
-    tester = IDConsistencyTester()
+    tester = LiveSystemTester()
     
     try:
-        success = tester.run_id_consistency_investigation()
+        success = tester.run_live_system_investigation()
         
         # Exit with appropriate code
         failed_tests = [r for r in tester.test_results if "❌ FAIL" in r["status"]]
