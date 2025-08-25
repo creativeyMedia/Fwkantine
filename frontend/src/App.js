@@ -456,10 +456,10 @@ const DepartmentDashboard = () => {
   };
 
   const handleEmployeeProfileClick = async (employee, event) => {
-    // This function now handles the "Bestellen" button click
+    // This function handles the "Bestellen" button click - should open order menu
     try {
       event.stopPropagation(); // Prevent the employee profile from opening
-      setSelectedEmployee(employee); // Open order menu instead
+      setSelectedEmployee(employee); // Open order menu (correct!)
     } catch (error) {
       console.error('Error opening employee order menu:', error);
       alert('Fehler beim Öffnen des Bestellmenüs');
