@@ -4203,6 +4203,15 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                               <div className="mt-2 space-y-1 text-sm text-gray-600">
                                 <div>Weiße Hälften: {employeeData.white_halves}</div>
                                 <div>Körner Hälften: {employeeData.seeded_halves}</div>
+                                {employeeData.boiled_eggs > 0 && (
+                                  <div>🥚 Gekochte Eier: {employeeData.boiled_eggs}</div>
+                                )}
+                                {employeeData.has_coffee && (
+                                  <div>☕ Kaffee: Ja</div>
+                                )}
+                                {employeeData.has_lunch && (
+                                  <div>🍽️ Mittagessen: Ja</div>
+                                )}
                                 <div className="pt-1 border-t">
                                   <strong>Total: €{employeeData.total_amount.toFixed(2)}</strong>
                                 </div>
