@@ -1,22 +1,32 @@
 #!/usr/bin/env python3
 """
-CRITICAL ID CONSISTENCY INVESTIGATION: Department, Employee, and Menu Item ID mismatch causing breakfast order failures
+CRITICAL LIVE SYSTEM INVESTIGATION: Breakfast order failure after complete database cleanup
 
-LIVE SYSTEM: https://fw-kantine.de
-FOCUS: 2. Wachabteilung (fw4abteilung2) - freshly recreated menu items
+LIVE SYSTEM: https://fw-kantine.de (CORRECTED URL)
+FOCUS: 2. Wachabteilung (fw4abteilung2) - User has DELETED ALL employees, orders, and toppings
 CREDENTIALS: Employee: costa, Admin: lenny
 
-USER CONTEXT: User experienced similar bug before with incorrect IDs between departments, breakfast items, and employee IDs. 
-User has recreated all menu items in 2. Wachabteilung and can see them in database, but breakfast orders still fail.
+USER CONTEXT - CRITICAL CORRECTION:
+- User has DELETED ALL employees, orders, and toppings on LIVE system fw-kantine.de
+- User has RECREATED all menu items fresh
+- Frontend shows "Keine Frühstück-Bestellungen für heute" (no breakfast orders today)
+- Employee history shows empty
+- Order history shows empty
+- BUT breakfast orders still fail with "Fehler beim Speichern der Bestellung"
 
-CRITICAL ID CONSISTENCY CHECKS NEEDED:
-1. Department ID Verification - Verify department "2. Wachabteilung" has correct ID "fw4abteilung2"
-2. Employee ID Consistency - Get employees from department fw4abteilung2, check Jonas Parlow employee record
-3. Menu Item ID Verification - GET /api/menu/breakfast/fw4abteilung2 - verify menu items exist and have correct department_id
-4. Cross-Reference ID Matching - Compare department_id in menu items vs department authentication
-5. Order Creation ID Flow - Trace an order creation request to see which IDs are being passed
+PREVIOUS ERROR: I was testing wrong environment (canteen-keeper.preview.emergentagent.com instead of fw-kantine.de)
 
-EXPECTED FINDINGS: ID mismatch between frontend requests and backend database
+CORRECT INVESTIGATION NEEDED ON LIVE SYSTEM:
+1. Test authentication on fw-kantine.de with credentials costa/lenny
+2. Check employee list in department fw4abteilung2 on LIVE system
+3. Verify menu items exist on fw-kantine.de (not preview system)
+4. Test actual breakfast order creation on LIVE system
+5. Check for hidden database issues on LIVE MongoDB instance
+6. Verify no stale orders exist on LIVE system
+
+CRITICAL FOCUS: Use ONLY https://fw-kantine.de as base URL, not preview environment. The user's live system has been completely cleaned and recreated, so there should be NO existing orders blocking breakfast creation.
+
+This is likely a genuine backend bug in the live system that needs immediate diagnosis.
 """
 
 import requests
@@ -24,11 +34,11 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - Using environment variables from frontend/.env
-BASE_URL = "https://canteen-keeper.preview.emergentagent.com/api"
+# Configuration - CORRECTED to use LIVE SYSTEM
+BASE_URL = "https://fw-kantine.de/api"  # CORRECTED URL
 DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_PASSWORD = "password2"  # Standard credentials from backend
-ADMIN_PASSWORD = "admin2"          # Standard credentials from backend
+DEPARTMENT_PASSWORD = "costa"  # User-provided credentials
+ADMIN_PASSWORD = "lenny"       # User-provided credentials
 
 class IDConsistencyTester:
     def __init__(self):
