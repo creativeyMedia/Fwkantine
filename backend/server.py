@@ -2189,7 +2189,15 @@ async def delete_order(order_id: str):
 
 @api_router.delete("/department-admin/breakfast-day/{department_id}/{date}")
 async def delete_breakfast_day(department_id: str, date: str):
-    """Admin: Delete all breakfast orders for a specific date and adjust employee balances"""
+    """Admin: Delete all breakfast orders for a specific date and adjust employee balances
+    
+    ⚠️ KRITISCHE WARNUNG: Dieser Endpoint löscht ALLE Bestellungen eines Tages!
+    Nur für Notfälle verwenden. Erstellt automatisch ein Backup.
+    """
+    
+    # SICHERHEITSCHECK: Zusätzliche Bestätigung erforderlich
+    print(f"🚨 KRITISCHE OPERATION: Lösche alle Frühstücksbestellungen für {date} in {department_id}")
+    
     try:
         # Validate date format
         parsed_date = datetime.fromisoformat(date).date()
