@@ -515,12 +515,6 @@ const DepartmentDashboard = () => {
               Admin Login
             </button>
             <button
-              onClick={() => setShowMasterLogin(true)}
-              className="bg-purple-600 text-white px-2 sm:px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm whitespace-nowrap"
-            >
-              Master
-            </button>
-            <button
               onClick={logout}
               className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
