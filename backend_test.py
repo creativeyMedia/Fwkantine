@@ -21,9 +21,9 @@ from datetime import datetime
 
 # Configuration - Use production backend URL from frontend/.env
 BASE_URL = "https://fireguard-menu.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "1. Wachabteilung"
-DEPARTMENT_PASSWORD = "password1"
-ADMIN_PASSWORD = "admin1"
+DEPARTMENT_NAME = "2. Wachabteilung"
+DEPARTMENT_PASSWORD = "password2"
+ADMIN_PASSWORD = "admin2"
 
 class UIImprovementsTester:
     def __init__(self):
