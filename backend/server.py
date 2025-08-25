@@ -1104,8 +1104,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     employee = await db.employees.find_one({"id": order["employee_id"]})
                     employee_name = employee["name"] if employee else "Unknown"
                     
-                    if employee_name not in employee_orders:
-                        employee_orders[employee_name] = {
+                    # Create unique key combining name and employee_id to avoid duplicate name aggregation
+                    employee_key = f"{employee_name} (ID: {order['employee_id'][-8:]})"  # Show last 8 chars of ID
+                    
+                    if employee_key not in employee_orders:
+                        employee_orders[employee_key] = {
                             "white_halves": 0, 
                             "seeded_halves": 0, 
                             "boiled_eggs": 0,  # Add boiled eggs tracking
@@ -1115,7 +1118,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "total_amount": 0
                         }
                     
-                    employee_orders[employee_name]["total_amount"] += order.get("total_price", 0)
+                    employee_orders[employee_key]["total_amount"] += order.get("total_price", 0)
                     
                     for item in order["breakfast_items"]:
                         # Handle new format (total_halves, white_halves, seeded_halves)
