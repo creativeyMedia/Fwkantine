@@ -1,32 +1,17 @@
 #!/usr/bin/env python3
 """
-CRITICAL LIVE SYSTEM INVESTIGATION: Breakfast order failure after complete database cleanup
+UI IMPROVEMENTS BACKEND TESTING
 
-LIVE SYSTEM: https://fw-kantine.de (CORRECTED URL)
-FOCUS: 2. Wachabteilung (fw4abteilung2) - User has DELETED ALL employees, orders, and toppings
-CREDENTIALS: Employee: costa, Admin: lenny
+FOCUS: Test three specific UI improvements that were just implemented:
+1. Shopping List Formatting - GET /api/orders/daily-summary/{department_id}
+2. Order History Lunch Price - GET /api/employees/{employee_id}/profile
+3. Admin Dashboard Menu Names - GET /api/menu/drinks/{department_id} and GET /api/menu/sweets/{department_id}
 
-USER CONTEXT - CRITICAL CORRECTION:
-- User has DELETED ALL employees, orders, and toppings on LIVE system fw-kantine.de
-- User has RECREATED all menu items fresh
-- Frontend shows "Keine Frühstück-Bestellungen für heute" (no breakfast orders today)
-- Employee history shows empty
-- Order history shows empty
-- BUT breakfast orders still fail with "Fehler beim Speichern der Bestellung"
+BACKEND URL: https://fireguard-menu.preview.emergentagent.com/api
+DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
+CREDENTIALS: Employee: password1, Admin: admin1
 
-PREVIOUS ERROR: I was testing wrong environment (canteen-keeper.preview.emergentagent.com instead of fw-kantine.de)
-
-CORRECT INVESTIGATION NEEDED ON LIVE SYSTEM:
-1. Test authentication on fw-kantine.de with credentials costa/lenny
-2. Check employee list in department fw4abteilung2 on LIVE system
-3. Verify menu items exist on fw-kantine.de (not preview system)
-4. Test actual breakfast order creation on LIVE system
-5. Check for hidden database issues on LIVE MongoDB instance
-6. Verify no stale orders exist on LIVE system
-
-CRITICAL FOCUS: Use ONLY https://fw-kantine.de as base URL, not preview environment. The user's live system has been completely cleaned and recreated, so there should be NO existing orders blocking breakfast creation.
-
-This is likely a genuine backend bug in the live system that needs immediate diagnosis.
+PURPOSE: Verify that the backend data structures are properly formatted for the new frontend UI improvements.
 """
 
 import requests
@@ -34,11 +19,11 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - CORRECTED to use LIVE SYSTEM
-BASE_URL = "https://fw-kantine.de/api"  # CORRECTED URL
-DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_PASSWORD = "costa"  # User-provided credentials
-ADMIN_PASSWORD = "lenny"       # User-provided credentials
+# Configuration - Use production backend URL from frontend/.env
+BASE_URL = "https://fireguard-menu.preview.emergentagent.com/api"
+DEPARTMENT_NAME = "1. Wachabteilung"
+DEPARTMENT_PASSWORD = "password1"
+ADMIN_PASSWORD = "admin1"
 
 class LiveSystemTester:
     def __init__(self):
