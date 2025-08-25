@@ -6542,6 +6542,250 @@ class CanteenTester:
         
         return success_count >= 6  # Expect at least 6 out of 8 tests to pass
 
+    def test_hans_mueller_calculation_investigation(self):
+        """Investigate the specific calculation error for Hans Mueller in department 2 on 25.08.2025"""
+        print("\n=== INVESTIGATING HANS MUELLER CALCULATION ERROR ===")
+        print("Target: Hans Mueller in department 2 (fw4abteilung2) on 25.08.2025")
+        print("Expected: 7 rolls + 4 eggs + coffee + €6 lunch = €29.20 (investigating this calculation)")
+        
+        success_count = 0
+        investigation_results = {}
+        
+        # Step 1: Find Hans Mueller in department 2
+        try:
+            response = self.session.get(f"{API_BASE}/departments/fw4abteilung2/employees")
+            
+            if response.status_code == 200:
+                employees = response.json()
+                hans_mueller = None
+                
+                for emp in employees:
+                    if "Hans Mueller" in emp.get('name', ''):
+                        hans_mueller = emp
+                        break
+                
+                if hans_mueller:
+                    self.log_test("1. Find Hans Mueller", True, 
+                                f"Found Hans Mueller (ID: {hans_mueller['id']}) in department fw4abteilung2")
+                    investigation_results['hans_mueller'] = hans_mueller
+                    success_count += 1
+                else:
+                    self.log_test("1. Find Hans Mueller", False, 
+                                f"Hans Mueller not found in department fw4abteilung2. Available employees: {[emp.get('name') for emp in employees]}")
+            else:
+                self.log_test("1. Find Hans Mueller", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("1. Find Hans Mueller", False, f"Exception: {str(e)}")
+        
+        # Step 2: Get breakfast history for department 2 to find the €29.20 order
+        try:
+            response = self.session.get(f"{API_BASE}/orders/breakfast-history/fw4abteilung2", 
+                                      params={"days_back": 60})  # Look back 60 days to find 25.08.2025
+            
+            if response.status_code == 200:
+                history_data = response.json()
+                target_order = None
+                target_date = "2025-08-25"
+                
+                # Look for the specific date and €29.20 order
+                for day_data in history_data.get('history', []):
+                    if day_data.get('date') == target_date:
+                        employee_orders = day_data.get('employee_orders', {})
+                        for emp_name, emp_data in employee_orders.items():
+                            if "Hans Mueller" in emp_name and abs(emp_data.get('total_amount', 0) - 29.20) < 0.01:
+                                target_order = {
+                                    'date': target_date,
+                                    'employee_name': emp_name,
+                                    'order_data': emp_data,
+                                    'daily_lunch_price': day_data.get('daily_lunch_price', 0)
+                                }
+                                break
+                        break
+                
+                if target_order:
+                    self.log_test("2. Find €29.20 Order on 2025-08-25", True, 
+                                f"Found Hans Mueller's order: €{target_order['order_data']['total_amount']:.2f} on {target_date}")
+                    investigation_results['target_order'] = target_order
+                    success_count += 1
+                    
+                    # Log detailed order breakdown
+                    order_data = target_order['order_data']
+                    print(f"   📋 Order Details:")
+                    print(f"      White halves: {order_data.get('white_halves', 0)}")
+                    print(f"      Seeded halves: {order_data.get('seeded_halves', 0)}")
+                    print(f"      Boiled eggs: {order_data.get('boiled_eggs', 0)}")
+                    print(f"      Has lunch: {order_data.get('has_lunch', False)}")
+                    print(f"      Has coffee: {order_data.get('has_coffee', False)}")
+                    print(f"      Toppings: {order_data.get('toppings', {})}")
+                    print(f"      Daily lunch price: €{target_order['daily_lunch_price']:.2f}")
+                else:
+                    self.log_test("2. Find €29.20 Order on 2025-08-25", False, 
+                                "Could not find Hans Mueller's €29.20 order on 2025-08-25")
+            else:
+                self.log_test("2. Find €29.20 Order on 2025-08-25", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("2. Find €29.20 Order on 2025-08-25", False, f"Exception: {str(e)}")
+        
+        # Step 3: Get current pricing to calculate what the total SHOULD be
+        try:
+            # Get lunch settings for boiled eggs and coffee prices
+            lunch_response = self.session.get(f"{API_BASE}/lunch-settings")
+            
+            # Get breakfast menu for roll prices
+            breakfast_response = self.session.get(f"{API_BASE}/menu/breakfast/fw4abteilung2")
+            
+            if lunch_response.status_code == 200 and breakfast_response.status_code == 200:
+                lunch_settings = lunch_response.json()
+                breakfast_menu = breakfast_response.json()
+                
+                # Extract current prices
+                boiled_eggs_price = lunch_settings.get('boiled_eggs_price', 0.50)
+                coffee_price = lunch_settings.get('coffee_price', 1.50)
+                
+                # Get roll prices
+                roll_prices = {}
+                for item in breakfast_menu:
+                    roll_prices[item['roll_type']] = item['price']
+                
+                investigation_results['current_prices'] = {
+                    'boiled_eggs_price': boiled_eggs_price,
+                    'coffee_price': coffee_price,
+                    'roll_prices': roll_prices
+                }
+                
+                self.log_test("3. Get Current Prices", True, 
+                            f"Boiled eggs: €{boiled_eggs_price:.2f}, Coffee: €{coffee_price:.2f}, Rolls: {roll_prices}")
+                success_count += 1
+                
+            else:
+                self.log_test("3. Get Current Prices", False, 
+                            f"Failed to get pricing data. Lunch: {lunch_response.status_code}, Breakfast: {breakfast_response.status_code}")
+                
+        except Exception as e:
+            self.log_test("3. Get Current Prices", False, f"Exception: {str(e)}")
+        
+        # Step 4: Manual calculation based on expected order (7 rolls + 4 eggs + coffee + €6 lunch)
+        if 'current_prices' in investigation_results and 'target_order' in investigation_results:
+            try:
+                prices = investigation_results['current_prices']
+                target_order = investigation_results['target_order']
+                
+                # Expected order: 7 rolls + 4 eggs + coffee + €6 lunch
+                expected_calculation = {
+                    'rolls': 7,  # Assuming 7 halves
+                    'eggs': 4,
+                    'coffee': 1,
+                    'lunch_price': 6.00  # Expected lunch price
+                }
+                
+                # Calculate expected total
+                roll_cost = 0
+                if prices['roll_prices']:
+                    # Assume mixed rolls or use average price
+                    avg_roll_price = sum(prices['roll_prices'].values()) / len(prices['roll_prices'])
+                    roll_cost = expected_calculation['rolls'] * avg_roll_price
+                
+                eggs_cost = expected_calculation['eggs'] * prices['boiled_eggs_price']
+                coffee_cost = expected_calculation['coffee'] * prices['coffee_price']
+                lunch_cost = expected_calculation['lunch_price']
+                
+                calculated_total = roll_cost + eggs_cost + coffee_cost + lunch_cost
+                
+                # Compare with actual €29.20
+                actual_total = 29.20
+                difference = actual_total - calculated_total
+                
+                self.log_test("4. Manual Calculation Verification", True, 
+                            f"Expected calculation: €{calculated_total:.2f} vs Actual: €{actual_total:.2f} (Difference: €{difference:.2f})")
+                
+                print(f"   🧮 Detailed Calculation Breakdown:")
+                print(f"      7 rolls × €{avg_roll_price:.2f} = €{roll_cost:.2f}")
+                print(f"      4 eggs × €{prices['boiled_eggs_price']:.2f} = €{eggs_cost:.2f}")
+                print(f"      1 coffee × €{prices['coffee_price']:.2f} = €{coffee_cost:.2f}")
+                print(f"      1 lunch × €{lunch_cost:.2f} = €{lunch_cost:.2f}")
+                print(f"      CALCULATED TOTAL: €{calculated_total:.2f}")
+                print(f"      ACTUAL TOTAL: €{actual_total:.2f}")
+                print(f"      DIFFERENCE: €{difference:.2f}")
+                
+                investigation_results['calculation_analysis'] = {
+                    'calculated_total': calculated_total,
+                    'actual_total': actual_total,
+                    'difference': difference,
+                    'breakdown': {
+                        'rolls': roll_cost,
+                        'eggs': eggs_cost,
+                        'coffee': coffee_cost,
+                        'lunch': lunch_cost
+                    }
+                }
+                
+                success_count += 1
+                
+            except Exception as e:
+                self.log_test("4. Manual Calculation Verification", False, f"Exception: {str(e)}")
+        
+        # Step 5: Identify the source of error
+        if 'target_order' in investigation_results and 'calculation_analysis' in investigation_results:
+            try:
+                target_order = investigation_results['target_order']
+                analysis = investigation_results['calculation_analysis']
+                
+                # Compare actual order data with expected
+                actual_order = target_order['order_data']
+                
+                error_analysis = []
+                
+                # Check roll count
+                actual_rolls = actual_order.get('white_halves', 0) + actual_order.get('seeded_halves', 0)
+                if actual_rolls != 7:
+                    error_analysis.append(f"Roll count mismatch: expected 7, found {actual_rolls}")
+                
+                # Check eggs
+                actual_eggs = actual_order.get('boiled_eggs', 0)
+                if actual_eggs != 4:
+                    error_analysis.append(f"Egg count mismatch: expected 4, found {actual_eggs}")
+                
+                # Check coffee
+                actual_coffee = actual_order.get('has_coffee', False)
+                if not actual_coffee:
+                    error_analysis.append(f"Coffee missing: expected True, found {actual_coffee}")
+                
+                # Check lunch price
+                daily_lunch_price = target_order.get('daily_lunch_price', 0)
+                if abs(daily_lunch_price - 6.00) > 0.01:
+                    error_analysis.append(f"Lunch price mismatch: expected €6.00, found €{daily_lunch_price:.2f}")
+                
+                if error_analysis:
+                    self.log_test("5. Error Source Identification", True, 
+                                f"Found {len(error_analysis)} discrepancies: {'; '.join(error_analysis)}")
+                else:
+                    self.log_test("5. Error Source Identification", True, 
+                                "Order data matches expected values - error may be in calculation logic")
+                
+                success_count += 1
+                
+            except Exception as e:
+                self.log_test("5. Error Source Identification", False, f"Exception: {str(e)}")
+        
+        # Final summary
+        print(f"\n🔍 INVESTIGATION SUMMARY:")
+        print(f"   Tests completed: {success_count}/5")
+        if 'target_order' in investigation_results:
+            print(f"   ✅ Found Hans Mueller's €29.20 order on 2025-08-25")
+        if 'calculation_analysis' in investigation_results:
+            analysis = investigation_results['calculation_analysis']
+            print(f"   📊 Calculation difference: €{analysis['difference']:.2f}")
+            if abs(analysis['difference']) > 0.01:
+                print(f"   ⚠️  CALCULATION ERROR CONFIRMED")
+            else:
+                print(f"   ✅ Calculation appears correct")
+        
+        return success_count >= 3
+
     def run_all_tests(self):
         """Run all test suites with focus on data persistence"""
         print("🚀 Starting CRITICAL Data Persistence Testing for German Canteen Management System")
