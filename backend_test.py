@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """
-PROBLEM 2 - ORDER HISTORY LUNCH PRICE DISPLAY FIX TESTING
+CRITICAL DEBUG TEST - Tagespreis Text Verification
 
-FOCUS: Test the specific fix for Problem 2 - Order History Lunch Price Display:
-Verify that breakfast orders with lunch now show "1x Mittagessen" WITHOUT the problematic "(€0.00 Tagespreis)" text in the readable_items.
+FOCUS: Create brand new breakfast order with lunch and immediately verify readable_items:
 
-Test specifically:
-1. Create a breakfast order with lunch for a test employee
-2. Retrieve the employee profile GET /api/employees/{employee_id}/profile 
-3. Verify that lunch orders in the order history have:
-   - description: "1x Mittagessen" 
-   - unit_price: "" (empty, not showing Tagespreis)
-   - total_price: correct lunch price amount
+EXACT STEPS:
+1. Authenticate with department
+2. Create new test employee 
+3. Create NEW breakfast order with lunch for today
+4. IMMEDIATELY retrieve employee profile 
+5. Check the EXACT readable_items content for lunch items
+6. Verify there is NO "(€0.00 Tagespreis)" or "Tagespreis" text anywhere
+
+This is to debug why the user still sees "Tagespreis" text despite our backend fix.
 
 BACKEND URL: https://fireguard-menu.preview.emergentagent.com/api
-DEPARTMENT: 2. Wachabteilung (fw4abteilung2) 
-CREDENTIALS: Employee: password2, Admin: admin2
+DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
+CREDENTIALS: Employee: password1, Admin: admin1
 
-PURPOSE: Verify that the user-reported bug where "(€0.00 Tagespreis)" was still showing in the order history details is fixed.
+PURPOSE: Test if the backend changes are actually taking effect by creating a completely fresh order.
 """
 
 import requests
@@ -27,9 +28,9 @@ from datetime import datetime
 
 # Configuration - Use production backend URL from frontend/.env
 BASE_URL = "https://fireguard-menu.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_PASSWORD = "password2"
-ADMIN_PASSWORD = "admin2"
+DEPARTMENT_NAME = "1. Wachabteilung"
+DEPARTMENT_PASSWORD = "password1"
+ADMIN_PASSWORD = "admin1"
 
 class LunchPriceDisplayTester:
     def __init__(self):
