@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 """
-CRITICAL DEBUG TEST - Tagespreis Text Verification
+MASTER PASSWORD LOGIN IMPLEMENTATION TEST
 
-FOCUS: Create brand new breakfast order with lunch and immediately verify readable_items:
+FOCUS: Test that the master password now works in the NORMAL login forms instead of requiring a separate Master button.
 
-EXACT STEPS:
-1. Authenticate with department
-2. Create new test employee 
-3. Create NEW breakfast order with lunch for today
-4. IMMEDIATELY retrieve employee profile 
-5. Check the EXACT readable_items content for lunch items
-6. Verify there is NO "(€0.00 Tagespreis)" or "Tagespreis" text anywhere
+Test specifically:
+1. **Department Employee Login with Master Password**: 
+   - Try to login with department "1. Wachabteilung" using the master password "master123dev" 
+   - Verify it returns access_level="master" and role="master_admin"
 
-This is to debug why the user still sees "Tagespreis" text despite our backend fix.
+2. **Department Admin Login with Master Password**:
+   - Try to login as admin for "1. Wachabteilung" using the master password "master123dev" 
+   - Verify it returns access_level="master" and role="master_admin"
+
+3. **Normal Logins Still Work**:
+   - Verify normal employee login still works with "password1"
+   - Verify normal admin login still works with "admin1"
+
+4. **Error Handling**:
+   - Verify wrong passwords are properly rejected
 
 BACKEND URL: https://fireguard-menu.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
-CREDENTIALS: Employee: password1, Admin: admin1
+MASTER PASSWORD: master123dev
+NORMAL CREDENTIALS: Employee: password1, Admin: admin1
 
-PURPOSE: Test if the backend changes are actually taking effect by creating a completely fresh order.
+PURPOSE: Verify the "Option 1" implementation works - master password functions in normal login forms without needing separate Master button.
 """
 
 import requests
