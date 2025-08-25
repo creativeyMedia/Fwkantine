@@ -255,12 +255,22 @@ async def initialize_default_data():
     This preserves user-changed passwords permanently.
     """
     
-    # SICHERHEITSCHECK: Verhindere Ausführung in Production
-    if os.getenv('ENVIRONMENT') == 'production':
+    # SICHERHEITSCHECK: Nur bei komplett leerer Datenbank oder mit speziellem Flag
+    existing_depts = await db.departments.find().to_list(100)
+    allow_init = os.getenv('ALLOW_INIT_DATA', 'false').lower() == 'true'
+    
+    if os.getenv('ENVIRONMENT') == 'production' and len(existing_depts) > 0 and not allow_init:
         raise HTTPException(
             status_code=403, 
-            detail="Initialisierung in Production-Umgebung nicht erlaubt! Gefahr von Datenverlust."
+            detail=f"Datenbank nicht leer ({len(existing_depts)} Departments vorhanden)! Initialisierung nur bei leerer DB erlaubt."
         )
+    
+    if len(existing_depts) == 0:
+        print("🟢 SAFE INIT: Datenbank ist leer - Erstinitialisierung erlaubt")
+    elif allow_init:
+        print("🟡 ADMIN INIT: ALLOW_INIT_DATA Flag gesetzt - Initialisierung erzwungen")
+    else:
+        print(f"🔒 BLOCKED: {len(existing_depts)} Departments vorhanden - Initialisierung blockiert")
     
     print("🔧 DEBUG: Starting initialize_default_data...")
     
