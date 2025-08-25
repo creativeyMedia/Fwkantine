@@ -2063,9 +2063,19 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
         return `${rollsText}${eggsText}${toppingsText}${hasCoffee}${hasLunch}`;
       }).join('; ');
     } else if (order.order_type === 'drinks') {
-      return Object.entries(order.drink_items || {}).map(([drink, qty]) => `${qty}x ${drink}`).join(', ');
+      return Object.entries(order.drink_items || {}).map(([drinkId, qty]) => {
+        // Find drink name by ID
+        const drink = drinksMenu.find(d => d.id === drinkId);
+        const drinkName = drink ? drink.name : drinkId;
+        return `${qty}x ${drinkName}`;
+      }).join(', ');
     } else if (order.order_type === 'sweets') {
-      return Object.entries(order.sweet_items || {}).map(([sweet, qty]) => `${qty}x ${sweet}`).join(', ');
+      return Object.entries(order.sweet_items || {}).map(([sweetId, qty]) => {
+        // Find sweet name by ID  
+        const sweet = sweetsMenu.find(s => s.id === sweetId);
+        const sweetName = sweet ? sweet.name : sweetId;
+        return `${qty}x ${sweetName}`;
+      }).join(', ');
     }
     return 'Unbekannte Bestellung';
   };
