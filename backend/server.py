@@ -1489,22 +1489,63 @@ async def get_employee_profile(employee_id: str):
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
                 
-                # Add boiled eggs if present
+                # Create breakfast prices dictionary for this context
+                breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+                
+                # Get current lunch settings for prices
+                lunch_settings = await db.lunch_settings.find_one() or {}
+                boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50)
+                coffee_price = lunch_settings.get("coffee_price", 1.50)
+                
+                enriched_order["readable_items"] = []
+                
+                # Add rolls as separate items if present
+                white_halves = item.get("white_halves", 0)
+                seeded_halves = item.get("seeded_halves", 0)
+                
+                if white_halves > 0:
+                    white_roll_price = breakfast_prices.get("weiss", 0.50)  # Get actual price from menu
+                    enriched_order["readable_items"].append({
+                        "description": f"{white_halves}x Weißes Brötchen (Hälften)",
+                        "unit_price": f"€{white_roll_price:.2f} pro Hälfte",
+                        "total_price": f"€{(white_halves * white_roll_price):.2f}",
+                        "toppings": toppings_str if toppings_str else "Ohne Belag"
+                    })
+                
+                if seeded_halves > 0:
+                    seeded_roll_price = breakfast_prices.get("koerner", 0.50)  # Get actual price from menu
+                    enriched_order["readable_items"].append({
+                        "description": f"{seeded_halves}x Körnerbrötchen (Hälften)", 
+                        "unit_price": f"€{seeded_roll_price:.2f} pro Hälfte",
+                        "total_price": f"€{(seeded_halves * seeded_roll_price):.2f}",
+                        "toppings": toppings_str if toppings_str else "Ohne Belag"
+                    })
+                
+                # Add boiled eggs as separate item if present
                 boiled_eggs = item.get("boiled_eggs", 0)
                 if boiled_eggs > 0:
-                    description += f" + {boiled_eggs}x Gekochte Eier"
+                    enriched_order["readable_items"].append({
+                        "description": f"{boiled_eggs}x Gekochte Eier",
+                        "unit_price": f"€{boiled_eggs_price:.2f} pro Stück",
+                        "total_price": f"€{(boiled_eggs * boiled_eggs_price):.2f}"
+                    })
                 
-                # Add coffee if present
+                # Add coffee as separate item if present
                 if item.get("has_coffee"):
-                    description += " + Kaffee"
+                    enriched_order["readable_items"].append({
+                        "description": "1x Kaffee",
+                        "unit_price": f"€{coffee_price:.2f} pro Tag",
+                        "total_price": f"€{coffee_price:.2f}"
+                    })
                 
-                # Add lunch if present
+                # Add lunch as separate item if present
                 if item.get("has_lunch"):
-                    description += " + Mittagessen"
-                enriched_order["readable_items"].append({
-                    "description": description,
-                    "toppings": toppings_str if toppings_str else "Ohne Belag"
-                })
+                    lunch_price = item.get("lunch_price", 0.0)  # Get actual lunch price from order
+                    enriched_order["readable_items"].append({
+                        "description": "1x Mittagessen",
+                        "unit_price": f"€{lunch_price:.2f} (Tagespreis)",
+                        "total_price": f"€{lunch_price:.2f}"
+                    })
         
         elif order["order_type"] in ["drinks", "sweets"]:
             enriched_order["readable_items"] = []
