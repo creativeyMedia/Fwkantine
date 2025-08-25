@@ -246,7 +246,7 @@ class UIImprovementsTester:
                 data = response.json()
                 
                 # Check required fields for employee profile
-                required_fields = ["employee", "order_history", "totals"]
+                required_fields = ["employee", "order_history", "total_orders", "breakfast_total", "drinks_sweets_total"]
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
@@ -273,14 +273,16 @@ class UIImprovementsTester:
                     if order.get("order_type") == "breakfast" and order.get("has_lunch"):
                         lunch_price = order.get("lunch_price")
                         total_price = order.get("total_price")
-                        description = order.get("description", "")
+                        readable_items = order.get("readable_items", [])
                         
                         # Check if lunch is properly tracked in backend
-                        if lunch_price is not None and "lunch" in description.lower():
+                        lunch_item_found = any("Mittagessen" in item.get("description", "") for item in readable_items)
+                        
+                        if lunch_price is not None and lunch_item_found:
                             lunch_orders.append({
                                 "lunch_price": lunch_price,
                                 "total_price": total_price,
-                                "description": description
+                                "lunch_item_found": lunch_item_found
                             })
                 
                 if lunch_orders:
@@ -288,7 +290,7 @@ class UIImprovementsTester:
                     self.log_result(
                         "Order History Lunch Price Test",
                         True,
-                        f"Lunch tracking working correctly in employee profile. Found {len(lunch_orders)} lunch orders: {'; '.join(lunch_details)}"
+                        f"Lunch tracking working correctly in employee profile. Found {len(lunch_orders)} lunch orders: {'; '.join(lunch_details)}. Backend properly tracks lunch prices even though frontend won't show 'Tagespreis'."
                     )
                     return True
                 else:
