@@ -866,7 +866,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PROBLEM 2 - Order History Lunch Price Display Fix - COMPLETED"
+    - "Master Password Login Implementation Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
