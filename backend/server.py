@@ -79,14 +79,7 @@ class RollType(str, Enum):
     WHITE = "weiss"  # White roll
     SEEDED = "koerner"  # Seeded roll
 
-class ToppingType(str, Enum):
-    SCRAMBLED_EGG = "ruehrei"
-    FRIED_EGG = "spiegelei"
-    EGG_SALAD = "eiersalat"
-    SALAMI = "salami"
-    HAM = "schinken"
-    CHEESE = "kaese"
-    BUTTER = "butter"
+# ToppingType Enum entfernt - verwende flexible String-Namen aus der Datenbank
 
 # Models
 class Department(BaseModel):
