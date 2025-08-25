@@ -395,7 +395,18 @@ async def initialize_default_data():
 
 @api_router.post("/migrate-to-department-specific")
 async def migrate_to_department_specific():
-    """Migrate existing global menu items to department-specific items"""
+    """Migrate existing global menu items to department-specific items
+    
+    ⚠️ SICHERHEITSWARNUNG: Dieser Endpoint ist für Production-Umgebungen DEAKTIVIERT!
+    Er kann bestehende Menü-Daten überschreiben und sollte nur einmalig verwendet werden.
+    """
+    
+    # SICHERHEITSCHECK: Verhindere Ausführung in Production
+    if os.getenv('ENVIRONMENT') == 'production':
+        raise HTTPException(
+            status_code=403, 
+            detail="Migration in Production-Umgebung nicht erlaubt! Gefahr von Datenverlust."
+        )
     
     # Get all departments
     departments = await db.departments.find().to_list(100)
