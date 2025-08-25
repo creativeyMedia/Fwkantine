@@ -6556,6 +6556,7 @@ class CanteenTester:
         
         # Core functionality tests with focus on data persistence
         tests = [
+            ("🔍 HANS MUELLER CALCULATION INVESTIGATION", self.test_hans_mueller_calculation_investigation),
             ("🔍 CRITICAL BUGS INVESTIGATION", self.test_critical_bugs_investigation),
             ("🎯 CRITICAL: Data Persistence Fix Verification", self.test_data_persistence_critical),
             ("🚨 CRITICAL: Lunch Pricing Calculation Bug", self.test_critical_lunch_pricing_calculation),
