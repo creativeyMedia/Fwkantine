@@ -3232,9 +3232,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                   <div className="bg-white border border-green-300 rounded-lg p-4">
                     <div className="space-y-3">
                       {/* Bread Rolls */}
-                      <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700">Brötchen gesamt:</span>
-                        <div className="text-right">
+                      <div className="pb-2 border-b border-gray-200">
+                        <div className="font-semibold text-gray-700 mb-2">Brötchen gesamt:</div>
+                        <div className="ml-4">
                           {Object.entries(dailySummary.shopping_list).map(([rollType, data]) => {
                             const rollLabel = rollTypeLabels[rollType] || rollType;
                             const wholeRolls = data.whole_rolls || 0;
@@ -3249,9 +3249,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       
                       {/* Boiled Eggs */}
                       {dailySummary.total_boiled_eggs > 0 && (
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                          <span className="font-semibold text-gray-700">Gekochte Eier:</span>
-                          <span className="text-lg font-bold text-yellow-700">{dailySummary.total_boiled_eggs} Stück</span>
+                        <div className="pb-2 border-b border-gray-200">
+                          <div className="font-semibold text-gray-700 mb-2">Gekochte Eier:</div>
+                          <div className="ml-4 text-lg font-bold text-yellow-700">{dailySummary.total_boiled_eggs} Stück</div>
                         </div>
                       )}
                       
