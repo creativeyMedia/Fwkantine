@@ -1137,20 +1137,20 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                 seeded_halves = roll_halves
                         
                         # Update employee totals
-                        employee_orders[employee_name]["white_halves"] += white_halves
-                        employee_orders[employee_name]["seeded_halves"] += seeded_halves
+                        employee_orders[employee_key]["white_halves"] += white_halves
+                        employee_orders[employee_key]["seeded_halves"] += seeded_halves
                         
                         # Add boiled eggs if present
                         boiled_eggs = item.get("boiled_eggs", 0)
-                        employee_orders[employee_name]["boiled_eggs"] += boiled_eggs
+                        employee_orders[employee_key]["boiled_eggs"] += boiled_eggs
                         
                         # Add lunch if present
                         if item.get("has_lunch", False):
-                            employee_orders[employee_name]["has_lunch"] = True
+                            employee_orders[employee_key]["has_lunch"] = True
                         
                         # Add coffee if present
                         if item.get("has_coffee", False):
-                            employee_orders[employee_name]["has_coffee"] = True
+                            employee_orders[employee_key]["has_coffee"] = True
                         
                         # Update overall summary
                         if "weiss" not in breakfast_summary:
