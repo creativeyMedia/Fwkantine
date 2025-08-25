@@ -15,8 +15,8 @@ from datetime import datetime
 # Configuration
 BASE_URL = "https://canteen-keeper.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_PASSWORD = "costa"
-ADMIN_PASSWORD = "lenny"
+DEPARTMENT_PASSWORD = "password2"
+ADMIN_PASSWORD = "admin2"
 
 class CanteenTester:
     def __init__(self):
