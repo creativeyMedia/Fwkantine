@@ -566,11 +566,11 @@ const DepartmentDashboard = () => {
               </div>
               <div className="flex gap-2 sm:gap-3">
                 <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
-                     onClick={(event) => handleEmployeeProfileClick(employee, event)}>
+                     onClick={(event) => handleEmployeeClick(employee, event)}>
                   Verlauf
                 </div>
                 <button
-                  onClick={() => handleEmployeeClick(employee)}
+                  onClick={(event) => handleEmployeeProfileClick(employee, event)}
                   className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Bestellen
