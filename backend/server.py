@@ -165,7 +165,7 @@ class BreakfastOrder(BaseModel):
     total_halves: int  # Total number of roll halves
     white_halves: int  # Number of white roll halves
     seeded_halves: int  # Number of seeded roll halves
-    toppings: List[ToppingType]  # Exactly matches total_halves count
+    toppings: List[str]  # Exactly matches total_halves count - flexible string names
     has_lunch: bool = False
     boiled_eggs: int = 0  # Number of boiled breakfast eggs
     has_coffee: bool = False  # Whether daily coffee is ordered
