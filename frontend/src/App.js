@@ -225,7 +225,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                     <p>☕ Kaffee (Tagespauschal)</p>
                                   )}
                                   {item.has_lunch && (
-                                    <p>🍽️ Mittagessen (Tagespreis)</p>
+                                    <p>🍽️ Mittagessen</p>
                                   )}
                                 </div>
                               ))}
