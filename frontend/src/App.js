@@ -446,11 +446,7 @@ const DepartmentDashboard = () => {
   };
 
   const handleEmployeeClick = (employee, event) => {
-    // Check if the click was on the "Verlauf" text
-    if (event && event.target && event.target.closest('.verlauf-text')) {
-      return; // Don't open profile if clicking on Verlauf text (since we're now going to profile by default)
-    }
-    // Now clicking on employee card goes directly to profile/history
+    // This function opens employee profile/history
     setSelectedEmployeeForProfile(employee);
     setShowEmployeeProfile(true);
   };
