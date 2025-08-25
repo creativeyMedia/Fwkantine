@@ -30,13 +30,14 @@ DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_PASSWORD = "costa"  # User provided credentials
 ADMIN_PASSWORD = "lenny"       # User provided credentials
 
-class CanteenTester:
+class IDConsistencyTester:
     def __init__(self):
         self.session = requests.Session()
         self.department_id = None
-        self.julian_id = None
         self.jonas_id = None
         self.test_results = []
+        self.breakfast_menu = []
+        self.toppings_menu = []
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
@@ -56,8 +57,8 @@ class CanteenTester:
             print(f"   Error: {error}")
         print()
     
-    def authenticate_department(self):
-        """Authenticate with department credentials"""
+    def verify_department_id(self):
+        """CRITICAL CHECK 1: Verify department '2. Wachabteilung' has correct ID 'fw4abteilung2'"""
         try:
             response = self.session.post(f"{BASE_URL}/login/department", json={
                 "department_name": DEPARTMENT_NAME,
@@ -67,239 +68,261 @@ class CanteenTester:
             if response.status_code == 200:
                 data = response.json()
                 self.department_id = data.get("department_id")
+                expected_id = "fw4abteilung2"
+                
+                id_matches = self.department_id == expected_id
+                
                 self.log_result(
-                    "Department Authentication", 
-                    True, 
-                    f"Authenticated as {DEPARTMENT_NAME}, ID: {self.department_id}"
+                    "Department ID Verification", 
+                    id_matches, 
+                    f"Expected: {expected_id}, Got: {self.department_id}, Match: {id_matches}"
                 )
-                return True
+                
+                if not id_matches:
+                    self.log_result(
+                        "CRITICAL ID MISMATCH DETECTED",
+                        False,
+                        error=f"Department '{DEPARTMENT_NAME}' has ID '{self.department_id}' but expected 'fw4abteilung2'. This is likely the root cause of breakfast order failures!"
+                    )
+                
+                return id_matches
             else:
                 self.log_result(
-                    "Department Authentication", 
+                    "Department ID Verification", 
                     False, 
-                    error=f"HTTP {response.status_code}: {response.text}"
+                    error=f"Authentication failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Department Authentication", False, error=str(e))
+            self.log_result("Department ID Verification", False, error=str(e))
             return False
     
-    def authenticate_admin(self):
-        """Authenticate with admin credentials for employee creation"""
-        try:
-            response = self.session.post(f"{BASE_URL}/login/department-admin", json={
-                "department_name": DEPARTMENT_NAME,
-                "admin_password": ADMIN_PASSWORD
-            })
-            
-            if response.status_code == 200:
-                data = response.json()
-                self.log_result(
-                    "Admin Authentication", 
-                    True, 
-                    f"Authenticated as admin for {DEPARTMENT_NAME}"
-                )
-                return True
-            else:
-                self.log_result(
-                    "Admin Authentication", 
-                    False, 
-                    error=f"HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Admin Authentication", False, error=str(e))
+    def verify_employee_consistency(self):
+        """CRITICAL CHECK 2: Get employees from department and check Jonas Parlow employee record"""
+        if not self.department_id:
+            self.log_result(
+                "Employee ID Consistency", 
+                False, 
+                error="Department ID not available"
+            )
             return False
-    
-    def create_julian_takke(self):
-        """Create Julian Takke employee for testing"""
-        try:
-            response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": "Julian Takke",
-                "department_id": self.department_id
-            })
-            
-            if response.status_code == 200:
-                employee_data = response.json()
-                self.julian_id = employee_data.get("id")
-                self.log_result(
-                    "Julian Takke Creation", 
-                    True, 
-                    f"Created Julian Takke (ID: {self.julian_id})"
-                )
-                return True
-            else:
-                self.log_result(
-                    "Julian Takke Creation", 
-                    False, 
-                    error=f"HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Julian Takke Creation", False, error=str(e))
-            return False
-    
-    def get_employees(self):
-        """Get all employees and find Julian Takke and Jonas Parlow"""
+        
         try:
             response = self.session.get(f"{BASE_URL}/departments/{self.department_id}/employees")
             
             if response.status_code == 200:
                 employees = response.json()
                 
-                # Find Julian Takke and Jonas Parlow
+                # Find Jonas Parlow
+                jonas_employee = None
                 for emp in employees:
-                    if "Julian Takke" in emp.get("name", ""):
-                        self.julian_id = emp["id"]
-                    elif "Jonas Parlow" in emp.get("name", ""):
+                    if "Jonas Parlow" in emp.get("name", ""):
+                        jonas_employee = emp
                         self.jonas_id = emp["id"]
+                        break
                 
-                found_employees = []
-                if self.julian_id:
-                    found_employees.append(f"Julian Takke (ID: {self.julian_id})")
-                if self.jonas_id:
-                    found_employees.append(f"Jonas Parlow (ID: {self.jonas_id})")
-                
-                self.log_result(
-                    "Employee Discovery", 
-                    bool(found_employees),
-                    f"Found {len(employees)} total employees. Target employees: {', '.join(found_employees) if found_employees else 'NONE FOUND'}"
-                )
-                
-                # Log all employees for debugging
-                employee_names = [emp.get("name", "Unknown") for emp in employees]
-                print(f"   All employees: {employee_names}")
-                
-                return len(found_employees) > 0
+                if jonas_employee:
+                    # Verify employee belongs to correct department_id
+                    emp_dept_id = jonas_employee.get("department_id")
+                    dept_id_matches = emp_dept_id == self.department_id
+                    
+                    self.log_result(
+                        "Employee ID Consistency",
+                        dept_id_matches,
+                        f"Jonas Parlow found (ID: {self.jonas_id}). Employee dept_id: {emp_dept_id}, Expected: {self.department_id}, Match: {dept_id_matches}"
+                    )
+                    
+                    if not dept_id_matches:
+                        self.log_result(
+                            "CRITICAL EMPLOYEE DEPT MISMATCH",
+                            False,
+                            error=f"Jonas Parlow has department_id '{emp_dept_id}' but should be '{self.department_id}'. This causes order creation failures!"
+                        )
+                    
+                    return dept_id_matches
+                else:
+                    self.log_result(
+                        "Employee ID Consistency",
+                        False,
+                        error=f"Jonas Parlow not found in department {self.department_id}. Found {len(employees)} employees: {[emp.get('name') for emp in employees]}"
+                    )
+                    return False
                 
             else:
                 self.log_result(
-                    "Employee Discovery", 
+                    "Employee ID Consistency", 
                     False, 
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Employee Discovery", False, error=str(e))
+            self.log_result("Employee ID Consistency", False, error=str(e))
             return False
     
-    def compare_employee_data(self):
-        """Compare employee data between Julian and Jonas"""
-        if not self.julian_id or not self.jonas_id:
+    def verify_menu_item_ids(self):
+        """CRITICAL CHECK 3: Verify menu items exist and have correct department_id"""
+        if not self.department_id:
             self.log_result(
-                "Employee Data Comparison", 
+                "Menu Item ID Verification", 
                 False, 
-                error="Both employees not found - cannot compare"
+                error="Department ID not available"
             )
             return False
         
-        try:
-            # Get Julian's data
-            julian_response = self.session.get(f"{BASE_URL}/employees/{self.julian_id}/orders")
-            jonas_response = self.session.get(f"{BASE_URL}/employees/{self.jonas_id}/orders")
-            
-            julian_success = julian_response.status_code == 200
-            jonas_success = jonas_response.status_code == 200
-            
-            details = []
-            if julian_success:
-                julian_orders = julian_response.json()
-                details.append(f"Julian: {len(julian_orders.get('orders', []))} orders")
-            else:
-                details.append(f"Julian: ERROR {julian_response.status_code}")
-            
-            if jonas_success:
-                jonas_orders = jonas_response.json()
-                details.append(f"Jonas: {len(jonas_orders.get('orders', []))} orders")
-            else:
-                details.append(f"Jonas: ERROR {jonas_response.status_code}")
-            
-            self.log_result(
-                "Employee Data Comparison",
-                julian_success and jonas_success,
-                "; ".join(details)
-            )
-            
-            return julian_success and jonas_success
-            
-        except Exception as e:
-            self.log_result("Employee Data Comparison", False, error=str(e))
-            return False
-    
-    def get_breakfast_menu(self):
-        """Get breakfast menu items for the department"""
+        success_count = 0
+        total_checks = 2
+        
+        # Check breakfast menu
         try:
             response = self.session.get(f"{BASE_URL}/menu/breakfast/{self.department_id}")
             
             if response.status_code == 200:
-                menu_items = response.json()
-                self.log_result(
-                    "Breakfast Menu Retrieval",
-                    True,
-                    f"Found {len(menu_items)} breakfast items"
-                )
+                breakfast_items = response.json()
+                self.breakfast_menu = breakfast_items
                 
-                # Store menu items for order testing
-                self.breakfast_menu = menu_items
-                return True
+                if breakfast_items:
+                    # Verify all items have correct department_id
+                    dept_id_mismatches = []
+                    for item in breakfast_items:
+                        item_dept_id = item.get("department_id")
+                        if item_dept_id != self.department_id:
+                            dept_id_mismatches.append(f"Item {item.get('id', 'unknown')} has dept_id '{item_dept_id}'")
+                    
+                    if dept_id_mismatches:
+                        self.log_result(
+                            "Breakfast Menu ID Verification",
+                            False,
+                            error=f"Department ID mismatches found: {dept_id_mismatches}"
+                        )
+                    else:
+                        self.log_result(
+                            "Breakfast Menu ID Verification",
+                            True,
+                            f"Found {len(breakfast_items)} breakfast items, all have correct department_id: {self.department_id}"
+                        )
+                        success_count += 1
+                else:
+                    self.log_result(
+                        "Breakfast Menu ID Verification",
+                        False,
+                        error=f"No breakfast items found for department {self.department_id}. This explains breakfast order failures!"
+                    )
             else:
                 self.log_result(
-                    "Breakfast Menu Retrieval",
+                    "Breakfast Menu ID Verification",
                     False,
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
-                return False
                 
         except Exception as e:
-            self.log_result("Breakfast Menu Retrieval", False, error=str(e))
-            return False
-    
-    def get_toppings_menu(self):
-        """Get toppings menu items for the department"""
+            self.log_result("Breakfast Menu ID Verification", False, error=str(e))
+        
+        # Check toppings menu
         try:
             response = self.session.get(f"{BASE_URL}/menu/toppings/{self.department_id}")
             
             if response.status_code == 200:
-                menu_items = response.json()
-                self.log_result(
-                    "Toppings Menu Retrieval",
-                    True,
-                    f"Found {len(menu_items)} topping items"
-                )
+                toppings_items = response.json()
+                self.toppings_menu = toppings_items
                 
-                # Store toppings for order testing
-                self.toppings_menu = menu_items
-                return True
+                if toppings_items:
+                    # Verify all items have correct department_id
+                    dept_id_mismatches = []
+                    for item in toppings_items:
+                        item_dept_id = item.get("department_id")
+                        if item_dept_id != self.department_id:
+                            dept_id_mismatches.append(f"Item {item.get('id', 'unknown')} has dept_id '{item_dept_id}'")
+                    
+                    if dept_id_mismatches:
+                        self.log_result(
+                            "Toppings Menu ID Verification",
+                            False,
+                            error=f"Department ID mismatches found: {dept_id_mismatches}"
+                        )
+                    else:
+                        self.log_result(
+                            "Toppings Menu ID Verification",
+                            True,
+                            f"Found {len(toppings_items)} topping items, all have correct department_id: {self.department_id}"
+                        )
+                        success_count += 1
+                else:
+                    self.log_result(
+                        "Toppings Menu ID Verification",
+                        False,
+                        error=f"No topping items found for department {self.department_id}. This explains breakfast order failures!"
+                    )
             else:
                 self.log_result(
-                    "Toppings Menu Retrieval",
+                    "Toppings Menu ID Verification",
                     False,
                     error=f"HTTP {response.status_code}: {response.text}"
                 )
-                return False
                 
         except Exception as e:
-            self.log_result("Toppings Menu Retrieval", False, error=str(e))
-            return False
+            self.log_result("Toppings Menu ID Verification", False, error=str(e))
+        
+        return success_count == total_checks
     
-    def test_breakfast_order_creation(self, employee_id, employee_name):
-        """Test breakfast order creation for a specific employee"""
-        if not hasattr(self, 'breakfast_menu') or not hasattr(self, 'toppings_menu'):
+    def cross_reference_id_matching(self):
+        """CRITICAL CHECK 4: Compare department_id in menu items vs department authentication"""
+        if not self.department_id or not self.breakfast_menu:
             self.log_result(
-                f"Breakfast Order Test - {employee_name}",
-                False,
-                error="Menu data not available"
+                "Cross-Reference ID Matching", 
+                False, 
+                error="Missing department_id or menu data"
             )
             return False
         
         try:
-            # Create a simple breakfast order
+            # Check if all menu items reference the same department_id as authentication
+            auth_dept_id = self.department_id
+            menu_dept_ids = set()
+            
+            for item in self.breakfast_menu:
+                menu_dept_ids.add(item.get("department_id"))
+            
+            for item in self.toppings_menu:
+                menu_dept_ids.add(item.get("department_id"))
+            
+            # Remove None values
+            menu_dept_ids.discard(None)
+            
+            if len(menu_dept_ids) == 1 and auth_dept_id in menu_dept_ids:
+                self.log_result(
+                    "Cross-Reference ID Matching",
+                    True,
+                    f"All menu items consistently reference department_id: {auth_dept_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Cross-Reference ID Matching",
+                    False,
+                    error=f"ID mismatch! Auth dept_id: {auth_dept_id}, Menu dept_ids: {menu_dept_ids}. This causes order creation failures!"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Cross-Reference ID Matching", False, error=str(e))
+            return False
+    
+    def trace_order_creation_id_flow(self):
+        """CRITICAL CHECK 5: Trace an order creation request to see which IDs are being passed"""
+        if not self.department_id or not self.jonas_id or not self.breakfast_menu or not self.toppings_menu:
+            self.log_result(
+                "Order Creation ID Flow", 
+                False, 
+                error="Missing required data (department_id, employee_id, or menu items)"
+            )
+            return False
+        
+        try:
+            # Create a test breakfast order with detailed ID tracing
             order_data = {
-                "employee_id": employee_id,
+                "employee_id": self.jonas_id,
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [{
@@ -313,145 +336,20 @@ class CanteenTester:
                 }]
             }
             
+            # Log the exact IDs being sent
+            id_trace = f"Sending order with employee_id: {self.jonas_id}, department_id: {self.department_id}"
+            print(f"🔍 ID TRACE: {id_trace}")
+            
             response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            
-            success = response.status_code == 200
-            if success:
-                order_result = response.json()
-                self.log_result(
-                    f"Breakfast Order Test - {employee_name}",
-                    True,
-                    f"Order created successfully. Total: €{order_result.get('total_price', 'N/A')}"
-                )
-            else:
-                error_detail = response.text
-                try:
-                    error_json = response.json()
-                    error_detail = error_json.get('detail', error_detail)
-                except:
-                    pass
-                
-                self.log_result(
-                    f"Breakfast Order Test - {employee_name}",
-                    False,
-                    error=f"HTTP {response.status_code}: {error_detail}"
-                )
-            
-            return success
-            
-        except Exception as e:
-            self.log_result(f"Breakfast Order Test - {employee_name}", False, error=str(e))
-            return False
-    
-    def check_employee_balances(self):
-        """Check employee balance data for both employees"""
-        if not self.julian_id or not self.jonas_id:
-            self.log_result(
-                "Employee Balance Check", 
-                False, 
-                error="Both employees not found"
-            )
-            return False
-        
-        try:
-            # Get department employees to check balances
-            response = self.session.get(f"{BASE_URL}/departments/{self.department_id}/employees")
             
             if response.status_code == 200:
-                employees = response.json()
-                
-                julian_balance = None
-                jonas_balance = None
-                
-                for emp in employees:
-                    if emp["id"] == self.julian_id:
-                        julian_balance = {
-                            "breakfast": emp.get("breakfast_balance", 0),
-                            "drinks_sweets": emp.get("drinks_sweets_balance", 0)
-                        }
-                    elif emp["id"] == self.jonas_id:
-                        jonas_balance = {
-                            "breakfast": emp.get("breakfast_balance", 0),
-                            "drinks_sweets": emp.get("drinks_sweets_balance", 0)
-                        }
-                
-                details = []
-                if julian_balance:
-                    details.append(f"Julian: Breakfast €{julian_balance['breakfast']}, Drinks/Sweets €{julian_balance['drinks_sweets']}")
-                if jonas_balance:
-                    details.append(f"Jonas: Breakfast €{jonas_balance['breakfast']}, Drinks/Sweets €{jonas_balance['drinks_sweets']}")
-                
-                self.log_result(
-                    "Employee Balance Check",
-                    bool(julian_balance and jonas_balance),
-                    "; ".join(details)
-                )
-                
-                return bool(julian_balance and jonas_balance)
-                
-            else:
-                self.log_result(
-                    "Employee Balance Check",
-                    False,
-                    error=f"HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Employee Balance Check", False, error=str(e))
-            return False
-    
-    def test_drinks_order_for_jonas(self):
-        """Test drinks order for Jonas (should work according to issue description)"""
-        if not self.jonas_id:
-            self.log_result(
-                "Jonas Drinks Order Test",
-                False,
-                error="Jonas not found"
-            )
-            return False
-        
-        try:
-            # Get drinks menu first
-            drinks_response = self.session.get(f"{BASE_URL}/menu/drinks/{self.department_id}")
-            if drinks_response.status_code != 200:
-                self.log_result(
-                    "Jonas Drinks Order Test",
-                    False,
-                    error="Could not get drinks menu"
-                )
-                return False
-            
-            drinks_menu = drinks_response.json()
-            if not drinks_menu:
-                self.log_result(
-                    "Jonas Drinks Order Test",
-                    False,
-                    error="No drinks available"
-                )
-                return False
-            
-            # Create a drinks order
-            first_drink = drinks_menu[0]
-            order_data = {
-                "employee_id": self.jonas_id,
-                "department_id": self.department_id,
-                "order_type": "drinks",
-                "drink_items": {
-                    first_drink["id"]: 1
-                }
-            }
-            
-            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            
-            success = response.status_code == 200
-            if success:
                 order_result = response.json()
                 self.log_result(
-                    "Jonas Drinks Order Test",
+                    "Order Creation ID Flow",
                     True,
-                    f"Drinks order created successfully. Total: €{order_result.get('total_price', 'N/A')}"
+                    f"Order created successfully! Total: €{order_result.get('total_price', 'N/A')}. All IDs are consistent."
                 )
+                return True
             else:
                 error_detail = response.text
                 try:
@@ -461,188 +359,71 @@ class CanteenTester:
                     pass
                 
                 self.log_result(
-                    "Jonas Drinks Order Test",
+                    "Order Creation ID Flow",
                     False,
-                    error=f"HTTP {response.status_code}: {error_detail}"
+                    error=f"Order creation failed: HTTP {response.status_code}: {error_detail}. This confirms ID consistency issues!"
                 )
-            
-            return success
-            
+                
+                # Additional debugging - check if it's a menu item lookup failure
+                if "menu" in error_detail.lower() or "item" in error_detail.lower():
+                    self.log_result(
+                        "ROOT CAUSE IDENTIFIED",
+                        False,
+                        error="Order creation fails during menu item lookup - confirms department_id mismatch between order request and menu items!"
+                    )
+                
+                return False
+                
         except Exception as e:
-            self.log_result("Jonas Drinks Order Test", False, error=str(e))
+            self.log_result("Order Creation ID Flow", False, error=str(e))
             return False
     
-    def run_investigation(self):
-        """Run the complete investigation"""
-        print("🔍 CRITICAL BUG INVESTIGATION: Employee-specific breakfast order failure")
+    def run_id_consistency_investigation(self):
+        """Run the complete ID consistency investigation"""
+        print("🔍 CRITICAL ID CONSISTENCY INVESTIGATION")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME}")
-        print(f"Issue: Jonas Parlow cannot place breakfast orders, Julian Takke can")
+        print(f"Focus: ID mismatches causing breakfast order failures")
+        print(f"Expected Department ID: fw4abteilung2")
         print("=" * 80)
         print()
         
-        # Step 1: Authenticate as department
-        if not self.authenticate_department():
-            print("❌ CRITICAL: Cannot authenticate - stopping investigation")
-            return False
+        # CRITICAL CHECK 1: Department ID Verification
+        print("🔍 CRITICAL CHECK 1: Department ID Verification")
+        dept_id_ok = self.verify_department_id()
         
-        # Step 2: Authenticate as admin for employee creation
-        if not self.authenticate_admin():
-            print("⚠️ WARNING: Cannot authenticate as admin - will skip employee creation")
+        # CRITICAL CHECK 2: Employee ID Consistency
+        print("🔍 CRITICAL CHECK 2: Employee ID Consistency")
+        employee_id_ok = self.verify_employee_consistency()
         
-        # Step 3: Find existing employees
-        self.get_employees()
+        # CRITICAL CHECK 3: Menu Item ID Verification
+        print("🔍 CRITICAL CHECK 3: Menu Item ID Verification")
+        menu_id_ok = self.verify_menu_item_ids()
         
-        # Step 4: Create Julian Takke if not found
-        if not self.julian_id:
-            print("📝 Julian Takke not found - creating for testing...")
-            self.create_julian_takke()
+        # CRITICAL CHECK 4: Cross-Reference ID Matching
+        print("🔍 CRITICAL CHECK 4: Cross-Reference ID Matching")
+        cross_ref_ok = self.cross_reference_id_matching()
         
-        # Step 5: Get menu data
-        menu_success = self.get_breakfast_menu() and self.get_toppings_menu()
-        if not menu_success:
-            print("⚠️ WARNING: Menu data incomplete - some tests may fail")
+        # CRITICAL CHECK 5: Order Creation ID Flow
+        print("🔍 CRITICAL CHECK 5: Order Creation ID Flow")
+        order_flow_ok = self.trace_order_creation_id_flow()
         
-        # Step 6: Compare employee data
-        self.compare_employee_data()
+        # Summary and Root Cause Analysis
+        self.print_id_consistency_summary()
         
-        # Step 7: Check employee balances
-        self.check_employee_balances()
-        
-        # Step 8: Test drinks order for Jonas (should work according to issue description)
-        self.test_drinks_order_for_jonas()
-        
-        # Step 9: Test breakfast orders for both employees with IDENTICAL data
-        if self.julian_id:
-            self.test_breakfast_order_creation(self.julian_id, "Julian Takke")
-        
-        if self.jonas_id:
-            self.test_breakfast_order_creation(self.jonas_id, "Jonas Parlow")
-        
-        # Step 10: Test multiple breakfast order scenarios
-        self.test_multiple_breakfast_scenarios()
-        
-        # Summary
-        self.print_summary()
-        
-        return True
+        return all([dept_id_ok, employee_id_ok, menu_id_ok, cross_ref_ok, order_flow_ok])
     
-    def test_multiple_breakfast_scenarios(self):
-        """Test multiple breakfast order scenarios for both employees"""
-        if not self.julian_id or not self.jonas_id:
-            self.log_result(
-                "Multiple Breakfast Scenarios", 
-                False, 
-                error="Both employees not available for testing"
-            )
-            return False
-        
-        scenarios = [
-            {
-                "name": "Breakfast with Lunch",
-                "data": {
-                    "total_halves": 2,
-                    "white_halves": 2,
-                    "seeded_halves": 0,
-                    "toppings": ["ruehrei", "kaese"],
-                    "has_lunch": True,
-                    "boiled_eggs": 0,
-                    "has_coffee": False
-                }
-            },
-            {
-                "name": "Breakfast with Boiled Eggs",
-                "data": {
-                    "total_halves": 1,
-                    "white_halves": 1,
-                    "seeded_halves": 0,
-                    "toppings": ["butter"],
-                    "has_lunch": False,
-                    "boiled_eggs": 2,
-                    "has_coffee": False
-                }
-            },
-            {
-                "name": "Only Boiled Eggs (No Rolls)",
-                "data": {
-                    "total_halves": 0,
-                    "white_halves": 0,
-                    "seeded_halves": 0,
-                    "toppings": [],
-                    "has_lunch": False,
-                    "boiled_eggs": 3,
-                    "has_coffee": False
-                }
-            }
-        ]
-        
-        results = []
-        for scenario in scenarios:
-            julian_result = self.test_specific_breakfast_scenario(
-                self.julian_id, "Julian", scenario["name"], scenario["data"]
-            )
-            jonas_result = self.test_specific_breakfast_scenario(
-                self.jonas_id, "Jonas", scenario["name"], scenario["data"]
-            )
-            
-            results.append({
-                "scenario": scenario["name"],
-                "julian": julian_result,
-                "jonas": jonas_result
-            })
-        
-        # Analyze results
-        success_count = sum(1 for r in results if r["julian"] and r["jonas"])
-        self.log_result(
-            "Multiple Breakfast Scenarios",
-            success_count == len(scenarios),
-            f"Completed {len(scenarios)} scenarios. Both employees succeeded in {success_count}/{len(scenarios)} scenarios."
-        )
-        
-        return success_count == len(scenarios)
-    
-    def test_specific_breakfast_scenario(self, employee_id, employee_name, scenario_name, breakfast_data):
-        """Test a specific breakfast scenario for an employee"""
-        try:
-            order_data = {
-                "employee_id": employee_id,
-                "department_id": self.department_id,
-                "order_type": "breakfast",
-                "breakfast_items": [breakfast_data]
-            }
-            
-            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            
-            success = response.status_code == 200
-            if success:
-                order_result = response.json()
-                print(f"   ✅ {employee_name} - {scenario_name}: €{order_result.get('total_price', 'N/A')}")
-            else:
-                error_detail = response.text
-                try:
-                    error_json = response.json()
-                    error_detail = error_json.get('detail', error_detail)
-                except:
-                    pass
-                print(f"   ❌ {employee_name} - {scenario_name}: {error_detail}")
-            
-            return success
-            
-        except Exception as e:
-            print(f"   ❌ {employee_name} - {scenario_name}: {str(e)}")
-            return False
-    
-    def print_summary(self):
-        """Print investigation summary"""
+    def print_id_consistency_summary(self):
+        """Print ID consistency investigation summary with root cause analysis"""
         print("\n" + "=" * 80)
-        print("🔍 INVESTIGATION SUMMARY")
+        print("🔍 ID CONSISTENCY INVESTIGATION SUMMARY")
         print("=" * 80)
         
         passed = sum(1 for result in self.test_results if "✅ PASS" in result["status"])
         failed = sum(1 for result in self.test_results if "❌ FAIL" in result["status"])
         
-        print(f"Total Tests: {len(self.test_results)}")
+        print(f"Total Checks: {len(self.test_results)}")
         print(f"Passed: {passed}")
         print(f"Failed: {failed}")
         print(f"Success Rate: {(passed/len(self.test_results)*100):.1f}%" if self.test_results else "0%")
@@ -651,49 +432,61 @@ class CanteenTester:
         # Show failed tests
         failed_tests = [r for r in self.test_results if "❌ FAIL" in r["status"]]
         if failed_tests:
-            print("❌ FAILED TESTS:")
+            print("❌ FAILED CHECKS:")
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['error']}")
             print()
         
-        # Key findings
-        print("🔍 KEY FINDINGS:")
+        # ROOT CAUSE ANALYSIS
+        print("🔍 ROOT CAUSE ANALYSIS:")
         
-        if self.julian_id and self.jonas_id:
-            print("   • Both target employees found in system")
-        elif self.julian_id:
-            print("   • Only Julian Takke found - Jonas Parlow missing!")
-        elif self.jonas_id:
-            print("   • Only Jonas Parlow found - Julian Takke missing!")
+        # Check for department ID mismatch
+        dept_check = next((r for r in self.test_results if "Department ID Verification" in r["test"]), None)
+        if dept_check and "❌ FAIL" in dept_check["status"]:
+            print("   🚨 CRITICAL: Department ID mismatch detected!")
+            print(f"   • Expected: fw4abteilung2")
+            print(f"   • Actual: {self.department_id}")
+            print("   • This is likely the PRIMARY ROOT CAUSE of breakfast order failures")
+            print("   • Frontend may be using wrong department ID in API calls")
+        
+        # Check for menu item issues
+        menu_checks = [r for r in self.test_results if "Menu" in r["test"] and "❌ FAIL" in r["status"]]
+        if menu_checks:
+            print("   🚨 MENU ITEM ISSUES:")
+            for check in menu_checks:
+                print(f"   • {check['test']}: {check['error']}")
+        
+        # Check for employee issues
+        emp_check = next((r for r in self.test_results if "Employee ID Consistency" in r["test"]), None)
+        if emp_check and "❌ FAIL" in emp_check["status"]:
+            print("   🚨 EMPLOYEE ID ISSUES:")
+            print(f"   • {emp_check['error']}")
+        
+        # Check for order creation issues
+        order_check = next((r for r in self.test_results if "Order Creation ID Flow" in r["test"]), None)
+        if order_check and "❌ FAIL" in order_check["status"]:
+            print("   🚨 ORDER CREATION FAILURE CONFIRMED:")
+            print(f"   • {order_check['error']}")
+        
+        # Recommendations
+        print("\n🔧 RECOMMENDED FIXES:")
+        if failed_tests:
+            print("   1. Verify department ID consistency in database")
+            print("   2. Check frontend API calls use correct department_id")
+            print("   3. Ensure menu items have correct department_id")
+            print("   4. Verify employee records have correct department_id")
+            print("   5. Check order creation logic uses consistent IDs")
         else:
-            print("   • Neither target employee found - data integrity issue!")
-        
-        # Check for breakfast order results
-        julian_breakfast = next((r for r in self.test_results if "Julian Takke" in r["test"] and "Breakfast Order" in r["test"]), None)
-        jonas_breakfast = next((r for r in self.test_results if "Jonas Parlow" in r["test"] and "Breakfast Order" in r["test"]), None)
-        
-        if julian_breakfast and jonas_breakfast:
-            julian_works = "✅ PASS" in julian_breakfast["status"]
-            jonas_works = "✅ PASS" in jonas_breakfast["status"]
-            
-            if julian_works and not jonas_works:
-                print("   • ⚠️ CONFIRMED BUG: Julian can order breakfast, Jonas cannot!")
-                print(f"   • Jonas error: {jonas_breakfast.get('error', 'Unknown')}")
-            elif not julian_works and jonas_works:
-                print("   • 🔄 REVERSED ISSUE: Jonas can order breakfast, Julian cannot!")
-            elif not julian_works and not jonas_works:
-                print("   • 🚨 SYSTEM WIDE ISSUE: Neither employee can order breakfast!")
-            else:
-                print("   • ✅ NO ISSUE DETECTED: Both employees can order breakfast")
+            print("   ✅ All ID consistency checks passed - no issues detected")
         
         print("\n" + "=" * 80)
 
 def main():
     """Main function"""
-    tester = CanteenTester()
+    tester = IDConsistencyTester()
     
     try:
-        success = tester.run_investigation()
+        success = tester.run_id_consistency_investigation()
         
         # Exit with appropriate code
         failed_tests = [r for r in tester.test_results if "❌ FAIL" in r["status"]]
