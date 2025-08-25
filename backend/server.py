@@ -1616,7 +1616,7 @@ async def get_employee_profile(employee_id: str):
                     lunch_price = item.get("lunch_price", 0.0)  # Get actual lunch price from order
                     enriched_order["readable_items"].append({
                         "description": "1x Mittagessen",
-                        "unit_price": f"€{lunch_price:.2f} (Tagespreis)",
+                        "unit_price": "",  # Remove price display as requested by user
                         "total_price": f"€{lunch_price:.2f}"
                     })
         
