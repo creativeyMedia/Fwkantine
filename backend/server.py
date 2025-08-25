@@ -242,37 +242,6 @@ def get_department_data():
         ))
     return departments_data
 
-@api_router.post("/cleanup-departments-final")
-async def cleanup_departments_final():
-    """Final cleanup - keep only 4 Wachabteilung departments, remove all others"""
-    
-    # Delete ALL existing departments
-    await db.departments.delete_many({})
-    
-    # Create exactly 4 clean Wachabteilung departments
-    departments_data = get_department_data()
-    
-    # Insert new departments
-    for dept in departments_data:
-        await db.departments.insert_one(dept.dict())
-    
-    return {"message": "Final cleanup complete - only 4 Wachabteilung cards", "count": 4}
-
-@api_router.post("/cleanup-departments")
-async def cleanup_departments():
-    """Clean up duplicate and old departments, keep only the 4 new ones"""
-    
-    # Delete all existing departments
-    await db.departments.delete_many({})
-    
-    # Create exactly 4 new departments
-    departments_data = get_department_data()
-    
-    # Create new departments
-    for dept in departments_data:
-        await db.departments.insert_one(dept.dict())
-    
-    return {"message": "Departments cleaned up successfully", "count": 4}
 
 @api_router.post("/init-data")
 async def initialize_default_data():
