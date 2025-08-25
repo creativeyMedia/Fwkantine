@@ -1186,8 +1186,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         toppings: toppings,
         has_lunch: hasLunch,
         boiled_eggs: boiledEggs,
-        has_coffee: hasCoffee,
-        item_cost: totalCost
+        has_coffee: hasCoffee
       };
       onDirectSubmit(breakfastData);
     } else if (onDirectSubmit && totalHalves === 0 && !hasExtras) {
