@@ -1163,9 +1163,9 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         
                         # Count toppings
                         for topping in item["toppings"]:
-                            if topping not in employee_orders[employee_name]["toppings"]:
-                                employee_orders[employee_name]["toppings"][topping] = 0
-                            employee_orders[employee_name]["toppings"][topping] += 1
+                            if topping not in employee_orders[employee_key]["toppings"]:
+                                employee_orders[employee_key]["toppings"][topping] = 0
+                            employee_orders[employee_key]["toppings"][topping] += 1
             
             # Calculate shopping list
             shopping_list = {}
