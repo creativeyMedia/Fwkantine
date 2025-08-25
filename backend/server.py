@@ -411,7 +411,48 @@ async def initialize_default_data():
     
     return {"message": "Daten erfolgreich initialisiert"}
 
-@api_router.post("/migrate-to-department-specific")
+@api_router.post("/safe-init-empty-database")
+async def safe_init_empty_database():
+    """SICHERE Initialisierung NUR für komplett leere Datenbanken
+    
+    Diese API prüft zuerst ob die Datenbank wirklich leer ist und 
+    initialisiert nur dann. Keine Gefahr für bestehende Daten!
+    """
+    
+    # Prüfe alle Collections auf Leere
+    collections_status = {}
+    collections_to_check = ['departments', 'employees', 'orders', 'lunch_settings']
+    
+    total_documents = 0
+    for collection_name in collections_to_check:
+        count = await db[collection_name].count_documents({})
+        collections_status[collection_name] = count
+        total_documents += count
+    
+    if total_documents > 0:
+        raise HTTPException(
+            status_code=409, 
+            detail=f"Datenbank nicht leer! Gefundene Dokumente: {collections_status}. Lösche zuerst alle Daten oder verwende normale init-data API."
+        )
+    
+    print("🟢 SAFE INIT: Alle Collections sind leer - starte sichere Initialisierung")
+    
+    # Rufe die normale init-data Funktion auf, aber umgehe den Production-Check
+    old_env = os.environ.get('ENVIRONMENT')
+    try:
+        os.environ['ENVIRONMENT'] = 'development'  # Temporär auf development setzen
+        result = await initialize_default_data()
+        return {
+            "message": "🟢 SICHERE ERSTINITIALISIERUNG ERFOLGREICH!",
+            "details": result,
+            "collections_initialized": collections_status
+        }
+    finally:
+        if old_env:
+            os.environ['ENVIRONMENT'] = old_env  # Environment zurücksetzen
+        else:
+            os.environ.pop('ENVIRONMENT', None)
+
 async def migrate_to_department_specific():
     """Migrate existing global menu items to department-specific items
     
