@@ -481,16 +481,6 @@ const DepartmentDashboard = () => {
     }
   };
 
-  const handleMasterLogin = async (password) => {
-    try {
-      const response = await axios.post(`${API}/login/master?department_name=${currentDepartment.department_name}&master_password=${password}`);
-      loginDepartmentAdmin(response.data);
-      setShowMasterLogin(false);
-    } catch (error) {
-      alert('Ungültiges Master-Passwort');
-    }
-  };
-
   const handleCreateEmployee = async (name) => {
     try {
       await axios.post(`${API}/employees`, {
