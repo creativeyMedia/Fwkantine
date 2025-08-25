@@ -553,7 +553,7 @@ const DepartmentDashboard = () => {
                 )}
                 {employee.breakfast_balance === 0 && employee.drinks_sweets_balance === 0 && (
                   <p className="text-center text-gray-500 italic">
-                    Keine offenen Bestellungen
+                    Keine offenen Zahlungen
                   </p>
                 )}
               </div>
