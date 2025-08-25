@@ -470,41 +470,156 @@ class CanteenTester:
         print("=" * 80)
         print()
         
-        # Step 1: Authenticate
+        # Step 1: Authenticate as department
         if not self.authenticate_department():
             print("❌ CRITICAL: Cannot authenticate - stopping investigation")
             return False
         
-        # Step 2: Find employees
-        if not self.get_employees():
-            print("❌ CRITICAL: Cannot find target employees - stopping investigation")
-            return False
+        # Step 2: Authenticate as admin for employee creation
+        if not self.authenticate_admin():
+            print("⚠️ WARNING: Cannot authenticate as admin - will skip employee creation")
         
-        # Step 3: Get menu data
+        # Step 3: Find existing employees
+        self.get_employees()
+        
+        # Step 4: Create Julian Takke if not found
+        if not self.julian_id:
+            print("📝 Julian Takke not found - creating for testing...")
+            self.create_julian_takke()
+        
+        # Step 5: Get menu data
         menu_success = self.get_breakfast_menu() and self.get_toppings_menu()
         if not menu_success:
             print("⚠️ WARNING: Menu data incomplete - some tests may fail")
         
-        # Step 4: Compare employee data
+        # Step 6: Compare employee data
         self.compare_employee_data()
         
-        # Step 5: Check employee balances
+        # Step 7: Check employee balances
         self.check_employee_balances()
         
-        # Step 6: Test drinks order for Jonas (should work)
+        # Step 8: Test drinks order for Jonas (should work according to issue description)
         self.test_drinks_order_for_jonas()
         
-        # Step 7: Test breakfast orders for both employees
+        # Step 9: Test breakfast orders for both employees with IDENTICAL data
         if self.julian_id:
             self.test_breakfast_order_creation(self.julian_id, "Julian Takke")
         
         if self.jonas_id:
             self.test_breakfast_order_creation(self.jonas_id, "Jonas Parlow")
         
+        # Step 10: Test multiple breakfast order scenarios
+        self.test_multiple_breakfast_scenarios()
+        
         # Summary
         self.print_summary()
         
         return True
+    
+    def test_multiple_breakfast_scenarios(self):
+        """Test multiple breakfast order scenarios for both employees"""
+        if not self.julian_id or not self.jonas_id:
+            self.log_result(
+                "Multiple Breakfast Scenarios", 
+                False, 
+                error="Both employees not available for testing"
+            )
+            return False
+        
+        scenarios = [
+            {
+                "name": "Breakfast with Lunch",
+                "data": {
+                    "total_halves": 2,
+                    "white_halves": 2,
+                    "seeded_halves": 0,
+                    "toppings": ["ruehrei", "kaese"],
+                    "has_lunch": True,
+                    "boiled_eggs": 0,
+                    "has_coffee": False
+                }
+            },
+            {
+                "name": "Breakfast with Boiled Eggs",
+                "data": {
+                    "total_halves": 1,
+                    "white_halves": 1,
+                    "seeded_halves": 0,
+                    "toppings": ["butter"],
+                    "has_lunch": False,
+                    "boiled_eggs": 2,
+                    "has_coffee": False
+                }
+            },
+            {
+                "name": "Only Boiled Eggs (No Rolls)",
+                "data": {
+                    "total_halves": 0,
+                    "white_halves": 0,
+                    "seeded_halves": 0,
+                    "toppings": [],
+                    "has_lunch": False,
+                    "boiled_eggs": 3,
+                    "has_coffee": False
+                }
+            }
+        ]
+        
+        results = []
+        for scenario in scenarios:
+            julian_result = self.test_specific_breakfast_scenario(
+                self.julian_id, "Julian", scenario["name"], scenario["data"]
+            )
+            jonas_result = self.test_specific_breakfast_scenario(
+                self.jonas_id, "Jonas", scenario["name"], scenario["data"]
+            )
+            
+            results.append({
+                "scenario": scenario["name"],
+                "julian": julian_result,
+                "jonas": jonas_result
+            })
+        
+        # Analyze results
+        success_count = sum(1 for r in results if r["julian"] and r["jonas"])
+        self.log_result(
+            "Multiple Breakfast Scenarios",
+            success_count == len(scenarios),
+            f"Completed {len(scenarios)} scenarios. Both employees succeeded in {success_count}/{len(scenarios)} scenarios."
+        )
+        
+        return success_count == len(scenarios)
+    
+    def test_specific_breakfast_scenario(self, employee_id, employee_name, scenario_name, breakfast_data):
+        """Test a specific breakfast scenario for an employee"""
+        try:
+            order_data = {
+                "employee_id": employee_id,
+                "department_id": self.department_id,
+                "order_type": "breakfast",
+                "breakfast_items": [breakfast_data]
+            }
+            
+            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
+            
+            success = response.status_code == 200
+            if success:
+                order_result = response.json()
+                print(f"   ✅ {employee_name} - {scenario_name}: €{order_result.get('total_price', 'N/A')}")
+            else:
+                error_detail = response.text
+                try:
+                    error_json = response.json()
+                    error_detail = error_json.get('detail', error_detail)
+                except:
+                    pass
+                print(f"   ❌ {employee_name} - {scenario_name}: {error_detail}")
+            
+            return success
+            
+        except Exception as e:
+            print(f"   ❌ {employee_name} - {scenario_name}: {str(e)}")
+            return False
     
     def print_summary(self):
         """Print investigation summary"""
