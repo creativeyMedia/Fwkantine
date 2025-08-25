@@ -285,11 +285,18 @@ const Homepage = () => {
   const { loginDepartment } = React.useContext(AuthContext);
 
   useEffect(() => {
-    initializeData();
+    // ⚠️ SICHERHEITSFIX: init-data Aufruf entfernt! 
+    // Verursachte Datenbank-Löschung bei jedem Frontend-Reload
+    // initializeData(); // ← DEAKTIVIERT - GEFÄHRLICH FÜR PRODUCTION
     fetchDepartments();
   }, []);
 
   const initializeData = async () => {
+    // ⚠️ DEAKTIVIERT: Diese Funktion löschte die Datenbank bei jedem Aufruf!
+    // Nur für Development verwenden, niemals in Production!
+    console.warn('🚨 initializeData() deaktiviert - gefährlich für Production-Daten!');
+    return;
+    
     try {
       await axios.post(`${API}/init-data`);
     } catch (error) {
