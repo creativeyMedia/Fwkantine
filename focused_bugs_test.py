@@ -11,7 +11,7 @@ from datetime import datetime
 import os
 
 # Use the backend URL directly
-BACKEND_URL = "https://stable-canteen.preview.emergentagent.com"
+BACKEND_URL = "https://canteenflow.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class FocusedBugsTester:
