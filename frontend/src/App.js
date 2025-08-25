@@ -1341,15 +1341,21 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
             <span className="text-sm text-gray-600">{boiledEggsCost.toFixed(2)} €</span>
           </div>
         )}
+        {hasCoffee && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-amber-600">☕ Kaffee:</span>
+            <span className="text-sm text-amber-600">{coffeeCost.toFixed(2)} €</span>
+          </div>
+        )}
         {hasLunch && (
           <div className="flex justify-between items-center">
-            <span className="text-sm text-purple-600">Mittagessen:</span>
+            <span className="text-sm text-purple-600">🍽️ Mittagessen:</span>
             <span className="text-sm text-purple-600">wird vom Admin berechnet</span>
           </div>
         )}
         <div className="border-t pt-2 mt-2">
           <div className="flex justify-between items-center">
-            <span className="font-bold">Brötchen + Eier Gesamt:</span>
+            <span className="font-bold">Brötchen + Eier + Kaffee Gesamt:</span>
             <span className="font-bold">{totalCost.toFixed(2)} €</span>
           </div>
           {hasLunch && (
