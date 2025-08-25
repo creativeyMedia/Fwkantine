@@ -27,8 +27,8 @@ from datetime import datetime
 # Configuration - Using environment variables from frontend/.env
 BASE_URL = "https://canteen-keeper.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_PASSWORD = "costa"  # User provided credentials
-ADMIN_PASSWORD = "lenny"       # User provided credentials
+DEPARTMENT_PASSWORD = "password2"  # Standard credentials from backend
+ADMIN_PASSWORD = "admin2"          # Standard credentials from backend
 
 class IDConsistencyTester:
     def __init__(self):
