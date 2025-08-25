@@ -823,7 +823,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       seeded_halves: seededHalves,
       toppings: selectedToppings,
       has_lunch: hasLunch,
-      item_cost: totalCost
+      boiled_eggs: 0,
+      has_coffee: false
     };
     setOrder(prev => ({
       ...prev,
