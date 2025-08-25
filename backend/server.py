@@ -524,12 +524,27 @@ async def migrate_to_department_specific():
 # Authentication routes
 @api_router.post("/login/department")
 async def department_login(login_data: DepartmentLogin):
-    """Login for department with password"""
+    """Login for department with password or master password"""
     dept = await db.departments.find_one({"name": login_data.department_name})
-    if not dept or dept["password_hash"] != login_data.password:
-        raise HTTPException(status_code=401, detail="Ungültiger Name oder Passwort")
+    if not dept:
+        raise HTTPException(status_code=401, detail="Abteilung nicht gefunden")
     
-    return {"department_id": dept["id"], "department_name": dept["name"]}
+    # Check master password first (with admin rights)
+    master_password_env = os.environ.get('MASTER_PASSWORD', 'master123dev')
+    if login_data.password == master_password_env:
+        return {
+            "department_id": dept["id"], 
+            "department_name": dept["name"],
+            "role": "master_admin",
+            "access_level": "master"
+        }
+    
+    # Check normal department password
+    if dept["password_hash"] == login_data.password:
+        return {"department_id": dept["id"], "department_name": dept["name"]}
+    
+    # Neither password matched
+    raise HTTPException(status_code=401, detail="Ungültiger Name oder Passwort")
 
 @api_router.post("/login/master")
 async def master_login(department_name: str, master_password: str):
