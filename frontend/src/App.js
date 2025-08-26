@@ -991,6 +991,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
         await axios.post(`${API}/orders`, orderData);
         alert('Bestellung erfolgreich gespeichert!');
+        playSucessSound();
       }
       
       // Refresh employee data to show updated balance
