@@ -1142,6 +1142,26 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
           </div>
         </div>
       </div>
+
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+            
+            // Refresh employee data and close after success notification
+            if (fetchEmployees) {
+              fetchEmployees();
+            }
+            
+            if (onOrderComplete) {
+              onOrderComplete();
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
