@@ -1018,7 +1018,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         };
 
         await axios.post(`${API}/orders`, orderData);
-        alert('Bestellung erfolgreich gespeichert!');
+        setSuccessMessage('Bestellung erfolgreich gespeichert!');
+        setShowSuccessNotification(true);
         playSucessSound();
       }
       
