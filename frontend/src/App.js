@@ -114,17 +114,17 @@ const SuccessNotification = ({ message, onClose }) => {
     // Play sound immediately when component mounts
     playSucessSound();
     
-    // Auto-close after 2.5 seconds
+    // Auto-close after 1.5 seconds (shorter duration)
     const timer = setTimeout(() => {
       onClose();
-    }, 2500);
+    }, 1500);
     
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full transform animate-pulse">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-2xl p-6 mx-4 max-w-md w-full border-2 border-green-200">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
             <svg className="h-8 w-8 text-green-600 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -132,9 +132,9 @@ const SuccessNotification = ({ message, onClose }) => {
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erfolgreich!</h3>
-          <p className="text-gray-600">{message}</p>
+          <p className="text-gray-700">{message}</p>
           <div className="mt-4">
-            <div className="bg-green-500 h-1 rounded-full animate-pulse"></div>
+            <div className="bg-green-500 h-2 rounded-full animate-pulse"></div>
           </div>
         </div>
       </div>
