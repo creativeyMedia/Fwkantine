@@ -319,9 +319,6 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{order.total_price.toFixed(2)} €</p>
-                        {order.order_type === 'breakfast' && (
-                          <p className="text-xs text-gray-500">Detaillierte Aufschlüsselung verfügbar</p>
-                        )}
                       </div>
                     </div>
                     
