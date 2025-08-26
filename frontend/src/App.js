@@ -59,6 +59,84 @@ const AuthProvider = ({ children }) => {
   );
 };
 
+// NumberSelector Component - Replaces number inputs with - and + buttons
+const NumberSelector = ({ 
+  value, 
+  onChange, 
+  min = 0, 
+  max = 99, 
+  label = "",
+  unit = "",
+  className = "" 
+}) => {
+  const handleDecrement = () => {
+    if (value > min) {
+      onChange(value - 1);
+    }
+  };
+
+  const handleIncrement = () => {
+    if (value < max) {
+      onChange(value + 1);
+    }
+  };
+
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      {label && <span className="text-sm font-medium mr-2">{label}:</span>}
+      <button
+        type="button"
+        onClick={handleDecrement}
+        disabled={value <= min}
+        className="w-8 h-8 flex items-center justify-center bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-lg"
+      >
+        −
+      </button>
+      <span className="min-w-[3rem] text-center font-medium text-lg">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={handleIncrement}
+        disabled={value >= max}
+        className="w-8 h-8 flex items-center justify-center bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-lg"
+      >
+        +
+      </button>
+      {unit && <span className="text-sm text-gray-600 ml-1">{unit}</span>}
+    </div>
+  );
+};
+
+// Sound Utility Functions
+const playSucessSound = () => {
+  try {
+    // Check if audio is enabled in localStorage (default: true)
+    const isAudioEnabled = localStorage.getItem('canteenAudioEnabled') !== 'false';
+    if (!isAudioEnabled) return;
+
+    // Create simple success beep sound with Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Pleasant notification sound (higher pitch, short duration)
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (error) {
+    console.log('Audio not supported or blocked:', error);
+  }
+};
+
 // Individual Employee Profile Component
 const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
