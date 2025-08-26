@@ -988,8 +988,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               sweet_items: {}
             });
             
-            alert('Bestellung erfolgreich gespeichert!');
-            playSucessSound();
+            setSuccessMessage('Bestellung erfolgreich gespeichert!');
+            setShowSuccessNotification(true);
           }
         } catch (existingOrderError) {
           console.error('Fehler beim Prüfen bestehender Bestellungen:', existingOrderError);
