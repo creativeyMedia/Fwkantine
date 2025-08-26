@@ -739,6 +739,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
   const [breakfastFormData, setBreakfastFormData] = useState(null);
   const [isLoadingExistingOrders, setIsLoadingExistingOrders] = useState(true);
   const [breakfastStatus, setBreakfastStatus] = useState({ is_closed: false });
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const { currentDepartment } = React.useContext(AuthContext);
 
