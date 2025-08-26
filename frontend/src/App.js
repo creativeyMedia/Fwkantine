@@ -975,8 +975,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               breakfast_items: breakfastItems
             });
             
-            alert('Bestellung erfolgreich aktualisiert!');
-            playSucessSound();
+            setSuccessMessage('Bestellung erfolgreich aktualisiert!');
+            setShowSuccessNotification(true);
           } else {
             // Create new order
             await axios.post(`${API}/orders`, {
