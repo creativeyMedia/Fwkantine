@@ -110,17 +110,27 @@ const NumberSelector = ({
 
 // Success Notification Component
 const SuccessNotification = ({ message, onClose }) => {
+  const [hasPlayed, setHasPlayed] = useState(false);
+
   useEffect(() => {
-    // Play sound immediately when component mounts
-    playSucessSound();
+    // Play sound only once
+    if (!hasPlayed) {
+      playSucessSound();
+      setHasPlayed(true);
+    }
     
-    // Auto-close after 1.5 seconds (shorter duration)
+    // Auto-close after 1.5 seconds
     const timer = setTimeout(() => {
-      onClose();
+      if (onClose) {
+        onClose();
+      }
     }, 1500);
     
-    return () => clearTimeout(timer);
-  }, [onClose]);
+    // Cleanup timer on unmount
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []); // Empty dependency array to run only once
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
