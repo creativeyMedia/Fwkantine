@@ -336,32 +336,6 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             )}
                           </div>
                         ))}
-                        
-                        {/* Enhanced breakdown for breakfast orders */}
-                        {order.order_type === 'breakfast' && (
-                          <div className="mt-2 pt-2 border-t border-gray-200">
-                            <div className="text-xs text-gray-600 space-y-1">
-                              <p className="font-medium">Preisaufschlüsselung:</p>
-                              {order.breakfast_items && order.breakfast_items.map((item, idx) => (
-                                <div key={idx} className="ml-2">
-                                  {/* Show breakdown based on available data */}
-                                  {(item.white_halves > 0 || item.seeded_halves > 0) && (
-                                    <p>Brötchen: {item.white_halves} Hell + {item.seeded_halves} Körner</p>
-                                  )}
-                                  {item.boiled_eggs > 0 && (
-                                    <p>🥚 {item.boiled_eggs}x Gekochte Eier</p>
-                                  )}
-                                  {item.has_coffee && (
-                                    <p>☕ Kaffee (Tagespauschal)</p>
-                                  )}
-                                  {item.has_lunch && (
-                                    <p>🍽️ Mittagessen</p>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
