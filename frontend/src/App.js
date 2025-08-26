@@ -1370,18 +1370,16 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       {/* Boiled Eggs Option */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <label className="block text-sm font-medium mb-3">🥚 Gekochte Frühstückseier</label>
-        <div className="flex items-center space-x-4">
-          <input
-            type="number"
-            min="0"
-            max="10"
-            step="1"
+        <div className="flex flex-col gap-2">
+          <NumberSelector
             value={boiledEggs}
-            onChange={handleBoiledEggsChange}
-            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500"
+            onChange={setBoiledEggs}
+            min={0}
+            max={10}
+            unit="Stück"
           />
           <span className="text-sm text-gray-600">
-            Stück ({boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €)
+            {boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €
           </span>
         </div>
       </div>
