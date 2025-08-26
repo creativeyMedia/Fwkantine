@@ -1023,15 +1023,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         playSucessSound();
       }
       
-      // Refresh employee data to show updated balance
-      if (fetchEmployees) {
-        fetchEmployees();
-      }
-      
-      // Auto-close popup after successful order submission and return to dashboard
-      if (onOrderComplete) {
-        onOrderComplete();
-      }
+      // Note: Employee data refresh and modal closing is now handled by SuccessNotification onClose
       
     } catch (error) {
       console.error('Fehler beim Speichern der Bestellung:', error);
