@@ -1455,6 +1455,13 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
 
 // Drinks Order Form
 const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
+  const [quantities, setQuantities] = useState({});
+
+  const handleQuantityChange = (drinkId, newQuantity) => {
+    setQuantities(prev => ({ ...prev, [drinkId]: newQuantity }));
+    onUpdateQuantity(drinkId, newQuantity);
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Getränke auswählen</h3>
@@ -1465,12 +1472,11 @@ const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
               <span className="font-medium">{drink.name}</span>
               <span className="text-gray-600 ml-2">({drink.price.toFixed(2)} €)</span>
             </div>
-            <input
-              type="number"
-              min="0"
-              placeholder="0"
-              onChange={(e) => onUpdateQuantity(drink.id, e.target.value)}
-              className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+            <NumberSelector
+              value={quantities[drink.id] || 0}
+              onChange={(value) => handleQuantityChange(drink.id, value)}
+              min={0}
+              max={50}
             />
           </div>
         ))}
