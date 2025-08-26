@@ -20,7 +20,7 @@ Test specifically:
 4. **Error Handling**:
    - Verify wrong passwords are properly rejected
 
-BACKEND URL: https://fireguard-menu.preview.emergentagent.com/api
+BACKEND URL: https://canteen-system.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
 MASTER PASSWORD: master123dev
 NORMAL CREDENTIALS: Employee: password1, Admin: admin1
@@ -34,7 +34,7 @@ import sys
 from datetime import datetime
 
 # Configuration - Use production backend URL from frontend/.env
-BASE_URL = "https://fireguard-menu.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-system.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "1. Wachabteilung"
 MASTER_PASSWORD = "master123dev"
 NORMAL_EMPLOYEE_PASSWORD = "password1"
