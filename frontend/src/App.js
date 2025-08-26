@@ -4622,6 +4622,41 @@ const AdminSettingsTab = ({ currentDepartment }) => {
             </div>
           </div>
         </div>
+
+        {/* Sound Settings */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <h4 className="text-md font-semibold mb-4 text-green-800">🔊 Sound-Einstellungen</h4>
+          
+          <div className="flex items-center justify-between p-4 bg-white border border-green-300 rounded">
+            <div>
+              <div className="font-medium">Bestätigungs-Sound bei Bestellungen</div>
+              <div className="text-sm text-gray-600 mt-1">
+                Kurzer Bestätigungston wenn eine Bestellung erfolgreich gespeichert wird
+              </div>
+            </div>
+            <button
+              onClick={toggleAudio}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                audioEnabled ? 'bg-green-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  audioEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          <div className="mt-4 text-sm text-gray-600">
+            <p><strong>Info:</strong></p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Diese Einstellung gilt für alle Benutzer dieses Browsers</li>
+              <li>Sound wird nur bei erfolgreich gespeicherten Bestellungen abgespielt</li>
+              <li>Beim Aktivieren wird ein Test-Sound abgespielt</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
