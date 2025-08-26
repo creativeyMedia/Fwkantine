@@ -948,6 +948,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
             });
             
             alert('Bestellung erfolgreich aktualisiert!');
+            playSucessSound();
           } else {
             // Create new order
             await axios.post(`${API}/orders`, {
