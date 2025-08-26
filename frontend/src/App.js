@@ -1299,34 +1299,34 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Helle Brötchen (Hälften)</label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={whiteRolls}
-                onChange={(e) => setWhiteRolls(parseInt(e.target.value) || 0)}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="0"
-              />
-              <span className="text-sm text-gray-600 ml-3">
-                à {whiteRollPrice.toFixed(2)} € = {(whiteRolls * whiteRollPrice).toFixed(2)} €
-              </span>
+              <label className="block text-sm font-medium mb-3">Helle Brötchen (Hälften)</label>
+              <div className="flex flex-col gap-2">
+                <NumberSelector
+                  value={whiteRolls}
+                  onChange={setWhiteRolls}
+                  min={0}
+                  max={20}
+                  unit="Hälften"
+                />
+                <span className="text-sm text-gray-600">
+                  à {whiteRollPrice.toFixed(2)} € = {(whiteRolls * whiteRollPrice).toFixed(2)} €
+                </span>
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Körner Brötchen (Hälften)</label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                value={seededRolls}
-                onChange={(e) => setSeededRolls(parseInt(e.target.value) || 0)}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="0"
-              />
-              <span className="text-sm text-gray-600 ml-3">
-                à {seededRollPrice.toFixed(2)} € = {(seededRolls * seededRollPrice).toFixed(2)} €
-              </span>
+              <label className="block text-sm font-medium mb-3">Körner Brötchen (Hälften)</label>
+              <div className="flex flex-col gap-2">
+                <NumberSelector
+                  value={seededRolls}
+                  onChange={setSeededRolls}
+                  min={0}
+                  max={20}
+                  unit="Hälften"
+                />
+                <span className="text-sm text-gray-600">
+                  à {seededRollPrice.toFixed(2)} € = {(seededRolls * seededRollPrice).toFixed(2)} €
+                </span>
+              </div>
             </div>
           </div>
         </div>
