@@ -1487,6 +1487,13 @@ const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
 
 // Sweets Order Form
 const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
+  const [quantities, setQuantities] = useState({});
+
+  const handleQuantityChange = (sweetId, newQuantity) => {
+    setQuantities(prev => ({ ...prev, [sweetId]: newQuantity }));
+    onUpdateQuantity(sweetId, newQuantity);
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Süßes auswählen</h3>
@@ -1497,12 +1504,11 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
               <span className="font-medium">{sweet.name}</span>
               <span className="text-gray-600 ml-2">({sweet.price.toFixed(2)} €)</span>
             </div>
-            <input
-              type="number"
-              min="0"
-              placeholder="0"
-              onChange={(e) => onUpdateQuantity(sweet.id, e.target.value)}
-              className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+            <NumberSelector
+              value={quantities[sweet.id] || 0}
+              onChange={(value) => handleQuantityChange(sweet.id, newQuantity)}
+              min={0}
+              max={50}
             />
           </div>
         ))}
