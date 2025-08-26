@@ -1506,7 +1506,7 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
             </div>
             <NumberSelector
               value={quantities[sweet.id] || 0}
-              onChange={(value) => handleQuantityChange(sweet.id, newQuantity)}
+              onChange={(value) => handleQuantityChange(sweet.id, value)}
               min={0}
               max={50}
             />
