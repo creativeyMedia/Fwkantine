@@ -4398,10 +4398,24 @@ const AdminSettingsTab = ({ currentDepartment }) => {
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [showBreakfastControls, setShowBreakfastControls] = useState(true);
   const [breakfastStatus, setBreakfastStatus] = useState({ is_closed: false });
+  const [audioEnabled, setAudioEnabled] = useState(
+    localStorage.getItem('canteenAudioEnabled') !== 'false'
+  );
 
   useEffect(() => {
     fetchBreakfastStatus();
   }, [currentDepartment]);
+
+  const toggleAudio = () => {
+    const newAudioState = !audioEnabled;
+    setAudioEnabled(newAudioState);
+    localStorage.setItem('canteenAudioEnabled', newAudioState.toString());
+    
+    // Play test sound if enabling
+    if (newAudioState) {
+      playSucessSound();
+    }
+  };
 
   const fetchBreakfastStatus = async () => {
     try {
