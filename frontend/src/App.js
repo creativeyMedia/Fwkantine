@@ -976,6 +976,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
           });
           
           alert('Bestellung erfolgreich gespeichert!');
+          playSucessSound();
         }
       } else {
         // For drinks and sweets, create new order as usual
