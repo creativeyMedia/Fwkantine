@@ -4374,7 +4374,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             <div key={employeeName} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                               <h7 className="font-medium text-gray-800">{employeeName}</h7>
                               <div className="mt-2 space-y-1 text-sm text-gray-600">
-                                <div>Weiße Hälften: {employeeData.white_halves}</div>
+                                <div>Helle Hälften: {employeeData.white_halves}</div>
                                 <div>Körner Hälften: {employeeData.seeded_halves}</div>
                                 {employeeData.boiled_eggs > 0 && (
                                   <div>🥚 Gekochte Eier: {employeeData.boiled_eggs}</div>
