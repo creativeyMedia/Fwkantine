@@ -1172,11 +1172,6 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
   const totalCost = rollsCost + boiledEggsCost + coffeeCost; // Lunch is handled separately by backend
 
   // Event handlers - defined as stable functions
-  const handleBoiledEggsChange = (e) => {
-    const value = parseInt(e.target.value) || 0;
-    setBoiledEggs(Math.max(0, Math.min(10, value)));
-  };
-
   const handleLunchChange = (e) => {
     setHasLunch(e.target.checked);
   };
