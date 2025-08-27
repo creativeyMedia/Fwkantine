@@ -4948,6 +4948,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         >
                           {deleting === day.date ? 'Wird gelöscht...' : '🗑️ Löschen'}
                         </button>
+                        
                         {/* Expand/Collapse Indicator */}
                         <button
                           onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
