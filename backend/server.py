@@ -2670,13 +2670,14 @@ async def sponsor_meal(meal_data: dict):
                             {"$set": {"breakfast_balance": new_balance}}
                         )
                     else:  # lunch
-                        # For lunch, subtract lunch cost from breakfast balance
+                        # For lunch, refund lunch cost from breakfast balance
                         lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
                         lunch_cost = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                        # REFUND the lunch cost (reduce their debt)
                         new_balance = employee["breakfast_balance"] - lunch_cost
                         await db.employees.update_one(
                             {"id": employee_id},
-                            {"$set": {"breakfast_balance": max(0, new_balance)}}
+                            {"$set": {"breakfast_balance": new_balance}}
                         )
         
         # Add cost to sponsor's balance
