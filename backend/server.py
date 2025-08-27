@@ -2710,6 +2710,41 @@ async def sponsor_meal(meal_data: dict):
             )
         else:
             # Sponsor has no order for this day - create sponsored meal order entry
+            
+            # Create detailed cost breakdown (same logic as above)
+            cost_breakdown_items = []
+            if meal_type == "breakfast":
+                if sponsored_items.get("Helles Brötchen", 0) > 0:
+                    count = sponsored_items["Helles Brötchen"]
+                    price = 0.50
+                    cost_breakdown_items.append(f"{count}x Helle Brötchen ({count * price:.2f} €)")
+                
+                if sponsored_items.get("Körner Brötchen", 0) > 0:
+                    count = sponsored_items["Körner Brötchen"] 
+                    price = 0.60
+                    cost_breakdown_items.append(f"{count}x Körner Brötchen ({count * price:.2f} €)")
+                
+                if sponsored_items.get("Gekochte Eier", 0) > 0:
+                    count = sponsored_items["Gekochte Eier"]
+                    price = 0.50
+                    cost_breakdown_items.append(f"{count}x Gekochte Eier ({count * price:.2f} €)")
+            else:  # lunch
+                if sponsored_items.get("Mittagessen", 0) > 0:
+                    count = sponsored_items["Mittagessen"]
+                    # Use the daily lunch price calculated above
+                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                        "department_id": department_id,
+                        "date": date_str
+                    })
+                    if daily_lunch_price_doc:
+                        price = daily_lunch_price_doc["lunch_price"]
+                    else:
+                        lunch_settings = await db.lunch_settings.find_one()
+                        price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+                    cost_breakdown_items.append(f"{count}x Mittagessen ({count * price:.2f} €)")
+            
+            cost_breakdown_text = " + ".join(cost_breakdown_items)
+            
             sponsored_order = {
                 "id": str(uuid.uuid4()),
                 "employee_id": sponsor_employee_id,
@@ -2720,9 +2755,10 @@ async def sponsor_meal(meal_data: dict):
                 "sponsored_date": date_str,
                 "sponsored_employee_count": len(affected_employees),
                 "sponsored_items": items_description,
+                "sponsor_cost_breakdown": cost_breakdown_text,
                 "readable_items": [{
-                    "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben ({items_description})",
-                    "unit_price": f"für {len(affected_employees)} Mitarbeiter",
+                    "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
+                    "unit_price": cost_breakdown_text,
                     "total_price": f"{total_cost:.2f} €"
                 }]
             }
