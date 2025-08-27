@@ -2678,11 +2678,19 @@ async def sponsor_meal(meal_data: dict):
                             {"$set": {"breakfast_balance": new_balance}}
                         )
                     else:  # lunch
-                        # For lunch, refund lunch cost from breakfast balance
-                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
-                        lunch_cost = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
-                        # REFUND the lunch cost (reduce their debt)
-                        new_balance = employee["breakfast_balance"] - lunch_cost
+                        # For lunch, only refund lunch cost for orders that actually have lunch
+                        employee_lunch_cost = 0.0
+                        for item in order.get("breakfast_items", []):
+                            if item.get("has_lunch", False):
+                                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                                lunch_price = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                                employee_lunch_cost += lunch_price
+                        
+                        # Round employee lunch cost to avoid floating point errors
+                        employee_lunch_cost = round(employee_lunch_cost, 2)
+                        
+                        # REFUND only the lunch cost (reduce their debt)
+                        new_balance = employee["breakfast_balance"] - employee_lunch_cost
                         # Round to 2 decimal places to avoid floating point precision errors
                         new_balance = round(new_balance, 2)
                         await db.employees.update_one(
