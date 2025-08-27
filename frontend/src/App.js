@@ -4541,24 +4541,6 @@ const MealSponsorModal = ({
           </select>
         </div>
         
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 text-sm">
-          <p className="text-blue-800">
-            <strong>Was passiert:</strong>
-          </p>
-          <ul className="text-blue-700 mt-1 space-y-1">
-            {mealType === 'breakfast' ? (
-              <>
-                <li>• Alle Brötchen + Eier + Lunch werden übernommen</li>
-                <li>• Kaffee bleibt bei jedem Mitarbeiter individuell</li>
-              </>
-            ) : (
-              <li>• Alle Mittagessen-Kosten werden übernommen</li>
-            )}
-            <li>• Die Kosten werden dem ausgewählten Mitarbeiter gutgeschrieben</li>
-            <li>• Alle anderen Mitarbeiter zahlen 0€ für diese Mahlzeit</li>
-          </ul>
-        </div>
-        
         <div className="flex gap-3">
           <button
             onClick={onClose}
