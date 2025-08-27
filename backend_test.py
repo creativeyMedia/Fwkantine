@@ -366,6 +366,74 @@ class MealSponsoringTester:
         except Exception as e:
             self.log_result("Test Lunch Sponsoring Calculation", False, error=str(e))
             return False
+    
+    def verify_final_balances(self, initial_balances):
+        """Verify final balances after lunch sponsoring"""
+        try:
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            if response.status_code != 200:
+                raise Exception("Could not fetch employees to check final balances")
+            
+            employees = response.json()
+            final_balances = {}
+            sponsor_name = self.test_employees[4]["name"] if len(self.test_employees) >= 5 else "Unknown"
+            
+            for test_emp in self.test_employees[:5]:  # Check first 5 employees
+                employee = next((emp for emp in employees if emp["id"] == test_emp["id"]), None)
+                if employee:
+                    balance = employee.get("breakfast_balance", 0.0)
+                    final_balances[employee["name"]] = balance
+                    
+                    # Check if this is the sponsor
+                    if employee["name"] == sponsor_name:
+                        print(f"   {employee['name']} (SPONSOR): €{balance:.2f}")
+                    else:
+                        print(f"   {employee['name']}: €{balance:.2f}")
+            
+            # Verify balance changes
+            balance_changes_correct = True
+            error_details = []
+            
+            for name, final_balance in final_balances.items():
+                initial_balance = initial_balances.get(name, 0.0)
+                balance_change = final_balance - initial_balance
+                
+                if name == sponsor_name:
+                    # Sponsor should have increased balance (paid for lunch costs)
+                    if balance_change <= 0:
+                        balance_changes_correct = False
+                        error_details.append(f"Sponsor {name} balance should increase, but changed by €{balance_change:.2f}")
+                else:
+                    # Other employees should have decreased balance (lunch costs removed)
+                    if balance_change >= 0:
+                        balance_changes_correct = False
+                        error_details.append(f"Employee {name} balance should decrease (lunch refunded), but changed by €{balance_change:.2f}")
+                    
+                    # Check for negative balances
+                    if final_balance < 0:
+                        balance_changes_correct = False
+                        error_details.append(f"Employee {name} has negative balance: €{final_balance:.2f}")
+            
+            if balance_changes_correct and len(final_balances) == 5:
+                self.log_result(
+                    "Verify Final Balances",
+                    True,
+                    f"✅ CRITICAL FIX VERIFIED: Correct balance calculations after lunch sponsoring. No negative balances, sponsor paid for lunch costs only."
+                )
+                return True
+            else:
+                self.log_result(
+                    "Verify Final Balances",
+                    False,
+                    error=f"CRITICAL BUG: Incorrect balance calculations: {'; '.join(error_details)}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Verify Final Balances", False, error=str(e))
+            return False
+
+    def test_breakfast_sponsoring_correct_calculation(self):
         """Test breakfast sponsoring with correct cost calculation (ONLY rolls + eggs, NO coffee, NO lunch)"""
         try:
             if len(self.test_employees) < 3:
