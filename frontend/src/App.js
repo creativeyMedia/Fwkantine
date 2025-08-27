@@ -4614,6 +4614,15 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     }
   };
 
+  const fetchDepartmentEmployees = async () => {
+    try {
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/employees`);
+      setDepartmentEmployees(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Abteilungs-Mitarbeiter:', error);
+    }
+  };
+
   const deleteBreakfastDay = async (date) => {
     if (window.confirm(`Alle Frühstücks-Bestellungen für ${formatDate(date)} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und wird die Mitarbeiter-Salden entsprechend anpassen.`)) {
       try {
