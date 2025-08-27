@@ -2678,6 +2678,8 @@ async def sponsor_meal(meal_data: dict):
                 {"id": sponsor_order["id"]},
                 {"$set": {
                     "is_sponsor_order": True,
+                    "is_sponsored": True,  # Mark sponsor as sponsored too
+                    "sponsored_message": sponsor_message,  # Add sponsor message
                     "sponsor_message": sponsor_message,
                     "sponsor_total_cost": total_sponsored_cost,
                     "sponsor_employee_count": sponsored_count,
