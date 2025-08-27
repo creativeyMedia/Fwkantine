@@ -1421,6 +1421,11 @@ async def get_daily_summary(department_id: str):
                     "toppings": {}
                 }
             
+            # Check if this order is sponsored and how to handle it
+            is_sponsored = order.get("is_sponsored", False)
+            is_sponsor_order = order.get("is_sponsor_order", False)
+            sponsored_meal_type = order.get("sponsored_meal_type", "")
+            
             for item in order["breakfast_items"]:
                 # Handle new format (total_halves, white_halves, seeded_halves)
                 if "total_halves" in item:
@@ -1437,20 +1442,35 @@ async def get_daily_summary(department_id: str):
                         white_halves = 0
                         seeded_halves = roll_halves
                 
-                # Update employee totals
-                employee_orders[employee_name]["white_halves"] += white_halves
-                employee_orders[employee_name]["seeded_halves"] += seeded_halves
+                # Determine what to show based on sponsoring status
+                show_breakfast = True
+                show_lunch = item.get("has_lunch", False)
+                show_coffee = item.get("has_coffee", False)
                 
-                # Add boiled eggs if present
-                boiled_eggs = item.get("boiled_eggs", 0)
-                employee_orders[employee_name]["boiled_eggs"] += boiled_eggs
+                if is_sponsored and not is_sponsor_order:
+                    # For sponsored employees (not the sponsor), hide sponsored parts
+                    if sponsored_meal_type == "breakfast":
+                        # Hide breakfast items (rolls, eggs), keep coffee and lunch
+                        show_breakfast = False
+                    elif sponsored_meal_type == "lunch":
+                        # Hide lunch, keep breakfast and coffee
+                        show_lunch = False
                 
-                # Add lunch if present
-                if item.get("has_lunch", False):
+                # Update employee totals only for visible items
+                if show_breakfast:
+                    employee_orders[employee_name]["white_halves"] += white_halves
+                    employee_orders[employee_name]["seeded_halves"] += seeded_halves
+                    
+                    # Add boiled eggs if present and breakfast is visible
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    employee_orders[employee_name]["boiled_eggs"] += boiled_eggs
+                
+                # Add lunch if present and visible
+                if show_lunch:
                     employee_orders[employee_name]["has_lunch"] = True
                 
-                # Add coffee if present
-                if item.get("has_coffee", False):
+                # Coffee is always visible
+                if show_coffee:
                     employee_orders[employee_name]["has_coffee"] = True
                 
                 # Update overall summary
