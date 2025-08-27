@@ -385,35 +385,47 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
               <div className="space-y-4">
                 {currentItems.map((item, index) => {
                   if (item.type === 'order') {
-                    // Render Order
+                    // Check if order is cancelled
+                    const isCancelled = item.is_cancelled;
+                    const cardStyle = isCancelled ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200";
+                    const textStyle = isCancelled ? "line-through" : "";
+                    
+                    // Render Order (normal or cancelled)
                     return (
-                      <div key={`order-${item.id || index}`} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div key={`order-${item.id || index}`} className={`${cardStyle} border rounded-lg p-4`}>
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                              {getOrderTypeLabel(item.order_type)}
+                            <span className={`inline-block ${isCancelled ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} text-xs font-semibold mr-2 px-2.5 py-0.5 rounded`}>
+                              {isCancelled ? 'Storniert' : getOrderTypeLabel(item.order_type)}
                             </span>
                             <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-right">
-                              <p className="font-semibold">{item.total_price.toFixed(2)} €</p>
+                              <p className={`font-semibold ${isCancelled ? 'text-red-600' : ''}`}>{item.total_price.toFixed(2)} €</p>
                             </div>
-                            {/* Delete button for orders (not deletion entries) */}
-                            {item.order_type !== 'deletion' && (
+                            {/* Delete button only for non-cancelled orders */}
+                            {!isCancelled && (
                               <button
                                 onClick={() => handleDeleteOrder(item.id, item.order_type, item.total_price)}
                                 className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 flex-shrink-0"
                                 title="Bestellung löschen"
                               >
-                                🗑️
+                                Löschen
                               </button>
                             )}
                           </div>
                         </div>
                         
+                        {/* Show cancellation info if cancelled */}
+                        {isCancelled && (
+                          <div className="mb-2 text-sm text-red-700 bg-red-100 p-2 rounded">
+                            <strong>Storniert durch {item.cancelled_by_name}</strong> am {formatDate(item.cancelled_at)}
+                          </div>
+                        )}
+                        
                         {item.readable_items && item.readable_items.length > 0 && (
-                          <div className="space-y-1">
+                          <div className={`space-y-1 ${textStyle}`}>
                             {item.readable_items.map((orderItem, idx) => (
                               <div key={idx} className="text-sm flex justify-between items-start">
                                 <div className="flex-1">
