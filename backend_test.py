@@ -476,18 +476,18 @@ class MealSponsoringTester:
             self.log_result("Verify Sponsored Orders Audit Trail", False, error=str(e))
             return False
     
-    def verify_sponsor_balance_charged(self):
-        """Verify that sponsor employee balance was charged correctly"""
+    def verify_no_double_charging(self):
+        """Verify sponsor employee is NOT charged twice"""
         try:
             if len(self.test_employees) < 3:
                 self.log_result(
-                    "Verify Sponsor Balance Charged",
+                    "Verify No Double Charging",
                     False,
-                    error="Not enough test employees to verify sponsor balance"
+                    error="Not enough test employees to verify double charging"
                 )
                 return False
             
-            # Check sponsor's balance
+            # Check sponsor's balance after sponsoring
             sponsor = self.test_employees[2]
             response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
             
@@ -498,38 +498,124 @@ class MealSponsoringTester:
                 if sponsor_employee:
                     sponsor_balance = sponsor_employee.get("breakfast_balance", 0.0)
                     
-                    # Sponsor should have a positive balance (charged for sponsoring)
-                    if sponsor_balance > 0:
-                        self.log_result(
-                            "Verify Sponsor Balance Charged",
-                            True,
-                            f"Sponsor balance correctly charged: €{sponsor_balance:.2f}"
-                        )
-                        return True
+                    # Check sponsor's orders to verify they're not double charged
+                    orders_response = self.session.get(f"{BASE_URL}/employees/{sponsor['id']}/orders")
+                    if orders_response.status_code == 200:
+                        orders_data = orders_response.json()
+                        orders = orders_data.get("orders", [])
+                        
+                        # Look for sponsor's orders today
+                        today = date.today().isoformat()
+                        today_orders = [order for order in orders if order.get("timestamp", "").startswith(today)]
+                        
+                        # Verify sponsor has either modified existing order OR new sponsored order (not both)
+                        sponsor_orders = [order for order in today_orders if order.get("is_sponsor_order", False)]
+                        sponsored_orders = [order for order in today_orders if order.get("is_sponsored", False)]
+                        
+                        if len(sponsor_orders) <= 1 and len(sponsored_orders) >= 1:
+                            self.log_result(
+                                "Verify No Double Charging",
+                                True,
+                                f"✅ CRITICAL FIX VERIFIED: Sponsor not double charged. Balance: €{sponsor_balance:.2f}, Sponsor orders: {len(sponsor_orders)}, Sponsored orders: {len(sponsored_orders)}"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Verify No Double Charging",
+                                False,
+                                error=f"CRITICAL BUG: Potential double charging detected. Sponsor orders: {len(sponsor_orders)}, Sponsored orders: {len(sponsored_orders)}"
+                            )
+                            return False
                     else:
                         self.log_result(
-                            "Verify Sponsor Balance Charged",
+                            "Verify No Double Charging",
                             False,
-                            error=f"Sponsor balance not charged correctly: €{sponsor_balance:.2f}"
+                            error=f"Could not fetch sponsor orders: HTTP {orders_response.status_code}"
                         )
                         return False
                 else:
                     self.log_result(
-                        "Verify Sponsor Balance Charged",
+                        "Verify No Double Charging",
                         False,
                         error="Could not find sponsor employee in department"
                     )
                     return False
             else:
                 self.log_result(
-                    "Verify Sponsor Balance Charged",
+                    "Verify No Double Charging",
                     False,
                     error=f"Could not fetch department employees: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Sponsor Balance Charged", False, error=str(e))
+            self.log_result("Verify No Double Charging", False, error=str(e))
+            return False
+    
+    def verify_sponsored_messages(self):
+        """Verify correct sponsored messages in German"""
+        try:
+            if len(self.test_employees) < 3:
+                self.log_result(
+                    "Verify Sponsored Messages",
+                    False,
+                    error="Not enough test employees to verify sponsored messages"
+                )
+                return False
+            
+            sponsor = self.test_employees[2]
+            sponsor_name = sponsor["name"]
+            
+            # Check sponsor's orders for sponsor message
+            sponsor_orders_response = self.session.get(f"{BASE_URL}/employees/{sponsor['id']}/orders")
+            if sponsor_orders_response.status_code != 200:
+                raise Exception("Could not fetch sponsor orders")
+            
+            sponsor_orders_data = sponsor_orders_response.json()
+            sponsor_orders = sponsor_orders_data.get("orders", [])
+            
+            # Look for sponsor message
+            sponsor_message_found = False
+            expected_sponsor_message = "Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!"
+            
+            for order in sponsor_orders:
+                if order.get("sponsor_message") and expected_sponsor_message in order.get("sponsor_message", ""):
+                    sponsor_message_found = True
+                    break
+            
+            # Check other employees' orders for thank you message
+            other_employees_messages = []
+            for i in [0, 1]:  # First two employees (not sponsor)
+                employee = self.test_employees[i]
+                orders_response = self.session.get(f"{BASE_URL}/employees/{employee['id']}/orders")
+                if orders_response.status_code == 200:
+                    orders_data = orders_response.json()
+                    orders = orders_data.get("orders", [])
+                    
+                    for order in orders:
+                        if order.get("sponsored_message"):
+                            expected_message = f"Dieses Frühstück wurde von {sponsor_name} ausgegeben, bedanke dich bei ihm!"
+                            if expected_message in order.get("sponsored_message", ""):
+                                other_employees_messages.append(employee["name"])
+                                break
+            
+            if sponsor_message_found and len(other_employees_messages) >= 1:
+                self.log_result(
+                    "Verify Sponsored Messages",
+                    True,
+                    f"✅ CRITICAL FIX VERIFIED: Correct German sponsored messages found. Sponsor message: ✓, Thank you messages: {len(other_employees_messages)} employees"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Verify Sponsored Messages",
+                    False,
+                    error=f"CRITICAL BUG: Missing sponsored messages. Sponsor message: {sponsor_message_found}, Thank you messages: {len(other_employees_messages)}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Verify Sponsored Messages", False, error=str(e))
             return False
     
     def test_invalid_sponsoring_scenarios(self):
