@@ -2823,18 +2823,11 @@ async def sponsor_meal(meal_data: dict):
             employee_id = order["employee_id"]
             
             if employee_id == sponsor_employee_id:
-                # For sponsor: just mark as sponsored, balance is handled above
-                await db.orders.update_one(
-                    {"id": order["id"]},
-                    {"$set": {
-                        "is_sponsored": True,
-                        "sponsored_by_employee_id": sponsor_employee_id,
-                        "sponsored_by_name": sponsor_employee_name,
-                        "sponsored_date": datetime.now(timezone.utc).isoformat(),
-                        "sponsored_meal_type": meal_type,
-                        "is_sponsor_order": True
-                    }}
-                )
+                # For sponsor: They pay for everyone INCLUDING themselves
+                # So they should NOT get a refund for their own sponsored part
+                # Their balance just gets the total sponsored cost added
+                # (Their original order cost remains, plus they pay for others)
+                pass  # No balance change here, handled at the end
             else:
                 # For other employees: mark as sponsored and add thank you message
                 sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
