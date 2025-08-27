@@ -1484,8 +1484,11 @@ async def delete_employee_order(employee_id: str, order_id: str):
                 detail="Frühstück ist geschlossen. Nur Admins können noch Änderungen vornehmen."
             )
     
-    # Adjust employee balance
+    # Get employee name for audit trail
     employee = await db.employees.find_one({"id": employee_id})
+    employee_name = employee["name"] if employee else "Unbekannt"
+    
+    # Adjust employee balance
     if employee:
         if order["order_type"] == "breakfast":
             new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
@@ -1500,7 +1503,32 @@ async def delete_employee_order(employee_id: str, order_id: str):
                 {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
             )
     
-    # Delete order
+    # Create audit trail entry before deleting
+    audit_entry = {
+        "id": str(uuid.uuid4()),
+        "employee_id": employee_id,
+        "department_id": order["department_id"],
+        "order_type": "deletion",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "deleted_by": "employee",
+        "deleted_by_name": employee_name,
+        "original_order": {
+            "id": order["id"],
+            "order_type": order["order_type"],
+            "total_price": order["total_price"],
+            "timestamp": order["timestamp"]
+        },
+        "readable_items": [{
+            "description": f"Bestellung storniert durch {employee_name}",
+            "unit_price": "",
+            "total_price": f"-{order['total_price']:.2f} €"
+        }],
+        "total_price": -order["total_price"]  # Negative amount to show refund
+    }
+    
+    await db.orders.insert_one(audit_entry)
+    
+    # Delete original order
     await db.orders.delete_one({"id": order_id})
     return {"message": "Bestellung erfolgreich gelöscht"}
 
