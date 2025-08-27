@@ -1445,7 +1445,8 @@ class MealSponsoringTester:
         except Exception as e:
             self.log_result("Verify Enhanced UI Details Display", False, error=str(e))
             return False
-        """Create additional orders with lunch for lunch sponsoring test"""
+
+    def create_additional_lunch_orders(self):
         try:
             if len(self.test_employees) < 4:
                 self.log_result(
