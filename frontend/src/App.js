@@ -4496,8 +4496,19 @@ const MealSponsorModal = ({
       return;
     }
     
-    onConfirm(selectedEmployee);
-    onClose();
+    // Show confirmation dialog with cost overview
+    const confirmMessage = `${mealTypeLabel} für alle Mitarbeiter ausgeben lassen?\n\n` +
+      `Datum: ${new Date(date).toLocaleDateString('de-DE')}\n` +
+      `Zahler: ${selectedEmployee.name}\n\n` +
+      `${mealType === 'breakfast' ? 
+        'Es werden alle Brötchen und Eier (ohne Kaffee, ohne Mittagessen) gesponsert.' : 
+        'Es werden alle Mittagessen-Kosten gesponsert.'}\n\n` +
+      `Diese Aktion kann nicht rückgängig gemacht werden.`;
+    
+    if (window.confirm(confirmMessage)) {
+      onConfirm(selectedEmployee);
+      onClose();
+    }
   };
   
   if (!isOpen) return null;
