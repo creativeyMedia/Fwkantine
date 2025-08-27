@@ -1,40 +1,37 @@
 #!/usr/bin/env python3
 """
-ADMIN DASHBOARD DAILY SUMMARY DOUBLE-COUNTING TEST
+5€ DISCREPANCY FIX VERIFICATION TEST
 
-FOCUS: Test the corrected admin dashboard daily summary to eliminate double-counting of sponsored meals.
+FOCUS: Test the FIXED daily summary calculation for sponsored meals to verify the 5€ discrepancy has been resolved.
 
 **CRITICAL BUG FIXED:**
-The admin dashboard was showing sponsored meals twice - once for the original orderer and once for the sponsor, 
-leading to inflated totals (80€ instead of 30€).
+The /api/orders/breakfast-history/{department_id} endpoint was double-counting sponsor orders by adding 
+the full sponsor order total_price (which includes both sponsor's own cost + sponsored costs for others) 
+instead of only the sponsor's own cost.
 
-**FIXES IMPLEMENTED:**
-1. **Individual Employee Orders**: Sponsored employees now show only non-sponsored parts
-   - Breakfast sponsored: Hide rolls/eggs, show coffee/lunch
-   - Lunch sponsored: Hide lunch, show breakfast/coffee
-2. **Breakfast Summary**: Overall totals now exclude sponsored items to prevent double-counting
-3. **Sponsor Orders**: Sponsors show their full order (including sponsored details)
+**FIX IMPLEMENTED:**
+Modified lines 1240-1242 and 1297-1299 in server.py to handle sponsor orders correctly by calculating 
+'sponsor_own_cost = total_price - sponsor_total_cost' for sponsor orders. This ensures sponsored costs 
+are not double-counted in the daily summary while maintaining correct individual employee balances.
 
-**TEST SCENARIO:**
-1. Create 3 employees in Department 3 with breakfast + lunch orders
-2. Each orders: 2€ breakfast + 5€ lunch + 1€ coffee = 8€ total
-3. Employee 3 sponsors lunch for all (should pay 3×5€ = 15€ extra)
-4. **VERIFICATION**: Admin dashboard daily summary should show:
-   - Employee 1: 2€ breakfast + 1€ coffee = 3€ (lunch sponsored)
-   - Employee 2: 2€ breakfast + 1€ coffee = 3€ (lunch sponsored) 
-   - Employee 3: 2€ breakfast + 5€ lunch + 1€ coffee + 15€ sponsored = 23€
-   - **TOTAL**: 3€ + 3€ + 23€ = 29€ (NOT 39€ with double-counting)
+**TEST SCENARIO (Exact user report):**
+1. Create 5 employees who order lunch (5×5€ = 25€) 
+2. Create 1 employee who orders breakfast with an egg (0.50€)
+3. Sponsor the lunch for all 5 employees using one of them as sponsor
+4. **VERIFICATION**: Daily summary total_amount should show correct 25.50€ instead of previous 30.50€ (5€ extra)
+5. Verify individual employee balances still work correctly (sponsored employees show €0.00, sponsor shows correct amount)
+6. Compare breakfast-history endpoint with daily-summary endpoint to ensure they now match
 
 **CRITICAL VERIFICATION:**
-- NO double-counting in daily summary totals
-- Sponsored employees show only non-sponsored items
-- Overall breakfast summary excludes sponsored items
-- Sponsor shows full breakdown including sponsored costs
+- Daily summary shows 25.50€ (NOT 30.50€ with 5€ extra)
+- Breakfast-history endpoint matches daily-summary endpoint
+- Individual employee balances are correct
+- No double-counting of sponsor costs in total_amount calculation
 
 **Use Department 3:**
 - Admin: admin3
-- Focus on daily summary accuracy
-- Verify total amounts match actual costs paid
+- Focus on exact user scenario recreation
+- Verify the specific 5€ discrepancy is eliminated
 """
 
 import requests
