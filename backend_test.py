@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
-NEW CLEAN ARCHITECTURE TEST - COMPLETELY REBUILT SPONSORING SYSTEM
+REVIEW REQUEST SPECIFIC TESTING - THREE CRITICAL SPONSORING ISSUES
 
-Test the COMPLETELY REBUILT sponsoring system to verify all three bugs are fixed:
+Test the three specific issues from the screenshot:
 
-**NEW CLEAN ARCHITECTURE TEST**
-1. Create a fresh test scenario in Department 2 to match user's exact example
-2. Create 5 employees: 1 sponsor ("Brauni") + 4 others  
-3. Sponsor orders: breakfast items (2.50€) + lunch (5€) = 7.50€ total
-4. Other 4 employees: lunch only (5€ each) = 20€ total
-5. Sponsor sponsors lunch for all 5 employees
+**Create Test Scenario:**
+1. Create 5 employees in Department 2
+2. Sponsor orders: breakfast (5€) + lunch (5€) = 10€ 
+3. 4 others order: lunch only (5€ each) = 20€
+4. Execute lunch sponsoring
 
-**Expected Results with NEW LOGIC:**
-- Total sponsored cost: 25€ (5×5€ for all lunches)
-- Sponsor contributed amount: 5€ (their own lunch)  
-- Sponsor additional cost: 25€ - 5€ = 20€ (for the other 4)
-- Sponsor final balance: 7.50€ (original order) + 20€ (additional) = 27.50€ ✅
+**Issue 1: Employee Profile - Missing Details**
+- Check sponsor's order in employee profile
+- Verify shows: "Mittagessen wurde von dir ausgegeben, vielen Dank!"
+- Verify shows detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter"
+- Verify total_price shows: 30€ (10€ own + 20€ sponsored) NOT just 5€
 
-**Critical Verification Points:**
-1. **Bug 1 FIXED**: Sponsor balance = 27.50€ (NOT 32.50€ - no double-charging)
-2. **Bug 2 FIXED**: Admin dashboard shows accurate sponsoring data  
-3. **Bug 3 FIXED**: Only lunch items struck through, not breakfast items
-4. **Clean Logic**: sponsor_additional_cost calculation works correctly
-5. **Atomic Updates**: All database changes work properly
+**Issue 2: Admin Dashboard - Employee Orders**  
+- Check sponsor's order in admin employee management
+- Verify same detailed breakdown appears
+- Verify total shows correct amount including sponsoring
 
-Use Department 2 (admin2) and verify the NEW implementation correctly handles the user's specified logic where sponsor pays for everyone including themselves, but their own cost is already in their original order.
+**Issue 3: Admin Dashboard - Daily Summary**
+- Check daily summary shows sponsor's full amount (30€) 
+- NOT just individual meal (5€)
+- Verify total_amount includes full sponsoring cost
 
-Focus on testing the rebuilt logic's core principle: sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
+Focus on verifying the total_price of sponsor orders shows the full amount (own + sponsored costs) and detailed breakdown appears correctly in all views.
 """
 
 import requests
