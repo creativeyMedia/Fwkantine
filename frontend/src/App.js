@@ -516,6 +516,17 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
           )}
         </div>
       </div>
+
+      {/* Success Notification for Profile */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
     </div>
   );
 };
