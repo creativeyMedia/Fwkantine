@@ -444,12 +444,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               // Check if this item should be struck through (sponsored)
                               const isSponsored = item.is_sponsored && !item.is_sponsor_order;
                               const isSponsoredItem = isSponsored && (
-                                // Check if it's a sponsored item (breakfast items, not coffee)
-                                orderItem.description.includes('Brötchen') || 
-                                orderItem.description.includes('Ei') || 
-                                orderItem.description.includes('Mittagessen') ||
-                                (item.sponsored_meal_type === 'breakfast' && !orderItem.description.includes('Kaffee')) ||
-                                (item.sponsored_meal_type === 'lunch' && orderItem.description.includes('Mittagessen'))
+                                // For lunch sponsoring: only strikethrough lunch items
+                                (item.sponsored_meal_type === 'lunch' && orderItem.description.includes('Mittagessen')) ||
+                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee or lunch
+                                (item.sponsored_meal_type === 'breakfast' && 
+                                  (orderItem.description.includes('Brötchen') || orderItem.description.includes('Ei')) &&
+                                  !orderItem.description.includes('Kaffee') && !orderItem.description.includes('Mittagessen'))
                               );
                               
                               return (
