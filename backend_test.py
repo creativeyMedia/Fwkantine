@@ -1,32 +1,18 @@
 #!/usr/bin/env python3
 """
-REVIEW REQUEST SPECIFIC TESTING - THREE CRITICAL SPONSORING ISSUES
+REVIEW REQUEST SPECIFIC DEBUG TESTING
 
-Test the three specific issues from the screenshot:
+Quick debug test - create minimal scenario and check backend logs:
 
-**Create Test Scenario:**
-1. Create 5 employees in Department 2
-2. Sponsor orders: breakfast (5€) + lunch (5€) = 10€ 
-3. 4 others order: lunch only (5€ each) = 20€
-4. Execute lunch sponsoring
+1. Create just 2 employees in Department 2
+2. Both order lunch (5€ each)  
+3. One sponsors lunch for both
+4. Check the DEBUG logs I just added to see the values:
+   - sponsor_order original total_price
+   - sponsor_additional_cost 
+   - calculated new total_price
 
-**Issue 1: Employee Profile - Missing Details**
-- Check sponsor's order in employee profile
-- Verify shows: "Mittagessen wurde von dir ausgegeben, vielen Dank!"
-- Verify shows detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter"
-- Verify total_price shows: 30€ (10€ own + 20€ sponsored) NOT just 5€
-
-**Issue 2: Admin Dashboard - Employee Orders**  
-- Check sponsor's order in admin employee management
-- Verify same detailed breakdown appears
-- Verify total shows correct amount including sponsoring
-
-**Issue 3: Admin Dashboard - Daily Summary**
-- Check daily summary shows sponsor's full amount (30€) 
-- NOT just individual meal (5€)
-- Verify total_amount includes full sponsoring cost
-
-Focus on verifying the total_price of sponsor orders shows the full amount (own + sponsored costs) and detailed breakdown appears correctly in all views.
+Focus on seeing if the sponsor_additional_cost calculation is working and if the database update succeeds. Look for my DEBUG output in backend logs.
 """
 
 import requests
