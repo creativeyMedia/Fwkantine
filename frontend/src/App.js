@@ -2468,6 +2468,16 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                             </div>
                           )}
                           
+                          {/* Show sponsored info if sponsored */}
+                          {order.is_sponsored && (
+                            <div className="mb-2 text-sm text-green-700 bg-green-100 p-2 rounded">
+                              {order.sponsored_message || (order.is_sponsor_order ? 
+                                `${order.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
+                                `Dieses ${order.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${order.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
+                              )}
+                            </div>
+                          )}
+                          
                           <div className={`text-gray-700 mb-2 ${isCancelled ? 'line-through' : ''}`}>
                             <strong>Details:</strong> {formatOrderDetails(order)}
                           </div>
