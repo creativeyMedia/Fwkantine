@@ -2770,6 +2770,9 @@ async def sponsor_meal(meal_data: dict):
         # Round sponsor own cost to avoid floating point errors
         sponsor_own_cost = round(sponsor_own_cost, 2)
         
+        # Calculate cost for others (excluding sponsor's own cost)
+        sponsored_for_others_cost = total_cost - sponsor_own_cost
+        
         if sponsor_order:
             # Modify sponsor's existing order to show sponsorship details
             sponsor_description = f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde an alle Kollegen ausgegeben, vielen Dank!"
