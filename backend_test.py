@@ -158,7 +158,7 @@ class MealSponsoringTester:
             return False
     
     def create_breakfast_lunch_orders(self):
-        """Create 3 breakfast orders with lunch for the specific test case"""
+        """Create 3 identical orders: breakfast (5€) + lunch (5€) = 10€ each"""
         try:
             if len(self.test_employees) < 3:
                 self.log_result(
@@ -168,22 +168,23 @@ class MealSponsoringTester:
                 )
                 return False
             
-            # Create identical orders for all 3 employees: breakfast items + lunch
+            # Create identical orders for all 3 employees: breakfast (5€) + lunch (5€) = 10€ total
             orders_created = 0
             
             for i in range(3):
                 employee = self.test_employees[i]
+                # Simple order: 1 roll half + lunch to get approximately 10€ total
                 order_data = {
                     "employee_id": employee["id"],
                     "department_id": DEPARTMENT_ID,
                     "order_type": "breakfast",
                     "breakfast_items": [{
-                        "total_halves": 2,
+                        "total_halves": 1,
                         "white_halves": 1,
-                        "seeded_halves": 1,
-                        "toppings": ["ruehrei", "kaese"],
-                        "has_lunch": True,  # Each order includes lunch
-                        "boiled_eggs": 1,
+                        "seeded_halves": 0,
+                        "toppings": ["ruehrei"],  # 1 topping for 1 roll half
+                        "has_lunch": True,  # Each order includes lunch (5€)
+                        "boiled_eggs": 0,
                         "has_coffee": False
                     }]
                 }
@@ -201,7 +202,7 @@ class MealSponsoringTester:
                 self.log_result(
                     "Create Breakfast+Lunch Orders",
                     True,
-                    f"Successfully created {orders_created} breakfast+lunch orders for testing"
+                    f"Successfully created {orders_created} breakfast+lunch orders (each ~10€: 5€ breakfast + 5€ lunch)"
                 )
                 return True
             else:
