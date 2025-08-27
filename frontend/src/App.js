@@ -2113,6 +2113,58 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
+  const handleSponsorMeal = async (mealType) => {
+    try {
+      const sponsorEmployee = employees.find(emp => emp.id === sponsorEmployeeId);
+      if (!sponsorEmployee) {
+        alert('Bitte wählen Sie einen Zahler aus.');
+        return;
+      }
+
+      const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
+      
+      if (!window.confirm(
+        `${mealTypeLabel} für ${sponsorDate} von ${sponsorEmployee.name} übernehmen lassen?\n\n` +
+        `Dies überträgt alle ${mealTypeLabel}-Kosten des Tages auf ${sponsorEmployee.name}.`
+      )) {
+        return;
+      }
+
+      const response = await axios.post(`${API}/department-admin/sponsor-meal`, {
+        department_id: currentDepartment.department_id,
+        date: sponsorDate,
+        meal_type: mealType,
+        sponsor_employee_id: sponsorEmployeeId,
+        sponsor_employee_name: sponsorEmployee.name
+      });
+
+      const result = response.data;
+      
+      alert(
+        `${mealTypeLabel} erfolgreich gesponsert!\n\n` +
+        `Gesponserte Artikel: ${result.sponsored_items}\n` +
+        `Gesamtkosten: ${result.total_cost} €\n` +
+        `Betroffene Mitarbeiter: ${result.affected_employees}\n` +
+        `Zahler: ${result.sponsor}`
+      );
+
+      // Refresh employee data to show updated balances
+      fetchEmployees();
+      
+      // Reset form
+      setSponsorEmployeeId('');
+      
+    } catch (error) {
+      console.error('Fehler beim Sponsoring:', error);
+      
+      let errorMessage = 'Fehler beim Sponsoring der Mahlzeit';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      alert(errorMessage);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
