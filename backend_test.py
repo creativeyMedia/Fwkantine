@@ -1,47 +1,45 @@
 #!/usr/bin/env python3
 """
-MEAL SPONSORING BALANCE CALCULATION TEST
+FLOATING POINT ROUNDING FIXES TEST FOR MEAL SPONSORING
 
-FOCUS: Test the CORRECTED balance calculation logic for the meal sponsoring feature.
-Focus on the specific test case reported by the user.
+FOCUS: Test the FINAL corrected meal sponsoring logic with floating point rounding fixes.
 
-**USER'S TEST CASE:**
-- 4 employees in "2. Wachabteilung" 
-- Each orders EXACTLY the same: 2x white rolls (1€) + 3x eggs (1€) + 1x coffee (1€) = 3€ per person
-- Total breakfast cost: 12€
-- After breakfast sponsoring by one employee
+**CRITICAL FLOATING POINT BUG FIX TO VERIFY:**
+The user reported that employees should have 1.00€ balance but got 0.80€ (0.20€ missing), 
+and the sponsor got 11.80€ instead of 11.00€ (0.80€ extra). This was caused by floating 
+point precision errors like `0.7999999999999998` instead of `0.8`.
 
-**EXPECTED RESULTS:**
-- Sponsored costs: 4 employees × 2€ (rolls + eggs) = 8€
-- Sponsor should have: 3€ (own order) - 2€ (own sponsored parts) + 8€ (pays for all) = 9€ balance
-- Others should have: 3€ (own order) - 2€ (sponsored parts) = 1€ balance (only coffee)
+**ROUNDING FIXES IMPLEMENTED:**
+- Added `round(total_cost, 2)` 
+- Added `round(employee_breakfast_cost, 2)`
+- Added `round(sponsor_own_cost, 2)`
+- Added `round(new_balance, 2)` for all balance updates
 
-**ACTUAL WRONG RESULTS (to verify fix):**
-- Sponsor had: 11,80€ (wrong)
-- Others had: 0,80€ (wrong)
+**USER'S EXACT TEST CASE:**
+- 5 employees in Department 2 (including Julian Takke as sponsor)
+- Each orders: 2x white rolls (0.50€ each) + 2x eggs (0.50€ each) + 1x coffee (1.00€) = 3.00€ per person
+- Total: 15.00€
+- Sponsored costs: 5 × 2.00€ = 10.00€
+- Coffee costs remain: 5 × 1.00€ = 5.00€
+
+**EXPECTED EXACT RESULTS (after rounding fix):**
+- Sponsor (Julian Takke): 3.00€ - 2.00€ + 10.00€ = **11.00€** (not 11.80€)
+- Others: 3.00€ - 2.00€ = **1.00€** (not 0.80€)
 
 **TEST FOCUS:**
-1. Create 4 identical breakfast orders in Department 2
-2. Verify initial balances are 3€ each (total 12€)
-3. Test breakfast sponsoring by one employee
-4. Verify CORRECTED balance calculations:
-   - Sponsor: 9€ balance
-   - Others: 1€ balance each
-5. Verify sponsored messages are added to orders
-6. Check that total system balance remains correct
+1. Create 5 identical orders in Department 2
+2. Verify initial balances are exactly 3.00€ each
+3. Perform breakfast sponsoring
+4. Verify EXACT balances after rounding fix:
+   - Sponsor: exactly 11.00€
+   - Others: exactly 1.00€ each
+5. NO MORE floating point errors like 0.7999999999999998
 
-**Use Department 2 credentials:**
-- Employee: password2
+**Use Department 2:**
 - Admin: admin2
+- Create 5 identical test orders with exact amounts
 
-**Critical Fix to Verify:** 
-The sponsor balance calculation now includes: `total_cost - sponsor_own_cost` instead of just `total_cost`, which should fix the double-charging issue.
-
-BACKEND URL: https://canteen-manager-1.preview.emergentagent.com/api
-DEPARTMENT: 2. Wachabteilung (fw4abteilung2)
-ADMIN CREDENTIALS: admin2
-
-PURPOSE: Verify the corrected balance calculation logic for the specific user test case.
+**Critical Fix:** All balance calculations now use `round(value, 2)` to prevent floating point precision errors that caused the 0.20€ discrepancies.
 """
 
 import requests
@@ -50,11 +48,11 @@ import sys
 from datetime import datetime, date, timedelta
 import uuid
 
-# Configuration - Use production backend URL from frontend/.env
+# Configuration - Use Department 2 as specified in review request
 BASE_URL = "https://canteen-manager-1.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "4. Wachabteilung"
-DEPARTMENT_ID = "fw4abteilung4"
-ADMIN_PASSWORD = "admin4"
+DEPARTMENT_NAME = "2. Wachabteilung"
+DEPARTMENT_ID = "fw4abteilung2"
+ADMIN_PASSWORD = "admin2"
 
 class MealSponsoringTester:
     def __init__(self):
