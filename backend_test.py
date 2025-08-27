@@ -104,9 +104,9 @@ class MealSponsoringTester:
             return False
     
     def create_test_employees(self):
-        """Create 5 test employees for lunch sponsoring scenario"""
+        """Create 3 test employees for Department 3 lunch sponsoring scenario"""
         try:
-            employee_names = ["Employee1", "Employee2", "Employee3", "Employee4", "Employee5"]
+            employee_names = ["TestEmp1_Dept3", "TestEmp2_Dept3", "TestEmp3_Dept3"]
             created_employees = []
             
             for name in employee_names:
@@ -128,22 +128,22 @@ class MealSponsoringTester:
                 response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
                 if response.status_code == 200:
                     existing_employees = response.json()
-                    # Use first 5 employees for testing
-                    self.test_employees = existing_employees[:5]
+                    # Use first 3 employees for testing
+                    self.test_employees = existing_employees[:3]
                     created_employees = self.test_employees
             
-            if len(created_employees) >= 5:  # Need exactly 5 employees for the test case
+            if len(created_employees) >= 3:  # Need exactly 3 employees for the test case
                 self.log_result(
                     "Create Test Employees",
                     True,
-                    f"Successfully prepared {len(created_employees)} test employees for lunch sponsoring test"
+                    f"Successfully prepared {len(created_employees)} test employees for Department 3 lunch sponsoring test"
                 )
                 return True
             else:
                 self.log_result(
                     "Create Test Employees",
                     False,
-                    error=f"Could not prepare enough test employees. Got {len(created_employees)}, need exactly 5"
+                    error=f"Could not prepare enough test employees. Got {len(created_employees)}, need exactly 3"
                 )
                 return False
                 
