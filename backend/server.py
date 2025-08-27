@@ -1191,7 +1191,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             "timestamp": {
                 "$gte": start_of_day_utc.isoformat(),
                 "$lte": end_of_day_utc.isoformat()
-            }
+            },
+            "$or": [
+                {"is_cancelled": {"$exists": False}},  # Legacy orders without is_cancelled field
+                {"is_cancelled": False}                # Explicitly not cancelled
+            ]
         }).to_list(1000)
         
         if orders:  # Only include dates with orders
