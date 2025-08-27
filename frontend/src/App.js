@@ -4903,10 +4903,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             </button>
                           </div>
                         )}
-                      </div>
-                      
-                      {/* Meal Sponsoring Buttons */}
-                      <div className="flex items-center space-x-2 ml-4">
+                        </div>
+                        
+                        {/* Meal Sponsoring Buttons */}
                         <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded border border-green-200">
                           <span className="text-xs font-medium text-green-800">Ausgeben:</span>
                           <button
@@ -4932,9 +4931,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             🍽️
                           </button>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
+                        
                         {/* Delete Button */}
                         <button
                           onClick={(e) => {
