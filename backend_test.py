@@ -866,13 +866,19 @@ class MealSponsoringTester:
             self.log_result("Create Additional Lunch Orders", False, error=str(e))
             return False
 
-    def run_meal_sponsoring_tests(self):
-        """Run all meal sponsoring tests"""
-        print("🍽️ MEAL SPONSORING FEATURE TEST")
+    def run_meal_sponsoring_critical_bug_fixes_tests(self):
+        """Run all meal sponsoring critical bug fixes tests"""
+        print("🍽️ MEAL SPONSORING CRITICAL BUG FIXES TEST")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME} ({DEPARTMENT_ID})")
         print(f"Admin Password: {ADMIN_PASSWORD}")
+        print("=" * 80)
+        print("🔧 TESTING CRITICAL BUG FIXES:")
+        print("   1. Correct Cost Calculation (breakfast = rolls+eggs only)")
+        print("   2. No Double Charging of sponsor")
+        print("   3. Sponsored Messages in German")
+        print("   4. Security Features (date restrictions, duplicate prevention)")
         print("=" * 80)
         print()
         
@@ -892,38 +898,42 @@ class MealSponsoringTester:
             print("❌ Cannot proceed without test employees")
             return False
         
-        # Test 3: Create Breakfast Orders
-        print("🧪 TEST 3: Create Breakfast Orders")
+        # Test 3: Create Breakfast Orders (with rolls + eggs + lunch + coffee)
+        print("🧪 TEST 3: Create Breakfast Orders (rolls + eggs + lunch + coffee)")
         test3_ok = self.create_breakfast_orders()
         
-        # Test 4: Test Breakfast Sponsoring (test this first before lunch sponsoring)
-        print("🧪 TEST 4: Test Breakfast Sponsoring")
-        test4_ok = self.test_breakfast_sponsoring()
+        # Test 4: Test Breakfast Sponsoring - Correct Calculation (CRITICAL)
+        print("🧪 TEST 4: Test Breakfast Sponsoring - Correct Calculation (ONLY rolls + eggs)")
+        test4_ok = self.test_breakfast_sponsoring_correct_calculation()
         
-        # Test 5: Create Additional Lunch Orders (for separate lunch sponsoring test)
-        print("🧪 TEST 5: Create Additional Lunch Orders")
-        test5_ok = self.create_additional_lunch_orders()
+        # Test 5: Verify No Double Charging (CRITICAL)
+        print("🧪 TEST 5: Verify No Double Charging")
+        test5_ok = self.verify_no_double_charging()
         
-        # Test 6: Test Lunch Sponsoring
-        print("🧪 TEST 6: Test Lunch Sponsoring")
-        test6_ok = self.test_lunch_sponsoring()
+        # Test 6: Verify Sponsored Messages (CRITICAL)
+        print("🧪 TEST 6: Verify Sponsored Messages in German")
+        test6_ok = self.verify_sponsored_messages()
         
-        # Test 7: Verify Sponsored Orders Audit Trail
-        print("🧪 TEST 7: Verify Sponsored Orders Audit Trail")
-        test7_ok = self.verify_sponsored_orders_audit_trail()
+        # Test 7: Create Additional Lunch Orders (for separate lunch sponsoring test)
+        print("🧪 TEST 7: Create Additional Lunch Orders")
+        test7_ok = self.create_additional_lunch_orders()
         
-        # Test 8: Verify Sponsor Balance Charged
-        print("🧪 TEST 8: Verify Sponsor Balance Charged")
-        test8_ok = self.verify_sponsor_balance_charged()
+        # Test 8: Test Lunch Sponsoring - Only Lunch Costs (CRITICAL)
+        print("🧪 TEST 8: Test Lunch Sponsoring - Only Lunch Costs")
+        test8_ok = self.test_lunch_sponsoring_only_lunch_costs()
         
-        # Test 9: Test Invalid Sponsoring Scenarios
-        print("🧪 TEST 9: Test Invalid Sponsoring Scenarios")
-        test9_ok = self.test_invalid_sponsoring_scenarios()
+        # Test 9: Test Security Restrictions (CRITICAL)
+        print("🧪 TEST 9: Test Security Restrictions")
+        test9_ok = self.test_security_restrictions()
+        
+        # Test 10: Verify Sponsored Orders Audit Trail
+        print("🧪 TEST 10: Verify Sponsored Orders Audit Trail")
+        test10_ok = self.verify_sponsored_orders_audit_trail()
         
         # Summary
         self.print_test_summary()
         
-        return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok, test7_ok, test8_ok, test9_ok])
+        return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok, test7_ok, test8_ok, test9_ok, test10_ok])
     
     def print_test_summary(self):
         """Print test summary"""
