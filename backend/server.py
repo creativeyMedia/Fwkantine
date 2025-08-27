@@ -2639,9 +2639,10 @@ async def sponsor_meal(meal_data: dict):
                 sponsor_contributed_amount = calc["sponsored_amount"]
                 break
         
-        # WICHTIG: Sponsor zahlt für ALLE (inkl. sich selbst), aber seine eigenen Kosten sind schon in seiner Bestellung
-        # Also: sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
-        sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
+        # WICHTIG: Sponsor zahlt für ALLE (inkl. sich selbst) - das ist die korrekte Logik laut Benutzer
+        # Der Sponsor zahlt die gesamten gesponserten Kosten (25€ für alle Mittagessen)
+        # Seine eigenen Kosten sind schon in seiner ursprünglichen Bestellung, aber er übernimmt trotzdem alle
+        sponsor_additional_cost = total_sponsored_cost
         sponsor_additional_cost = round(sponsor_additional_cost, 2)
         
         # === PHASE 5: ATOMISCHE UPDATES ===
