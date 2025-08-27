@@ -4356,7 +4356,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         ) : (
                           <div className="flex items-center space-x-1">
                             <span className="font-semibold text-orange-600">
-                              €{(day.daily_lunch_price || 0).toFixed(2)}
+                              {(day.daily_lunch_price || 0).toFixed(2)} €
                             </span>
                             <button
                               onClick={(e) => {
