@@ -2526,26 +2526,50 @@ async def sponsor_meal(meal_data: dict):
             for item_name, count in sponsored_items.items()
         ])
         
-        # Create sponsored meal order entry
-        sponsored_order = {
-            "id": str(uuid.uuid4()),
-            "employee_id": sponsor_employee_id,
-            "department_id": department_id,
-            "order_type": f"{meal_type}_sponsored",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "total_price": total_cost,
-            "sponsored_date": date_str,
-            "sponsored_employee_count": len(affected_employees),
-            "sponsored_items": items_description,
-            "readable_items": [{
-                "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben ({items_description})",
-                "unit_price": f"für {len(affected_employees)} Mitarbeiter",
-                "total_price": f"{total_cost:.2f} €"
-            }]
-        }
+        # Check if sponsor has an order for this day - if so, modify it instead of creating new one
+        sponsor_order = None
+        for order in orders:
+            if order["employee_id"] == sponsor_employee_id:
+                sponsor_order = order
+                break
         
-        # Insert sponsored order
-        await db.orders.insert_one(sponsored_order)
+        if sponsor_order:
+            # Modify sponsor's existing order to show sponsorship details
+            sponsor_description = f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde an alle Kollegen ausgegeben, vielen Dank!"
+            sponsor_details = f"Gesponserte Artikel: {items_description} | Gesamtkosten: {total_cost:.2f} € | Betroffene Mitarbeiter: {len(affected_employees)}"
+            
+            await db.orders.update_one(
+                {"id": sponsor_order["id"]},
+                {"$set": {
+                    "is_sponsor_order": True,
+                    "sponsor_message": sponsor_description,
+                    "sponsor_details": sponsor_details,
+                    "sponsor_total_cost": total_cost,
+                    "sponsor_employee_count": len(affected_employees),
+                    "total_price": sponsor_order.get("total_price", 0) + total_cost  # Add sponsored cost to their own order
+                }}
+            )
+        else:
+            # Sponsor has no order for this day - create sponsored meal order entry
+            sponsored_order = {
+                "id": str(uuid.uuid4()),
+                "employee_id": sponsor_employee_id,
+                "department_id": department_id,
+                "order_type": f"{meal_type}_sponsored",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "total_price": total_cost,
+                "sponsored_date": date_str,
+                "sponsored_employee_count": len(affected_employees),
+                "sponsored_items": items_description,
+                "readable_items": [{
+                    "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben ({items_description})",
+                    "unit_price": f"für {len(affected_employees)} Mitarbeiter",
+                    "total_price": f"{total_cost:.2f} €"
+                }]
+            }
+            
+            # Insert sponsored order
+            await db.orders.insert_one(sponsored_order)
         
         # Mark original orders as sponsored and adjust employee balances
         for order in orders:
