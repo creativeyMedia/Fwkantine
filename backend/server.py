@@ -2517,14 +2517,14 @@ async def sponsor_meal(meal_data: dict):
             raise HTTPException(status_code=400, detail=f"Sponsoring ist nur für heute ({today}) oder gestern ({yesterday}) möglich.")
         
         # === PHASE 2: DATENSAMMLUNG ===
-        start_of_day = datetime.combine(parsed_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-        end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        # Use Berlin timezone for day boundaries
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(parsed_date)
         
         # Get all breakfast orders for that day
         all_orders = await db.orders.find({
             "department_id": department_id,
             "order_type": "breakfast",
-            "timestamp": {"$gte": start_of_day.isoformat(), "$lte": end_of_day.isoformat()},
+            "timestamp": {"$gte": start_of_day_utc.isoformat(), "$lte": end_of_day_utc.isoformat()},
             "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
         }).to_list(1000)
         
