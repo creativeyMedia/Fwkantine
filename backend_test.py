@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
 """
-CRITICAL SPONSORING SYSTEM BUG FIXES VERIFICATION TEST
+NEW CLEAN ARCHITECTURE TEST - COMPLETELY REBUILT SPONSORING SYSTEM
 
-FOCUS: Test all three critical bugs in the sponsoring system that were just fixed:
+Test the COMPLETELY REBUILT sponsoring system to verify all three bugs are fixed:
 
-**Bug 1: Sponsor Balance Calculation (5€ zu viel)**
-1. Create the exact user scenario: Employee sponsors lunch for 4 others + himself (5 total lunches at 5€ each)  
-2. Sponsor also has breakfast items worth 2.50€
-3. Verify sponsor balance is now 27.50€ (25€ for all lunches + 2.50€ breakfast) NOT 32.50€
-4. Verify other employees have correct €0.00 for lunch costs
+**NEW CLEAN ARCHITECTURE TEST**
+1. Create a fresh test scenario in Department 2 to match user's exact example
+2. Create 5 employees: 1 sponsor ("Brauni") + 4 others  
+3. Sponsor orders: breakfast items (2.50€) + lunch (5€) = 7.50€ total
+4. Other 4 employees: lunch only (5€ each) = 20€ total
+5. Sponsor sponsors lunch for all 5 employees
 
-**Bug 2: Admin Dashboard Total Amount**
-1. Check the /api/orders/breakfast-history/{department_id} endpoint 
-2. Verify that sponsored orders are properly displayed in daily summary
-3. Ensure the daily total_amount correctly reflects actual costs (not inflated)
-4. Compare with employee individual amounts to ensure consistency
+**Expected Results with NEW LOGIC:**
+- Total sponsored cost: 25€ (5×5€ for all lunches)
+- Sponsor contributed amount: 5€ (their own lunch)  
+- Sponsor additional cost: 25€ - 5€ = 20€ (for the other 4)
+- Sponsor final balance: 7.50€ (original order) + 20€ (additional) = 27.50€ ✅
 
-**Bug 3: Frontend Strikethrough Logic**
-1. Create a breakfast+lunch order for an employee
-2. Sponsor their lunch (not breakfast)
-3. Verify in employee dashboard that ONLY lunch is struck through, NOT breakfast items like rolls/eggs
+**Critical Verification Points:**
+1. **Bug 1 FIXED**: Sponsor balance = 27.50€ (NOT 32.50€ - no double-charging)
+2. **Bug 2 FIXED**: Admin dashboard shows accurate sponsoring data  
+3. **Bug 3 FIXED**: Only lunch items struck through, not breakfast items
+4. **Clean Logic**: sponsor_additional_cost calculation works correctly
+5. **Atomic Updates**: All database changes work properly
 
-**Use Department 2:**
-- Admin: admin2 password
-- Focus on exact user scenario recreation as specified in review request
-- Test with Department 2 to match the user's example
+Use Department 2 (admin2) and verify the NEW implementation correctly handles the user's specified logic where sponsor pays for everyone including themselves, but their own cost is already in their original order.
+
+Focus on testing the rebuilt logic's core principle: sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
 """
 
 import requests
