@@ -2361,38 +2361,59 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
               
               {/* Orders List */}
               <div className="space-y-3">
-                {orders.map((order) => (
-                  <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-2">
-                          <span className="font-semibold text-lg">
-                            {order.order_type === 'breakfast' ? 'Frühstück' : 
-                             order.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {formatDate(order.timestamp)}
-                          </span>
-                          <span className="bg-green-100 text-green-800 text-sm px-2 py-1 rounded">
-                            {order.total_price.toFixed(2)} €
-                          </span>
+                {orders.map((order) => {
+                  const isCancelled = order.is_cancelled;
+                  const cardStyle = isCancelled ? "border-red-200 bg-red-50" : "border-gray-200 hover:bg-gray-50";
+                  
+                  return (
+                    <div key={order.id} className={`border ${cardStyle} rounded-lg p-4`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-2">
+                            <span className={`font-semibold text-lg ${isCancelled ? 'line-through text-red-700' : ''}`}>
+                              {order.order_type === 'breakfast' ? 'Frühstück' : 
+                               order.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {formatDate(order.timestamp)}
+                            </span>
+                            <span className={`${isCancelled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} text-sm px-2 py-1 rounded ${isCancelled ? 'line-through' : ''}`}>
+                              {order.total_price.toFixed(2)} €
+                            </span>
+                            {isCancelled && (
+                              <span className="bg-red-200 text-red-900 text-xs px-2 py-1 rounded font-semibold">
+                                STORNIERT
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* Show cancellation info if cancelled */}
+                          {isCancelled && (
+                            <div className="mb-2 text-sm text-red-700 bg-red-100 p-2 rounded">
+                              <strong>Storniert durch {order.cancelled_by === 'employee' ? 'Mitarbeiter' : 'Admin'}</strong> ({order.cancelled_by_name}) am {formatDate(order.cancelled_at)}
+                            </div>
+                          )}
+                          
+                          <div className={`text-gray-700 mb-2 ${isCancelled ? 'line-through' : ''}`}>
+                            <strong>Details:</strong> {formatOrderDetails(order)}
+                          </div>
                         </div>
-                        <div className="text-gray-700 mb-2">
-                          <strong>Details:</strong> {formatOrderDetails(order)}
+                        
+                        <div className="flex gap-2 ml-4">
+                          {/* Only show delete button for non-cancelled orders */}
+                          {!isCancelled && (
+                            <button
+                              onClick={() => deleteOrder(order.id)}
+                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                            >
+                              Löschen
+                            </button>
+                          )}
                         </div>
-                      </div>
-                      
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => deleteOrder(order.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                        >
-                          Löschen
-                        </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
