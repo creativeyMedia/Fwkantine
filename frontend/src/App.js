@@ -4588,9 +4588,18 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [editingLunchPrice, setEditingLunchPrice] = useState(null); // date being edited
   const [lunchPriceInput, setLunchPriceInput] = useState(''); // temporary input value
   const [updatingLunchPrice, setUpdatingLunchPrice] = useState(null); // date being updated
+  
+  // Sponsoring Modal State
+  const [showSponsorModal, setShowSponsorModal] = useState(false);
+  const [sponsorModalData, setSponsorModalData] = useState({
+    mealType: '',
+    date: '',
+  });
+  const [departmentEmployees, setDepartmentEmployees] = useState([]);
 
   useEffect(() => {
     fetchBreakfastHistory();
+    fetchDepartmentEmployees();
   }, [currentDepartment]);
 
   const fetchBreakfastHistory = async () => {
