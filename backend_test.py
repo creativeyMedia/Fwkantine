@@ -1,46 +1,47 @@
 #!/usr/bin/env python3
 """
-MEAL SPONSORING FEATURE CRITICAL BUG FIXES TEST
+MEAL SPONSORING BALANCE CALCULATION TEST
 
-FOCUS: Test the corrected meal sponsoring feature logic in the German canteen management system.
-Focus on verifying the critical bug fixes.
+FOCUS: Test the CORRECTED balance calculation logic for the meal sponsoring feature.
+Focus on the specific test case reported by the user.
 
-**CRITICAL ISSUES FIXED - VERIFY THESE:**
+**USER'S TEST CASE:**
+- 4 employees in "2. Wachabteilung" 
+- Each orders EXACTLY the same: 2x white rolls (1€) + 3x eggs (1€) + 1x coffee (1€) = 3€ per person
+- Total breakfast cost: 12€
+- After breakfast sponsoring by one employee
 
-1. **Correct Cost Calculation**:
-   - Breakfast sponsoring should ONLY include rolls + eggs (NO coffee, NO lunch)
-   - Lunch sponsoring should ONLY include lunch costs
-   - Must use actual menu prices from database
+**EXPECTED RESULTS:**
+- Sponsored costs: 4 employees × 2€ (rolls + eggs) = 8€
+- Sponsor should have: 3€ (own order) - 2€ (own sponsored parts) + 8€ (pays for all) = 9€ balance
+- Others should have: 3€ (own order) - 2€ (sponsored parts) = 1€ balance (only coffee)
 
-2. **No Double Charging**:
-   - Sponsor employee should NOT be charged twice
-   - Other employees should get sponsored costs subtracted from balance
-   - Verify sponsor gets either modified existing order OR new sponsored order (not both)
+**ACTUAL WRONG RESULTS (to verify fix):**
+- Sponsor had: 11,80€ (wrong)
+- Others had: 0,80€ (wrong)
 
-3. **Sponsored Messages**:
-   - Sponsor should get message: "Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!"
-   - Other employees should get: "Dieses Frühstück wurde von XYZ ausgegeben, bedanke dich bei ihm!"
+**TEST FOCUS:**
+1. Create 4 identical breakfast orders in Department 2
+2. Verify initial balances are 3€ each (total 12€)
+3. Test breakfast sponsoring by one employee
+4. Verify CORRECTED balance calculations:
+   - Sponsor: 9€ balance
+   - Others: 1€ balance each
+5. Verify sponsored messages are added to orders
+6. Check that total system balance remains correct
 
-4. **Security Features**:
-   - Only today/yesterday dates should be allowed
-   - Prevent duplicate sponsoring for same meal type and date
-   - Verify proper error messages
+**Use Department 2 credentials:**
+- Employee: password2
+- Admin: admin2
 
-**Test Scenarios:**
-1. Create breakfast orders with rolls + eggs + lunch + coffee
-2. Test breakfast sponsoring - verify only rolls + eggs are sponsored
-3. Test lunch sponsoring - verify only lunch costs are sponsored  
-4. Verify sponsor balance calculations
-5. Verify other employees get costs subtracted correctly
-6. Test security restrictions (future dates, duplicate sponsoring)
-7. Verify sponsored messages are added to orders
-8. Test edge cases and error handling
+**Critical Fix to Verify:** 
+The sponsor balance calculation now includes: `total_cost - sponsor_own_cost` instead of just `total_cost`, which should fix the double-charging issue.
 
 BACKEND URL: https://canteen-manager-1.preview.emergentagent.com/api
-DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
-ADMIN CREDENTIALS: admin1, admin2, admin3, admin4
+DEPARTMENT: 2. Wachabteilung (fw4abteilung2)
+ADMIN CREDENTIALS: admin2
 
-PURPOSE: Verify the corrected logic after critical bug fixes.
+PURPOSE: Verify the corrected balance calculation logic for the specific user test case.
 """
 
 import requests
