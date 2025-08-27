@@ -434,18 +434,43 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         
                         {item.readable_items && item.readable_items.length > 0 && (
                           <div className={`space-y-1 ${textStyle}`}>
-                            {item.readable_items.map((orderItem, idx) => (
-                              <div key={idx} className="text-sm flex justify-between items-start">
-                                <div className="flex-1">
-                                  <span className="font-medium">{orderItem.description}</span>
-                                  {orderItem.toppings && <span className="text-gray-600 block text-xs">mit {orderItem.toppings}</span>}
-                                  {orderItem.unit_price && <span className="text-gray-500 block text-xs">({orderItem.unit_price})</span>}
+                            {item.readable_items.map((orderItem, idx) => {
+                              // Check if this item should be struck through (sponsored)
+                              const isSponsored = item.is_sponsored && !item.is_sponsor_order;
+                              const isSponsoredItem = isSponsored && (
+                                // Check if it's a sponsored item (breakfast items, not coffee)
+                                orderItem.description.includes('Brötchen') || 
+                                orderItem.description.includes('Ei') || 
+                                orderItem.description.includes('Mittagessen') ||
+                                (item.sponsored_meal_type === 'breakfast' && !orderItem.description.includes('Kaffee')) ||
+                                (item.sponsored_meal_type === 'lunch' && orderItem.description.includes('Mittagessen'))
+                              );
+                              
+                              return (
+                                <div key={idx} className="text-sm flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <span className={`font-medium ${isSponsoredItem ? 'line-through text-gray-500' : ''}`}>
+                                      {orderItem.description}
+                                    </span>
+                                    {orderItem.toppings && (
+                                      <span className={`text-gray-600 block text-xs ${isSponsoredItem ? 'line-through text-gray-400' : ''}`}>
+                                        mit {orderItem.toppings}
+                                      </span>
+                                    )}
+                                    {orderItem.unit_price && (
+                                      <span className={`text-gray-500 block text-xs ${isSponsoredItem ? 'line-through text-gray-400' : ''}`}>
+                                        ({orderItem.unit_price})
+                                      </span>
+                                    )}
+                                  </div>
+                                  {orderItem.total_price && (
+                                    <span className={`text-sm font-medium text-right ml-2 ${isSponsoredItem ? 'line-through text-gray-400' : ''}`}>
+                                      {orderItem.total_price}
+                                    </span>
+                                  )}
                                 </div>
-                                {orderItem.total_price && (
-                                  <span className="text-sm font-medium text-right ml-2">{orderItem.total_price}</span>
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
