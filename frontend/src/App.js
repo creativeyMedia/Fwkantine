@@ -4235,7 +4235,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       setEditingLunchPrice(null);
       setLunchPriceInput('');
       
-      alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf €${newPrice.toFixed(2)} aktualisiert`);
+      alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf ${newPrice.toFixed(2)} € aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Mittagessen-Preises:', error);
       alert('Fehler beim Aktualisieren des Mittagessen-Preises');
