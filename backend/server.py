@@ -2425,18 +2425,40 @@ async def sponsor_meal(meal_data: dict):
         end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
         
         # Get all orders for that day and department
+        base_query = {
+            "department_id": department_id,
+            "timestamp": {
+                "$gte": start_of_day.isoformat(),
+                "$lte": end_of_day.isoformat()
+            },
+            "$or": [
+                {"is_cancelled": {"$exists": False}},
+                {"is_cancelled": False}
+            ]
+        }
+        
+        # Check if already sponsored for this meal type on this date
+        existing_sponsored = await db.orders.find_one({
+            **base_query,
+            "is_sponsored": True,
+            "order_type": "breakfast" if meal_type == "breakfast" else {"$in": ["breakfast"]},
+            "$or": [
+                {"sponsored_meal_type": meal_type},  # New field to track meal type
+                # Fallback for existing sponsored orders - check order content
+                {"order_type": f"{meal_type}_sponsored"} if meal_type == "lunch" else {}
+            ]
+        })
+        
+        if existing_sponsored:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} für {date_str} wurde bereits gesponsert."
+            )
+        
         if meal_type == "breakfast":
             orders = await db.orders.find({
-                "department_id": department_id,
+                **base_query,
                 "order_type": "breakfast",
-                "timestamp": {
-                    "$gte": start_of_day.isoformat(),
-                    "$lte": end_of_day.isoformat()
-                },
-                "$or": [
-                    {"is_cancelled": {"$exists": False}},
-                    {"is_cancelled": False}
-                ],
                 "$or": [
                     {"is_sponsored": {"$exists": False}},
                     {"is_sponsored": False}
@@ -2445,15 +2467,7 @@ async def sponsor_meal(meal_data: dict):
         else:  # lunch
             # For lunch, we need to find orders that have lunch items
             orders = await db.orders.find({
-                "department_id": department_id,
-                "timestamp": {
-                    "$gte": start_of_day.isoformat(),
-                    "$lte": end_of_day.isoformat()
-                },
-                "$or": [
-                    {"is_cancelled": {"$exists": False}},
-                    {"is_cancelled": False}
-                ],
+                **base_query,
                 "$or": [
                     {"is_sponsored": {"$exists": False}},
                     {"is_sponsored": False}
