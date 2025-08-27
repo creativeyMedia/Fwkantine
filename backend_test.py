@@ -1,46 +1,40 @@
 #!/usr/bin/env python3
 """
-CORRECTED MEAL SPONSORING LOGIC TEST - USER'S CORRECT UNDERSTANDING
+ADMIN DASHBOARD DAILY SUMMARY DOUBLE-COUNTING TEST
 
-FOCUS: Test the CORRECTED meal sponsoring logic with user's correct understanding.
+FOCUS: Test the corrected admin dashboard daily summary to eliminate double-counting of sponsored meals.
 
-**USER'S CORRECT LOGIC IMPLEMENTED:**
-- Sponsor orders own meal: 10€ (5€ breakfast + 5€ lunch)
-- Sponsor sponsors lunch for others: 25€ (5 people × 5€)
-- **Sponsor pays TOTAL**: 10€ (own meal) + 25€ (sponsored) = 35€
-- **NO neutralization** - sponsor pays own meal AND sponsored costs
+**CRITICAL BUG FIXED:**
+The admin dashboard was showing sponsored meals twice - once for the original orderer and once for the sponsor, 
+leading to inflated totals (80€ instead of 30€).
 
-**CRITICAL CORRECTION MADE:**
-Changed sponsor balance calculation from:
-```
-new_balance = current + total_cost - sponsor_own_cost  [WRONG]
-```
-To:
-```  
-new_balance = current + total_cost  [CORRECT]
-```
+**FIXES IMPLEMENTED:**
+1. **Individual Employee Orders**: Sponsored employees now show only non-sponsored parts
+   - Breakfast sponsored: Hide rolls/eggs, show coffee/lunch
+   - Lunch sponsored: Hide lunch, show breakfast/coffee
+2. **Breakfast Summary**: Overall totals now exclude sponsored items to prevent double-counting
+3. **Sponsor Orders**: Sponsors show their full order (including sponsored details)
 
 **TEST SCENARIO:**
-1. Create 3 employees in Department 3
-2. Each orders: breakfast (5€) + lunch (5€) = 10€ total
-3. Employee 3 sponsors lunch for all others
-4. **VERIFICATION**:
-   - Employee 3 balance: should be 35€ (10€ own + 25€ sponsored)
-   - Employee 3 total_price: should be 35€ (matching balance)
-   - Other employees: keep breakfast (5€), lunch refunded
-   - **NO MORE discrepancies** between balance and order
+1. Create 3 employees in Department 3 with breakfast + lunch orders
+2. Each orders: 2€ breakfast + 5€ lunch + 1€ coffee = 8€ total
+3. Employee 3 sponsors lunch for all (should pay 3×5€ = 15€ extra)
+4. **VERIFICATION**: Admin dashboard daily summary should show:
+   - Employee 1: 2€ breakfast + 1€ coffee = 3€ (lunch sponsored)
+   - Employee 2: 2€ breakfast + 1€ coffee = 3€ (lunch sponsored) 
+   - Employee 3: 2€ breakfast + 5€ lunch + 1€ coffee + 15€ sponsored = 23€
+   - **TOTAL**: 3€ + 3€ + 23€ = 29€ (NOT 39€ with double-counting)
 
-**MATHEMATICAL VERIFICATION:**
-- Sponsor original order: 10€
-- Sponsored lunch for others: 3 × 5€ = 15€  
-- Sponsor total balance: 10€ + 15€ = 25€
-- Sponsor total_price: 10€ + 15€ = 25€
-- **PERFECT MATCH** ✅
+**CRITICAL VERIFICATION:**
+- NO double-counting in daily summary totals
+- Sponsored employees show only non-sponsored items
+- Overall breakfast summary excludes sponsored items
+- Sponsor shows full breakdown including sponsored costs
 
 **Use Department 3:**
 - Admin: admin3
-- Verify user's correct logic is implemented
-- Ensure balance = total_price for sponsor orders
+- Focus on daily summary accuracy
+- Verify total amounts match actual costs paid
 """
 
 import requests
