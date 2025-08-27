@@ -2781,7 +2781,7 @@ async def sponsor_meal(meal_data: dict):
                 "sponsored_items": items_description,
                 "sponsor_cost_breakdown": cost_breakdown_text,
                 "readable_items": [{
-                    "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
+                    "description": f"✓ {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
                     "unit_price": cost_breakdown_text,
                     "total_price": f"{total_cost:.2f} €"
                 }]
