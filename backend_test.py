@@ -1,28 +1,51 @@
 #!/usr/bin/env python3
 """
-CRITICAL SHOPPING LIST BUG TESTING - SPONSORED BREAKFAST ORDERS
+CRITICAL FUNCTIONALITY DIAGNOSIS: Master Password & Cancellation Documentation Testing
 
-Test the critical shopping list bug after the fix:
+**CRITICAL FUNCTIONALITY DIAGNOSIS: Missing Master Password & Cancellation Documentation**
 
-**Create Test Scenario:**
-1. Clean up any existing sponsoring
-2. Create exactly 5 employees in Department 2
-3. All 5 employees order breakfast items (rolls + eggs) 
-4. Check breakfast-history BEFORE sponsoring - should show all 5 employees in shopping list
-5. Execute breakfast sponsoring for all 5 employees  
-6. Check breakfast-history AFTER sponsoring - should STILL show all 5 employees in shopping list
+Please perform comprehensive testing of two critical functions that may have been lost during previous code changes:
 
-**Critical Verification:**
-- BEFORE: Shopping list shows total quantities for all 5 employees
-- AFTER: Shopping list shows SAME total quantities (no change!)
-- Employee details: All 5 employees should remain in employee_orders list
-- Only balances should change, NOT the shopping quantities
+## **TEST 1: Master Password Login Functionality**
+**Expected Behavior**: Developer password "master123dev" should provide access to ALL department and admin dashboards
 
-**Expected Result:**
-The shopping list must remain identical before and after sponsoring. This verifies the fix works 
-and sponsored employees don't disappear from the statistics/einkaufsliste.
+**Test Scenarios**:
+1. **Department Login Test**: 
+   - POST `/api/login/department` with ANY department name + password "master123dev"
+   - Should return success with role "master_admin" and access_level "master"
+   - Test with departments: "1. Wachabteilung", "2. Wachabteilung", etc.
 
-Focus specifically on comparing the breakfast_summary and shopping_list fields in the breakfast-history response.
+2. **Admin Login Test**:
+   - POST `/api/login/department-admin` with ANY department name + admin_password "master123dev" 
+   - Should return success with role "master_admin" and access_level "master"
+
+**Verification Points**:
+- Check if MASTER_PASSWORD environment variable exists and equals "master123dev"
+- Verify backend logic at server.py lines 533-534 and 576-577
+- Test both correct department names and master password combinations
+
+## **TEST 2: Order Cancellation Documentation**
+**Expected Behavior**: Cancelled orders should show as red fields with "Storniert von Mitarbeiter" or "Storniert von Admin" messages in chronological order history
+
+**Test Scenarios**:
+1. **Create Test Order**: Create a breakfast/lunch order for a test employee
+2. **Employee Cancellation**: DELETE `/api/employee/{employee_id}/orders/{order_id}` - should set cancelled_by="employee"  
+3. **Admin Cancellation**: DELETE `/api/department-admin/orders/{order_id}` - should set cancelled_by="admin"
+4. **Order History Check**: Verify cancelled orders appear in order history with proper cancellation fields
+
+**Verification Points**:
+- Check `is_cancelled=true`, `cancelled_by` (employee/admin), `cancelled_by_name` fields
+- Verify cancelled orders are excluded from daily summaries but visible in history
+- Confirm chronological integration of cancelled orders
+
+## **Testing Protocol**:
+- Use Department "2. Wachabteilung" for testing (password: password2, admin: admin2)  
+- Create fresh test employees if needed
+- Test both missing functions thoroughly
+- Report exactly which aspects work vs. don't work
+- Provide specific error messages if functionality is broken
+
+**Expected Results**: Both functions should work correctly, but if either fails, provide detailed diagnosis of what's broken and needs repair.
 """
 
 import requests
