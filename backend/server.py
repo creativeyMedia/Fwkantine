@@ -1268,6 +1268,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     order_amount = 0
                     if order.get("is_sponsored") and not order.get("is_sponsor_order"):
                         # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
+                        # BUT KEEP THE EMPLOYEE IN THE STATISTICS FOR SHOPPING LIST!
                         if order.get("sponsored_meal_type") == "breakfast":
                             # Only coffee cost remains for breakfast sponsoring
                             for item in order.get("breakfast_items", []):
@@ -1289,17 +1290,20 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                     else:
                                         # Fall back to global lunch settings
                                         lunch_settings = await db.lunch_settings.find_one()
-                                        lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                                        order_amount -= lunch_price
-                        else:
-                            order_amount = order.get("total_price", 0)
+                                        if lunch_settings:
+                                            order_amount -= lunch_settings.get("price", 4.0)
+                                    break
+                        # Round to avoid floating point errors
+                        order_amount = round(order_amount, 2)
                     elif order.get("is_sponsor_order"):
-                        # For sponsor orders in individual employee calculation, count full total_price 
+                        # For sponsor orders, count full total_price 
                         order_amount = order.get("total_price", 0)
                     else:
                         # Regular orders - use full cost
                         order_amount = order.get("total_price", 0)
                     
+                    # ALWAYS add employee to statistics regardless of sponsoring status
+                    # This ensures shopping list includes all employees
                     employee_orders[employee_key]["total_amount"] += order_amount
                     
                     for item in order["breakfast_items"]:
