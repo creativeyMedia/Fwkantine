@@ -1012,7 +1012,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Meal Sponsoring Feature Testing"
+    - "Sponsor Message with Cost Information Improvement Testing"
   stuck_tasks:
     - "NEW Master Password Login Implementation Testing"
   test_all: false
