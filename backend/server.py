@@ -1473,33 +1473,35 @@ async def get_daily_summary(department_id: str):
                 if show_coffee:
                     employee_orders[employee_name]["has_coffee"] = True
                 
-                # Update overall summary
-                if "weiss" not in breakfast_summary:
-                    breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
-                if "koerner" not in breakfast_summary:
-                    breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
-                
-                breakfast_summary["weiss"]["halves"] += white_halves
-                breakfast_summary["koerner"]["halves"] += seeded_halves
-                
-                # Count toppings per employee
-                for topping in item["toppings"]:
-                    # Employee toppings - use simple integer count for frontend display compatibility
-                    if topping not in employee_orders[employee_name]["toppings"]:
-                        employee_orders[employee_name]["toppings"][topping] = 0
+                # Update overall summary only for visible items
+                if show_breakfast:
+                    if "weiss" not in breakfast_summary:
+                        breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
+                    if "koerner" not in breakfast_summary:
+                        breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
                     
-                    # Increment topping count for employee
-                    employee_orders[employee_name]["toppings"][topping] += 1
-                    
-                    # Distribute toppings proportionally for breakfast summary (simplified: assign to roll type with more halves)
-                    if white_halves >= seeded_halves:
-                        if topping not in breakfast_summary["weiss"]["toppings"]:
-                            breakfast_summary["weiss"]["toppings"][topping] = 0
-                        breakfast_summary["weiss"]["toppings"][topping] += 1
-                    else:
-                        if topping not in breakfast_summary["koerner"]["toppings"]:
-                            breakfast_summary["koerner"]["toppings"][topping] = 0
-                        breakfast_summary["koerner"]["toppings"][topping] += 1
+                    breakfast_summary["weiss"]["halves"] += white_halves
+                    breakfast_summary["koerner"]["halves"] += seeded_halves
+                
+                # Count toppings per employee (only if breakfast visible)
+                if show_breakfast:
+                    for topping in item["toppings"]:
+                        # Employee toppings - use simple integer count for frontend display compatibility
+                        if topping not in employee_orders[employee_name]["toppings"]:
+                            employee_orders[employee_name]["toppings"][topping] = 0
+                        
+                        # Increment topping count for employee
+                        employee_orders[employee_name]["toppings"][topping] += 1
+                        
+                        # Distribute toppings proportionally for breakfast summary (simplified: assign to roll type with more halves)
+                        if white_halves >= seeded_halves:
+                            if topping not in breakfast_summary["weiss"]["toppings"]:
+                                breakfast_summary["weiss"]["toppings"][topping] = 0
+                            breakfast_summary["weiss"]["toppings"][topping] += 1
+                        else:
+                            if topping not in breakfast_summary["koerner"]["toppings"]:
+                                breakfast_summary["koerner"]["toppings"][topping] = 0
+                            breakfast_summary["koerner"]["toppings"][topping] += 1
         
         elif order["order_type"] == "drinks" and order.get("drink_items"):
             for drink_id, quantity in order["drink_items"].items():
