@@ -429,6 +429,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               `${item.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
                               `Dieses ${item.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${item.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
                             )}
+                            {/* Show detailed sponsoring breakdown for sponsor orders */}
+                            {item.is_sponsor_order && item.sponsor_cost_breakdown && (
+                              <div className="mt-1 text-xs text-green-600">
+                                Ausgegeben: {item.sponsor_cost_breakdown} für {item.sponsor_employee_count} Mitarbeiter
+                              </div>
+                            )}
                           </div>
                         )}
                         
