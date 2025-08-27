@@ -2482,7 +2482,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Frühstück:</span>
-                <span className="font-bold text-blue-600">€{employee.breakfast_balance.toFixed(2)}</span>
+                <span className="font-bold text-blue-600">{employee.breakfast_balance.toFixed(2)} €</span>
               </div>
               {employee.breakfast_balance > 0 && (
                 <button
