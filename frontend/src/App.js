@@ -2165,46 +2165,6 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
-  const handleSponsorMeal = async (selectedEmployee, mealType, date) => {
-    try {
-      const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
-      
-      const response = await axios.post(`${API}/department-admin/sponsor-meal`, {
-        department_id: currentDepartment.department_id,
-        date: date,
-        meal_type: mealType,
-        sponsor_employee_id: selectedEmployee.id,
-        sponsor_employee_name: selectedEmployee.name
-      });
-
-      const result = response.data;
-      
-      alert(
-        `${mealTypeLabel} erfolgreich ausgegeben!\n\n` +
-        `Gesponserte Artikel: ${result.sponsored_items}\n` +
-        `Gesamtkosten: ${result.total_cost} €\n` +
-        `Betroffene Mitarbeiter: ${result.affected_employees}\n` +
-        `Zahler: ${result.sponsor}`
-      );
-
-      // Refresh breakfast history to show updated data
-      await fetchBreakfastHistory();
-      
-    } catch (error) {
-      console.error('Fehler beim Ausgeben der Mahlzeit:', error);
-      
-      let errorMessage = 'Fehler beim Ausgeben der Mahlzeit';
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      }
-      alert(errorMessage);
-    }
-  };
-
-  const handleModalConfirm = (selectedEmployee) => {
-    handleSponsorMeal(selectedEmployee, sponsorModalData.mealType, sponsorModalData.date);
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
