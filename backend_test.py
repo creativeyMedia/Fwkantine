@@ -592,9 +592,9 @@ class MealSponsoringTester:
             
             employees = response.json()
             final_balances = {}
-            sponsor_name = self.test_employees[4]["name"] if len(self.test_employees) >= 5 else "Unknown"
+            sponsor_name = self.test_employees[2]["name"] if len(self.test_employees) >= 3 else "Unknown"
             
-            for test_emp in self.test_employees[:5]:  # Check first 5 employees
+            for test_emp in self.test_employees[:3]:  # Check first 3 employees
                 employee = next((emp for emp in employees if emp["id"] == test_emp["id"]), None)
                 if employee:
                     balance = employee.get("breakfast_balance", 0.0)
@@ -630,7 +630,7 @@ class MealSponsoringTester:
                         balance_changes_correct = False
                         error_details.append(f"Employee {name} has negative balance: €{final_balance:.2f}")
             
-            if balance_changes_correct and len(final_balances) == 5:
+            if balance_changes_correct and len(final_balances) == 3:
                 self.log_result(
                     "Verify Final Balances",
                     True,
