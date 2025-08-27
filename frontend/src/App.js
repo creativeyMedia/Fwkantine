@@ -4997,6 +4997,16 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
           </div>
         </div>
       )}
+      
+      {/* Meal Sponsor Modal */}
+      <MealSponsorModal
+        isOpen={showSponsorModal}
+        onClose={() => setShowSponsorModal(false)}
+        employees={departmentEmployees}
+        mealType={sponsorModalData.mealType}
+        date={sponsorModalData.date}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 };
