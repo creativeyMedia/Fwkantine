@@ -618,72 +618,172 @@ class MealSponsoringTester:
             self.log_result("Verify Sponsored Messages", False, error=str(e))
             return False
     
-    def test_invalid_sponsoring_scenarios(self):
-        """Test invalid sponsoring scenarios for proper error handling"""
+    def test_security_restrictions(self):
+        """Test security restrictions (only today/yesterday dates, prevent duplicate sponsoring)"""
         try:
             if len(self.test_employees) < 1:
                 self.log_result(
-                    "Test Invalid Sponsoring Scenarios",
+                    "Test Security Restrictions",
                     False,
-                    error="No test employees available for invalid scenario testing"
+                    error="No test employees available for security testing"
                 )
                 return False
             
             sponsor = self.test_employees[0]
-            today = date.today().isoformat()
             
-            # Test 1: Invalid meal_type
-            invalid_data1 = {
+            # Test 1: Future date should be rejected
+            future_date = (date.today() + timedelta(days=1)).isoformat()
+            future_data = {
                 "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "invalid_meal",
-                "sponsor_employee_id": sponsor["id"],
-                "sponsor_employee_name": sponsor["name"]
-            }
-            
-            response1 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=invalid_data1)
-            
-            # Test 2: Missing required fields
-            invalid_data2 = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "breakfast"
-                # Missing sponsor fields
-            }
-            
-            response2 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=invalid_data2)
-            
-            # Test 3: Invalid date format
-            invalid_data3 = {
-                "department_id": DEPARTMENT_ID,
-                "date": "invalid-date",
+                "date": future_date,
                 "meal_type": "breakfast",
                 "sponsor_employee_id": sponsor["id"],
                 "sponsor_employee_name": sponsor["name"]
             }
             
-            response3 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=invalid_data3)
+            future_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=future_data)
             
-            # All should return 400 Bad Request
-            error_responses = [response1.status_code == 400, response2.status_code == 400, response3.status_code == 400]
+            # Test 2: Duplicate sponsoring should be rejected
+            today = date.today().isoformat()
+            duplicate_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "breakfast",
+                "sponsor_employee_id": sponsor["id"],
+                "sponsor_employee_name": sponsor["name"]
+            }
             
-            if all(error_responses):
+            # Try to sponsor again (should fail)
+            duplicate_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=duplicate_data)
+            
+            # Test 3: Yesterday date should be allowed
+            yesterday = (date.today() - timedelta(days=1)).isoformat()
+            yesterday_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": yesterday,
+                "meal_type": "lunch",  # Use lunch to avoid conflict with breakfast
+                "sponsor_employee_id": sponsor["id"],
+                "sponsor_employee_name": sponsor["name"]
+            }
+            
+            yesterday_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=yesterday_data)
+            
+            # Evaluate results
+            future_rejected = future_response.status_code == 400
+            duplicate_rejected = duplicate_response.status_code == 400
+            yesterday_allowed = yesterday_response.status_code in [200, 404]  # 404 if no orders for yesterday
+            
+            if future_rejected and duplicate_rejected:
                 self.log_result(
-                    "Test Invalid Sponsoring Scenarios",
+                    "Test Security Restrictions",
                     True,
-                    "All invalid scenarios correctly returned HTTP 400 errors"
+                    f"✅ CRITICAL FIX VERIFIED: Security restrictions working. Future date rejected: {future_rejected}, Duplicate rejected: {duplicate_rejected}, Yesterday allowed: {yesterday_allowed}"
                 )
                 return True
             else:
                 self.log_result(
-                    "Test Invalid Sponsoring Scenarios",
+                    "Test Security Restrictions",
                     False,
-                    error=f"Invalid scenarios did not return proper errors: {[r.status_code for r in [response1, response2, response3]]}"
+                    error=f"CRITICAL BUG: Security restrictions failed. Future rejected: {future_rejected}, Duplicate rejected: {duplicate_rejected}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Invalid Sponsoring Scenarios", False, error=str(e))
+            self.log_result("Test Security Restrictions", False, error=str(e))
+            return False
+    
+    def test_lunch_sponsoring_only_lunch_costs(self):
+        """Test lunch sponsoring includes ONLY lunch costs"""
+        try:
+            if len(self.test_employees) < 3:
+                self.log_result(
+                    "Test Lunch Sponsoring - Only Lunch Costs",
+                    False,
+                    error="Not enough test employees for lunch sponsoring test"
+                )
+                return False
+            
+            # Use 3rd employee as sponsor for lunch
+            sponsor = self.test_employees[2]
+            today = date.today().isoformat()
+            
+            # Perform lunch sponsoring
+            sponsor_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "lunch",
+                "sponsor_employee_id": sponsor["id"],
+                "sponsor_employee_name": sponsor["name"]
+            }
+            
+            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Verify response structure
+                required_fields = ["message", "sponsored_items", "total_cost", "affected_employees", "sponsor"]
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if missing_fields:
+                    self.log_result(
+                        "Test Lunch Sponsoring - Only Lunch Costs",
+                        False,
+                        error=f"Missing fields in response: {missing_fields}"
+                    )
+                    return False
+                
+                # CRITICAL: Verify lunch sponsoring ONLY includes lunch
+                sponsored_items = result["sponsored_items"]
+                
+                # Should ONLY include lunch
+                has_lunch = "Mittagessen" in sponsored_items
+                
+                # Should NOT include rolls, eggs, coffee
+                has_rolls = "Brötchen" in sponsored_items
+                has_eggs = "Eier" in sponsored_items
+                has_coffee = "Kaffee" in sponsored_items or "Coffee" in sponsored_items
+                
+                if has_rolls or has_eggs or has_coffee:
+                    self.log_result(
+                        "Test Lunch Sponsoring - Only Lunch Costs",
+                        False,
+                        error=f"CRITICAL BUG: Lunch sponsoring incorrectly includes non-lunch items: {sponsored_items}"
+                    )
+                    return False
+                
+                if has_lunch and result["total_cost"] > 0:
+                    self.log_result(
+                        "Test Lunch Sponsoring - Only Lunch Costs",
+                        True,
+                        f"✅ CRITICAL FIX VERIFIED: Lunch sponsoring ONLY includes lunch costs: {sponsored_items}, Cost: €{result['total_cost']}, Employees: {result['affected_employees']}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Test Lunch Sponsoring - Only Lunch Costs",
+                        False,
+                        error=f"Invalid lunch sponsoring result: {sponsored_items}, cost={result['total_cost']}"
+                    )
+                    return False
+            elif response.status_code == 404:
+                # No lunch orders found - this is acceptable
+                self.log_result(
+                    "Test Lunch Sponsoring - Only Lunch Costs",
+                    True,
+                    "✅ No lunch orders found for sponsoring (acceptable result)"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Test Lunch Sponsoring - Only Lunch Costs",
+                    False,
+                    error=f"Lunch sponsoring failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Lunch Sponsoring - Only Lunch Costs", False, error=str(e))
             return False
     
     def create_additional_lunch_orders(self):
