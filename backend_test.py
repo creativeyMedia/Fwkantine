@@ -236,12 +236,12 @@ class MealSponsoringTester:
             self.log_result("Create Breakfast Orders", False, error=str(e))
             return False
     
-    def test_breakfast_sponsoring(self):
-        """Test breakfast sponsoring functionality"""
+    def test_breakfast_sponsoring_correct_calculation(self):
+        """Test breakfast sponsoring with correct cost calculation (ONLY rolls + eggs, NO coffee, NO lunch)"""
         try:
             if len(self.test_employees) < 3:
                 self.log_result(
-                    "Test Breakfast Sponsoring",
+                    "Test Breakfast Sponsoring - Correct Calculation",
                     False,
                     error="Not enough test employees for sponsoring test"
                 )
@@ -263,6 +263,13 @@ class MealSponsoringTester:
             
             initial_sponsor_balance = sponsor_employee.get("breakfast_balance", 0.0)
             
+            # Get other employees' initial balances
+            employee1 = next((emp for emp in employees if emp["id"] == self.test_employees[0]["id"]), None)
+            employee2 = next((emp for emp in employees if emp["id"] == self.test_employees[1]["id"]), None)
+            
+            initial_emp1_balance = employee1.get("breakfast_balance", 0.0) if employee1 else 0.0
+            initial_emp2_balance = employee2.get("breakfast_balance", 0.0) if employee2 else 0.0
+            
             # Perform breakfast sponsoring
             sponsor_data = {
                 "department_id": DEPARTMENT_ID,
@@ -283,37 +290,56 @@ class MealSponsoringTester:
                 
                 if missing_fields:
                     self.log_result(
-                        "Test Breakfast Sponsoring",
+                        "Test Breakfast Sponsoring - Correct Calculation",
                         False,
                         error=f"Missing fields in response: {missing_fields}"
                     )
                     return False
                 
-                # Verify response values
+                # CRITICAL: Verify breakfast sponsoring EXCLUDES coffee and lunch
+                sponsored_items = result["sponsored_items"]
+                
+                # Should include rolls and eggs
+                has_rolls = "Brötchen" in sponsored_items
+                has_eggs = "Eier" in sponsored_items
+                
+                # Should NOT include coffee or lunch
+                has_coffee = "Kaffee" in sponsored_items or "Coffee" in sponsored_items
+                has_lunch = "Mittagessen" in sponsored_items or "Lunch" in sponsored_items
+                
+                if has_coffee or has_lunch:
+                    self.log_result(
+                        "Test Breakfast Sponsoring - Correct Calculation",
+                        False,
+                        error=f"CRITICAL BUG: Breakfast sponsoring incorrectly includes coffee/lunch: {sponsored_items}"
+                    )
+                    return False
+                
+                # Verify cost calculation is reasonable (should be less than full order cost)
                 if result["total_cost"] > 0 and result["affected_employees"] > 0:
                     self.log_result(
-                        "Test Breakfast Sponsoring",
+                        "Test Breakfast Sponsoring - Correct Calculation",
                         True,
-                        f"Breakfast sponsoring successful: {result['sponsored_items']}, Cost: €{result['total_cost']}, Employees: {result['affected_employees']}, Sponsor: {result['sponsor']}"
+                        f"✅ CRITICAL FIX VERIFIED: Breakfast sponsoring ONLY includes rolls+eggs (excludes coffee/lunch): {sponsored_items}, Cost: €{result['total_cost']}, Employees: {result['affected_employees']}"
                     )
                     return True
                 else:
                     self.log_result(
-                        "Test Breakfast Sponsoring",
+                        "Test Breakfast Sponsoring - Correct Calculation",
                         False,
                         error=f"Invalid sponsoring result: cost={result['total_cost']}, employees={result['affected_employees']}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Breakfast Sponsoring",
+                    "Test Breakfast Sponsoring - Correct Calculation",
                     False,
                     error=f"Sponsoring failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Breakfast Sponsoring", False, error=str(e))
+            self.log_result("Test Breakfast Sponsoring - Correct Calculation", False, error=str(e))
             return False
     
     def test_lunch_sponsoring(self):
