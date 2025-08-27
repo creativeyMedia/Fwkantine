@@ -1619,8 +1619,8 @@ async def get_employee_profile(employee_id: str):
                     seeded_roll_price = breakfast_prices.get("koerner", 0.50)  # Get actual price from menu
                     enriched_order["readable_items"].append({
                         "description": f"{seeded_halves}x Körnerbrötchen (Hälften)", 
-                        "unit_price": f"€{seeded_roll_price:.2f} pro Hälfte",
-                        "total_price": f"€{(seeded_halves * seeded_roll_price):.2f}",
+                        "unit_price": f"{seeded_roll_price:.2f} € pro Hälfte",
+                        "total_price": f"{(seeded_halves * seeded_roll_price):.2f} €",
                         "toppings": toppings_str if toppings_str else "Ohne Belag"
                     })
                 
