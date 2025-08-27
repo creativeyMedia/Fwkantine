@@ -3158,6 +3158,97 @@ const AdminDashboard = () => {
           </div>
         </div>
         
+        {/* Meal Sponsoring Management */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">🎁 Mahlzeit Sponsoring</h2>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>Frühstück ausgeben:</strong> Brötchen + Eier + Lunch (ohne Kaffee)
+            </p>
+            <p className="text-sm text-blue-800">
+              <strong>Mittagessen ausgeben:</strong> Nur Lunch-Kosten
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border border-green-200 rounded-lg p-4">
+              <h3 className="font-semibold text-green-800 mb-3">🥖 Frühstück ausgeben</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Datum:</label>
+                  <input
+                    type="date"
+                    value={sponsorDate}
+                    onChange={(e) => setSponsorDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Zahler:</label>
+                  <select
+                    value={sponsorEmployeeId}
+                    onChange={(e) => setSponsorEmployeeId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+                  >
+                    <option value="">Mitarbeiter auswählen...</option>
+                    {allEmployees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name} ({emp.department_name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => handleSponsorMeal('breakfast')}
+                  disabled={!sponsorDate || !sponsorEmployeeId}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Frühstück ausgeben
+                </button>
+              </div>
+            </div>
+            
+            <div className="border border-orange-200 rounded-lg p-4">
+              <h3 className="font-semibold text-orange-800 mb-3">🍽️ Mittagessen ausgeben</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Datum:</label>
+                  <input
+                    type="date"
+                    value={sponsorDate}
+                    onChange={(e) => setSponsorDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Zahler:</label>
+                  <select
+                    value={sponsorEmployeeId}
+                    onChange={(e) => setSponsorEmployeeId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="">Mitarbeiter auswählen...</option>
+                    {allEmployees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name} ({emp.department_name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => handleSponsorMeal('lunch')}
+                  disabled={!sponsorDate || !sponsorEmployeeId}
+                  className="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Mittagessen ausgeben
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* All Employees Overview */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-6">Alle Mitarbeiter</h2>
