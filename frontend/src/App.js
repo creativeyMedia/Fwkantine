@@ -3073,6 +3073,11 @@ const AdminDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
   const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
+  
+  // Sponsoring state
+  const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
+  
   const { logout } = React.useContext(AuthContext);
 
   useEffect(() => {
