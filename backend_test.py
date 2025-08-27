@@ -1,42 +1,44 @@
 #!/usr/bin/env python3
 """
-CORRECTED LUNCH SPONSORING LOGIC TEST
+ENHANCED SPONSORED MEAL DETAILS DISPLAY TEST
 
-FOCUS: Test the CORRECTED lunch sponsoring logic after critical bug fixes.
+FOCUS: Test the enhanced sponsored meal details display after UI improvements.
 
-**CRITICAL LUNCH SPONSORING BUGS FIXED:**
-1. **Fixed calculation**: Only lunch costs should be sponsored, not breakfast items
-2. **Fixed balance calculation**: Only refund actual lunch cost per order, not fixed 5.0€
-3. **Added proper rounding**: All calculations now use round(value, 2)
+**NEW FEATURE TO TEST:**
+Added detailed cost breakdown for sponsored meals to improve transparency in the chronological order history.
 
-**USER'S SPECIFIC LUNCH SPONSORING TEST CASE:**
-- 5 employees in Department 2
-- Each orders: breakfast items + 1x lunch (should be 4.00€ per lunch based on lunch_settings)
-- Total lunch costs: 5 × 4.00€ = 20.00€ (only lunch, not breakfast)
-- User reports getting 28.00€ instead of expected amount
+**WHAT WAS ENHANCED:**
+When a sponsor pays for others' meals, their order now shows:
+1. Their own order details (e.g., 2x Brötchen + 2x Ei + 1x Kaffee = 3€)
+2. **NEW: Detailed sponsored breakdown** (e.g., "4x Helle Brötchen (2.00€) + 8x Gekochte Eier (4.00€) = 6.00€ für 4 Mitarbeiter")
+3. Total combined price (e.g., 9€ total)
 
-**EXPECTED CORRECT RESULTS:**
-- Only lunch items should be sponsored (breakfast items remain with employees)
-- Sponsor pays only the total lunch costs (5 × 4.00€ = 20.00€)
-- Other employees keep their breakfast costs but get lunch refunded
-- NO negative balances for other employees
+**TEST SCENARIOS:**
+1. **Breakfast Sponsoring Test**:
+   - Create 3 employees with breakfast orders in Department 2
+   - Each orders: 1x white roll + 2x eggs + 1x coffee
+   - Sponsor should see: own order + "3x Helle Brötchen (1.50€) + 6x Gekochte Eier (3.00€) = 4.50€ für 3 Mitarbeiter"
 
-**TEST FOCUS:**
-1. Create 5 orders in Department 2 with breakfast + lunch items
-2. Verify initial balances include both breakfast and lunch costs
-3. Test lunch sponsoring - should ONLY sponsor lunch costs
-4. Verify correct calculations:
-   - Sponsor gets charged only for lunch costs
-   - Others keep breakfast costs, lunch costs removed
-   - No negative balances
-   - Total lunch cost should be 20.00€ (5 × 4.00€), not 28.00€
+2. **Lunch Sponsoring Test**:
+   - Create 2 employees with lunch orders in Department 2  
+   - Each orders: breakfast items + 1x lunch
+   - Sponsor should see: own order + "2x Mittagessen (4.00€) = 4.00€ für 2 Mitarbeiter"
+
+3. **Sponsor without own order**:
+   - Test sponsoring when sponsor has no order for that day
+   - Should create separate sponsored order with detailed breakdown
+
+**VERIFICATION POINTS:**
+✅ Sponsor's readable_items includes both own order AND sponsored details
+✅ Cost breakdown shows individual items with quantities and prices
+✅ Formula matches actual sponsored costs (breakfast: rolls+eggs, lunch: lunch only)
+✅ Employee count is correct
+✅ Uses actual daily/menu prices, not hardcoded values
 
 **Use Department 2:**
 - Admin: admin2
-- Focus on lunch-only sponsoring logic
-
-**Critical Fix to Verify:**
-The lunch sponsoring now calculates employee_lunch_cost individually per order instead of using fixed lunch_cost, and only refunds actual lunch portions, not entire orders.
+- Test both breakfast and lunch sponsoring scenarios
+- Verify the new detailed cost breakdowns appear in order data
 """
 
 import requests
