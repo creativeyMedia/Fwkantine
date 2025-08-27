@@ -2649,18 +2649,29 @@ async def sponsor_meal(meal_data: dict):
         if sponsor_calculation:
             sponsor_order = sponsor_calculation["order"]
             
-            # Create readable breakdown
+            # Create detailed breakdown for sponsor
             sponsored_count = len(order_calculations)
+            others_count = sponsored_count - 1  # Exclude sponsor from "others" count
             meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
-            sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank!"
-            breakdown = f"{sponsored_count}x {meal_name} ({total_sponsored_cost:.2f} €) für {sponsored_count} Mitarbeiter"
             
-            # Update sponsor order
+            # Sponsor message
+            sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank!"
+            
+            # Create detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter - 20€"
+            if others_count > 0:
+                avg_cost_per_meal = (total_sponsored_cost - sponsor_contributed_amount) / others_count
+                detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} á {avg_cost_per_meal:.2f}€ für {others_count} Mitarbeiter"
+                total_others_cost = total_sponsored_cost - sponsor_contributed_amount
+            else:
+                detailed_breakdown = f"Keine anderen Mitarbeiter gesponsert"
+                total_others_cost = 0
+            
+            # Update sponsor order with detailed breakdown
             original_readable_items = sponsor_order.get("readable_items", [])
             sponsor_readable_items = original_readable_items + [{
-                "description": f"────── Gesponserte Ausgabe ──────",
-                "unit_price": breakdown,
-                "total_price": f"{total_sponsored_cost:.2f} €"
+                "description": detailed_breakdown,
+                "unit_price": f"{others_count} × {avg_cost_per_meal:.2f}€" if others_count > 0 else "",
+                "total_price": f"{total_others_cost:.2f} €"
             }]
             
             await db.orders.update_one(
