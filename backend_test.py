@@ -263,15 +263,22 @@ class MealSponsoringTester:
             sponsor = self.test_employees[4]
             today = date.today().isoformat()
             
-            # Get current lunch settings to verify expected price
-            lunch_settings_response = self.session.get(f"{BASE_URL}/lunch-settings")
-            if lunch_settings_response.status_code == 200:
-                lunch_settings = lunch_settings_response.json()
-                lunch_price = lunch_settings.get("price", 0.0)
-                print(f"   Current lunch price: €{lunch_price:.2f}")
+            # Get daily lunch price for today (this is what the system actually uses)
+            daily_lunch_response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{today}")
+            if daily_lunch_response.status_code == 200:
+                daily_lunch_data = daily_lunch_response.json()
+                daily_lunch_price = daily_lunch_data.get("lunch_price", 4.0)
+                print(f"   Daily lunch price for {today}: €{daily_lunch_price:.2f}")
             else:
-                lunch_price = 4.0  # Default expected price
-                print(f"   Using default lunch price: €{lunch_price:.2f}")
+                # Fall back to global lunch settings
+                lunch_settings_response = self.session.get(f"{BASE_URL}/lunch-settings")
+                if lunch_settings_response.status_code == 200:
+                    lunch_settings = lunch_settings_response.json()
+                    daily_lunch_price = lunch_settings.get("price", 4.0)
+                    print(f"   Using global lunch price: €{daily_lunch_price:.2f}")
+                else:
+                    daily_lunch_price = 4.0  # Default
+                    print(f"   Using default lunch price: €{daily_lunch_price:.2f}")
             
             # Perform lunch sponsoring
             sponsor_data = {
@@ -304,13 +311,13 @@ class MealSponsoringTester:
                 affected_employees = result["affected_employees"]
                 sponsored_items = result["sponsored_items"]
                 
-                # Expected: 5 employees × lunch_price = total cost
-                expected_total = affected_employees * lunch_price
+                # Expected: affected_employees × daily_lunch_price = total cost
+                expected_total = affected_employees * daily_lunch_price
                 
                 print(f"   Sponsored items: {sponsored_items}")
                 print(f"   Total cost: €{total_cost:.2f}")
                 print(f"   Affected employees: {affected_employees}")
-                print(f"   Expected total (5 × €{lunch_price:.2f}): €{expected_total:.2f}")
+                print(f"   Expected total ({affected_employees} × €{daily_lunch_price:.2f}): €{expected_total:.2f}")
                 
                 # Verify ONLY lunch items are sponsored
                 has_lunch = "Mittagessen" in sponsored_items
@@ -324,9 +331,9 @@ class MealSponsoringTester:
                     )
                     return False
                 
-                # Verify cost calculation is correct (should be close to expected)
+                # Verify cost calculation is correct (should match expected exactly)
                 cost_difference = abs(total_cost - expected_total)
-                if has_lunch and affected_employees >= 4 and cost_difference <= 1.0:  # Allow small variance
+                if has_lunch and affected_employees >= 4 and cost_difference <= 0.01:  # Allow 1 cent variance for rounding
                     self.log_result(
                         "Test Lunch Sponsoring Calculation",
                         True,
@@ -337,7 +344,7 @@ class MealSponsoringTester:
                     self.log_result(
                         "Test Lunch Sponsoring Calculation",
                         False,
-                        error=f"Invalid lunch sponsoring calculation: cost=€{total_cost:.2f}, expected≈€{expected_total:.2f}, employees={affected_employees}, has_lunch={has_lunch}"
+                        error=f"Invalid lunch sponsoring calculation: cost=€{total_cost:.2f}, expected=€{expected_total:.2f}, employees={affected_employees}, has_lunch={has_lunch}"
                     )
                     return False
             elif response.status_code == 400 and "bereits gesponsert" in response.text:
