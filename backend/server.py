@@ -2732,6 +2732,9 @@ async def sponsor_meal(meal_data: dict):
                     if item.get("has_lunch", False):
                         sponsor_own_cost += lunch_cost
             
+            # Round sponsor own cost to avoid floating point errors
+            sponsor_own_cost = round(sponsor_own_cost, 2)
+            
             # Sponsor pays total_cost but gets refund for their own sponsored part
             # Net effect: sponsor pays (total_cost - sponsor_own_cost)
             new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost - sponsor_own_cost
