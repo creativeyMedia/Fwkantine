@@ -2720,7 +2720,7 @@ const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteM
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="font-medium">{item.name}</span>
-                    <p className="text-sm text-gray-600">€{item.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">{item.price.toFixed(2)} €</p>
                   </div>
                   <button
                     onClick={() => onDeleteMenuItem('sweets', item.id)}
