@@ -2712,11 +2712,18 @@ async def sponsor_meal(meal_data: dict):
             
             # Create additional readable_items for the sponsored parts
             original_readable_items = sponsor_order.get("readable_items", [])
+            
+            # Create a clear separation between own order and sponsored order
             sponsored_readable_items = [{
                 "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
-                "unit_price": cost_breakdown_text,
+                "unit_price": f"({cost_breakdown_text})",
                 "total_price": f"{total_cost:.2f} €"
             }]
+            
+            # Combine items: original order first, then sponsored details
+            combined_readable_items = original_readable_items + [
+                {"description": "────── Gesponserte Ausgabe ──────", "unit_price": "", "total_price": ""}
+            ] + sponsored_readable_items
             
             await db.orders.update_one(
                 {"id": sponsor_order["id"]},
@@ -2728,7 +2735,7 @@ async def sponsor_meal(meal_data: dict):
                     "sponsor_employee_count": len(affected_employees),
                     "sponsor_cost_breakdown": cost_breakdown_text,
                     "total_price": sponsor_order.get("total_price", 0) + total_cost,  # Add sponsored cost to their own order
-                    "readable_items": original_readable_items + sponsored_readable_items  # Append sponsored details
+                    "readable_items": combined_readable_items  # Show both own order AND sponsored details
                 }}
             )
         else:
