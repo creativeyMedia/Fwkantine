@@ -2548,6 +2548,9 @@ async def sponsor_meal(meal_data: dict):
                         lunch_price = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
                         total_cost += lunch_price
         
+        # Round total_cost to avoid floating point precision errors
+        total_cost = round(total_cost, 2)
+        
         if total_cost <= 0:
             raise HTTPException(status_code=400, detail="Keine kostenpflichtigen Artikel für Sponsoring gefunden")
         
