@@ -2465,9 +2465,10 @@ async def sponsor_meal(meal_data: dict):
                 ]
             }).to_list(1000)
         else:  # lunch
-            # For lunch, we need to find orders that have lunch items
-            orders = await db.orders.find({
+            # For lunch, we need to find breakfast orders that have lunch items
+            all_orders = await db.orders.find({
                 **base_query,
+                "order_type": "breakfast",  # Lunch is part of breakfast orders
                 "$or": [
                     {"is_sponsored": {"$exists": False}},
                     {"is_sponsored": False}
@@ -2475,9 +2476,15 @@ async def sponsor_meal(meal_data: dict):
             }).to_list(1000)
             
             # Filter for orders that actually have lunch
-            orders = [order for order in orders 
-                     if order.get("order_type") == "breakfast" and 
-                     any(item.get("has_lunch", False) for item in order.get("breakfast_items", []))]
+            orders = []
+            for order in all_orders:
+                has_lunch = False
+                for item in order.get("breakfast_items", []):
+                    if item.get("has_lunch", False):
+                        has_lunch = True
+                        break
+                if has_lunch:
+                    orders.append(order)
         
         if not orders:
             raise HTTPException(status_code=404, detail=f"Keine {'Frühstück' if meal_type == 'breakfast' else 'Mittag'}-Bestellungen für {date_str} gefunden")
