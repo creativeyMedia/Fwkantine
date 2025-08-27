@@ -2605,27 +2605,50 @@ async def sponsor_meal(meal_data: dict):
                 total_cost += order_breakfast_cost
         
         else:  # lunch
-            # Only lunch costs - use daily lunch price for the specific date
-            daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                "department_id": department_id,
-                "date": date_str
-            })
-            
-            if daily_lunch_price_doc:
-                daily_lunch_price = daily_lunch_price_doc["lunch_price"]
-            else:
-                # Fall back to global lunch settings
-                lunch_settings = await db.lunch_settings.find_one()
-                daily_lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-            
+            # Only lunch costs - extract actual lunch costs from orders
             for order in orders:
                 affected_employees.add(order["employee_id"])
                 
+                # Calculate actual lunch cost from this specific order
+                order_lunch_cost = 0.0
                 for item in order.get("breakfast_items", []):
                     if item.get("has_lunch", False):
+                        # Extract lunch cost from the original order's total_price
+                        # We need to subtract breakfast costs to get lunch cost
+                        order_total = order.get("total_price", 0)
+                        breakfast_cost = 0.0
+                        
+                        # Calculate breakfast cost (rolls + eggs + coffee)
+                        white_halves = item.get("white_halves", 0)
+                        seeded_halves = item.get("seeded_halves", 0)
+                        boiled_eggs = item.get("boiled_eggs", 0)
+                        has_coffee = item.get("has_coffee", False)
+                        
+                        if white_halves > 0:
+                            breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                            roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                            breakfast_cost += white_halves * roll_price
+                        
+                        if seeded_halves > 0:
+                            breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                            roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                            breakfast_cost += seeded_halves * roll_price
+                        
+                        if boiled_eggs > 0:
+                            lunch_settings = await db.lunch_settings.find_one()
+                            egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                            breakfast_cost += boiled_eggs * egg_price
+                        
+                        if has_coffee:
+                            lunch_settings = await db.lunch_settings.find_one()
+                            coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
+                            breakfast_cost += coffee_price
+                        
+                        # Lunch cost = total - breakfast cost
+                        order_lunch_cost = max(0, order_total - breakfast_cost)
+                        
                         sponsored_items["Mittagessen"] = sponsored_items.get("Mittagessen", 0) + 1
-                        # Use the daily lunch price for this date
-                        total_cost += daily_lunch_price
+                        total_cost += order_lunch_cost
         
         # Round total_cost to avoid floating point precision errors
         total_cost = round(total_cost, 2)
