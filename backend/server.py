@@ -2526,8 +2526,8 @@ async def sponsor_meal(meal_data: dict):
                     if boiled_eggs > 0:
                         sponsored_items["Gekochte Eier"] = sponsored_items.get("Gekochte Eier", 0) + boiled_eggs
                         # Get lunch settings for boiled egg price
-                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
-                        egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
+                        lunch_settings = await db.lunch_settings.find_one()
+                        egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
                         order_breakfast_cost += boiled_eggs * egg_price
                     
                     # EXCLUDE LUNCH - not included in breakfast sponsoring
