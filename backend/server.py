@@ -1659,7 +1659,7 @@ async def get_employee_profile(employee_id: str):
                 if item_id in names_dict and quantity > 0:
                     enriched_order["readable_items"].append({
                         "description": f"{quantity}x {names_dict[item_id]['name']}",
-                        "unit_price": f"€{names_dict[item_id]['price']:.2f}"
+                        "unit_price": f"{names_dict[item_id]['price']:.2f} €"
                     })
         
         enriched_orders.append(enriched_order)
