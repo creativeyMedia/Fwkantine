@@ -2051,14 +2051,18 @@ async def get_breakfast_history(department_id: str, days: int = 7):
         start_of_day = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
         end_of_day = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
         
-        # Get orders for that day
+        # Get orders for that day - exclude cancelled orders
         orders = await db.orders.find({
             "department_id": department_id,
             "order_type": "breakfast",
             "timestamp": {
                 "$gte": start_of_day.isoformat(),
                 "$lte": end_of_day.isoformat()
-            }
+            },
+            "$or": [
+                {"is_cancelled": {"$exists": False}},  # Legacy orders without is_cancelled field
+                {"is_cancelled": False}                # Explicitly not cancelled
+            ]
         }).to_list(1000)
         
         if orders:  # Only include days with orders
