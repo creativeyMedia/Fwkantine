@@ -1,45 +1,42 @@
 #!/usr/bin/env python3
 """
-FLOATING POINT ROUNDING FIXES TEST FOR MEAL SPONSORING
+CORRECTED LUNCH SPONSORING LOGIC TEST
 
-FOCUS: Test the FINAL corrected meal sponsoring logic with floating point rounding fixes.
+FOCUS: Test the CORRECTED lunch sponsoring logic after critical bug fixes.
 
-**CRITICAL FLOATING POINT BUG FIX TO VERIFY:**
-The user reported that employees should have 1.00€ balance but got 0.80€ (0.20€ missing), 
-and the sponsor got 11.80€ instead of 11.00€ (0.80€ extra). This was caused by floating 
-point precision errors like `0.7999999999999998` instead of `0.8`.
+**CRITICAL LUNCH SPONSORING BUGS FIXED:**
+1. **Fixed calculation**: Only lunch costs should be sponsored, not breakfast items
+2. **Fixed balance calculation**: Only refund actual lunch cost per order, not fixed 5.0€
+3. **Added proper rounding**: All calculations now use round(value, 2)
 
-**ROUNDING FIXES IMPLEMENTED:**
-- Added `round(total_cost, 2)` 
-- Added `round(employee_breakfast_cost, 2)`
-- Added `round(sponsor_own_cost, 2)`
-- Added `round(new_balance, 2)` for all balance updates
+**USER'S SPECIFIC LUNCH SPONSORING TEST CASE:**
+- 5 employees in Department 2
+- Each orders: breakfast items + 1x lunch (should be 4.00€ per lunch based on lunch_settings)
+- Total lunch costs: 5 × 4.00€ = 20.00€ (only lunch, not breakfast)
+- User reports getting 28.00€ instead of expected amount
 
-**USER'S EXACT TEST CASE:**
-- 5 employees in Department 2 (including Julian Takke as sponsor)
-- Each orders: 2x white rolls (0.50€ each) + 2x eggs (0.50€ each) + 1x coffee (1.00€) = 3.00€ per person
-- Total: 15.00€
-- Sponsored costs: 5 × 2.00€ = 10.00€
-- Coffee costs remain: 5 × 1.00€ = 5.00€
-
-**EXPECTED EXACT RESULTS (after rounding fix):**
-- Sponsor (Julian Takke): 3.00€ - 2.00€ + 10.00€ = **11.00€** (not 11.80€)
-- Others: 3.00€ - 2.00€ = **1.00€** (not 0.80€)
+**EXPECTED CORRECT RESULTS:**
+- Only lunch items should be sponsored (breakfast items remain with employees)
+- Sponsor pays only the total lunch costs (5 × 4.00€ = 20.00€)
+- Other employees keep their breakfast costs but get lunch refunded
+- NO negative balances for other employees
 
 **TEST FOCUS:**
-1. Create 5 identical orders in Department 2
-2. Verify initial balances are exactly 3.00€ each
-3. Perform breakfast sponsoring
-4. Verify EXACT balances after rounding fix:
-   - Sponsor: exactly 11.00€
-   - Others: exactly 1.00€ each
-5. NO MORE floating point errors like 0.7999999999999998
+1. Create 5 orders in Department 2 with breakfast + lunch items
+2. Verify initial balances include both breakfast and lunch costs
+3. Test lunch sponsoring - should ONLY sponsor lunch costs
+4. Verify correct calculations:
+   - Sponsor gets charged only for lunch costs
+   - Others keep breakfast costs, lunch costs removed
+   - No negative balances
+   - Total lunch cost should be 20.00€ (5 × 4.00€), not 28.00€
 
 **Use Department 2:**
 - Admin: admin2
-- Create 5 identical test orders with exact amounts
+- Focus on lunch-only sponsoring logic
 
-**Critical Fix:** All balance calculations now use `round(value, 2)` to prevent floating point precision errors that caused the 0.20€ discrepancies.
+**Critical Fix to Verify:**
+The lunch sponsoring now calculates employee_lunch_cost individually per order instead of using fixed lunch_cost, and only refunds actual lunch portions, not entire orders.
 """
 
 import requests
