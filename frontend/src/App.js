@@ -4851,7 +4851,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                       {/* Lunch Price + Sponsoring Controls - stack on mobile */}
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         {/* Lunch Price Management */}
-                        <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">
+                        <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">{
                         <span className="font-medium text-orange-800">Mittagessen:</span>
                         {editingLunchPrice === day.date ? (
                           <div className="flex items-center space-x-1">
