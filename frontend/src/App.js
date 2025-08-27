@@ -4283,7 +4283,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <h4 className="font-semibold text-orange-800">Ø pro Tag</h4>
               <p className="text-2xl font-bold text-orange-600">
-                €{(breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0) / breakfastHistory.length).toFixed(2)}
+                {(breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0) / breakfastHistory.length).toFixed(2)} €
               </p>
             </div>
           </div>
