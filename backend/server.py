@@ -2689,12 +2689,23 @@ async def sponsor_meal(meal_data: dict):
                         )
                     else:  # lunch
                         # For lunch, only refund lunch cost for orders that actually have lunch
+                        # Use daily lunch price for the specific date
+                        daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                            "department_id": department_id,
+                            "date": date_str
+                        })
+                        
+                        if daily_lunch_price_doc:
+                            daily_lunch_price = daily_lunch_price_doc["lunch_price"]
+                        else:
+                            # Fall back to global lunch settings
+                            lunch_settings = await db.lunch_settings.find_one()
+                            daily_lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+                        
                         employee_lunch_cost = 0.0
                         for item in order.get("breakfast_items", []):
                             if item.get("has_lunch", False):
-                                lunch_settings = await db.lunch_settings.find_one()
-                                lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                                employee_lunch_cost += lunch_price
+                                employee_lunch_cost += daily_lunch_price
                         
                         # Round employee lunch cost to avoid floating point errors
                         employee_lunch_cost = round(employee_lunch_cost, 2)
