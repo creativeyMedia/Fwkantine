@@ -2575,21 +2575,34 @@ async def sponsor_meal(meal_data: dict):
         for order in orders:
             employee_id = order["employee_id"]
             
-            # Mark order as sponsored
-            await db.orders.update_one(
-                {"id": order["id"]},
-                {"$set": {
-                    "is_sponsored": True,
-                    "sponsored_by_employee_id": sponsor_employee_id,
-                    "sponsored_by_name": sponsor_employee_name,
-                    "sponsored_date": datetime.now(timezone.utc).isoformat()
-                }}
-            )
-            
-            # If this is the sponsor employee, DON'T subtract their own order cost
-            # (they will pay the total cost instead)
-            if employee_id != sponsor_employee_id:
-                # For other employees: subtract the sponsored cost from their balance
+            if employee_id == sponsor_employee_id:
+                # For sponsor: just mark as sponsored, balance is handled above
+                await db.orders.update_one(
+                    {"id": order["id"]},
+                    {"$set": {
+                        "is_sponsored": True,
+                        "sponsored_by_employee_id": sponsor_employee_id,
+                        "sponsored_by_name": sponsor_employee_name,
+                        "sponsored_date": datetime.now(timezone.utc).isoformat(),
+                        "is_sponsor_order": True
+                    }}
+                )
+            else:
+                # For other employees: mark as sponsored and add thank you message
+                sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
+                
+                await db.orders.update_one(
+                    {"id": order["id"]},
+                    {"$set": {
+                        "is_sponsored": True,
+                        "sponsored_by_employee_id": sponsor_employee_id,
+                        "sponsored_by_name": sponsor_employee_name,
+                        "sponsored_date": datetime.now(timezone.utc).isoformat(),
+                        "sponsored_message": sponsored_message
+                    }}
+                )
+                
+                # Subtract the sponsored cost from their balance
                 employee = await db.employees.find_one({"id": employee_id})
                 if employee:
                     if meal_type == "breakfast":
