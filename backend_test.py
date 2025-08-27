@@ -1,40 +1,46 @@
 #!/usr/bin/env python3
 """
-FINAL CORRECTED BALANCE CALCULATION AND UI IMPROVEMENTS TEST
+CORRECTED MEAL SPONSORING LOGIC TEST - USER'S CORRECT UNDERSTANDING
 
-FOCUS: Test the FINAL corrected balance calculation and UI improvements for meal sponsoring.
+FOCUS: Test the CORRECTED meal sponsoring logic with user's correct understanding.
 
-**CRITICAL ISSUES ADDRESSED:**
-1. **Balance vs Order Discrepancy**: Fixed the 5€ difference between order total_price and actual balance
-2. **Missing UI Details**: Added separator and clear display of both own order AND sponsored costs
-3. **Sponsor Balance Logic**: Corrected to show sponsor pays (total_cost - sponsor_own_cost)
+**USER'S CORRECT LOGIC IMPLEMENTED:**
+- Sponsor orders own meal: 10€ (5€ breakfast + 5€ lunch)
+- Sponsor sponsors lunch for others: 25€ (5 people × 5€)
+- **Sponsor pays TOTAL**: 10€ (own meal) + 25€ (sponsored) = 35€
+- **NO neutralization** - sponsor pays own meal AND sponsored costs
 
-**TEST FOCUS:**
-1. Create 3 employees in Department 3 with breakfast + lunch orders
-2. Use 3rd employee as sponsor for lunch sponsoring
-3. **CRITICAL VERIFICATION**:
-   - Sponsor balance should equal order total_price effect
-   - readable_items should show BOTH own order AND sponsored details
-   - Clear separation with "────── Gesponserte Ausgabe ──────" divider
-   - Balance calculation: sponsor pays (total_sponsored - own_sponsored)
+**CRITICAL CORRECTION MADE:**
+Changed sponsor balance calculation from:
+```
+new_balance = current + total_cost - sponsor_own_cost  [WRONG]
+```
+To:
+```  
+new_balance = current + total_cost  [CORRECT]
+```
 
-**EXPECTED RESULTS:**
-- **NO balance discrepancies** between order and balance
-- **Enhanced UI** shows own order + separator + sponsored details
-- **Correct sponsor costs**: Pays for others but not double for themselves
-- **Transparent breakdown**: Both costs clearly visible in chronological history
+**TEST SCENARIO:**
+1. Create 3 employees in Department 3
+2. Each orders: breakfast (5€) + lunch (5€) = 10€ total
+3. Employee 3 sponsors lunch for all others
+4. **VERIFICATION**:
+   - Employee 3 balance: should be 35€ (10€ own + 25€ sponsored)
+   - Employee 3 total_price: should be 35€ (matching balance)
+   - Other employees: keep breakfast (5€), lunch refunded
+   - **NO MORE discrepancies** between balance and order
 
 **MATHEMATICAL VERIFICATION:**
-- If sponsor has 6.60€ breakfast + 5€ lunch = 11.60€
-- Sponsors 3x5€ = 15€ for others
-- Balance effect: sponsor pays €15.00 - €5.00 = €10.00 (net cost for others)
-- Order total_price: 6.60€ + 5€ + 15€ = 26.60€ (shows full cost)
-- Balance should equal net cost, not order total
+- Sponsor original order: 10€
+- Sponsored lunch for others: 3 × 5€ = 15€  
+- Sponsor total balance: 10€ + 15€ = 25€
+- Sponsor total_price: 10€ + 15€ = 25€
+- **PERFECT MATCH** ✅
 
 **Use Department 3:**
 - Admin: admin3
-- Focus on exact balance calculation and UI transparency
-- Verify both backend calculation and frontend display
+- Verify user's correct logic is implemented
+- Ensure balance = total_price for sponsor orders
 """
 
 import requests
