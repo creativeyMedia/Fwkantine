@@ -2114,18 +2114,22 @@ async def get_breakfast_history(department_id: str, days: int = 7):
 # Admin routes
 @api_router.delete("/department-admin/orders/{order_id}")
 async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
-    """Department Admin: Delete an employee order"""
+    """Department Admin: Cancel an employee order"""
     try:
         # Find the order first to get employee info and price
         order = await db.orders.find_one({"id": order_id})
         if not order:
             raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
         
+        # Check if already cancelled
+        if order.get("is_cancelled"):
+            raise HTTPException(status_code=400, detail="Bestellung bereits storniert")
+        
         # Get employee name for audit trail
         employee = await db.employees.find_one({"id": order["employee_id"]})
         employee_name = employee["name"] if employee else "Unbekannt"
         
-        # Adjust employee balance before deleting the order
+        # Adjust employee balance before cancelling the order
         if employee:
             if order["order_type"] == "breakfast":
                 new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
@@ -2140,39 +2144,22 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
                     {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
                 )
         
-        # Create audit trail entry before deleting
-        audit_entry = {
-            "id": str(uuid.uuid4()),
-            "employee_id": order["employee_id"],
-            "department_id": order["department_id"],
-            "order_type": "deletion",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "deleted_by": "admin",
-            "deleted_by_name": admin_user,
-            "original_order": {
-                "id": order["id"],
-                "order_type": order["order_type"],
-                "total_price": order["total_price"],
-                "timestamp": order["timestamp"]
-            },
-            "readable_items": [{
-                "description": f"Bestellung storniert durch Admin ({admin_user})",
-                "unit_price": "",
-                "total_price": f"-{order['total_price']:.2f} €"
-            }],
-            "total_price": -order["total_price"]  # Negative amount to show refund
+        # Mark order as cancelled instead of deleting
+        cancellation_data = {
+            "is_cancelled": True,
+            "cancelled_at": datetime.now(timezone.utc).isoformat(),
+            "cancelled_by": "admin",
+            "cancelled_by_name": "Admin"  # Single Admin text as requested
         }
         
-        await db.orders.insert_one(audit_entry)
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": cancellation_data}
+        )
         
-        # Now delete the order
-        result = await db.orders.delete_one({"id": order_id})
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
-        
-        return {"message": "Bestellung erfolgreich gelöscht und Saldo aktualisiert"}
+        return {"message": "Bestellung erfolgreich storniert"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error cancelling order: {str(e)}")
 
 @api_router.put("/orders/{order_id}")
 async def update_order(order_id: str, order_update: dict):
