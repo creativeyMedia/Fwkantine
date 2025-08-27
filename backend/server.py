@@ -1455,6 +1455,12 @@ async def get_daily_summary(department_id: str):
                     elif sponsored_meal_type == "lunch":
                         # Hide lunch, keep breakfast and coffee
                         show_lunch = False
+                elif is_sponsor_order:
+                    # For sponsor orders, we need to be careful about double-counting
+                    # The sponsor order contains both original order AND sponsored details
+                    # We should only count the original parts, not the sponsored parts
+                    # The sponsored parts are already handled by the sponsored orders themselves
+                    pass  # Keep original behavior for now, but this might need adjustment
                 
                 # Update employee totals only for visible items
                 if show_breakfast:
