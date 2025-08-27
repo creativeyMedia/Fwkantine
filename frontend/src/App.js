@@ -2391,7 +2391,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       return;
     }
     
-    if (window.confirm(`${balanceLabel}-Saldo von €${balanceAmount.toFixed(2)} für ${employee.name} als bezahlt markieren?`)) {
+    if (window.confirm(`${balanceLabel}-Saldo von ${balanceAmount.toFixed(2)} € für ${employee.name} als bezahlt markieren?`)) {
       try {
         await axios.post(`${API}/department-admin/payment/${employee.id}?payment_type=${balanceType}&amount=${balanceAmount}&admin_department=${currentDepartment.department_name}`);
         alert('Zahlung erfolgreich verbucht');
