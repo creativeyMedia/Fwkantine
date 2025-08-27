@@ -281,10 +281,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
         setSuccessMessage('Bestellung erfolgreich storniert!');
         setShowSuccessNotification(true);
         
-        // Refresh employee profile after successful deletion
-        setTimeout(() => {
-          fetchEmployeeProfile();
-        }, 1500);
+        // Refresh employee profile immediately after successful deletion
+        fetchEmployeeProfile();
         
       } catch (error) {
         console.error('Fehler beim Löschen der Bestellung:', error);
