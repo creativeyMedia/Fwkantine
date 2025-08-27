@@ -2411,6 +2411,16 @@ async def sponsor_meal(meal_data: dict):
         except ValueError:
             raise HTTPException(status_code=400, detail="Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD.")
         
+        # Security: Only allow today and yesterday
+        today = datetime.now(timezone.utc).date()
+        yesterday = today - timedelta(days=1)
+        
+        if parsed_date not in [today, yesterday]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Sponsoring ist nur für heute ({today}) oder gestern ({yesterday}) möglich."
+            )
+        
         start_of_day = datetime.combine(parsed_date, datetime.min.time()).replace(tzinfo=timezone.utc)
         end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
         
