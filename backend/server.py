@@ -1238,9 +1238,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     else:
                         total_amount += order.get("total_price", 0)
                 elif order.get("is_sponsor_order"):
-                    # For sponsor orders, only count the sponsor's own cost, not the sponsored costs for others
-                    sponsor_own_cost = order.get("total_price", 0) - order.get("sponsor_total_cost", 0)
-                    total_amount += sponsor_own_cost
+                    # For sponsor orders, count the full total_price (sponsor pays for everyone)
+                    total_amount += order.get("total_price", 0)
                 else:
                     # Regular orders - use full cost
                     total_amount += order.get("total_price", 0)
