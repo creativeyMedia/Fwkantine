@@ -3009,9 +3009,9 @@ async def sponsor_meal(meal_data: dict):
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
             # Use the sponsor_own_cost calculated earlier
-            # Sponsor pays the FULL sponsored amount (including their own part)
-            # This is correct because they are taking over everyone's meal including their own
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost
+            # Sponsor pays for OTHERS only, their own meal cost is already in their original order
+            sponsored_for_others_cost = total_cost - sponsor_own_cost
+            new_sponsor_balance = sponsor_employee["breakfast_balance"] + sponsored_for_others_cost
             # Round to 2 decimal places to avoid floating point precision errors
             new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
