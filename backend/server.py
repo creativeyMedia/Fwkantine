@@ -1203,7 +1203,43 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             breakfast_summary = {}
             employee_orders = {}
             total_orders = len(orders)
-            total_amount = sum(order.get("total_price", 0) for order in orders)
+            # Calculate total_amount considering sponsored orders
+            total_amount = 0
+            for order in orders:
+                if order.get("is_sponsored") and not order.get("is_sponsor_order"):
+                    # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
+                    if order.get("sponsored_meal_type") == "breakfast":
+                        # Only coffee cost remains for breakfast sponsoring
+                        coffee_cost = 0
+                        for item in order.get("breakfast_items", []):
+                            if item.get("has_coffee", False):
+                                coffee_cost += 1.0  # Coffee price
+                        total_amount += coffee_cost
+                    elif order.get("sponsored_meal_type") == "lunch":
+                        # Breakfast costs remain for lunch sponsoring
+                        breakfast_cost = order.get("total_price", 0)
+                        # Subtract lunch cost
+                        lunch_cost = 0
+                        for item in order.get("breakfast_items", []):
+                            if item.get("has_lunch", False):
+                                # Get daily lunch price
+                                daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                                    "department_id": department_id,
+                                    "date": current_date.isoformat()
+                                })
+                                if daily_lunch_price_doc:
+                                    lunch_cost += daily_lunch_price_doc["lunch_price"]
+                                else:
+                                    # Fall back to global lunch settings
+                                    lunch_settings = await db.lunch_settings.find_one()
+                                    lunch_cost += lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+                        total_amount += max(0, breakfast_cost - lunch_cost)
+                    # If it's neither breakfast nor lunch sponsoring, use full cost
+                    else:
+                        total_amount += order.get("total_price", 0)
+                else:
+                    # Regular orders or sponsor's own orders - use full cost
+                    total_amount += order.get("total_price", 0)
             
             for order in orders:
                 if order.get("breakfast_items"):
