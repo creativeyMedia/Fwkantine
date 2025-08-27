@@ -2720,10 +2720,12 @@ async def sponsor_meal(meal_data: dict):
                 "total_price": f"{total_cost:.2f} €"
             }]
             
-            # Combine items: original order first, then sponsored details
-            combined_readable_items = original_readable_items + [
-                {"description": "────── Gesponserte Ausgabe ──────", "unit_price": "", "total_price": ""}
-            ] + sponsored_readable_items
+            # Combine items: original order first, then sponsored details with clear labeling
+            combined_readable_items = original_readable_items + [{
+                "description": f"✓ {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
+                "unit_price": f"{cost_breakdown_text}",
+                "total_price": f"{total_cost:.2f} €"
+            }]
             
             await db.orders.update_one(
                 {"id": sponsor_order["id"]},
