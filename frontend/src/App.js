@@ -2253,6 +2253,13 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
     }
   };
 
+  // Auto-refresh orders when modal becomes visible
+  useEffect(() => {
+    if (employee?.id) {
+      fetchEmployeeOrders();
+    }
+  }, [employee?.id]);
+
   const deleteOrder = async (orderId) => {
     if (window.confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       try {
