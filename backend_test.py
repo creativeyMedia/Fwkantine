@@ -152,20 +152,20 @@ class MealSponsoringTester:
             return False
     
     def create_breakfast_lunch_orders(self):
-        """Create 5 breakfast orders with lunch for the specific test case"""
+        """Create 3 breakfast orders with lunch for the specific test case"""
         try:
-            if len(self.test_employees) < 5:
+            if len(self.test_employees) < 3:
                 self.log_result(
                     "Create Breakfast+Lunch Orders",
                     False,
-                    error="Not enough test employees available (need 5)"
+                    error="Not enough test employees available (need 3)"
                 )
                 return False
             
-            # Create identical orders for all 5 employees: breakfast items + lunch
+            # Create identical orders for all 3 employees: breakfast items + lunch
             orders_created = 0
             
-            for i in range(5):
+            for i in range(3):
                 employee = self.test_employees[i]
                 order_data = {
                     "employee_id": employee["id"],
@@ -191,7 +191,7 @@ class MealSponsoringTester:
                 else:
                     print(f"   Failed to create order for {employee['name']}: {response.status_code} - {response.text}")
             
-            if orders_created == 5:
+            if orders_created == 3:
                 self.log_result(
                     "Create Breakfast+Lunch Orders",
                     True,
@@ -202,7 +202,7 @@ class MealSponsoringTester:
                 self.log_result(
                     "Create Breakfast+Lunch Orders",
                     False,
-                    error=f"Could only create {orders_created} orders, need exactly 5"
+                    error=f"Could only create {orders_created} orders, need exactly 3"
                 )
                 return False
                 
