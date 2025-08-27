@@ -1637,8 +1637,8 @@ async def get_employee_profile(employee_id: str):
                 if item.get("has_coffee"):
                     enriched_order["readable_items"].append({
                         "description": "1x Kaffee",
-                        "unit_price": f"€{coffee_price:.2f} pro Tag",
-                        "total_price": f"€{coffee_price:.2f}"
+                        "unit_price": f"{coffee_price:.2f} € pro Tag",
+                        "total_price": f"{coffee_price:.2f} €"
                     })
                 
                 # Add lunch as separate item if present
