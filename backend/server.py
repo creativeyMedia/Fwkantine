@@ -2512,8 +2512,10 @@ async def sponsor_meal(meal_data: dict):
                 for item in order.get("breakfast_items", []):
                     if item.get("has_lunch", False):
                         sponsored_items["Mittagessen"] = sponsored_items.get("Mittagessen", 0) + 1
-                        # Get lunch price - could be dynamic
-                        total_cost += 5.0  # Default lunch price
+                        # Get actual lunch price from lunch settings
+                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                        lunch_price = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                        total_cost += lunch_price
         
         if total_cost <= 0:
             raise HTTPException(status_code=400, detail="Keine kostenpflichtigen Artikel für Sponsoring gefunden")
