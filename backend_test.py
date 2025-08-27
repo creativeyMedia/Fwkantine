@@ -106,9 +106,9 @@ class MealSponsoringTester:
             return False
     
     def create_test_employees(self):
-        """Create test employees for sponsoring scenarios"""
+        """Create 5 test employees for lunch sponsoring scenario"""
         try:
-            employee_names = ["Max Mustermann", "Anna Schmidt", "Peter Weber", "Lisa Mueller"]
+            employee_names = ["Employee1", "Employee2", "Employee3", "Employee4", "Employee5"]
             created_employees = []
             
             for name in employee_names:
@@ -130,22 +130,22 @@ class MealSponsoringTester:
                 response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
                 if response.status_code == 200:
                     existing_employees = response.json()
-                    # Use first 4 employees for testing
-                    self.test_employees = existing_employees[:4]
+                    # Use first 5 employees for testing
+                    self.test_employees = existing_employees[:5]
                     created_employees = self.test_employees
             
-            if len(created_employees) >= 3:  # Need at least 3 employees (2 for orders + 1 sponsor)
+            if len(created_employees) >= 5:  # Need exactly 5 employees for the test case
                 self.log_result(
                     "Create Test Employees",
                     True,
-                    f"Successfully prepared {len(created_employees)} test employees"
+                    f"Successfully prepared {len(created_employees)} test employees for lunch sponsoring test"
                 )
                 return True
             else:
                 self.log_result(
                     "Create Test Employees",
                     False,
-                    error=f"Could not prepare enough test employees. Got {len(created_employees)}, need at least 3"
+                    error=f"Could not prepare enough test employees. Got {len(created_employees)}, need exactly 5"
                 )
                 return False
                 
