@@ -1,42 +1,40 @@
 #!/usr/bin/env python3
 """
-CORRECTED LUNCH SPONSORING BALANCE CALCULATION TEST
+FINAL CORRECTED BALANCE CALCULATION AND UI IMPROVEMENTS TEST
 
-FOCUS: Test the CORRECTED lunch sponsoring balance calculation to fix the 33.10€ vs 28.10€ discrepancy.
+FOCUS: Test the FINAL corrected balance calculation and UI improvements for meal sponsoring.
 
-**CRITICAL SALDO DISCREPANCY BUG FIXED:**
-The user reported that sponsored orders show 33.10€ total_price but employee balance is only 28.10€ (5€ difference). 
-This was caused by using wrong lunch prices during sponsoring calculation.
+**CRITICAL ISSUES ADDRESSED:**
+1. **Balance vs Order Discrepancy**: Fixed the 5€ difference between order total_price and actual balance
+2. **Missing UI Details**: Added separator and clear display of both own order AND sponsored costs
+3. **Sponsor Balance Logic**: Corrected to show sponsor pays (total_cost - sponsor_own_cost)
 
-**ROOT CAUSE IDENTIFIED:**
-- Original orders used 5€ per lunch (actual price at time of order)
-- Sponsoring logic used 4€ per lunch (from global lunch_settings)
-- Result: Sponsor paid 5x4€ = 20€ instead of 5x5€ = 25€
-- Missing 5€ caused balance discrepancy
-
-**FIXES IMPLEMENTED:**
-1. **Lunch cost extraction from original orders**: Instead of using settings, extract actual lunch cost from order total_price minus breakfast costs
-2. **Consistent price calculation**: All lunch sponsoring now uses actual order costs, not hardcoded settings
-3. **Accurate sponsor balance**: Sponsor gets charged exact amount that was sponsored
-4. **Enhanced UI details**: Detailed cost breakdown shows in employee dashboard chronological history
-
-**TEST SCENARIO:**
-1. Create 5 employees in Department 3 with breakfast + lunch orders
-2. Each orders: breakfast items + 1x lunch (varying actual lunch prices)
-3. Test lunch sponsoring - verify exact balance calculations
-4. Check that sponsor order total_price matches sponsor balance change
-5. Verify detailed breakdown appears in employee chronological history
+**TEST FOCUS:**
+1. Create 3 employees in Department 3 with breakfast + lunch orders
+2. Use 3rd employee as sponsor for lunch sponsoring
+3. **CRITICAL VERIFICATION**:
+   - Sponsor balance should equal order total_price effect
+   - readable_items should show BOTH own order AND sponsored details
+   - Clear separation with "────── Gesponserte Ausgabe ──────" divider
+   - Balance calculation: own_breakfast + (total_sponsored - own_sponsored)
 
 **EXPECTED RESULTS:**
-- NO MORE balance discrepancies (sponsor balance should match order total_price effect)
-- Actual lunch costs used (not hardcoded 4€)
-- Enhanced UI shows: "hat 5x Mittagessen ausgegeben (25.00€) für 5 Mitarbeiter"
-- Employee balances keep breakfast costs, lunch costs refunded accurately
+- **NO balance discrepancies** between order and balance
+- **Enhanced UI** shows own order + separator + sponsored details
+- **Correct sponsor costs**: Pays for others but not double for themselves
+- **Transparent breakdown**: Both costs clearly visible in chronological history
+
+**MATHEMATICAL VERIFICATION:**
+- If sponsor has 6.60€ breakfast + 5€ lunch = 11.60€
+- Sponsors 3x5€ = 15€ for others
+- Balance effect: 6.60€ + 15€ - 5€ = 16.60€ (own lunch cancelled by sponsoring)
+- Order total_price: 6.60€ + 5€ + 15€ = 26.60€ (shows full cost)
+- Balance should equal order effect, not order total
 
 **Use Department 3:**
 - Admin: admin3
-- Focus on exact balance calculation verification
-- Test the enhanced UI details display in chronological history
+- Focus on exact balance calculation and UI transparency
+- Verify both backend calculation and frontend display
 """
 
 import requests
