@@ -4828,7 +4828,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                   }`}
                 >
                   {/* Day Summary Header */}
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <div 
                       className="flex-1 cursor-pointer"
                       onClick={() => setSelectedDate(selectedDate === day.date ? null : day.date)}
@@ -4839,12 +4839,19 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         {Object.values(day.employee_orders || {}).filter(emp => emp.has_lunch).length} × 🍽️ Mittag
                       </p>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>Helle: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
-                      <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
+                    
+                    {/* Mobile-optimized controls */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500">
+                      {/* Brötchen info - stack on mobile */}
+                      <div className="flex gap-4 sm:contents">
+                        <span>Helle: {day.shopping_list.weiss?.whole_rolls || 0} Brötchen</span>
+                        <span>Körner: {day.shopping_list.koerner?.whole_rolls || 0} Brötchen</span>
+                      </div>
                       
-                      {/* Lunch Price Management */}
-                      <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">
+                      {/* Lunch Price + Sponsoring Controls - stack on mobile */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        {/* Lunch Price Management */}
+                        <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">
                         <span className="font-medium text-orange-800">Mittagessen:</span>
                         {editingLunchPrice === day.date ? (
                           <div className="flex items-center space-x-1">
