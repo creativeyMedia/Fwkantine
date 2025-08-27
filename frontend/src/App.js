@@ -422,6 +422,16 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                           </div>
                         )}
                         
+                        {/* Show sponsored info if sponsored */}
+                        {item.is_sponsored && (
+                          <div className="mb-2 text-sm text-green-700 bg-green-100 p-2 rounded">
+                            {item.sponsored_message || (item.is_sponsor_order ? 
+                              `${item.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
+                              `Dieses ${item.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${item.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
+                            )}
+                          </div>
+                        )}
+                        
                         {item.readable_items && item.readable_items.length > 0 && (
                           <div className={`space-y-1 ${textStyle}`}>
                             {item.readable_items.map((orderItem, idx) => (
