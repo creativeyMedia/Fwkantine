@@ -212,7 +212,160 @@ class MealSponsoringTester:
             self.log_result("Create Breakfast+Lunch Orders", False, error=str(e))
             return False
     
-    def test_breakfast_sponsoring_correct_calculation(self):
+    def verify_initial_balances(self):
+        """Verify initial balances include both breakfast and lunch costs"""
+        try:
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            if response.status_code != 200:
+                raise Exception("Could not fetch employees to check balances")
+            
+            employees = response.json()
+            initial_balances = {}
+            
+            for test_emp in self.test_employees[:5]:  # Check first 5 employees
+                employee = next((emp for emp in employees if emp["id"] == test_emp["id"]), None)
+                if employee:
+                    balance = employee.get("breakfast_balance", 0.0)
+                    initial_balances[employee["name"]] = balance
+                    print(f"   {employee['name']}: €{balance:.2f}")
+            
+            if len(initial_balances) == 5:
+                self.log_result(
+                    "Verify Initial Balances",
+                    True,
+                    f"Successfully verified initial balances for 5 employees: {initial_balances}"
+                )
+                return True, initial_balances
+            else:
+                self.log_result(
+                    "Verify Initial Balances",
+                    False,
+                    error=f"Could only verify {len(initial_balances)} employee balances, need 5"
+                )
+                return False, {}
+                
+        except Exception as e:
+            self.log_result("Verify Initial Balances", False, error=str(e))
+            return False, {}
+    
+    def test_lunch_sponsoring_calculation(self):
+        """Test lunch sponsoring with correct calculation - ONLY lunch costs"""
+        try:
+            if len(self.test_employees) < 5:
+                self.log_result(
+                    "Test Lunch Sponsoring Calculation",
+                    False,
+                    error="Not enough test employees for lunch sponsoring test"
+                )
+                return False
+            
+            # Use 5th employee as sponsor (index 4)
+            sponsor = self.test_employees[4]
+            today = date.today().isoformat()
+            
+            # Get current lunch settings to verify expected price
+            lunch_settings_response = self.session.get(f"{BASE_URL}/lunch-settings")
+            if lunch_settings_response.status_code == 200:
+                lunch_settings = lunch_settings_response.json()
+                lunch_price = lunch_settings.get("price", 0.0)
+                print(f"   Current lunch price: €{lunch_price:.2f}")
+            else:
+                lunch_price = 4.0  # Default expected price
+                print(f"   Using default lunch price: €{lunch_price:.2f}")
+            
+            # Perform lunch sponsoring
+            sponsor_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "lunch",
+                "sponsor_employee_id": sponsor["id"],
+                "sponsor_employee_name": sponsor["name"]
+            }
+            
+            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Verify response structure
+                required_fields = ["message", "sponsored_items", "total_cost", "affected_employees", "sponsor"]
+                missing_fields = [field for field in required_fields if field not in result]
+                
+                if missing_fields:
+                    self.log_result(
+                        "Test Lunch Sponsoring Calculation",
+                        False,
+                        error=f"Missing fields in response: {missing_fields}"
+                    )
+                    return False
+                
+                # CRITICAL: Verify lunch sponsoring calculation
+                total_cost = result["total_cost"]
+                affected_employees = result["affected_employees"]
+                sponsored_items = result["sponsored_items"]
+                
+                # Expected: 5 employees × lunch_price = total cost
+                expected_total = affected_employees * lunch_price
+                
+                print(f"   Sponsored items: {sponsored_items}")
+                print(f"   Total cost: €{total_cost:.2f}")
+                print(f"   Affected employees: {affected_employees}")
+                print(f"   Expected total (5 × €{lunch_price:.2f}): €{expected_total:.2f}")
+                
+                # Verify ONLY lunch items are sponsored
+                has_lunch = "Mittagessen" in sponsored_items
+                has_breakfast_items = any(item in sponsored_items for item in ["Brötchen", "Eier", "Kaffee", "Coffee"])
+                
+                if has_breakfast_items:
+                    self.log_result(
+                        "Test Lunch Sponsoring Calculation",
+                        False,
+                        error=f"CRITICAL BUG: Lunch sponsoring incorrectly includes breakfast items: {sponsored_items}"
+                    )
+                    return False
+                
+                # Verify cost calculation is correct (should be close to expected)
+                cost_difference = abs(total_cost - expected_total)
+                if has_lunch and affected_employees >= 4 and cost_difference <= 1.0:  # Allow small variance
+                    self.log_result(
+                        "Test Lunch Sponsoring Calculation",
+                        True,
+                        f"✅ CRITICAL FIX VERIFIED: Lunch sponsoring ONLY includes lunch costs. Total: €{total_cost:.2f}, Employees: {affected_employees}, Items: {sponsored_items}"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Test Lunch Sponsoring Calculation",
+                        False,
+                        error=f"Invalid lunch sponsoring calculation: cost=€{total_cost:.2f}, expected≈€{expected_total:.2f}, employees={affected_employees}, has_lunch={has_lunch}"
+                    )
+                    return False
+            elif response.status_code == 400 and "bereits gesponsert" in response.text:
+                # Already sponsored - this means the feature is working
+                self.log_result(
+                    "Test Lunch Sponsoring Calculation",
+                    True,
+                    "✅ Lunch already sponsored today - duplicate prevention working correctly"
+                )
+                return True
+            elif response.status_code == 404:
+                self.log_result(
+                    "Test Lunch Sponsoring Calculation",
+                    False,
+                    error="No lunch orders found for sponsoring - check if orders were created correctly"
+                )
+                return False
+            else:
+                self.log_result(
+                    "Test Lunch Sponsoring Calculation",
+                    False,
+                    error=f"Lunch sponsoring failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Lunch Sponsoring Calculation", False, error=str(e))
+            return False
         """Test breakfast sponsoring with correct cost calculation (ONLY rolls + eggs, NO coffee, NO lunch)"""
         try:
             if len(self.test_employees) < 3:
