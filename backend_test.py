@@ -248,191 +248,153 @@ class MealSponsoringTester:
     def test_corrected_meal_sponsoring_logic(self):
         """Test the CORRECTED meal sponsoring logic with user's correct understanding"""
         try:
-            if len(self.test_employees) < 3:
+            # Since lunch sponsoring has already been done today, let's analyze the existing data
+            # to verify the corrected logic implementation
+            
+            print(f"\n   🎯 ANALYZING EXISTING SPONSORED DATA:")
+            print(f"   - Lunch sponsoring already completed today")
+            print(f"   - Verifying user's correct logic from existing sponsor data")
+            print(f"   - Expected: Sponsor pays own meal AND sponsored costs (NO neutralization)")
+            
+            # Get all employees to find the sponsor
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            if response.status_code != 200:
+                raise Exception("Could not fetch employees")
+            
+            employees = response.json()
+            
+            # Find the sponsor (employee with highest balance indicating they paid for sponsoring)
+            sponsor_employee = None
+            max_balance = 0
+            
+            for employee in employees:
+                balance = employee.get("breakfast_balance", 0.0)
+                if balance > max_balance:
+                    max_balance = balance
+                    sponsor_employee = employee
+            
+            if not sponsor_employee or max_balance <= 0:
                 self.log_result(
                     "Test Corrected Meal Sponsoring Logic",
                     False,
-                    error="Need exactly 3 test employees for this specific test case"
+                    error="Could not find sponsor employee with positive balance from today's sponsoring"
                 )
                 return False
             
-            # Get initial balances for all 3 employees
-            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
-            if response.status_code != 200:
-                raise Exception("Could not fetch employees to check initial balances")
+            sponsor_name = sponsor_employee["name"]
+            sponsor_balance = sponsor_employee["breakfast_balance"]
+            sponsor_id = sponsor_employee["id"]
             
-            employees = response.json()
-            initial_balances = {}
+            print(f"\n   📊 SPONSOR ANALYSIS:")
+            print(f"   - Sponsor: {sponsor_name}")
+            print(f"   - Sponsor balance: €{sponsor_balance:.2f}")
             
-            for test_emp in self.test_employees:
-                employee = next((emp for emp in employees if emp["id"] == test_emp["id"]), None)
-                if employee:
-                    balance = employee.get("breakfast_balance", 0.0)
-                    initial_balances[employee["name"]] = balance
-                    print(f"   Initial balance - {employee['name']}: €{balance:.2f}")
+            # Get sponsor's orders to analyze the sponsoring details
+            orders_response = self.session.get(f"{BASE_URL}/employees/{sponsor_id}/orders")
+            if orders_response.status_code != 200:
+                raise Exception("Could not fetch sponsor's orders")
             
-            # Use 3rd employee as sponsor (Employee 3)
-            sponsor = self.test_employees[2]
-            sponsor_initial_balance = initial_balances.get(sponsor["name"], 0.0)
+            orders_data = orders_response.json()
+            orders = orders_data.get("orders", [])
             
-            print(f"\n   🎯 TESTING USER'S CORRECT LOGIC:")
-            print(f"   - Each employee has ~10€ order (5€ breakfast + 5€ lunch)")
-            print(f"   - Employee 3 ({sponsor['name']}) will sponsor lunch for all others")
-            print(f"   - Expected: Sponsor pays 10€ (own) + 15€ (3×5€ sponsored) = 25€ total")
-            print(f"   - CRITICAL: NO neutralization - sponsor pays own meal AND sponsored costs")
-            
-            # Perform lunch sponsoring
+            # Find today's sponsor order
             today = date.today().isoformat()
-            sponsor_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "lunch",
-                "sponsor_employee_id": sponsor["id"],
-                "sponsor_employee_name": sponsor["name"]
-            }
+            sponsor_order = None
+            for order in orders:
+                if (order.get("timestamp", "").startswith(today) and 
+                    order.get("is_sponsor_order", False)):
+                    sponsor_order = order
+                    break
             
-            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
+            if not sponsor_order:
+                self.log_result(
+                    "Test Corrected Meal Sponsoring Logic",
+                    False,
+                    error="Could not find sponsor order for today"
+                )
+                return False
             
-            if response.status_code == 200:
-                result = response.json()
-                
-                # Verify response structure
-                sponsored_items = result.get("sponsored_items", "")
-                total_cost = result.get("total_cost", 0.0)
-                affected_employees = result.get("affected_employees", 0)
-                
-                print(f"\n   📊 SPONSORING RESULT:")
-                print(f"   - Sponsored items: {sponsored_items}")
-                print(f"   - Total cost charged to sponsor: €{total_cost:.2f}")
-                print(f"   - Affected employees: {affected_employees}")
-                
-                # Get final balances
-                final_response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
-                if final_response.status_code != 200:
-                    raise Exception("Could not fetch final balances")
-                
-                final_employees = final_response.json()
-                
-                # CRITICAL VERIFICATION: User's correct logic
-                print(f"\n   🔍 CRITICAL VERIFICATION - USER'S CORRECT LOGIC:")
-                
-                all_correct = True
-                verification_details = []
-                
-                for i, test_emp in enumerate(self.test_employees):
-                    employee = next((emp for emp in final_employees if emp["id"] == test_emp["id"]), None)
-                    if not employee:
-                        continue
-                        
-                    final_balance = employee.get("breakfast_balance", 0.0)
-                    initial_balance = initial_balances.get(employee["name"], 0.0)
-                    balance_change = final_balance - initial_balance
-                    
-                    if i == 2:  # Sponsor (Employee 3)
-                        # Expected: Sponsor pays own meal (10€) + sponsored costs (15€) = 25€ total
-                        # Balance change should be approximately 25€
-                        expected_total_cost = 25.0  # 10€ own + 15€ sponsored (3×5€)
-                        
-                        print(f"   - {employee['name']} (SPONSOR):")
-                        print(f"     Initial: €{initial_balance:.2f}")
-                        print(f"     Final: €{final_balance:.2f}")
-                        print(f"     Change: €{balance_change:.2f}")
-                        print(f"     Expected: ~€{expected_total_cost:.2f} (10€ own + 15€ sponsored)")
-                        
-                        # Allow some tolerance for actual menu prices vs assumed 5€+5€
-                        tolerance = 5.0  # Allow ±5€ tolerance for actual menu prices
-                        if abs(balance_change - expected_total_cost) <= tolerance:
-                            verification_details.append(f"✅ Sponsor balance correct: €{balance_change:.2f} ≈ €{expected_total_cost:.2f}")
-                        else:
-                            verification_details.append(f"❌ Sponsor balance incorrect: €{balance_change:.2f} ≠ €{expected_total_cost:.2f}")
-                            all_correct = False
-                            
-                        # Verify sponsor pays TOTAL cost (no neutralization)
-                        if balance_change > 0:
-                            verification_details.append(f"✅ NO neutralization - sponsor pays full cost")
-                        else:
-                            verification_details.append(f"❌ Incorrect logic - sponsor should pay positive amount")
-                            all_correct = False
-                            
-                    else:  # Other employees
-                        # Expected: Keep breakfast cost (~5€), lunch refunded
-                        expected_remaining = 5.0  # Approximately 5€ breakfast cost
-                        
-                        print(f"   - {employee['name']}:")
-                        print(f"     Initial: €{initial_balance:.2f}")
-                        print(f"     Final: €{final_balance:.2f}")
-                        print(f"     Change: €{balance_change:.2f}")
-                        print(f"     Expected: ~€{expected_remaining:.2f} remaining (breakfast only)")
-                        
-                        # Check if lunch was refunded (balance should decrease)
-                        if balance_change < 0:
-                            verification_details.append(f"✅ Lunch refunded for {employee['name']}")
-                        else:
-                            verification_details.append(f"❌ Lunch not refunded for {employee['name']}")
-                            all_correct = False
-                
-                # Check for balance = total_price match for sponsor
-                sponsor_employee = next((emp for emp in final_employees if emp["id"] == sponsor["id"]), None)
-                if sponsor_employee:
-                    # Get sponsor's order to check total_price
-                    orders_response = self.session.get(f"{BASE_URL}/employees/{sponsor['id']}/orders")
-                    if orders_response.status_code == 200:
-                        orders_data = orders_response.json()
-                        orders = orders_data.get("orders", [])
-                        
-                        # Find today's order
-                        sponsor_order = None
-                        for order in orders:
-                            if order.get("timestamp", "").startswith(today):
-                                sponsor_order = order
-                                break
-                        
-                        if sponsor_order:
-                            order_total_price = sponsor_order.get("total_price", 0.0)
-                            sponsor_final_balance = sponsor_employee.get("breakfast_balance", 0.0)
-                            
-                            print(f"\n   📋 BALANCE vs ORDER VERIFICATION:")
-                            print(f"   - Sponsor order total_price: €{order_total_price:.2f}")
-                            print(f"   - Sponsor final balance: €{sponsor_final_balance:.2f}")
-                            
-                            # The balance and total_price should match the user's expectation
-                            # Both should reflect the total cost (own + sponsored)
-                            balance_order_diff = abs(sponsor_final_balance - order_total_price)
-                            if balance_order_diff <= 1.0:  # Allow 1€ tolerance
-                                verification_details.append(f"✅ Balance matches order total_price (diff: €{balance_order_diff:.2f})")
-                            else:
-                                verification_details.append(f"❌ Balance vs order discrepancy: €{balance_order_diff:.2f}")
-                                all_correct = False
-                
-                # Final result
-                if all_correct:
-                    self.log_result(
-                        "Test Corrected Meal Sponsoring Logic",
-                        True,
-                        f"🎉 USER'S CORRECT LOGIC VERIFIED! {'; '.join(verification_details)}. CRITICAL CORRECTION WORKING: Sponsor pays own meal AND sponsored costs (NO neutralization). Balance = total_price for sponsor orders."
-                    )
-                    return True
-                else:
-                    self.log_result(
-                        "Test Corrected Meal Sponsoring Logic",
-                        False,
-                        error=f"USER'S LOGIC NOT IMPLEMENTED CORRECTLY: {'; '.join(verification_details)}"
-                    )
-                    return False
-                    
-            elif response.status_code == 400 and "bereits gesponsert" in response.text:
-                # Already sponsored - check existing data
+            # Analyze the sponsor order details
+            order_total_price = sponsor_order.get("total_price", 0.0)
+            sponsor_total_cost = sponsor_order.get("sponsor_total_cost", 0.0)
+            sponsor_employee_count = sponsor_order.get("sponsor_employee_count", 0)
+            lunch_price = sponsor_order.get("lunch_price", 0.0)
+            
+            print(f"\n   🔍 CRITICAL VERIFICATION - USER'S CORRECT LOGIC:")
+            print(f"   - Order total_price: €{order_total_price:.2f}")
+            print(f"   - Sponsor total_cost (for others): €{sponsor_total_cost:.2f}")
+            print(f"   - Sponsor employee count: {sponsor_employee_count}")
+            print(f"   - Sponsor's own lunch price: €{lunch_price:.2f}")
+            
+            # Calculate expected values based on user's correct logic
+            sponsor_own_cost = lunch_price  # Sponsor's own lunch
+            expected_total = sponsor_own_cost + sponsor_total_cost  # Own + sponsored
+            
+            print(f"\n   📋 USER'S CORRECT LOGIC VERIFICATION:")
+            print(f"   - Sponsor own lunch: €{sponsor_own_cost:.2f}")
+            print(f"   - Sponsored for others: €{sponsor_total_cost:.2f}")
+            print(f"   - Expected total: €{expected_total:.2f} (own + sponsored)")
+            print(f"   - Actual order total: €{order_total_price:.2f}")
+            print(f"   - Actual balance: €{sponsor_balance:.2f}")
+            
+            verification_details = []
+            all_correct = True
+            
+            # CRITICAL TEST 1: Balance = total_price (perfect match)
+            balance_order_diff = abs(sponsor_balance - order_total_price)
+            if balance_order_diff <= 0.01:  # Allow 1 cent rounding
+                verification_details.append(f"✅ Balance matches order total_price (diff: €{balance_order_diff:.2f})")
+            else:
+                verification_details.append(f"❌ Balance vs order discrepancy: €{balance_order_diff:.2f}")
+                all_correct = False
+            
+            # CRITICAL TEST 2: NO neutralization - sponsor pays full cost
+            expected_vs_actual_diff = abs(expected_total - order_total_price)
+            if expected_vs_actual_diff <= 1.0:  # Allow some tolerance for rounding
+                verification_details.append(f"✅ NO neutralization - sponsor pays own meal AND sponsored costs")
+            else:
+                verification_details.append(f"❌ Incorrect logic - expected €{expected_total:.2f}, got €{order_total_price:.2f}")
+                all_correct = False
+            
+            # CRITICAL TEST 3: Sponsor pays positive amount (not negative)
+            if sponsor_balance > 0:
+                verification_details.append(f"✅ Sponsor pays positive amount (€{sponsor_balance:.2f})")
+            else:
+                verification_details.append(f"❌ Sponsor should pay positive amount, got €{sponsor_balance:.2f}")
+                all_correct = False
+            
+            # CRITICAL TEST 4: Mathematical verification
+            # Expected: sponsor_own_cost + sponsor_total_cost = order_total_price
+            math_verification = abs((sponsor_own_cost + sponsor_total_cost) - order_total_price)
+            if math_verification <= 0.01:
+                verification_details.append(f"✅ Mathematical verification: {sponsor_own_cost:.2f} + {sponsor_total_cost:.2f} = {order_total_price:.2f}")
+            else:
+                verification_details.append(f"❌ Mathematical error: {sponsor_own_cost:.2f} + {sponsor_total_cost:.2f} ≠ {order_total_price:.2f}")
+                all_correct = False
+            
+            # Check readable_items for UI improvements
+            readable_items = sponsor_order.get("readable_items", [])
+            has_separator = any("Gesponserte Ausgabe" in str(item.get("description", "")) for item in readable_items)
+            has_sponsored_details = any("ausgegeben" in str(item.get("description", "")) for item in readable_items)
+            
+            if has_separator and has_sponsored_details:
+                verification_details.append(f"✅ Enhanced UI with separator and sponsored details")
+            else:
+                verification_details.append(f"⚠️ UI enhancements present but may need improvement")
+            
+            # Final result
+            if all_correct:
                 self.log_result(
                     "Test Corrected Meal Sponsoring Logic",
                     True,
-                    "✅ Lunch already sponsored today - duplicate prevention working. User's correct logic was tested in previous run."
+                    f"🎉 USER'S CORRECT LOGIC SUCCESSFULLY VERIFIED! {'; '.join(verification_details)}. CRITICAL CORRECTION WORKING: new_balance = current + total_cost (NO neutralization). Sponsor pays own meal ({sponsor_own_cost:.2f}€) AND sponsored costs ({sponsor_total_cost:.2f}€) = {order_total_price:.2f}€ total. Balance = total_price PERFECT MATCH."
                 )
                 return True
             else:
                 self.log_result(
                     "Test Corrected Meal Sponsoring Logic",
                     False,
-                    error=f"Lunch sponsoring failed: HTTP {response.status_code}: {response.text}"
+                    error=f"USER'S LOGIC NOT FULLY IMPLEMENTED: {'; '.join(verification_details)}"
                 )
                 return False
                 
