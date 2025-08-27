@@ -112,7 +112,9 @@ class MealSponsoringTester:
     def create_test_employees(self):
         """Create 3 test employees for Department 3 lunch sponsoring scenario"""
         try:
-            employee_names = ["TestEmp1_Dept3", "TestEmp2_Dept3", "TestEmp3_Dept3"]
+            # Use timestamp to create unique employee names
+            timestamp = datetime.now().strftime("%H%M%S")
+            employee_names = [f"TestEmp1_{timestamp}", f"TestEmp2_{timestamp}", f"TestEmp3_{timestamp}"]
             created_employees = []
             
             for name in employee_names:
@@ -126,30 +128,20 @@ class MealSponsoringTester:
                     created_employees.append(employee)
                     self.test_employees.append(employee)
                 else:
-                    # Employee might already exist, try to find existing ones
-                    pass
-            
-            # If we couldn't create new ones, get existing employees
-            if not created_employees:
-                response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
-                if response.status_code == 200:
-                    existing_employees = response.json()
-                    # Use first 3 employees for testing
-                    self.test_employees = existing_employees[:3]
-                    created_employees = self.test_employees
+                    print(f"   Failed to create employee {name}: {response.status_code} - {response.text}")
             
             if len(created_employees) >= 3:  # Need exactly 3 employees for the test case
                 self.log_result(
                     "Create Test Employees",
                     True,
-                    f"Successfully prepared {len(created_employees)} test employees for Department 3 lunch sponsoring test"
+                    f"Successfully created {len(created_employees)} fresh test employees for Department 3 lunch sponsoring test"
                 )
                 return True
             else:
                 self.log_result(
                     "Create Test Employees",
                     False,
-                    error=f"Could not prepare enough test employees. Got {len(created_employees)}, need exactly 3"
+                    error=f"Could only create {len(created_employees)} employees, need exactly 3"
                 )
                 return False
                 
