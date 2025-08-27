@@ -4436,7 +4436,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             </div>
                             <div className="flex justify-between">
                               <span>Ø pro Bestellung:</span>
-                              <span className="font-medium">€{(day.total_amount / day.total_orders).toFixed(2)}</span>
+                              <span className="font-medium">{(day.total_amount / day.total_orders).toFixed(2)} €</span>
                             </div>
                           </div>
                         </div>
