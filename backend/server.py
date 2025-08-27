@@ -1261,7 +1261,40 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "total_amount": 0
                         }
                     
-                    employee_orders[employee_key]["total_amount"] += order.get("total_price", 0)
+                    # Calculate individual employee total_amount considering sponsoring
+                    order_amount = 0
+                    if order.get("is_sponsored") and not order.get("is_sponsor_order"):
+                        # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
+                        if order.get("sponsored_meal_type") == "breakfast":
+                            # Only coffee cost remains for breakfast sponsoring
+                            for item in order.get("breakfast_items", []):
+                                if item.get("has_coffee", False):
+                                    order_amount += 1.0  # Coffee price
+                        elif order.get("sponsored_meal_type") == "lunch":
+                            # Breakfast costs remain for lunch sponsoring
+                            order_amount = order.get("total_price", 0)
+                            # Subtract lunch cost
+                            for item in order.get("breakfast_items", []):
+                                if item.get("has_lunch", False):
+                                    # Get daily lunch price
+                                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                                        "department_id": department_id,
+                                        "date": current_date.isoformat()
+                                    })
+                                    if daily_lunch_price_doc:
+                                        order_amount -= daily_lunch_price_doc["lunch_price"]
+                                    else:
+                                        # Fall back to global lunch settings
+                                        lunch_settings = await db.lunch_settings.find_one()
+                                        lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+                                        order_amount -= lunch_price
+                        else:
+                            order_amount = order.get("total_price", 0)
+                    else:
+                        # Regular orders or sponsor's own orders - use full cost
+                        order_amount = order.get("total_price", 0)
+                    
+                    employee_orders[employee_key]["total_amount"] += order_amount
                     
                     for item in order["breakfast_items"]:
                         # Handle new format (total_halves, white_halves, seeded_halves)
