@@ -107,9 +107,9 @@ user_problem_statement: "Test the comprehensive German canteen management system
 backend:
   - task: "Admin Dashboard Daily Summary Double-Counting Fix Testing"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
     needs_retesting: false
     status_history:
