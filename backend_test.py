@@ -47,11 +47,11 @@ import sys
 from datetime import datetime, date, timedelta
 import uuid
 
-# Configuration - Use Department 2 as specified in review request
+# Configuration - Use Department 3 as specified in review request
 BASE_URL = "https://canteen-manager-1.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "2. Wachabteilung"
-DEPARTMENT_ID = "fw4abteilung2"
-ADMIN_PASSWORD = "admin2"
+DEPARTMENT_NAME = "3. Wachabteilung"
+DEPARTMENT_ID = "fw4abteilung3"
+ADMIN_PASSWORD = "admin3"
 
 class MealSponsoringTester:
     def __init__(self):
