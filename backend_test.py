@@ -1422,7 +1422,7 @@ def main():
     tester = MealSponsoringTester()
     
     try:
-        success = tester.run_meal_sponsoring_critical_bug_fixes_tests()
+        success = tester.run_corrected_lunch_sponsoring_tests()
         
         # Exit with appropriate code
         failed_tests = [r for r in tester.test_results if "❌ FAIL" in r["status"]]
