@@ -4472,6 +4472,113 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
   );
 };
 
+// Meal Sponsoring Modal Component
+const MealSponsorModal = ({ 
+  isOpen, 
+  onClose, 
+  employees, 
+  mealType, 
+  date, 
+  onConfirm 
+}) => {
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedEmployeeId('');
+    }
+  }, [isOpen]);
+  
+  const handleConfirm = () => {
+    const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+    if (!selectedEmployee) {
+      alert('Bitte wählen Sie einen Mitarbeiter aus.');
+      return;
+    }
+    
+    onConfirm(selectedEmployee);
+    onClose();
+  };
+  
+  if (!isOpen) return null;
+  
+  const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
+  const mealIcon = mealType === 'breakfast' ? '🥖' : '🍽️';
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold mb-2">
+            {mealIcon} {mealTypeLabel} ausgeben
+          </h3>
+          <p className="text-gray-600">
+            Für {new Date(date).toLocaleDateString('de-DE', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">
+            Wer übernimmt die Kosten?
+          </label>
+          <select
+            value={selectedEmployeeId}
+            onChange={(e) => setSelectedEmployeeId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            autoFocus
+          >
+            <option value="">Mitarbeiter auswählen...</option>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 text-sm">
+          <p className="text-blue-800">
+            <strong>Was passiert:</strong>
+          </p>
+          <ul className="text-blue-700 mt-1 space-y-1">
+            {mealType === 'breakfast' ? (
+              <>
+                <li>• Alle Brötchen + Eier + Lunch werden übernommen</li>
+                <li>• Kaffee bleibt bei jedem Mitarbeiter individuell</li>
+              </>
+            ) : (
+              <li>• Alle Mittagessen-Kosten werden übernommen</li>
+            )}
+            <li>• Die Kosten werden dem ausgewählten Mitarbeiter gutgeschrieben</li>
+            <li>• Alle anderen Mitarbeiter zahlen 0€ für diese Mahlzeit</li>
+          </ul>
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedEmployeeId}
+            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Bestätigen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Breakfast History Tab Component
 const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [breakfastHistory, setBreakfastHistory] = useState([]);
