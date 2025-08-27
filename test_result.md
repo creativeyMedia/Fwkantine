@@ -105,6 +105,29 @@
 user_problem_statement: "Diagnose and restore missing functions: 1) Master password functionality (master123dev) for developer access to all dashboards, 2) Cancellation documentation showing red 'Storniert von Mitarbeiter/Admin' fields in order history instead of deleting orders. Verify both functions are working correctly or repair if broken."
 
 backend:
+  - task: "Master Password Login Function Diagnosis"
+    implemented: true
+    working: "unknown"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "DIAGNOSED: Found master password logic in backend server.py at lines 533-534, 576-577. Environment variable MASTER_PASSWORD='master123dev' exists in .env file. Backend API endpoints (/api/login/department, /api/login/department-admin) have master password checks. Need to test if actual login with master123dev works correctly."
+
+  - task: "Order Cancellation Documentation Display"
+    implemented: true  
+    working: "unknown"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "DIAGNOSED: Found cancellation logic in frontend App.js with is_cancelled field, red styling for cancelled orders, and 'Storniert' labels. Backend has cancellation endpoints and cancelled_by/cancelled_by_name fields. Need to test if 'storniert von Mitarbeiter/Admin' messages display correctly in order history."
   - task: "Admin Dashboard Daily Summary Double-Counting Fix Testing"
     implemented: true
     working: true
