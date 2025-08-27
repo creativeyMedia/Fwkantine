@@ -2464,44 +2464,45 @@ async def sponsor_meal(meal_data: dict):
         sponsored_items = {}
         
         if meal_type == "breakfast":
-            # Count rolls, eggs, lunch (exclude coffee)
+            # Count ONLY rolls and eggs (exclude coffee AND lunch)
             for order in orders:
                 affected_employees.add(order["employee_id"])
+                order_breakfast_cost = 0.0
                 
                 for item in order.get("breakfast_items", []):
-                    # Add breakfast costs (exclude coffee)
-                    item_cost = 0.0
-                    
-                    # Rolls
+                    # Rolls cost
                     white_halves = item.get("white_halves", 0)
                     seeded_halves = item.get("seeded_halves", 0)
                     
                     if white_halves > 0:
                         sponsored_items["Helles Brötchen"] = sponsored_items.get("Helles Brötchen", 0) + white_halves
-                        # Assume 0.50 per half - we'll calculate actual cost from order total
+                        # Get breakfast menu price for white rolls
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                        order_breakfast_cost += white_halves * roll_price
                     
                     if seeded_halves > 0:
                         sponsored_items["Körner Brötchen"] = sponsored_items.get("Körner Brötchen", 0) + seeded_halves
+                        # Get breakfast menu price for seeded rolls
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                        order_breakfast_cost += seeded_halves * roll_price
                     
-                    # Boiled eggs
+                    # Toppings are free, so no cost
+                    
+                    # Boiled eggs cost
                     boiled_eggs = item.get("boiled_eggs", 0)
                     if boiled_eggs > 0:
                         sponsored_items["Gekochte Eier"] = sponsored_items.get("Gekochte Eier", 0) + boiled_eggs
+                        # Get lunch settings for boiled egg price
+                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                        egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
+                        order_breakfast_cost += boiled_eggs * egg_price
                     
-                    # Lunch
-                    if item.get("has_lunch", False):
-                        sponsored_items["Mittagessen"] = sponsored_items.get("Mittagessen", 0) + 1
+                    # EXCLUDE LUNCH - not included in breakfast sponsoring
+                    # EXCLUDE COFFEE - not included in breakfast sponsoring
                 
-                # Calculate cost without coffee
-                order_cost = order.get("total_price", 0)
-                
-                # Subtract coffee cost if present
-                has_coffee = any(item.get("has_coffee", False) for item in order.get("breakfast_items", []))
-                if has_coffee:
-                    # Assume coffee is 1.50€ - could be made dynamic
-                    order_cost -= 1.50
-                
-                total_cost += max(0, order_cost)
+                total_cost += order_breakfast_cost
         
         else:  # lunch
             # Only lunch costs
