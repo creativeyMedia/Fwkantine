@@ -2680,10 +2680,51 @@ async def sponsor_meal(meal_data: dict):
                             {"$set": {"breakfast_balance": new_balance}}
                         )
         
-        # Add cost to sponsor's balance
+        # Add sponsored cost to sponsor's balance, but subtract their own sponsored amount
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost
+            # Calculate sponsor's own sponsored cost (if they had an order)
+            sponsor_own_cost = 0.0
+            sponsor_order = None
+            for order in orders:
+                if order["employee_id"] == sponsor_employee_id:
+                    sponsor_order = order
+                    break
+            
+            if sponsor_order and meal_type == "breakfast":
+                # Calculate sponsor's own breakfast cost (rolls + eggs only)
+                for item in sponsor_order.get("breakfast_items", []):
+                    # Rolls
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                    
+                    if white_halves > 0:
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                        sponsor_own_cost += white_halves * roll_price
+                    
+                    if seeded_halves > 0:
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                        sponsor_own_cost += seeded_halves * roll_price
+                    
+                    # Boiled eggs
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    if boiled_eggs > 0:
+                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                        egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
+                        sponsor_own_cost += boiled_eggs * egg_price
+            elif sponsor_order and meal_type == "lunch":
+                # For lunch, calculate lunch cost
+                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                lunch_cost = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                for item in sponsor_order.get("breakfast_items", []):
+                    if item.get("has_lunch", False):
+                        sponsor_own_cost += lunch_cost
+            
+            # Sponsor pays total_cost but gets refund for their own sponsored part
+            # Net effect: sponsor pays (total_cost - sponsor_own_cost)
+            new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost - sponsor_own_cost
             await db.employees.update_one(
                 {"id": sponsor_employee_id},
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
