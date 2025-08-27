@@ -105,6 +105,18 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
+  - task: "Order Cancellation System Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ORDER CANCELLATION SYSTEM TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the order cancellation system completed with 100% success rate (9/9 tests passed): ✅ 1) Employee Authentication - Successfully authenticated with updated password 'newTestPassword123' for department '1. Wachabteilung'. ✅ 2) Test Employee Creation - Created test employee successfully for order testing. ✅ 3) Test Order Creation - Created breakfast order with rolls and toppings (€1.65 total). ✅ 4) Order Exists and Not Cancelled Initially - Verified order exists in database and is_cancelled=False initially. ✅ 5) Order Cancellation via Employee Endpoint - DELETE /employee/{employee_id}/orders/{order_id} endpoint working correctly, order cancelled successfully with message 'Bestellung erfolgreich storniert'. ✅ 6) Cancellation Fields Verification - All required cancellation fields set correctly: is_cancelled=True, cancelled_at with proper timestamp, cancelled_by='employee', cancelled_by_name with employee name. ✅ 7) Admin Daily Summary Handles Cancelled Orders - Daily summary endpoint correctly excludes cancelled orders from aggregations (proper behavior). ✅ 8) Prevent Double Cancellation - Correctly prevented double cancellation with HTTP 400 error 'Bestellung bereits storniert'. ✅ 9) Admin Cancellation Test - DELETE /department-admin/orders/{order_id} endpoint working correctly with admin authentication, cancelled orders have cancelled_by='admin' and cancelled_by_name='Admin'. All expected results from the review request achieved: (1) Orders cancelled by employee get marked as is_cancelled=true in database, (2) Cancelled orders have proper fields cancelled_at, cancelled_by, cancelled_by_name, (3) Admin endpoints correctly handle cancelled orders, (4) Double cancellation is properly prevented. The order cancellation system is fully functional and production-ready."
+
 frontend:
   - task: "NEW Master Password Login Implementation Testing"
     implemented: true
