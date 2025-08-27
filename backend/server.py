@@ -2729,6 +2729,8 @@ async def sponsor_meal(meal_data: dict):
             # Sponsor pays total_cost but gets refund for their own sponsored part
             # Net effect: sponsor pays (total_cost - sponsor_own_cost)
             new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost - sponsor_own_cost
+            # Round to 2 decimal places to avoid floating point precision errors
+            new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
                 {"id": sponsor_employee_id},
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
