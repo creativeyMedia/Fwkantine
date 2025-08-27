@@ -1,38 +1,46 @@
 #!/usr/bin/env python3
 """
-MEAL SPONSORING FEATURE TEST
+MEAL SPONSORING FEATURE CRITICAL BUG FIXES TEST
 
-FOCUS: Test the newly implemented meal sponsoring feature in the German canteen management system.
+FOCUS: Test the corrected meal sponsoring feature logic in the German canteen management system.
+Focus on verifying the critical bug fixes.
 
-Test specifically:
-1. **Authentication**: Test department admin authentication (admin1, admin2, admin3, admin4 credentials)
-2. **Meal Sponsoring API Endpoint**: Test POST /api/department-admin/sponsor-meal with parameters:
-   - department_id: Target department ID  
-   - date: Date for sponsoring (format: YYYY-MM-DD)
-   - meal_type: Either "breakfast" or "lunch"
-   - sponsor_employee_id: ID of employee who will pay
-   - sponsor_employee_name: Name of sponsoring employee
+**CRITICAL ISSUES FIXED - VERIFY THESE:**
 
-3. **Test Scenarios**:
-   - Create test employees in a department
-   - Create breakfast orders (rolls, toppings, eggs, lunch) for multiple employees
-   - Test breakfast sponsoring (should cover rolls + eggs + lunch, excluding coffee)
-   - Test lunch sponsoring (should cover only lunch costs)
-   - Verify cost calculation and transfer to sponsor employee
-   - Verify that sponsored orders are marked as sponsored (0€ cost)
-   - Verify audit trail with sponsored_by fields
+1. **Correct Cost Calculation**:
+   - Breakfast sponsoring should ONLY include rolls + eggs (NO coffee, NO lunch)
+   - Lunch sponsoring should ONLY include lunch costs
+   - Must use actual menu prices from database
 
-4. **Expected Results**:
-   - API should return: sponsored_items count, total_cost, affected_employees count, sponsor name
-   - Individual orders should be updated with sponsored_by information
-   - Sponsor employee balance should be charged the total cost
-   - Other employees should have their meal costs set to 0€
+2. **No Double Charging**:
+   - Sponsor employee should NOT be charged twice
+   - Other employees should get sponsored costs subtracted from balance
+   - Verify sponsor gets either modified existing order OR new sponsored order (not both)
+
+3. **Sponsored Messages**:
+   - Sponsor should get message: "Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!"
+   - Other employees should get: "Dieses Frühstück wurde von XYZ ausgegeben, bedanke dich bei ihm!"
+
+4. **Security Features**:
+   - Only today/yesterday dates should be allowed
+   - Prevent duplicate sponsoring for same meal type and date
+   - Verify proper error messages
+
+**Test Scenarios:**
+1. Create breakfast orders with rolls + eggs + lunch + coffee
+2. Test breakfast sponsoring - verify only rolls + eggs are sponsored
+3. Test lunch sponsoring - verify only lunch costs are sponsored  
+4. Verify sponsor balance calculations
+5. Verify other employees get costs subtracted correctly
+6. Test security restrictions (future dates, duplicate sponsoring)
+7. Verify sponsored messages are added to orders
+8. Test edge cases and error handling
 
 BACKEND URL: https://canteen-manager-1.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
 ADMIN CREDENTIALS: admin1, admin2, admin3, admin4
 
-PURPOSE: Verify the meal sponsoring feature works correctly for both breakfast and lunch scenarios.
+PURPOSE: Verify the corrected logic after critical bug fixes.
 """
 
 import requests
