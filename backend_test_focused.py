@@ -15,7 +15,7 @@ import sys
 from datetime import datetime, date, timedelta
 
 # Configuration - Use Department 2 as specified in review request
-BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
+BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"

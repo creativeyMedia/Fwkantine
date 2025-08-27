@@ -9,7 +9,7 @@ import requests
 import json
 from datetime import datetime, date
 
-BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
+BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
 DEPARTMENT_ID = "fw4abteilung3"
 ADMIN_PASSWORD = "admin3"
 

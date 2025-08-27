@@ -23,7 +23,7 @@ Focus on the specific test case reported by the user.
 **Critical Fix to Verify:** 
 The sponsor balance calculation now includes: `total_cost - sponsor_own_cost` instead of just `total_cost`, which should fix the double-charging issue.
 
-BACKEND URL: https://fire-dept-cafe.preview.emergentagent.com/api
+BACKEND URL: https://mealflow-1.preview.emergentagent.com/api
 DEPARTMENT: 2. Wachabteilung (fw4abteilung2)
 ADMIN CREDENTIALS: admin2
 
@@ -37,7 +37,7 @@ from datetime import datetime, date, timedelta
 import uuid
 
 # Configuration - Use production backend URL from frontend/.env
-BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
+BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"

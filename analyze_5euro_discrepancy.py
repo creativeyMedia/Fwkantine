@@ -18,7 +18,7 @@ import sys
 from datetime import datetime, date, timedelta
 
 # Configuration
-BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
+BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "3. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung3"
 ADMIN_PASSWORD = "admin3"

@@ -14,7 +14,7 @@ import uuid
 import time
 
 # Configuration
-BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
+BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
 
 class FreshSponsoringTest:
     def __init__(self):
