@@ -4309,7 +4309,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                     >
                       <h5 className="font-semibold text-lg">{formatDate(day.date)}</h5>
                       <p className="text-sm text-gray-600">
-                        {day.total_orders} Bestellungen • €{day.total_amount.toFixed(2)} • 
+                        {day.total_orders} Bestellungen • {day.total_amount.toFixed(2)} € • 
                         {Object.values(day.employee_orders || {}).filter(emp => emp.has_lunch).length} × 🍽️ Mittag
                       </p>
                     </div>
