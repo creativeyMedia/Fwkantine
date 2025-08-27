@@ -1647,7 +1647,7 @@ async def get_employee_profile(employee_id: str):
                     enriched_order["readable_items"].append({
                         "description": "1x Mittagessen",
                         "unit_price": "",  # Remove price display as requested by user
-                        "total_price": f"€{lunch_price:.2f}"
+                        "total_price": f"{lunch_price:.2f} €"
                     })
         
         elif order["order_type"] in ["drinks", "sweets"]:
