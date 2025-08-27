@@ -676,17 +676,17 @@ class MealSponsoringTester:
         print("🧪 TEST 3: Create Breakfast Orders")
         test3_ok = self.create_breakfast_orders()
         
-        # Test 4: Create Additional Lunch Orders (for separate lunch sponsoring test)
-        print("🧪 TEST 4: Create Additional Lunch Orders")
-        test4_ok = self.create_additional_lunch_orders()
+        # Test 4: Test Breakfast Sponsoring (test this first before lunch sponsoring)
+        print("🧪 TEST 4: Test Breakfast Sponsoring")
+        test4_ok = self.test_breakfast_sponsoring()
         
-        # Test 5: Test Lunch Sponsoring (test this first before breakfast sponsoring)
-        print("🧪 TEST 5: Test Lunch Sponsoring")
-        test5_ok = self.test_lunch_sponsoring()
+        # Test 5: Create Additional Lunch Orders (for separate lunch sponsoring test)
+        print("🧪 TEST 5: Create Additional Lunch Orders")
+        test5_ok = self.create_additional_lunch_orders()
         
-        # Test 6: Test Breakfast Sponsoring
-        print("🧪 TEST 6: Test Breakfast Sponsoring")
-        test6_ok = self.test_breakfast_sponsoring()
+        # Test 6: Test Lunch Sponsoring
+        print("🧪 TEST 6: Test Lunch Sponsoring")
+        test6_ok = self.test_lunch_sponsoring()
         
         # Test 7: Verify Sponsored Orders Audit Trail
         print("🧪 TEST 7: Verify Sponsored Orders Audit Trail")
