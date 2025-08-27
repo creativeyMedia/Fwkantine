@@ -1,25 +1,12 @@
 #!/usr/bin/env python3
 """
-5€ DISCREPANCY FIX VERIFICATION TEST - FOCUSED ANALYSIS
+FOCUSED CRITICAL SPONSORING BUGS VERIFICATION
 
-FOCUS: Analyze existing sponsored meal data to verify the 5€ discrepancy fix is working correctly.
+Found specific evidence of Bug 1 in the data:
+- Brauni has €32.50 balance (exactly the problematic amount mentioned in review)
+- This suggests the "5€ zu viel" bug is present
 
-**CRITICAL BUG FIXED:**
-The /api/orders/breakfast-history/{department_id} endpoint was double-counting sponsor orders by adding 
-the full sponsor order total_price (which includes both sponsor's own cost + sponsored costs for others) 
-instead of only the sponsor's own cost.
-
-**FIX VERIFICATION:**
-Instead of creating new test data, analyze existing sponsored meal data to verify:
-1. Sponsored employees show €0.00 in breakfast-history endpoint
-2. Sponsor employees show correct amounts (not double-counted)
-3. Total amounts are calculated correctly without double-counting
-4. Breakfast-history and daily-summary endpoints are consistent
-
-**Use Department 3:**
-- Admin: admin3
-- Analyze existing sponsored meal data
-- Verify the specific 5€ discrepancy is eliminated
+Focus on verifying the three critical bugs with existing data.
 """
 
 import requests
@@ -27,17 +14,16 @@ import json
 import sys
 from datetime import datetime, date, timedelta
 
-# Configuration - Use Department 3 as specified in review request
+# Configuration - Use Department 2 as specified in review request
 BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "3. Wachabteilung"
-DEPARTMENT_ID = "fw4abteilung3"
-ADMIN_PASSWORD = "admin3"
+DEPARTMENT_NAME = "2. Wachabteilung"
+DEPARTMENT_ID = "fw4abteilung2"
+ADMIN_PASSWORD = "admin2"
 
-class FocusedFiveEuroDiscrepancyAnalysis:
+class FocusedSponsoringBugsTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
-        self.admin_auth = None
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
@@ -85,15 +71,98 @@ class FocusedFiveEuroDiscrepancyAnalysis:
             self.log_result("Department Admin Authentication", False, error=str(e))
             return False
     
-    def analyze_breakfast_history_sponsored_data(self):
-        """Analyze existing breakfast-history data to verify sponsored meal handling"""
+    def verify_bug1_exact_scenario(self):
+        """Bug 1: Verify the exact 5€ zu viel scenario with Brauni (€32.50)"""
         try:
-            # Get breakfast-history endpoint (the one that was fixed)
+            # Get employee balances
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Bug 1: Exact 5€ zu viel Scenario",
+                    False,
+                    error=f"Could not fetch employees: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+            
+            employees = response.json()
+            
+            print(f"\n   💰 BUG 1: EXACT 5€ ZU VIEL SCENARIO VERIFICATION:")
+            print(f"   Looking for the problematic €32.50 balance (should be €27.50)")
+            
+            # Find Brauni with €32.50 balance
+            brauni_data = None
+            for emp in employees:
+                if emp["name"] == "Brauni":
+                    brauni_data = emp
+                    break
+            
+            if not brauni_data:
+                self.log_result(
+                    "Bug 1: Exact 5€ zu viel Scenario",
+                    False,
+                    error="Brauni employee not found"
+                )
+                return False
+            
+            brauni_balance = brauni_data.get("breakfast_balance", 0)
+            print(f"   Brauni's balance: €{brauni_balance:.2f}")
+            
+            # Check if this is the exact problematic scenario
+            problematic_amount = 32.50
+            expected_correct_amount = 27.50
+            
+            verification_details = []
+            
+            if abs(brauni_balance - problematic_amount) < 0.01:
+                verification_details.append(f"❌ FOUND BUG 1: Brauni has €{brauni_balance:.2f} (problematic amount)")
+                verification_details.append(f"❌ Should be €{expected_correct_amount:.2f} (5€ less)")
+                verification_details.append(f"❌ This is exactly the '5€ zu viel' bug described in the review request")
+                
+                # This is a CRITICAL BUG - the fix is NOT working
+                self.log_result(
+                    "Bug 1: Exact 5€ zu viel Scenario",
+                    False,
+                    error=f"🚨 CRITICAL BUG 1 CONFIRMED: {'; '.join(verification_details)}. The sponsor balance calculation bug is still present!"
+                )
+                return False
+                
+            elif abs(brauni_balance - expected_correct_amount) < 2.0:
+                verification_details.append(f"✅ Brauni balance correct: €{brauni_balance:.2f} (expected ~€{expected_correct_amount:.2f})")
+                verification_details.append(f"✅ NOT the problematic €{problematic_amount:.2f} (5€ too much)")
+                verification_details.append(f"✅ Bug 1 fix appears to be working")
+                
+                self.log_result(
+                    "Bug 1: Exact 5€ zu viel Scenario",
+                    True,
+                    f"✅ BUG 1 FIX VERIFIED: {'; '.join(verification_details)}. Sponsor balance calculation is correct."
+                )
+                return True
+                
+            else:
+                verification_details.append(f"⚠️ Brauni balance unexpected: €{brauni_balance:.2f}")
+                verification_details.append(f"⚠️ Not the problematic €{problematic_amount:.2f} but also not expected €{expected_correct_amount:.2f}")
+                
+                self.log_result(
+                    "Bug 1: Exact 5€ zu viel Scenario",
+                    False,
+                    error=f"Unexpected balance amount: {'; '.join(verification_details)}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Bug 1: Exact 5€ zu viel Scenario", False, error=str(e))
+            return False
+    
+    def verify_bug2_sponsored_orders_display(self):
+        """Bug 2: Verify sponsored orders are properly displayed in daily summary"""
+        try:
+            # Get breakfast-history endpoint
             response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
             
             if response.status_code != 200:
                 self.log_result(
-                    "Analyze Breakfast History Sponsored Data",
+                    "Bug 2: Sponsored Orders Display",
                     False,
                     error=f"Could not fetch breakfast history: HTTP {response.status_code}: {response.text}"
                 )
@@ -104,365 +173,231 @@ class FocusedFiveEuroDiscrepancyAnalysis:
             
             if not history_entries:
                 self.log_result(
-                    "Analyze Breakfast History Sponsored Data",
+                    "Bug 2: Sponsored Orders Display",
                     False,
-                    error="No history entries found in breakfast-history endpoint"
+                    error="No history entries found"
                 )
                 return False
             
-            # Get today's entry (should be first in the list)
             today_entry = history_entries[0]
-            today_date = date.today().isoformat()
-            
-            if today_entry.get("date") != today_date:
-                self.log_result(
-                    "Analyze Breakfast History Sponsored Data",
-                    False,
-                    error=f"Today's entry not found. Got date: {today_entry.get('date')}, expected: {today_date}"
-                )
-                return False
-            
             employee_orders = today_entry.get("employee_orders", {})
             total_amount = today_entry.get("total_amount", 0)
-            total_orders = today_entry.get("total_orders", 0)
             
-            print(f"\n   📊 BREAKFAST HISTORY SPONSORED DATA ANALYSIS:")
-            print(f"   Total orders: {total_orders}")
-            print(f"   Total amount: €{total_amount:.2f}")
-            print(f"   Employee orders: {len(employee_orders)}")
+            print(f"\n   📊 BUG 2: SPONSORED ORDERS DISPLAY VERIFICATION:")
+            print(f"   Total amount in breakfast-history: €{total_amount:.2f}")
+            print(f"   Number of employees: {len(employee_orders)}")
             
-            # Analyze sponsored vs non-sponsored employees
-            sponsored_employees = []  # Employees with €0.00 (sponsored)
-            non_sponsored_employees = []  # Employees with positive amounts
-            sponsor_employees = []  # Employees who might be sponsors (higher amounts)
+            # Calculate sum of individual amounts
+            individual_sum = sum(emp_data.get("total_amount", 0) for emp_data in employee_orders.values())
+            print(f"   Sum of individual amounts: €{individual_sum:.2f}")
             
-            for employee_name, order_data in employee_orders.items():
-                employee_total = order_data.get("total_amount", 0)
-                has_lunch = order_data.get("has_lunch", False)
-                
-                if employee_total == 0.0:
-                    sponsored_employees.append({
-                        "name": employee_name,
-                        "amount": employee_total,
-                        "has_lunch": has_lunch
-                    })
-                elif employee_total > 0.0:
-                    non_sponsored_employees.append({
-                        "name": employee_name,
-                        "amount": employee_total,
-                        "has_lunch": has_lunch
-                    })
-                    
-                    # Potential sponsor if they have lunch and higher amount
-                    if has_lunch and employee_total >= 5.0:
-                        sponsor_employees.append({
-                            "name": employee_name,
-                            "amount": employee_total,
-                            "has_lunch": has_lunch
-                        })
+            # Look for evidence of sponsored orders
+            sponsored_employees = []
+            high_balance_employees = []
             
-            print(f"\n   🎯 SPONSORED MEAL ANALYSIS:")
-            print(f"   - Sponsored employees (€0.00): {len(sponsored_employees)}")
-            print(f"   - Non-sponsored employees (>€0.00): {len(non_sponsored_employees)}")
-            print(f"   - Potential sponsor employees: {len(sponsor_employees)}")
+            for emp_name, emp_data in employee_orders.items():
+                emp_amount = emp_data.get("total_amount", 0)
+                if emp_amount == 0:
+                    sponsored_employees.append(emp_name)
+                elif emp_amount > 20:  # Potential sponsor
+                    high_balance_employees.append((emp_name, emp_amount))
             
-            # Show some examples
-            if sponsored_employees:
-                print(f"\n   📋 SPONSORED EMPLOYEES (showing €0.00 - FIX WORKING):")
-                for emp in sponsored_employees[:5]:  # Show first 5
-                    print(f"   - {emp['name']}: €{emp['amount']:.2f} (lunch: {emp['has_lunch']})")
+            print(f"   Sponsored employees (€0.00): {len(sponsored_employees)}")
+            print(f"   High balance employees (potential sponsors): {len(high_balance_employees)}")
             
-            if sponsor_employees:
-                print(f"\n   💰 POTENTIAL SPONSOR EMPLOYEES:")
-                for emp in sponsor_employees[:3]:  # Show first 3
-                    print(f"   - {emp['name']}: €{emp['amount']:.2f} (lunch: {emp['has_lunch']})")
-            
-            # Verification checks
             verification_details = []
             
-            # Check 1: We should have sponsored employees showing €0.00
+            # Check if total_amount matches individual sum (no double-counting)
+            if abs(total_amount - individual_sum) <= 0.01:
+                verification_details.append(f"✅ Total amount consistent: €{total_amount:.2f} = €{individual_sum:.2f} (no double-counting)")
+            else:
+                verification_details.append(f"❌ Total amount inconsistent: €{total_amount:.2f} vs €{individual_sum:.2f} (possible double-counting)")
+            
+            # Check if sponsored orders are properly displayed
             if len(sponsored_employees) > 0:
-                verification_details.append(f"✅ Found {len(sponsored_employees)} sponsored employees with €0.00 (fix working)")
+                verification_details.append(f"✅ Sponsored orders displayed: {len(sponsored_employees)} employees show €0.00")
             else:
-                verification_details.append(f"❌ No sponsored employees found with €0.00")
+                verification_details.append(f"⚠️ No sponsored employees found (may not be sponsored yet)")
             
-            # Check 2: We should have non-sponsored employees with positive amounts
-            if len(non_sponsored_employees) > 0:
-                verification_details.append(f"✅ Found {len(non_sponsored_employees)} non-sponsored employees with positive amounts")
+            # Check if total amount is reasonable (not inflated)
+            if total_amount < 100.0:  # Reasonable for 11 employees
+                verification_details.append(f"✅ Total amount reasonable: €{total_amount:.2f} (not inflated)")
             else:
-                verification_details.append(f"❌ No non-sponsored employees found")
+                verification_details.append(f"❌ Total amount potentially inflated: €{total_amount:.2f}")
             
-            # Check 3: Total amount should be reasonable (not inflated by double-counting)
-            # Calculate expected total by summing individual amounts
-            calculated_total = sum(emp["amount"] for emp in sponsored_employees + non_sponsored_employees)
+            # Overall assessment
+            consistency_ok = abs(total_amount - individual_sum) <= 0.01
+            reasonable_total = total_amount < 100.0
             
-            if abs(total_amount - calculated_total) < 0.01:
-                verification_details.append(f"✅ Total amount matches sum of individual amounts: €{total_amount:.2f} = €{calculated_total:.2f}")
-            else:
-                verification_details.append(f"❌ Total amount mismatch: €{total_amount:.2f} vs calculated €{calculated_total:.2f}")
-            
-            # Check 4: Verify the fix eliminates double-counting
-            # The key fix: sponsored employees show €0.00, not their original order amount
-            if len(sponsored_employees) > 0 and all(emp["amount"] == 0.0 for emp in sponsored_employees):
-                verification_details.append(f"✅ All sponsored employees correctly show €0.00 (no double-counting)")
-            else:
-                verification_details.append(f"❌ Some sponsored employees don't show €0.00")
-            
-            # Check 5: Verify lunch sponsoring pattern
-            sponsored_with_lunch = [emp for emp in sponsored_employees if emp["has_lunch"]]
-            if len(sponsored_with_lunch) > 0:
-                verification_details.append(f"✅ Found {len(sponsored_with_lunch)} sponsored employees with lunch (lunch sponsoring detected)")
-            else:
-                verification_details.append(f"⚠️  No sponsored employees with lunch found")
-            
-            if len(verification_details) >= 4:  # Most checks passed
+            if consistency_ok and reasonable_total:
                 self.log_result(
-                    "Analyze Breakfast History Sponsored Data",
+                    "Bug 2: Sponsored Orders Display",
                     True,
-                    f"🎉 BREAKFAST HISTORY SPONSORED DATA ANALYSIS SUCCESSFUL! {'; '.join(verification_details)}. The 5€ discrepancy fix is working correctly - sponsored employees show €0.00 instead of their original order amounts, eliminating double-counting."
+                    f"✅ BUG 2 VERIFICATION PASSED: {'; '.join(verification_details)}. Sponsored orders properly displayed, total reflects actual costs."
                 )
                 return True
             else:
                 self.log_result(
-                    "Analyze Breakfast History Sponsored Data",
+                    "Bug 2: Sponsored Orders Display",
                     False,
-                    error=f"Sponsored data analysis failed: {'; '.join(verification_details)}"
+                    error=f"Bug 2 verification failed: {'; '.join(verification_details)}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Analyze Breakfast History Sponsored Data", False, error=str(e))
+            self.log_result("Bug 2: Sponsored Orders Display", False, error=str(e))
             return False
     
-    def compare_endpoints_consistency(self):
-        """Compare breakfast-history and daily-summary endpoints for consistency"""
+    def verify_bug3_lunch_strikethrough(self):
+        """Bug 3: Verify only lunch is struck through, not breakfast items"""
         try:
-            # Get breakfast-history endpoint
+            # Get both endpoints for comparison
             response1 = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
-            
-            if response1.status_code != 200:
-                self.log_result(
-                    "Compare Endpoints Consistency",
-                    False,
-                    error=f"Could not fetch breakfast history: HTTP {response1.status_code}: {response1.text}"
-                )
-                return False
-            
-            # Get daily-summary endpoint
             response2 = self.session.get(f"{BASE_URL}/orders/daily-summary/{DEPARTMENT_ID}")
             
-            if response2.status_code != 200:
+            if response1.status_code != 200 or response2.status_code != 200:
                 self.log_result(
-                    "Compare Endpoints Consistency",
+                    "Bug 3: Lunch Strikethrough Logic",
                     False,
-                    error=f"Could not fetch daily summary: HTTP {response2.status_code}: {response2.text}"
+                    error="Could not fetch both endpoints for comparison"
                 )
                 return False
             
             breakfast_history = response1.json()
             daily_summary = response2.json()
             
-            # Get today's breakfast history entry
-            history_entries = breakfast_history.get("history", [])
-            if not history_entries:
-                self.log_result(
-                    "Compare Endpoints Consistency",
-                    False,
-                    error="No history entries found"
-                )
-                return False
+            history_employee_orders = breakfast_history.get("history", [{}])[0].get("employee_orders", {})
+            daily_employee_orders = daily_summary.get("employee_orders", {})
             
-            today_entry = history_entries[0]
-            breakfast_history_total = today_entry.get("total_amount", 0)
-            breakfast_history_orders = len(today_entry.get("employee_orders", {}))
-            
-            # Calculate daily summary total
-            daily_summary_employee_orders = daily_summary.get("employee_orders", {})
-            daily_summary_total = sum(order_data.get("total_amount", 0) for order_data in daily_summary_employee_orders.values())
-            daily_summary_orders = len(daily_summary_employee_orders)
-            
-            print(f"\n   🔄 ENDPOINT CONSISTENCY COMPARISON:")
-            print(f"   Breakfast-history: €{breakfast_history_total:.2f} ({breakfast_history_orders} employees)")
-            print(f"   Daily-summary: €{daily_summary_total:.2f} ({daily_summary_orders} employees)")
+            print(f"\n   🎯 BUG 3: LUNCH STRIKETHROUGH LOGIC VERIFICATION:")
+            print(f"   Comparing breakfast-history vs daily-summary for strikethrough evidence")
             
             verification_details = []
+            strikethrough_cases = []
             
-            # Check if totals are reasonably close (allowing for some calculation differences)
-            total_difference = abs(breakfast_history_total - daily_summary_total)
-            if total_difference <= 1.0:  # Allow €1 tolerance
-                verification_details.append(f"✅ Endpoint totals consistent: difference €{total_difference:.2f}")
+            # Analyze each employee for strikethrough behavior
+            for emp_name, history_data in history_employee_orders.items():
+                # Extract base name (remove ID suffix)
+                base_name = emp_name.split(" (ID:")[0]
+                
+                # Find corresponding employee in daily summary
+                daily_data = daily_employee_orders.get(base_name)
+                if not daily_data:
+                    continue
+                
+                # Check lunch status
+                history_has_lunch = history_data.get("has_lunch", False)
+                daily_has_lunch = daily_data.get("has_lunch", False)
+                
+                # Check breakfast items
+                history_rolls = history_data.get("white_halves", 0) + history_data.get("seeded_halves", 0)
+                history_eggs = history_data.get("boiled_eggs", 0)
+                daily_rolls = daily_data.get("white_halves", 0) + daily_data.get("seeded_halves", 0)
+                daily_eggs = daily_data.get("boiled_eggs", 0)
+                
+                if history_has_lunch and not daily_has_lunch:
+                    # Lunch was struck through
+                    if history_rolls == daily_rolls and history_eggs == daily_eggs:
+                        strikethrough_cases.append(f"✅ {base_name}: Lunch struck through, breakfast preserved (rolls: {history_rolls}, eggs: {history_eggs})")
+                    else:
+                        strikethrough_cases.append(f"❌ {base_name}: Lunch struck through but breakfast items changed")
+                elif history_has_lunch and daily_has_lunch:
+                    # Lunch still visible (not sponsored or is sponsor)
+                    emp_amount = history_data.get("total_amount", 0)
+                    if emp_amount > 20:
+                        strikethrough_cases.append(f"ℹ️ {base_name}: Likely sponsor, lunch visible (€{emp_amount:.2f})")
+                    else:
+                        strikethrough_cases.append(f"⚠️ {base_name}: Lunch not struck through (€{emp_amount:.2f})")
+            
+            print(f"   Strikethrough analysis:")
+            for case in strikethrough_cases:
+                print(f"     {case}")
+            
+            # Count results
+            successful_strikethrough = sum(1 for case in strikethrough_cases if case.startswith("✅"))
+            failed_strikethrough = sum(1 for case in strikethrough_cases if case.startswith("❌"))
+            
+            if successful_strikethrough > 0:
+                verification_details.append(f"✅ Successful strikethrough: {successful_strikethrough} cases")
+            
+            if failed_strikethrough == 0:
+                verification_details.append(f"✅ No failed strikethrough cases")
             else:
-                verification_details.append(f"❌ Endpoint totals inconsistent: difference €{total_difference:.2f}")
+                verification_details.append(f"❌ Failed strikethrough: {failed_strikethrough} cases")
             
-            # Check if employee counts are similar
-            order_count_difference = abs(breakfast_history_orders - daily_summary_orders)
-            if order_count_difference <= 2:  # Allow small difference
-                verification_details.append(f"✅ Employee counts similar: difference {order_count_difference}")
+            # Check if breakfast items are preserved across the board
+            breakfast_preserved = True
+            for emp_name, history_data in history_employee_orders.items():
+                base_name = emp_name.split(" (ID:")[0]
+                daily_data = daily_employee_orders.get(base_name)
+                if daily_data:
+                    history_rolls = history_data.get("white_halves", 0) + history_data.get("seeded_halves", 0)
+                    history_eggs = history_data.get("boiled_eggs", 0)
+                    daily_rolls = daily_data.get("white_halves", 0) + daily_data.get("seeded_halves", 0)
+                    daily_eggs = daily_data.get("boiled_eggs", 0)
+                    
+                    if history_rolls != daily_rolls or history_eggs != daily_eggs:
+                        breakfast_preserved = False
+                        break
+            
+            if breakfast_preserved:
+                verification_details.append(f"✅ Breakfast items preserved across all employees")
             else:
-                verification_details.append(f"❌ Employee counts very different: difference {order_count_difference}")
+                verification_details.append(f"❌ Some breakfast items not preserved")
             
-            # Check for sponsored employee handling in both endpoints
-            # Look for employees with €0.00 in both
-            breakfast_sponsored = sum(1 for emp_data in today_entry.get("employee_orders", {}).values() if emp_data.get("total_amount", 0) == 0.0)
-            daily_sponsored = sum(1 for emp_data in daily_summary_employee_orders.values() if emp_data.get("total_amount", 0) == 0.0)
-            
-            if breakfast_sponsored > 0 and daily_sponsored > 0:
-                verification_details.append(f"✅ Both endpoints handle sponsored employees: breakfast({breakfast_sponsored}), daily({daily_sponsored})")
-            else:
-                verification_details.append(f"⚠️  Sponsored employee handling differs: breakfast({breakfast_sponsored}), daily({daily_sponsored})")
-            
-            if len(verification_details) >= 2:  # Most checks passed
+            # Overall assessment
+            if successful_strikethrough > 0 and failed_strikethrough == 0 and breakfast_preserved:
                 self.log_result(
-                    "Compare Endpoints Consistency",
+                    "Bug 3: Lunch Strikethrough Logic",
                     True,
-                    f"✅ ENDPOINT CONSISTENCY VERIFICATION PASSED: {'; '.join(verification_details)}. Both breakfast-history and daily-summary endpoints show consistent sponsored meal handling."
+                    f"✅ BUG 3 VERIFICATION PASSED: {'; '.join(verification_details)}. Only lunch struck through, breakfast items preserved."
                 )
                 return True
             else:
                 self.log_result(
-                    "Compare Endpoints Consistency",
+                    "Bug 3: Lunch Strikethrough Logic",
                     False,
-                    error=f"Endpoint consistency verification failed: {'; '.join(verification_details)}"
+                    error=f"Bug 3 verification failed: {'; '.join(verification_details)}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Compare Endpoints Consistency", False, error=str(e))
-            return False
-    
-    def verify_specific_fix_implementation(self):
-        """Verify the specific fix in lines 1240-1242 and 1297-1299 is working"""
-        try:
-            # Get breakfast-history endpoint to check sponsor order handling
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Verify Specific Fix Implementation",
-                    False,
-                    error=f"Could not fetch breakfast history: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-            
-            breakfast_history = response.json()
-            history_entries = breakfast_history.get("history", [])
-            
-            if not history_entries:
-                self.log_result(
-                    "Verify Specific Fix Implementation",
-                    False,
-                    error="No history entries found"
-                )
-                return False
-            
-            today_entry = history_entries[0]
-            employee_orders = today_entry.get("employee_orders", {})
-            
-            print(f"\n   🔧 SPECIFIC FIX VERIFICATION (Lines 1240-1242 & 1297-1299):")
-            print(f"   Fix: For sponsor orders, only count sponsor_own_cost = total_price - sponsor_total_cost")
-            print(f"   Expected: Sponsored employees show €0.00, not their original order cost")
-            
-            # Look for evidence of the fix working
-            sponsored_count = 0
-            sponsor_count = 0
-            total_sponsored_amount = 0
-            total_non_sponsored_amount = 0
-            
-            for employee_name, order_data in employee_orders.items():
-                employee_total = order_data.get("total_amount", 0)
-                has_lunch = order_data.get("has_lunch", False)
-                
-                if employee_total == 0.0 and has_lunch:
-                    # This is likely a sponsored employee (has lunch but shows €0.00)
-                    sponsored_count += 1
-                    total_sponsored_amount += employee_total
-                    print(f"   - SPONSORED: {employee_name}: €{employee_total:.2f} (lunch: {has_lunch})")
-                elif employee_total > 0.0:
-                    # This is likely a non-sponsored employee or sponsor
-                    total_non_sponsored_amount += employee_total
-                    if has_lunch and employee_total >= 5.0:
-                        sponsor_count += 1
-                        print(f"   - SPONSOR: {employee_name}: €{employee_total:.2f} (lunch: {has_lunch})")
-            
-            verification_details = []
-            
-            # Check 1: We should have sponsored employees showing €0.00
-            if sponsored_count > 0:
-                verification_details.append(f"✅ Fix working: {sponsored_count} sponsored employees show €0.00")
-            else:
-                verification_details.append(f"❌ No sponsored employees found showing €0.00")
-            
-            # Check 2: The total should not include double-counted sponsor costs
-            total_amount = today_entry.get("total_amount", 0)
-            expected_without_double_counting = total_sponsored_amount + total_non_sponsored_amount
-            
-            if abs(total_amount - expected_without_double_counting) < 0.01:
-                verification_details.append(f"✅ No double-counting detected: total matches individual sum")
-            else:
-                verification_details.append(f"⚠️  Total calculation: €{total_amount:.2f} vs sum €{expected_without_double_counting:.2f}")
-            
-            # Check 3: Sponsored employees with lunch should show €0.00 (lunch sponsoring)
-            if sponsored_count > 0:
-                verification_details.append(f"✅ Lunch sponsoring fix verified: sponsored employees show €0.00 instead of original lunch cost")
-            
-            # Check 4: The fix prevents the original 5€ extra problem
-            # Original problem: 5×5€ lunch + 0.50€ egg = 25.50€ expected, but system showed 30.50€ (5€ extra)
-            # With the fix: sponsored employees show €0.00, eliminating the double-counting
-            if sponsored_count > 0 and total_sponsored_amount == 0.0:
-                verification_details.append(f"✅ Original 5€ extra problem eliminated: sponsored costs not double-counted")
-            
-            if len(verification_details) >= 3:  # Most checks passed
-                self.log_result(
-                    "Verify Specific Fix Implementation",
-                    True,
-                    f"🎉 SPECIFIC FIX IMPLEMENTATION VERIFIED! {'; '.join(verification_details)}. The fix in server.py lines 1240-1242 and 1297-1299 is working correctly, eliminating the 5€ discrepancy by preventing double-counting of sponsor costs."
-                )
-                return True
-            else:
-                self.log_result(
-                    "Verify Specific Fix Implementation",
-                    False,
-                    error=f"Fix implementation verification failed: {'; '.join(verification_details)}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Verify Specific Fix Implementation", False, error=str(e))
+            self.log_result("Bug 3: Lunch Strikethrough Logic", False, error=str(e))
             return False
 
-    def run_all_tests(self):
-        """Run all focused analysis tests for the 5€ discrepancy fix verification"""
-        print("🎯 STARTING FOCUSED 5€ DISCREPANCY FIX ANALYSIS")
+    def run_focused_tests(self):
+        """Run focused tests on the three critical bugs"""
+        print("🎯 STARTING FOCUSED CRITICAL SPONSORING BUGS VERIFICATION")
         print("=" * 80)
-        print("FOCUS: Analyze existing sponsored meal data to verify the fix is working")
-        print("METHOD: Examine breakfast-history endpoint for correct sponsored meal handling")
-        print("EXPECTED: Sponsored employees show €0.00, eliminating double-counting")
-        print("FIX: Lines 1240-1242 and 1297-1299 in server.py prevent sponsor cost double-counting")
+        print("FOCUS: Verify three critical bugs with existing data evidence")
+        print("DEPARTMENT: 2. Wachabteilung (admin2 password)")
+        print("EVIDENCE: Brauni has €32.50 balance (exact problematic amount from Bug 1)")
+        print("=" * 80)
+        print("Bug 1: Sponsor Balance Calculation (5€ zu viel) - €32.50 vs €27.50")
+        print("Bug 2: Admin Dashboard Total Amount - proper display of sponsored orders")
+        print("Bug 3: Frontend Strikethrough Logic - only lunch struck through")
         print("=" * 80)
         
-        # Test sequence for focused analysis
         tests_passed = 0
         total_tests = 4
         
-        # 1. Authenticate as Department 3 admin
+        # Authentication
         if self.authenticate_admin():
             tests_passed += 1
         
-        # 2. Analyze existing breakfast-history sponsored data
-        if self.analyze_breakfast_history_sponsored_data():
+        # Bug verification with existing data
+        if self.verify_bug1_exact_scenario():
             tests_passed += 1
         
-        # 3. Compare endpoints for consistency
-        if self.compare_endpoints_consistency():
+        if self.verify_bug2_sponsored_orders_display():
             tests_passed += 1
         
-        # 4. Verify the specific fix implementation is working
-        if self.verify_specific_fix_implementation():
+        if self.verify_bug3_lunch_strikethrough():
             tests_passed += 1
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 FOCUSED 5€ DISCREPANCY FIX ANALYSIS SUMMARY")
+        print("🎯 FOCUSED CRITICAL SPONSORING BUGS VERIFICATION SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -477,20 +412,24 @@ class FocusedFiveEuroDiscrepancyAnalysis:
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
         if tests_passed == total_tests:
-            print("🎉 5€ DISCREPANCY FIX VERIFICATION COMPLETED SUCCESSFULLY!")
-            print("✅ Sponsored employees correctly show €0.00 (not original order amounts)")
-            print("✅ No double-counting of sponsor costs in total_amount calculation")
-            print("✅ Breakfast-history endpoint handles sponsored meals correctly")
-            print("✅ Fix in server.py lines 1240-1242 and 1297-1299 working as intended")
-            print("✅ Original user-reported 5€ extra problem has been eliminated")
+            print("🎉 FOCUSED CRITICAL SPONSORING BUGS VERIFICATION COMPLETED SUCCESSFULLY!")
+            print("✅ Bug 1: Sponsor balance calculation is correct (no 5€ inflation)")
+            print("✅ Bug 2: Admin dashboard properly displays sponsored orders")
+            print("✅ Bug 3: Only lunch struck through, breakfast items preserved")
             return True
         else:
-            print("❌ 5€ DISCREPANCY FIX VERIFICATION ISSUES DETECTED")
+            print("❌ FOCUSED CRITICAL SPONSORING BUGS VERIFICATION FOUND ISSUES")
             failed_tests = total_tests - tests_passed
-            print(f"⚠️  {failed_tests} test(s) failed - the fix may need further investigation")
+            print(f"⚠️  {failed_tests} test(s) failed - critical bugs still exist")
+            
+            # Special handling for Bug 1 critical failure
+            bug1_failed = any(result['test'] == "Bug 1: Exact 5€ zu viel Scenario" and result['status'] == "❌ FAIL" for result in self.test_results)
+            if bug1_failed:
+                print("🚨 CRITICAL: Bug 1 (5€ zu viel) is still present - Brauni has €32.50 instead of €27.50")
+            
             return False
 
 if __name__ == "__main__":
-    tester = FocusedFiveEuroDiscrepancyAnalysis()
-    success = tester.run_all_tests()
+    tester = FocusedSponsoringBugsTest()
+    success = tester.run_focused_tests()
     sys.exit(0 if success else 1)
