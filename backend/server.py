@@ -1609,7 +1609,7 @@ async def get_employee_profile(employee_id: str):
                 if white_halves > 0:
                     white_roll_price = breakfast_prices.get("weiss", 0.50)  # Get actual price from menu
                     enriched_order["readable_items"].append({
-                        "description": f"{white_halves}x Weißes Brötchen (Hälften)",
+                        "description": f"{white_halves}x Helles Brötchen (Hälften)",
                         "unit_price": f"€{white_roll_price:.2f} pro Hälfte",
                         "total_price": f"€{(white_halves * white_roll_price):.2f}",
                         "toppings": toppings_str if toppings_str else "Ohne Belag"
