@@ -1464,11 +1464,15 @@ async def get_employee_today_orders(employee_id: str):
 
 @api_router.delete("/employee/{employee_id}/orders/{order_id}")
 async def delete_employee_order(employee_id: str, order_id: str):
-    """Allow employee to delete their own order (if breakfast not closed)"""
+    """Allow employee to cancel their own order (if breakfast not closed)"""
     # Check if order belongs to employee
     order = await db.orders.find_one({"id": order_id, "employee_id": employee_id})
     if not order:
         raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+    
+    # Check if already cancelled
+    if order.get("is_cancelled"):
+        raise HTTPException(status_code=400, detail="Bestellung bereits storniert")
     
     # For breakfast orders, check if breakfast is closed
     if order["order_type"] == "breakfast":
@@ -1503,34 +1507,20 @@ async def delete_employee_order(employee_id: str, order_id: str):
                 {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
             )
     
-    # Create audit trail entry before deleting
-    audit_entry = {
-        "id": str(uuid.uuid4()),
-        "employee_id": employee_id,
-        "department_id": order["department_id"],
-        "order_type": "deletion",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "deleted_by": "employee",
-        "deleted_by_name": employee_name,
-        "original_order": {
-            "id": order["id"],
-            "order_type": order["order_type"],
-            "total_price": order["total_price"],
-            "timestamp": order["timestamp"]
-        },
-        "readable_items": [{
-            "description": f"Bestellung storniert durch {employee_name}",
-            "unit_price": "",
-            "total_price": f"-{order['total_price']:.2f} €"
-        }],
-        "total_price": -order["total_price"]  # Negative amount to show refund
+    # Mark order as cancelled instead of deleting
+    cancellation_data = {
+        "is_cancelled": True,
+        "cancelled_at": datetime.now(timezone.utc).isoformat(),
+        "cancelled_by": "employee", 
+        "cancelled_by_name": employee_name
     }
     
-    await db.orders.insert_one(audit_entry)
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": cancellation_data}
+    )
     
-    # Delete original order
-    await db.orders.delete_one({"id": order_id})
-    return {"message": "Bestellung erfolgreich gelöscht"}
+    return {"message": "Bestellung erfolgreich storniert"}
 
 @api_router.get("/orders/employee/{employee_id}")
 async def get_employee_orders(employee_id: str):
