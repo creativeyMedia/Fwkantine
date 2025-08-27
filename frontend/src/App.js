@@ -366,8 +366,20 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             </span>
                             <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{item.total_price.toFixed(2)} €</p>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <p className="font-semibold">{item.total_price.toFixed(2)} €</p>
+                            </div>
+                            {/* Delete button for orders (not deletion entries) */}
+                            {item.order_type !== 'deletion' && (
+                              <button
+                                onClick={() => handleDeleteOrder(item.id, item.order_type, item.total_price)}
+                                className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 flex-shrink-0"
+                                title="Bestellung löschen"
+                              >
+                                🗑️
+                              </button>
+                            )}
                           </div>
                         </div>
                         
@@ -387,6 +399,28 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             ))}
                           </div>
                         )}
+                      </div>
+                    );
+                  } else if (item.order_type === 'deletion') {
+                    // Render Deletion Entry (Red styling for cancellations)
+                    return (
+                      <div key={`deletion-${item.id || index}`} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <span className="inline-block bg-red-100 text-red-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                              Stornierung
+                            </span>
+                            <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-red-600">{item.total_price.toFixed(2)} €</p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-sm text-gray-700">
+                          <p><strong>Grund:</strong> {item.readable_items?.[0]?.description || 'Bestellung storniert'}</p>
+                          <p><strong>Von:</strong> {item.deleted_by === 'employee' ? 'Mitarbeiter' : 'Admin'} ({item.deleted_by_name})</p>
+                        </div>
                       </div>
                     );
                   } else {
