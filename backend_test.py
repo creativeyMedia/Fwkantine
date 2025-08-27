@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 """
-REVIEW REQUEST SPECIFIC DEBUG TESTING
+REVIEW REQUEST SPECIFIC TESTING - EXACT 5 EMPLOYEE SCENARIO
 
-Quick debug test - create minimal scenario and check backend logs:
+Test the exact scenario from screenshot with 5 employees to see the actual values:
 
-1. Create just 2 employees in Department 2
-2. Both order lunch (5€ each)  
-3. One sponsors lunch for both
-4. Check the DEBUG logs I just added to see the values:
-   - sponsor_order original total_price
-   - sponsor_additional_cost 
-   - calculated new total_price
+**Create Exact User Scenario:**
+1. Clean any existing test data
+2. Create exactly 5 employees in Department 2
+3. Sponsor orders: breakfast + lunch (~10€ total)
+4. Other 4 employees: lunch only (~5€ each = 20€ total)
+5. Execute lunch sponsoring 
 
-Focus on seeing if the sponsor_additional_cost calculation is working and if the database update succeeds. Look for my DEBUG output in backend logs.
+**Verify Expected Values:**
+- total_sponsored_cost should be: 25€ (5×5€ for all lunches)
+- sponsor_contributed_amount should be: 5€ (sponsor's own lunch)  
+- sponsor_additional_cost should be: 20€ (25€ - 5€ = 20€ for the other 4)
+- sponsor final total_price should be: 10€ (original) + 20€ (additional) = 30€
+
+**Focus on the actual calculations** to see if we get the correct 30€ total_price for sponsor order that matches your screenshot expectation.
 """
 
 import requests
