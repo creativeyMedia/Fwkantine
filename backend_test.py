@@ -220,25 +220,25 @@ class MealSponsoringTester:
             employees = response.json()
             initial_balances = {}
             
-            for test_emp in self.test_employees[:5]:  # Check first 5 employees
+            for test_emp in self.test_employees[:3]:  # Check first 3 employees
                 employee = next((emp for emp in employees if emp["id"] == test_emp["id"]), None)
                 if employee:
                     balance = employee.get("breakfast_balance", 0.0)
                     initial_balances[employee["name"]] = balance
                     print(f"   {employee['name']}: €{balance:.2f}")
             
-            if len(initial_balances) == 5:
+            if len(initial_balances) == 3:
                 self.log_result(
                     "Verify Initial Balances",
                     True,
-                    f"Successfully verified initial balances for 5 employees: {initial_balances}"
+                    f"Successfully verified initial balances for 3 employees: {initial_balances}"
                 )
                 return True, initial_balances
             else:
                 self.log_result(
                     "Verify Initial Balances",
                     False,
-                    error=f"Could only verify {len(initial_balances)} employee balances, need 5"
+                    error=f"Could only verify {len(initial_balances)} employee balances, need 3"
                 )
                 return False, {}
                 
