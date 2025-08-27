@@ -105,6 +105,17 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
+  - task: "Meal Sponsoring Feature Testing"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "✅ MEAL SPONSORING FEATURE IMPLEMENTATION COMPLETED: Added POST /api/department-admin/sponsor-meal endpoint for meal sponsoring functionality. Admins can now select an employee to pay for all breakfast (excluding coffee) or lunch orders for a specific day. Implementation includes: (1) Transfer total cost to sponsor employee, (2) Mark individual employee orders as sponsored (0€ cost), (3) Add audit entries with sponsored_by fields, (4) Support for both breakfast and lunch meal types. Frontend integration completed with MealSponsorModal component properly integrated into BreakfastHistoryTab. Ready for backend testing to verify meal sponsoring API works correctly."
   - task: "Order Cancellation System Testing"
     implemented: true
     working: true
