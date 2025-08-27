@@ -566,6 +566,86 @@ class MealSponsoringTester:
             self.log_result("Test Invalid Sponsoring Scenarios", False, error=str(e))
             return False
     
+    def create_additional_lunch_orders(self):
+        """Create additional orders with lunch for lunch sponsoring test"""
+        try:
+            if len(self.test_employees) < 4:
+                self.log_result(
+                    "Create Additional Lunch Orders",
+                    False,
+                    error="Not enough test employees for additional lunch orders"
+                )
+                return False
+            
+            # Create lunch orders for employees 3 and 4 (different from breakfast sponsoring)
+            orders_created = 0
+            
+            # Employee 3: Only lunch (no rolls, no eggs, no coffee)
+            employee3 = self.test_employees[2]  # Use 3rd employee (index 2)
+            order3_data = {
+                "employee_id": employee3["id"],
+                "department_id": DEPARTMENT_ID,
+                "order_type": "breakfast",
+                "breakfast_items": [{
+                    "total_halves": 0,
+                    "white_halves": 0,
+                    "seeded_halves": 0,
+                    "toppings": [],
+                    "has_lunch": True,
+                    "boiled_eggs": 0,
+                    "has_coffee": False
+                }]
+            }
+            
+            response3 = self.session.post(f"{BASE_URL}/orders", json=order3_data)
+            if response3.status_code == 200:
+                order3 = response3.json()
+                self.test_orders.append(order3)
+                orders_created += 1
+            
+            # Employee 4: Lunch + eggs (no rolls, no coffee)
+            if len(self.test_employees) > 3:
+                employee4 = self.test_employees[3]  # Use 4th employee (index 3)
+                order4_data = {
+                    "employee_id": employee4["id"],
+                    "department_id": DEPARTMENT_ID,
+                    "order_type": "breakfast",
+                    "breakfast_items": [{
+                        "total_halves": 0,
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "toppings": [],
+                        "has_lunch": True,
+                        "boiled_eggs": 1,
+                        "has_coffee": False
+                    }]
+                }
+                
+                response4 = self.session.post(f"{BASE_URL}/orders", json=order4_data)
+                if response4.status_code == 200:
+                    order4 = response4.json()
+                    self.test_orders.append(order4)
+                    orders_created += 1
+            
+            if orders_created >= 1:
+                self.log_result(
+                    "Create Additional Lunch Orders",
+                    True,
+                    f"Successfully created {orders_created} additional lunch orders for testing"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Create Additional Lunch Orders",
+                    False,
+                    error=f"Could only create {orders_created} additional lunch orders"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Create Additional Lunch Orders", False, error=str(e))
+            return False
+
     def run_meal_sponsoring_tests(self):
         """Run all meal sponsoring tests"""
         print("🍽️ MEAL SPONSORING FEATURE TEST")
@@ -596,30 +676,34 @@ class MealSponsoringTester:
         print("🧪 TEST 3: Create Breakfast Orders")
         test3_ok = self.create_breakfast_orders()
         
-        # Test 4: Test Breakfast Sponsoring
-        print("🧪 TEST 4: Test Breakfast Sponsoring")
-        test4_ok = self.test_breakfast_sponsoring()
+        # Test 4: Create Additional Lunch Orders (for separate lunch sponsoring test)
+        print("🧪 TEST 4: Create Additional Lunch Orders")
+        test4_ok = self.create_additional_lunch_orders()
         
-        # Test 5: Test Lunch Sponsoring
+        # Test 5: Test Lunch Sponsoring (test this first before breakfast sponsoring)
         print("🧪 TEST 5: Test Lunch Sponsoring")
         test5_ok = self.test_lunch_sponsoring()
         
-        # Test 6: Verify Sponsored Orders Audit Trail
-        print("🧪 TEST 6: Verify Sponsored Orders Audit Trail")
-        test6_ok = self.verify_sponsored_orders_audit_trail()
+        # Test 6: Test Breakfast Sponsoring
+        print("🧪 TEST 6: Test Breakfast Sponsoring")
+        test6_ok = self.test_breakfast_sponsoring()
         
-        # Test 7: Verify Sponsor Balance Charged
-        print("🧪 TEST 7: Verify Sponsor Balance Charged")
-        test7_ok = self.verify_sponsor_balance_charged()
+        # Test 7: Verify Sponsored Orders Audit Trail
+        print("🧪 TEST 7: Verify Sponsored Orders Audit Trail")
+        test7_ok = self.verify_sponsored_orders_audit_trail()
         
-        # Test 8: Test Invalid Sponsoring Scenarios
-        print("🧪 TEST 8: Test Invalid Sponsoring Scenarios")
-        test8_ok = self.test_invalid_sponsoring_scenarios()
+        # Test 8: Verify Sponsor Balance Charged
+        print("🧪 TEST 8: Verify Sponsor Balance Charged")
+        test8_ok = self.verify_sponsor_balance_charged()
+        
+        # Test 9: Test Invalid Sponsoring Scenarios
+        print("🧪 TEST 9: Test Invalid Sponsoring Scenarios")
+        test9_ok = self.test_invalid_sponsoring_scenarios()
         
         # Summary
         self.print_test_summary()
         
-        return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok, test7_ok, test8_ok])
+        return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok, test7_ok, test8_ok, test9_ok])
     
     def print_test_summary(self):
         """Print test summary"""
