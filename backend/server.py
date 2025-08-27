@@ -1988,7 +1988,7 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
         payment_type=payment_type,
         action="payment",
         admin_user=admin_department,
-        notes=f"Schulden als bezahlt markiert: €{amount:.2f}"
+        notes=f"Schulden als bezahlt markiert: {amount:.2f} €"
     )
     
     # Save payment log
