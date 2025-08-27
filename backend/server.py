@@ -2810,6 +2810,119 @@ async def reset_employee_balance(employee_id: str, balance_type: str):
     
     return {"message": f"Saldo erfolgreich zurückgesetzt"}
 
+@api_router.post("/department-admin/cleanup-sponsoring")
+async def cleanup_sponsoring(cleanup_data: dict):
+    """
+    Admin: Clean up sponsoring for a specific date
+    Removes sponsor flags and resets balances
+    """
+    try:
+        department_id = cleanup_data.get("department_id")
+        date_str = cleanup_data.get("date")
+        
+        if not all([department_id, date_str]):
+            raise HTTPException(status_code=400, detail="department_id und date sind erforderlich")
+        
+        # Parse date
+        try:
+            parsed_date = datetime.fromisoformat(date_str).date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Ungültiges Datumsformat")
+        
+        # Get day bounds using Berlin timezone
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(parsed_date)
+        
+        # Find all orders for that day
+        orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {"$gte": start_of_day_utc.isoformat(), "$lte": end_of_day_utc.isoformat()},
+            "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
+        }).to_list(1000)
+        
+        # Reset sponsor and sponsored flags
+        reset_orders = 0
+        reset_employees = set()
+        
+        for order in orders:
+            if order.get("is_sponsored") or order.get("is_sponsor_order"):
+                employee_id = order["employee_id"]
+                reset_employees.add(employee_id)
+                
+                # Remove sponsoring fields
+                await db.orders.update_one(
+                    {"id": order["id"]},
+                    {"$unset": {
+                        "is_sponsored": "",
+                        "is_sponsor_order": "",
+                        "sponsored_by_employee_id": "",
+                        "sponsored_by_name": "",
+                        "sponsored_date": "",
+                        "sponsored_meal_type": "",
+                        "sponsored_message": "",
+                        "sponsor_message": "",
+                        "sponsor_total_cost": "",
+                        "sponsor_employee_count": "",
+                        "sponsor_details": "",
+                        "sponsor_cost_breakdown": ""
+                    }}
+                )
+                
+                # Reset order total_price to original if it was inflated
+                original_price = 0.0
+                for item in order.get("breakfast_items", []):
+                    # Recalculate original price from items
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0) 
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    has_coffee = item.get("has_coffee", False)
+                    has_lunch = item.get("has_lunch", False)
+                    
+                    # Calculate costs based on current prices
+                    original_price += white_halves * 0.50  # White roll price
+                    original_price += seeded_halves * 0.60  # Seeded roll price 
+                    original_price += boiled_eggs * 0.50   # Egg price
+                    if has_coffee:
+                        original_price += 1.00  # Coffee price
+                    if has_lunch:
+                        original_price += 5.00  # Lunch price (approximate)
+                
+                # Update order with original price
+                await db.orders.update_one(
+                    {"id": order["id"]},
+                    {"$set": {"total_price": round(original_price, 2)}}
+                )
+                
+                reset_orders += 1
+        
+        # Reset employee balances to match their orders
+        for employee_id in reset_employees:
+            # Calculate correct balance from all orders
+            employee_orders = await db.orders.find({
+                "employee_id": employee_id,
+                "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
+            }).to_list(1000)
+            
+            total_balance = sum(order.get("total_price", 0) for order in employee_orders)
+            
+            await db.employees.update_one(
+                {"id": employee_id},
+                {"$set": {"breakfast_balance": round(total_balance, 2)}}
+            )
+        
+        return {
+            "message": f"Sponsoring für {date_str} erfolgreich bereinigt",
+            "reset_orders": reset_orders,
+            "reset_employees": len(reset_employees),
+            "date": date_str
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler bei Sponsoring-Bereinigung: {str(e)}")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
