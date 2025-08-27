@@ -2702,6 +2702,43 @@ async def sponsor_meal(meal_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fehler beim Sponsoring: {str(e)}")
 
+@api_router.post("/admin/cleanup-testing-data")
+async def cleanup_testing_data():
+    """Admin: Clean up all orders and reset employee balances for fresh testing"""
+    try:
+        # Delete all orders
+        orders_result = await db.orders.delete_many({})
+        
+        # Reset all employee balances
+        employees_result = await db.employees.update_many(
+            {},
+            {"$set": {
+                "breakfast_balance": 0.0,
+                "drinks_sweets_balance": 0.0
+            }}
+        )
+        
+        # Delete payment logs
+        payment_logs_result = await db.payment_logs.delete_many({})
+        
+        # Get remaining counts
+        remaining_orders = await db.orders.count_documents({})
+        employees_count = await db.employees.count_documents({})
+        departments_count = await db.departments.count_documents({})
+        
+        return {
+            "message": "Datenbank für Tests bereinigt",
+            "deleted_orders": orders_result.deleted_count,
+            "reset_employee_balances": employees_result.modified_count,
+            "deleted_payment_logs": payment_logs_result.deleted_count,
+            "remaining_orders": remaining_orders,
+            "total_employees": employees_count,
+            "total_departments": departments_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler bei der Bereinigung: {str(e)}")
+
 @api_router.post("/admin/reset-balance/{employee_id}")
 async def reset_employee_balance(employee_id: str, balance_type: str):
     """Admin: Reset employee balance (breakfast or drinks_sweets)"""
