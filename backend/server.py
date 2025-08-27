@@ -3007,9 +3007,10 @@ async def sponsor_meal(meal_data: dict):
             # Round sponsor own cost to avoid floating point errors
             sponsor_own_cost = round(sponsor_own_cost, 2)
             
-            # Sponsor pays their own meal PLUS the sponsored costs for others
-            # No "neutralization" - sponsor pays full amount
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] + total_cost
+            # Sponsor pays for others but NOT double for themselves
+            # They already paid for their own meal when they placed the order
+            # So they only pay the net cost: total_cost - sponsor_own_cost
+            new_sponsor_balance = sponsor_employee["breakfast_balance"] + (total_cost - sponsor_own_cost)
             # Round to 2 decimal places to avoid floating point precision errors
             new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
