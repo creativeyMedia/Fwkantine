@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
+user_problem_statement: "Diagnose and restore missing functions: 1) Master password functionality (master123dev) for developer access to all dashboards, 2) Cancellation documentation showing red 'Storniert von Mitarbeiter/Admin' fields in order history instead of deleting orders. Verify both functions are working correctly or repair if broken."
 
 backend:
   - task: "Admin Dashboard Daily Summary Double-Counting Fix Testing"
