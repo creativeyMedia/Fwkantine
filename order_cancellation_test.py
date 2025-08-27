@@ -28,7 +28,7 @@ import uuid
 # Configuration - Use production backend URL from frontend/.env
 BASE_URL = "https://canteen-system.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "1. Wachabteilung"
-EMPLOYEE_PASSWORD = "password1"
+EMPLOYEE_PASSWORD = "newTestPassword123"
 ADMIN_PASSWORD = "admin1"
 
 class OrderCancellationTester:
