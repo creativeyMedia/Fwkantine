@@ -2653,7 +2653,7 @@ const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMen
                     onClick={() => updateItemPrice('sweets', item.id, item.price)}
                     className="text-orange-600 hover:text-orange-800 font-semibold"
                   >
-                    €{item.price.toFixed(2)}
+                    {item.price.toFixed(2)} €
                   </button>
                 </div>
               </div>
