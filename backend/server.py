@@ -1629,8 +1629,8 @@ async def get_employee_profile(employee_id: str):
                 if boiled_eggs > 0:
                     enriched_order["readable_items"].append({
                         "description": f"{boiled_eggs}x Gekochte Eier",
-                        "unit_price": f"€{boiled_eggs_price:.2f} pro Stück",
-                        "total_price": f"€{(boiled_eggs * boiled_eggs_price):.2f}"
+                        "unit_price": f"{boiled_eggs_price:.2f} € pro Stück",
+                        "total_price": f"{(boiled_eggs * boiled_eggs_price):.2f} €"
                     })
                 
                 # Add coffee as separate item if present
