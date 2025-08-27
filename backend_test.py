@@ -153,83 +153,63 @@ class MealSponsoringTester:
             self.log_result("Create Test Employees", False, error=str(e))
             return False
     
-    def create_breakfast_orders(self):
-        """Create breakfast orders for multiple employees"""
+    def create_breakfast_lunch_orders(self):
+        """Create 5 breakfast orders with lunch for the specific test case"""
         try:
-            if len(self.test_employees) < 3:
+            if len(self.test_employees) < 5:
                 self.log_result(
-                    "Create Breakfast Orders",
+                    "Create Breakfast+Lunch Orders",
                     False,
-                    error="Not enough test employees available"
+                    error="Not enough test employees available (need 5)"
                 )
                 return False
             
-            # Create orders for first 2 employees (3rd will be sponsor)
+            # Create identical orders for all 5 employees: breakfast items + lunch
             orders_created = 0
             
-            # Employee 1: Rolls + toppings + eggs + lunch
-            employee1 = self.test_employees[0]
-            order1_data = {
-                "employee_id": employee1["id"],
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 2,
-                    "white_halves": 1,
-                    "seeded_halves": 1,
-                    "toppings": ["ruehrei", "kaese"],
-                    "has_lunch": True,
-                    "boiled_eggs": 2,
-                    "has_coffee": True
-                }]
-            }
+            for i in range(5):
+                employee = self.test_employees[i]
+                order_data = {
+                    "employee_id": employee["id"],
+                    "department_id": DEPARTMENT_ID,
+                    "order_type": "breakfast",
+                    "breakfast_items": [{
+                        "total_halves": 2,
+                        "white_halves": 1,
+                        "seeded_halves": 1,
+                        "toppings": ["ruehrei", "kaese"],
+                        "has_lunch": True,  # Each order includes lunch
+                        "boiled_eggs": 1,
+                        "has_coffee": False
+                    }]
+                }
+                
+                response = self.session.post(f"{BASE_URL}/orders", json=order_data)
+                if response.status_code == 200:
+                    order = response.json()
+                    self.test_orders.append(order)
+                    orders_created += 1
+                    print(f"   Created order for {employee['name']}: €{order.get('total_price', 0):.2f}")
+                else:
+                    print(f"   Failed to create order for {employee['name']}: {response.status_code} - {response.text}")
             
-            response1 = self.session.post(f"{BASE_URL}/orders", json=order1_data)
-            if response1.status_code == 200:
-                order1 = response1.json()
-                self.test_orders.append(order1)
-                orders_created += 1
-            
-            # Employee 2: Rolls + lunch (no eggs, no coffee)
-            employee2 = self.test_employees[1]
-            order2_data = {
-                "employee_id": employee2["id"],
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 3,
-                    "white_halves": 2,
-                    "seeded_halves": 1,
-                    "toppings": ["salami", "butter", "schinken"],
-                    "has_lunch": True,
-                    "boiled_eggs": 0,
-                    "has_coffee": False
-                }]
-            }
-            
-            response2 = self.session.post(f"{BASE_URL}/orders", json=order2_data)
-            if response2.status_code == 200:
-                order2 = response2.json()
-                self.test_orders.append(order2)
-                orders_created += 1
-            
-            if orders_created >= 2:
+            if orders_created == 5:
                 self.log_result(
-                    "Create Breakfast Orders",
+                    "Create Breakfast+Lunch Orders",
                     True,
-                    f"Successfully created {orders_created} breakfast orders for testing"
+                    f"Successfully created {orders_created} breakfast+lunch orders for testing"
                 )
                 return True
             else:
                 self.log_result(
-                    "Create Breakfast Orders",
+                    "Create Breakfast+Lunch Orders",
                     False,
-                    error=f"Could only create {orders_created} orders, need at least 2"
+                    error=f"Could only create {orders_created} orders, need exactly 5"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Create Breakfast Orders", False, error=str(e))
+            self.log_result("Create Breakfast+Lunch Orders", False, error=str(e))
             return False
     
     def test_breakfast_sponsoring_correct_calculation(self):
