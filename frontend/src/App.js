@@ -3031,7 +3031,7 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Mittagessen-Preis Verwaltung</h2>
           <div className="flex items-center gap-4">
-            <span>Aktueller Preis: €{lunchSettings.price.toFixed(2)}</span>
+            <span>Aktueller Preis: {lunchSettings.price.toFixed(2)} €</span>
             <button
               onClick={() => {
                 const newPrice = prompt('Neuer Mittagessen-Preis (€):', lunchSettings.price.toFixed(2));
