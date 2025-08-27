@@ -2682,8 +2682,8 @@ async def sponsor_meal(meal_data: dict):
                         employee_lunch_cost = 0.0
                         for item in order.get("breakfast_items", []):
                             if item.get("has_lunch", False):
-                                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
-                                lunch_price = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                                lunch_settings = await db.lunch_settings.find_one()
+                                lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
                                 employee_lunch_cost += lunch_price
                         
                         # Round employee lunch cost to avoid floating point errors
