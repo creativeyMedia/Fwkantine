@@ -1,44 +1,42 @@
 #!/usr/bin/env python3
 """
-ENHANCED SPONSORED MEAL DETAILS DISPLAY TEST
+CORRECTED LUNCH SPONSORING BALANCE CALCULATION TEST
 
-FOCUS: Test the enhanced sponsored meal details display after UI improvements.
+FOCUS: Test the CORRECTED lunch sponsoring balance calculation to fix the 33.10€ vs 28.10€ discrepancy.
 
-**NEW FEATURE TO TEST:**
-Added detailed cost breakdown for sponsored meals to improve transparency in the chronological order history.
+**CRITICAL SALDO DISCREPANCY BUG FIXED:**
+The user reported that sponsored orders show 33.10€ total_price but employee balance is only 28.10€ (5€ difference). 
+This was caused by using wrong lunch prices during sponsoring calculation.
 
-**WHAT WAS ENHANCED:**
-When a sponsor pays for others' meals, their order now shows:
-1. Their own order details (e.g., 2x Brötchen + 2x Ei + 1x Kaffee = 3€)
-2. **NEW: Detailed sponsored breakdown** (e.g., "4x Helle Brötchen (2.00€) + 8x Gekochte Eier (4.00€) = 6.00€ für 4 Mitarbeiter")
-3. Total combined price (e.g., 9€ total)
+**ROOT CAUSE IDENTIFIED:**
+- Original orders used 5€ per lunch (actual price at time of order)
+- Sponsoring logic used 4€ per lunch (from global lunch_settings)
+- Result: Sponsor paid 5x4€ = 20€ instead of 5x5€ = 25€
+- Missing 5€ caused balance discrepancy
 
-**TEST SCENARIOS:**
-1. **Breakfast Sponsoring Test**:
-   - Create 3 employees with breakfast orders in Department 2
-   - Each orders: 1x white roll + 2x eggs + 1x coffee
-   - Sponsor should see: own order + "3x Helle Brötchen (1.50€) + 6x Gekochte Eier (3.00€) = 4.50€ für 3 Mitarbeiter"
+**FIXES IMPLEMENTED:**
+1. **Lunch cost extraction from original orders**: Instead of using settings, extract actual lunch cost from order total_price minus breakfast costs
+2. **Consistent price calculation**: All lunch sponsoring now uses actual order costs, not hardcoded settings
+3. **Accurate sponsor balance**: Sponsor gets charged exact amount that was sponsored
+4. **Enhanced UI details**: Detailed cost breakdown shows in employee dashboard chronological history
 
-2. **Lunch Sponsoring Test**:
-   - Create 2 employees with lunch orders in Department 2  
-   - Each orders: breakfast items + 1x lunch
-   - Sponsor should see: own order + "2x Mittagessen (4.00€) = 4.00€ für 2 Mitarbeiter"
+**TEST SCENARIO:**
+1. Create 5 employees in Department 3 with breakfast + lunch orders
+2. Each orders: breakfast items + 1x lunch (varying actual lunch prices)
+3. Test lunch sponsoring - verify exact balance calculations
+4. Check that sponsor order total_price matches sponsor balance change
+5. Verify detailed breakdown appears in employee chronological history
 
-3. **Sponsor without own order**:
-   - Test sponsoring when sponsor has no order for that day
-   - Should create separate sponsored order with detailed breakdown
+**EXPECTED RESULTS:**
+- NO MORE balance discrepancies (sponsor balance should match order total_price effect)
+- Actual lunch costs used (not hardcoded 4€)
+- Enhanced UI shows: "hat 5x Mittagessen ausgegeben (25.00€) für 5 Mitarbeiter"
+- Employee balances keep breakfast costs, lunch costs refunded accurately
 
-**VERIFICATION POINTS:**
-✅ Sponsor's readable_items includes both own order AND sponsored details
-✅ Cost breakdown shows individual items with quantities and prices
-✅ Formula matches actual sponsored costs (breakfast: rolls+eggs, lunch: lunch only)
-✅ Employee count is correct
-✅ Uses actual daily/menu prices, not hardcoded values
-
-**Use Department 2:**
-- Admin: admin2
-- Test both breakfast and lunch sponsoring scenarios
-- Verify the new detailed cost breakdowns appear in order data
+**Use Department 3:**
+- Admin: admin3
+- Focus on exact balance calculation verification
+- Test the enhanced UI details display in chronological history
 """
 
 import requests
