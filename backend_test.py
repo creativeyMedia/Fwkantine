@@ -231,9 +231,11 @@ class AdminDashboardDoubleCounting:
             today = date.today().isoformat()
             
             sponsor_data = {
-                "employee_id": sponsor_employee["id"],
+                "department_id": DEPARTMENT_ID,
+                "date": today,
                 "meal_type": "lunch",
-                "date": today
+                "sponsor_employee_id": sponsor_employee["id"],
+                "sponsor_employee_name": sponsor_employee["name"]
             }
             
             response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
