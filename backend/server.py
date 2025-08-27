@@ -2481,35 +2481,30 @@ async def delete_breakfast_day(department_id: str, date: str):
 
 @api_router.post("/department-admin/sponsor-meal")
 async def sponsor_meal(meal_data: dict):
-    """Admin: Sponsor breakfast or lunch for all employees of a specific date
+    """
+    NEUE SAUBERE SPONSORING LOGIK
     
-    Creates a sponsored meal entry and transfers costs from individual employees 
-    to the sponsoring employee.
-    
-    Args:
-        meal_data: {
-            "department_id": str,
-            "date": str (YYYY-MM-DD),
-            "meal_type": str ("breakfast" or "lunch"),
-            "sponsor_employee_id": str,
-            "sponsor_employee_name": str
-        }
+    Klare Trennung der Schritte:
+    1. Validierung und Datensammlung
+    2. Berechnung der Individual-Kosten
+    3. Sponsor-Balance Berechnung  
+    4. Refund-Berechnung für gesponserte Mitarbeiter
+    5. Atomische Updates
     """
     try:
+        # === PHASE 1: VALIDIERUNG ===
         department_id = meal_data.get("department_id")
         date_str = meal_data.get("date")
         meal_type = meal_data.get("meal_type")  # "breakfast" or "lunch"
         sponsor_employee_id = meal_data.get("sponsor_employee_id")
         sponsor_employee_name = meal_data.get("sponsor_employee_name")
         
-        # Validate inputs
         if not all([department_id, date_str, meal_type, sponsor_employee_id, sponsor_employee_name]):
             raise HTTPException(status_code=400, detail="Alle Felder sind erforderlich")
         
         if meal_type not in ["breakfast", "lunch"]:
             raise HTTPException(status_code=400, detail="meal_type muss 'breakfast' oder 'lunch' sein")
         
-        # Parse date and get day bounds
         try:
             parsed_date = datetime.fromisoformat(date_str).date()
         except ValueError:
@@ -2518,516 +2513,226 @@ async def sponsor_meal(meal_data: dict):
         # Security: Only allow today and yesterday
         today = datetime.now(timezone.utc).date()
         yesterday = today - timedelta(days=1)
-        
         if parsed_date not in [today, yesterday]:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Sponsoring ist nur für heute ({today}) oder gestern ({yesterday}) möglich."
-            )
+            raise HTTPException(status_code=400, detail=f"Sponsoring ist nur für heute ({today}) oder gestern ({yesterday}) möglich.")
         
+        # === PHASE 2: DATENSAMMLUNG ===
         start_of_day = datetime.combine(parsed_date, datetime.min.time()).replace(tzinfo=timezone.utc)
         end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
         
-        # Get all orders for that day and department
-        base_query = {
+        # Get all breakfast orders for that day
+        all_orders = await db.orders.find({
             "department_id": department_id,
-            "timestamp": {
-                "$gte": start_of_day.isoformat(),
-                "$lte": end_of_day.isoformat()
-            },
-            "$or": [
-                {"is_cancelled": {"$exists": False}},
-                {"is_cancelled": False}
-            ]
-        }
+            "order_type": "breakfast",
+            "timestamp": {"$gte": start_of_day.isoformat(), "$lte": end_of_day.isoformat()},
+            "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
+        }).to_list(1000)
         
-        # Check if already sponsored for this meal type on this date
-        existing_sponsored = await db.orders.find_one({
-            **base_query,
-            "is_sponsored": True,
-            "order_type": "breakfast" if meal_type == "breakfast" else {"$in": ["breakfast"]},
-            "$or": [
-                {"sponsored_meal_type": meal_type},  # New field to track meal type
-                # Fallback for existing sponsored orders - check order content
-                {"order_type": f"{meal_type}_sponsored"} if meal_type == "lunch" else {}
-            ]
-        })
+        # Check if already sponsored
+        already_sponsored = any(order.get("is_sponsored") and order.get("sponsored_meal_type") == meal_type for order in all_orders)
+        if already_sponsored:
+            raise HTTPException(status_code=400, detail=f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} für {date_str} wurde bereits gesponsert.")
         
-        if existing_sponsored:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} für {date_str} wurde bereits gesponsert."
-            )
-        
-        if meal_type == "breakfast":
-            orders = await db.orders.find({
-                **base_query,
-                "order_type": "breakfast",
-                "$or": [
-                    {"is_sponsored": {"$exists": False}},
-                    {"is_sponsored": False}
-                ]
-            }).to_list(1000)
-        else:  # lunch
-            # For lunch, we need to find breakfast orders that have lunch items
-            all_orders = await db.orders.find({
-                **base_query,
-                "order_type": "breakfast",  # Lunch is part of breakfast orders
-                "$or": [
-                    {"is_sponsored": {"$exists": False}},
-                    {"is_sponsored": False}
-                ]
-            }).to_list(1000)
-            
-            # Filter for orders that actually have lunch
-            orders = []
-            for order in all_orders:
-                has_lunch = False
-                for item in order.get("breakfast_items", []):
-                    if item.get("has_lunch", False):
-                        has_lunch = True
-                        break
+        # Filter relevant orders
+        relevant_orders = []
+        for order in all_orders:
+            if meal_type == "breakfast":
+                # All breakfast orders are relevant
+                relevant_orders.append(order)
+            else:  # lunch
+                # Only orders with lunch are relevant
+                has_lunch = any(item.get("has_lunch", False) for item in order.get("breakfast_items", []))
                 if has_lunch:
-                    orders.append(order)
+                    relevant_orders.append(order)
         
-        if not orders:
+        if not relevant_orders:
             raise HTTPException(status_code=404, detail=f"Keine {'Frühstück' if meal_type == 'breakfast' else 'Mittag'}-Bestellungen für {date_str} gefunden")
         
-        # Calculate totals and create sponsored item description
-        total_cost = 0.0
-        affected_employees = set()
-        sponsored_items = {}
+        # === PHASE 3: KOSTENBERECHNUNG ===
+        # Get menu prices once to avoid repeated DB calls
+        white_roll_price = 0.50
+        seeded_roll_price = 0.60
+        egg_price = 0.50
+        coffee_price = 1.00
         
-        if meal_type == "breakfast":
-            # Count ONLY rolls and eggs (exclude coffee AND lunch)
-            for order in orders:
-                affected_employees.add(order["employee_id"])
-                order_breakfast_cost = 0.0
-                
-                for item in order.get("breakfast_items", []):
-                    # Rolls cost
-                    white_halves = item.get("white_halves", 0)
-                    seeded_halves = item.get("seeded_halves", 0)
-                    
-                    if white_halves > 0:
-                        sponsored_items["Helles Brötchen"] = sponsored_items.get("Helles Brötchen", 0) + white_halves
-                        # Get breakfast menu price for white rolls
-                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                        roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                        order_breakfast_cost += white_halves * roll_price
-                    
-                    if seeded_halves > 0:
-                        sponsored_items["Körner Brötchen"] = sponsored_items.get("Körner Brötchen", 0) + seeded_halves
-                        # Get breakfast menu price for seeded rolls
-                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                        roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                        order_breakfast_cost += seeded_halves * roll_price
-                    
-                    # Toppings are free, so no cost
-                    
-                    # Boiled eggs cost
-                    boiled_eggs = item.get("boiled_eggs", 0)
-                    if boiled_eggs > 0:
-                        sponsored_items["Gekochte Eier"] = sponsored_items.get("Gekochte Eier", 0) + boiled_eggs
-                        # Get lunch settings for boiled egg price
-                        lunch_settings = await db.lunch_settings.find_one()
-                        egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                        order_breakfast_cost += boiled_eggs * egg_price
-                    
-                    # EXCLUDE LUNCH - not included in breakfast sponsoring
-                    # EXCLUDE COFFEE - not included in breakfast sponsoring
-                
-                total_cost += order_breakfast_cost
+        try:
+            white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+            if white_menu: white_roll_price = white_menu.get("price", 0.50)
+            
+            seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+            if seeded_menu: seeded_roll_price = seeded_menu.get("price", 0.60)
+            
+            lunch_settings = await db.lunch_settings.find_one()
+            if lunch_settings:
+                egg_price = lunch_settings.get("boiled_eggs_price", 0.50)
+                coffee_price = lunch_settings.get("coffee_price", 1.00)
+        except:
+            pass  # Use defaults if DB calls fail
         
-        else:  # lunch
-            # Only lunch costs - extract actual lunch costs from orders
-            for order in orders:
-                affected_employees.add(order["employee_id"])
-                
-                # Calculate actual lunch cost from this specific order
-                order_lunch_cost = 0.0
-                for item in order.get("breakfast_items", []):
-                    if item.get("has_lunch", False):
-                        # Extract lunch cost from the original order's total_price
-                        # We need to subtract breakfast costs to get lunch cost
-                        order_total = order.get("total_price", 0)
-                        breakfast_cost = 0.0
-                        
-                        # Calculate breakfast cost (rolls + eggs + coffee)
-                        white_halves = item.get("white_halves", 0)
-                        seeded_halves = item.get("seeded_halves", 0)
-                        boiled_eggs = item.get("boiled_eggs", 0)
-                        has_coffee = item.get("has_coffee", False)
-                        
-                        if white_halves > 0:
-                            breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                            roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                            breakfast_cost += white_halves * roll_price
-                        
-                        if seeded_halves > 0:
-                            breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                            roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                            breakfast_cost += seeded_halves * roll_price
-                        
-                        if boiled_eggs > 0:
-                            lunch_settings = await db.lunch_settings.find_one()
-                            egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                            breakfast_cost += boiled_eggs * egg_price
-                        
-                        if has_coffee:
-                            lunch_settings = await db.lunch_settings.find_one()
-                            coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
-                            breakfast_cost += coffee_price
-                        
-                        # Lunch cost = total - breakfast cost
-                        order_lunch_cost = max(0, order_total - breakfast_cost)
-                        
-                        sponsored_items["Mittagessen"] = sponsored_items.get("Mittagessen", 0) + 1
-                        total_cost += order_lunch_cost
+        # Calculate individual costs for each order
+        order_calculations = []
+        total_sponsored_cost = 0.0
         
-        # Round total_cost to avoid floating point precision errors
-        total_cost = round(total_cost, 2)
-        
-        if total_cost <= 0:
-            raise HTTPException(status_code=400, detail="Keine kostenpflichtigen Artikel für Sponsoring gefunden")
-        
-        # Create sponsored items description
-        items_description = ", ".join([
-            f"{count}x {item_name}" 
-            for item_name, count in sponsored_items.items()
-        ])
-        
-        # Check if sponsor has an order for this day - if so, modify it instead of creating new one
-        sponsor_order = None
-        for order in orders:
-            if order["employee_id"] == sponsor_employee_id:
-                sponsor_order = order
-                break
-        
-        # Calculate sponsor's own cost to avoid double-charging (needed for both order update and balance calculation)
-        sponsor_own_cost = 0.0
-        if sponsor_order and meal_type == "breakfast":
-            # Calculate sponsor's own breakfast cost (rolls + eggs only)
-            for item in sponsor_order.get("breakfast_items", []):
+        for order in relevant_orders:
+            employee_id = order["employee_id"]
+            order_total = order.get("total_price", 0)
+            
+            # Calculate breakdown
+            breakfast_cost = 0.0  # rolls + eggs
+            coffee_cost = 0.0
+            lunch_cost = 0.0
+            
+            for item in order.get("breakfast_items", []):
                 # Rolls
                 white_halves = item.get("white_halves", 0)
                 seeded_halves = item.get("seeded_halves", 0)
+                breakfast_cost += white_halves * white_roll_price + seeded_halves * seeded_roll_price
                 
-                if white_halves > 0:
-                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                    roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                    sponsor_own_cost += white_halves * roll_price
-                
-                if seeded_halves > 0:
-                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                    roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                    sponsor_own_cost += seeded_halves * roll_price
-                
-                # Boiled eggs
+                # Eggs
                 boiled_eggs = item.get("boiled_eggs", 0)
-                if boiled_eggs > 0:
-                    lunch_settings = await db.lunch_settings.find_one()
-                    egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                    sponsor_own_cost += boiled_eggs * egg_price
-        elif sponsor_order and meal_type == "lunch":
-            # For lunch, calculate actual lunch cost from sponsor's order
-            order_total = sponsor_order.get("total_price", 0)
-            breakfast_cost = 0.0
-            
-            # Calculate breakfast cost to subtract from total
-            for item in sponsor_order.get("breakfast_items", []):
-                white_halves = item.get("white_halves", 0)
-                seeded_halves = item.get("seeded_halves", 0)
-                boiled_eggs = item.get("boiled_eggs", 0)
-                has_coffee = item.get("has_coffee", False)
+                breakfast_cost += boiled_eggs * egg_price
                 
-                if white_halves > 0:
-                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                    roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                    breakfast_cost += white_halves * roll_price
+                # Coffee
+                if item.get("has_coffee", False):
+                    coffee_cost += coffee_price
                 
-                if seeded_halves > 0:
-                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                    roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                    breakfast_cost += seeded_halves * roll_price
-                
-                if boiled_eggs > 0:
-                    lunch_settings = await db.lunch_settings.find_one()
-                    egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                    breakfast_cost += boiled_eggs * egg_price
-                
-                if has_coffee:
-                    lunch_settings = await db.lunch_settings.find_one()
-                    coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
-                    breakfast_cost += coffee_price
-                
+                # Lunch
                 if item.get("has_lunch", False):
-                    # Lunch cost = total - breakfast cost (but only take lunch cost once)
-                    sponsor_lunch_cost = max(0, order_total - breakfast_cost)
-                    sponsor_own_cost += sponsor_lunch_cost
-                    break  # Only calculate once per order
-        
-        # Round sponsor own cost to avoid floating point errors
-        sponsor_own_cost = round(sponsor_own_cost, 2)
-        
-        # Calculate cost for others (excluding sponsor's own cost)
-        sponsored_for_others_cost = total_cost - sponsor_own_cost
-        
-        if sponsor_order:
-            # Modify sponsor's existing order to show sponsorship details
-            sponsor_description = f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde an alle Kollegen ausgegeben, vielen Dank!"
+                    lunch_cost = order_total - breakfast_cost - coffee_cost
+                    lunch_cost = max(0, lunch_cost)  # Ensure non-negative
             
-            # Create detailed cost breakdown
-            cost_breakdown_items = []
+            # Round to avoid floating point errors
+            breakfast_cost = round(breakfast_cost, 2)
+            coffee_cost = round(coffee_cost, 2)
+            lunch_cost = round(lunch_cost, 2)
+            
+            # Calculate sponsored amount for this order
             if meal_type == "breakfast":
-                # Show detailed breakfast items with costs
-                if sponsored_items.get("Helles Brötchen", 0) > 0:
-                    count = sponsored_items["Helles Brötchen"]
-                    price = 0.50  # Default price, should use actual from menu
-                    cost_breakdown_items.append(f"{count}x Helle Brötchen ({count * price:.2f} €)")
-                
-                if sponsored_items.get("Körner Brötchen", 0) > 0:
-                    count = sponsored_items["Körner Brötchen"] 
-                    price = 0.60  # Default price, should use actual from menu
-                    cost_breakdown_items.append(f"{count}x Körner Brötchen ({count * price:.2f} €)")
-                
-                if sponsored_items.get("Gekochte Eier", 0) > 0:
-                    count = sponsored_items["Gekochte Eier"]
-                    price = 0.50  # Default price, should use actual from settings
-                    cost_breakdown_items.append(f"{count}x Gekochte Eier ({count * price:.2f} €)")
+                sponsored_amount = breakfast_cost  # Only breakfast items (rolls + eggs)
             else:  # lunch
-                # Show detailed lunch items
-                if sponsored_items.get("Mittagessen", 0) > 0:
-                    count = sponsored_items["Mittagessen"]
-                    # Use the daily lunch price calculated above
-                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                        "department_id": department_id,
-                        "date": date_str
-                    })
-                    if daily_lunch_price_doc:
-                        price = daily_lunch_price_doc["lunch_price"]
-                    else:
-                        lunch_settings = await db.lunch_settings.find_one()
-                        price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                    cost_breakdown_items.append(f"{count}x Mittagessen ({count * price:.2f} €)")
+                sponsored_amount = lunch_cost  # Only lunch
             
-            cost_breakdown_text = " + ".join(cost_breakdown_items)
-            sponsor_details = f"Ausgegeben: {cost_breakdown_text} = {total_cost:.2f} € für {len(affected_employees)} Mitarbeiter"
+            order_calculations.append({
+                "order": order,
+                "employee_id": employee_id,
+                "breakfast_cost": breakfast_cost,
+                "coffee_cost": coffee_cost, 
+                "lunch_cost": lunch_cost,
+                "sponsored_amount": sponsored_amount
+            })
             
-            # Create additional readable_items for the sponsored parts
+            total_sponsored_cost += sponsored_amount
+        
+        total_sponsored_cost = round(total_sponsored_cost, 2)
+        
+        if total_sponsored_cost <= 0:
+            raise HTTPException(status_code=400, detail="Keine kostenpflichtigen Artikel für Sponsoring gefunden")
+        
+        # === PHASE 4: SPONSOR BERECHNUNG ===
+        # Find sponsor's order and calculate their contribution
+        sponsor_calculation = None
+        sponsor_contributed_amount = 0.0
+        
+        for calc in order_calculations:
+            if calc["employee_id"] == sponsor_employee_id:
+                sponsor_calculation = calc
+                sponsor_contributed_amount = calc["sponsored_amount"]
+                break
+        
+        # WICHTIG: Sponsor zahlt für ALLE (inkl. sich selbst), aber seine eigenen Kosten sind schon in seiner Bestellung
+        # Also: sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
+        sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount
+        sponsor_additional_cost = round(sponsor_additional_cost, 2)
+        
+        # === PHASE 5: ATOMISCHE UPDATES ===
+        
+        # 1. Update sponsor's order to show sponsoring details
+        if sponsor_calculation:
+            sponsor_order = sponsor_calculation["order"]
+            
+            # Create readable breakdown
+            sponsored_count = len(order_calculations)
+            meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
+            sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank!"
+            breakdown = f"{sponsored_count}x {meal_name} ({total_sponsored_cost:.2f} €) für {sponsored_count} Mitarbeiter"
+            
+            # Update sponsor order
             original_readable_items = sponsor_order.get("readable_items", [])
-            
-            # Create a clear separation between own order and sponsored order
-            sponsored_readable_items = [{
-                "description": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
-                "unit_price": f"({cost_breakdown_text})",
-                "total_price": f"{total_cost:.2f} €"
-            }]
-            
-            # Combine items: original order first, then sponsored details with clear labeling
-            combined_readable_items = original_readable_items + [{
-                "description": f"✓ {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
-                "unit_price": f"{cost_breakdown_text}",
-                "total_price": f"{total_cost:.2f} €"
+            sponsor_readable_items = original_readable_items + [{
+                "description": f"────── Gesponserte Ausgabe ──────",
+                "unit_price": breakdown,
+                "total_price": f"{total_sponsored_cost:.2f} €"
             }]
             
             await db.orders.update_one(
                 {"id": sponsor_order["id"]},
                 {"$set": {
                     "is_sponsor_order": True,
-                    "sponsor_message": sponsor_description,
-                    "sponsor_details": sponsor_details,
-                    "sponsor_total_cost": total_cost,
-                    "sponsor_employee_count": len(affected_employees),
-                    "sponsor_cost_breakdown": cost_breakdown_text,
-                    "total_price": sponsor_order.get("total_price", 0) + sponsored_for_others_cost,  # Add only others' sponsored cost
-                    "readable_items": combined_readable_items  # Show both own order AND sponsored details
+                    "sponsor_message": sponsor_message,
+                    "sponsor_total_cost": total_sponsored_cost,
+                    "sponsor_employee_count": sponsored_count,
+                    "sponsored_meal_type": meal_type,
+                    "readable_items": sponsor_readable_items,
+                    # WICHTIG: total_price wird NICHT geändert - bleibt bei ursprünglichen Kosten
+                    # Die zusätzlichen Kosten werden nur in der Balance reflektiert
                 }}
             )
-        else:
-            # Sponsor has no order for this day - create sponsored meal order entry
-            
-            # Create detailed cost breakdown (same logic as above)
-            cost_breakdown_items = []
-            if meal_type == "breakfast":
-                if sponsored_items.get("Helles Brötchen", 0) > 0:
-                    count = sponsored_items["Helles Brötchen"]
-                    price = 0.50
-                    cost_breakdown_items.append(f"{count}x Helle Brötchen ({count * price:.2f} €)")
-                
-                if sponsored_items.get("Körner Brötchen", 0) > 0:
-                    count = sponsored_items["Körner Brötchen"] 
-                    price = 0.60
-                    cost_breakdown_items.append(f"{count}x Körner Brötchen ({count * price:.2f} €)")
-                
-                if sponsored_items.get("Gekochte Eier", 0) > 0:
-                    count = sponsored_items["Gekochte Eier"]
-                    price = 0.50
-                    cost_breakdown_items.append(f"{count}x Gekochte Eier ({count * price:.2f} €)")
-            else:  # lunch
-                if sponsored_items.get("Mittagessen", 0) > 0:
-                    count = sponsored_items["Mittagessen"]
-                    # Calculate average actual lunch price from total_cost
-                    avg_lunch_price = total_cost / count if count > 0 else 0
-                    cost_breakdown_items.append(f"{count}x Mittagessen ({total_cost:.2f} €)")
-            
-            cost_breakdown_text = " + ".join(cost_breakdown_items)
-            
-            sponsored_order = {
-                "id": str(uuid.uuid4()),
-                "employee_id": sponsor_employee_id,
-                "department_id": department_id,
-                "order_type": f"{meal_type}_sponsored",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "total_price": total_cost,
-                "sponsored_date": date_str,
-                "sponsored_employee_count": len(affected_employees),
-                "sponsored_items": items_description,
-                "sponsor_cost_breakdown": cost_breakdown_text,
-                "readable_items": [{
-                    "description": f"✓ {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} ausgegeben",
-                    "unit_price": cost_breakdown_text,
-                    "total_price": f"{total_cost:.2f} €"
-                }]
-            }
-            
-            # Insert sponsored order
-            await db.orders.insert_one(sponsored_order)
         
-        # Mark original orders as sponsored and adjust employee balances
-        for order in orders:
-            employee_id = order["employee_id"]
+        # 2. Mark other orders as sponsored and update balances
+        for calc in order_calculations:
+            if calc["employee_id"] == sponsor_employee_id:
+                continue  # Skip sponsor
             
-            if employee_id == sponsor_employee_id:
-                # For sponsor: They pay for everyone INCLUDING themselves
-                # So they should NOT get a refund for their own sponsored part
-                # Their balance just gets the total sponsored cost added
-                # (Their original order cost remains, plus they pay for others)
-                pass  # No balance change here, handled at the end
-            else:
-                # For other employees: mark as sponsored and add thank you message
-                sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
-                
-                await db.orders.update_one(
-                    {"id": order["id"]},
-                    {"$set": {
-                        "is_sponsored": True,
-                        "sponsored_by_employee_id": sponsor_employee_id,
-                        "sponsored_by_name": sponsor_employee_name,
-                        "sponsored_date": datetime.now(timezone.utc).isoformat(),
-                        "sponsored_meal_type": meal_type,
-                        "sponsored_message": sponsored_message
-                    }}
+            order = calc["order"]
+            employee_id = calc["employee_id"]
+            sponsored_amount = calc["sponsored_amount"]
+            
+            # Mark order as sponsored
+            sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
+            
+            await db.orders.update_one(
+                {"id": order["id"]},
+                {"$set": {
+                    "is_sponsored": True,
+                    "sponsored_by_employee_id": sponsor_employee_id,
+                    "sponsored_by_name": sponsor_employee_name,
+                    "sponsored_meal_type": meal_type,
+                    "sponsored_message": sponsored_message,
+                    "sponsored_date": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Refund sponsored amount from employee balance
+            employee = await db.employees.find_one({"id": employee_id})
+            if employee:
+                new_balance = employee["breakfast_balance"] - sponsored_amount
+                new_balance = round(new_balance, 2)
+                await db.employees.update_one(
+                    {"id": employee_id},
+                    {"$set": {"breakfast_balance": new_balance}}
                 )
-                
-                # Refund the sponsored cost to their balance (subtract from debt)
-                employee = await db.employees.find_one({"id": employee_id})
-                if employee:
-                    if meal_type == "breakfast":
-                        # Calculate this employee's breakfast cost (rolls + eggs only) to refund
-                        employee_breakfast_cost = 0.0
-                        for item in order.get("breakfast_items", []):
-                            # Rolls
-                            white_halves = item.get("white_halves", 0)
-                            seeded_halves = item.get("seeded_halves", 0)
-                            
-                            if white_halves > 0:
-                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                                roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                                employee_breakfast_cost += white_halves * roll_price
-                            
-                            if seeded_halves > 0:
-                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                                roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                                employee_breakfast_cost += seeded_halves * roll_price
-                            
-                            # Boiled eggs
-                            boiled_eggs = item.get("boiled_eggs", 0)
-                            if boiled_eggs > 0:
-                                lunch_settings = await db.lunch_settings.find_one()
-                                egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                                employee_breakfast_cost += boiled_eggs * egg_price
-                        
-                        # Round employee breakfast cost to avoid floating point errors
-                        employee_breakfast_cost = round(employee_breakfast_cost, 2)
-                        
-                        # REFUND the sponsored amount (reduce their debt)
-                        new_balance = employee["breakfast_balance"] - employee_breakfast_cost
-                        # Round to 2 decimal places to avoid floating point precision errors
-                        new_balance = round(new_balance, 2)
-                        await db.employees.update_one(
-                            {"id": employee_id},
-                            {"$set": {"breakfast_balance": new_balance}}
-                        )
-                    else:  # lunch
-                        # For lunch, calculate actual lunch cost from the order
-                        employee_lunch_cost = 0.0
-                        order_total = order.get("total_price", 0)
-                        breakfast_cost = 0.0
-                        
-                        # Calculate breakfast cost to subtract from total
-                        for item in order.get("breakfast_items", []):
-                            white_halves = item.get("white_halves", 0)
-                            seeded_halves = item.get("seeded_halves", 0)
-                            boiled_eggs = item.get("boiled_eggs", 0)
-                            has_coffee = item.get("has_coffee", False)
-                            
-                            if white_halves > 0:
-                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                                roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
-                                breakfast_cost += white_halves * roll_price
-                            
-                            if seeded_halves > 0:
-                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                                roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
-                                breakfast_cost += seeded_halves * roll_price
-                            
-                            if boiled_eggs > 0:
-                                lunch_settings = await db.lunch_settings.find_one()
-                                egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
-                                breakfast_cost += boiled_eggs * egg_price
-                            
-                            if has_coffee:
-                                lunch_settings = await db.lunch_settings.find_one()
-                                coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
-                                breakfast_cost += coffee_price
-                            
-                            if item.get("has_lunch", False):
-                                # Lunch cost = total - breakfast cost
-                                employee_lunch_cost = max(0, order_total - breakfast_cost)
-                        
-                        # Round employee lunch cost to avoid floating point errors
-                        employee_lunch_cost = round(employee_lunch_cost, 2)
-                        
-                        # REFUND only the lunch cost (reduce their debt)
-                        new_balance = employee["breakfast_balance"] - employee_lunch_cost
-                        # Round to 2 decimal places to avoid floating point precision errors
-                        new_balance = round(new_balance, 2)
-                        await db.employees.update_one(
-                            {"id": employee_id},
-                            {"$set": {"breakfast_balance": new_balance}}
-                        )
         
-        # Add sponsored cost to sponsor's balance, but subtract their own sponsored amount
+        # 3. Update sponsor balance
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
-            # Use the sponsor_own_cost calculated earlier
-            # Sponsor pays for OTHERS only, their own meal cost is already in their original order
-            sponsored_for_others_cost = total_cost - sponsor_own_cost
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] + sponsored_for_others_cost
-            # Round to 2 decimal places to avoid floating point precision errors
+            # Sponsor zahlt zusätzlich nur für die anderen, nicht für sich selbst (das ist schon in der Bestellung)
+            new_sponsor_balance = sponsor_employee["breakfast_balance"] + sponsor_additional_cost
             new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
                 {"id": sponsor_employee_id},
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
             )
         
+        # === RÜCKGABE ===
+        sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
+        
         return {
             "message": f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} erfolgreich gesponsert",
-            "sponsored_items": items_description,
-            "total_cost": round(total_cost, 2),
-            "affected_employees": len(affected_employees),
-            "sponsor": sponsor_employee_name
+            "sponsored_items": sponsored_items_description,
+            "total_cost": total_sponsored_cost,
+            "affected_employees": len(order_calculations),
+            "sponsor": sponsor_employee_name,
+            "sponsor_additional_cost": sponsor_additional_cost
         }
         
     except HTTPException:
