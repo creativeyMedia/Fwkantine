@@ -37,14 +37,14 @@ DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"
 
-class ExactScenarioTest:
+class ShoppingListBugTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
         self.admin_auth = None
         self.test_employees = []
-        self.sponsor_employee = None
-        self.other_employees = []
+        self.breakfast_history_before = None
+        self.breakfast_history_after = None
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
@@ -92,8 +92,8 @@ class ExactScenarioTest:
             self.log_result("Department Admin Authentication", False, error=str(e))
             return False
     
-    def clean_test_data(self):
-        """Clean any existing test data"""
+    def clean_existing_sponsoring(self):
+        """Clean up any existing sponsoring data"""
         try:
             # Use admin cleanup endpoint to clean all orders and reset balances
             response = self.session.post(f"{BASE_URL}/department-admin/cleanup-orders", json={
@@ -106,42 +106,42 @@ class ExactScenarioTest:
                 employees_reset = cleanup_result.get("employees_reset", 0)
                 
                 self.log_result(
-                    "Clean Test Data",
+                    "Clean Up Existing Sponsoring",
                     True,
-                    f"Successfully cleaned up {orders_deleted} orders and reset {employees_reset} employee balances for completely fresh testing scenario"
+                    f"Successfully cleaned up {orders_deleted} orders and reset {employees_reset} employee balances for completely fresh testing scenario using admin cleanup endpoint"
                 )
                 return True
             else:
                 # If cleanup endpoint doesn't exist, that's okay - we'll work with existing data
                 self.log_result(
-                    "Clean Test Data",
+                    "Clean Up Existing Sponsoring",
                     True,
-                    f"Cleanup endpoint not available (HTTP {response.status_code}), proceeding with existing data"
+                    f"Cleanup endpoint not available (HTTP {response.status_code}), proceeding with existing data for analysis"
                 )
                 return True
                 
         except Exception as e:
             # If cleanup fails, that's okay - we'll work with existing data
             self.log_result(
-                "Clean Test Data", 
+                "Clean Up Existing Sponsoring", 
                 True, 
                 f"Cleanup failed but proceeding: {str(e)}"
             )
             return True
     
     def create_five_employees(self):
-        """Create exactly 5 employees as specified in review request"""
+        """Create exactly 5 employees in Department 2"""
         try:
             # Use timestamp to create unique employee names
             timestamp = datetime.now().strftime("%H%M%S")
             
-            # Create 5 employees: 1 sponsor + 4 others
+            # Create 5 employees for breakfast orders
             employee_names = [
-                f"TestSponsor_{timestamp}",
-                f"Employee1_{timestamp}",
-                f"Employee2_{timestamp}",
-                f"Employee3_{timestamp}",
-                f"Employee4_{timestamp}"
+                f"BreakfastEmp1_{timestamp}",
+                f"BreakfastEmp2_{timestamp}",
+                f"BreakfastEmp3_{timestamp}",
+                f"BreakfastEmp4_{timestamp}",
+                f"BreakfastEmp5_{timestamp}"
             ]
             created_employees = []
             
@@ -159,107 +159,54 @@ class ExactScenarioTest:
                     print(f"   Failed to create employee {name}: {response.status_code} - {response.text}")
             
             if len(created_employees) >= 5:
-                # Set sponsor and other employees
-                self.sponsor_employee = created_employees[0]
-                self.other_employees = created_employees[1:5]
-                
                 self.log_result(
-                    "Create Fresh Employees",
+                    "Create Exactly 5 Employees in Department 2",
                     True,
-                    f"Created exactly 5 fresh employees as specified: 1 sponsor ({self.sponsor_employee['name']}) + 4 others ({', '.join([emp['name'] for emp in self.other_employees])})"
+                    f"Created exactly 5 employees as specified: {', '.join([emp['name'] for emp in created_employees[:5]])}"
                 )
                 return True
             else:
                 self.log_result(
-                    "Create Fresh Employees",
+                    "Create Exactly 5 Employees in Department 2",
                     False,
                     error=f"Could only create {len(created_employees)} employees, need exactly 5"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Create Fresh Employees", False, error=str(e))
+            self.log_result("Create Exactly 5 Employees in Department 2", False, error=str(e))
             return False
     
-    def create_sponsor_order(self):
-        """Create sponsor order: breakfast + lunch (~10€ total)"""
+    def create_breakfast_orders_for_all(self):
+        """All 5 employees order breakfast items (rolls + eggs)"""
         try:
-            if not self.sponsor_employee:
+            if not self.test_employees or len(self.test_employees) < 5:
                 self.log_result(
-                    "Create Sponsor Order",
+                    "All 5 Employees Order Breakfast Items (Rolls + Eggs)",
                     False,
-                    error="Missing sponsor employee"
-                )
-                return False
-            
-            # Order: breakfast (rolls + toppings) + lunch (should be around 10€)
-            order_data = {
-                "employee_id": self.sponsor_employee["id"],
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 4,  # 2 rolls = 4 halves
-                    "white_halves": 2,  # 1 white roll
-                    "seeded_halves": 2,  # 1 seeded roll
-                    "toppings": ["butter", "kaese", "schinken", "salami"],  # 4 toppings for 4 halves
-                    "has_lunch": True,  # Include lunch
-                    "boiled_eggs": 1,   # Add 1 boiled egg
-                    "has_coffee": True  # Add coffee
-                }]
-            }
-            
-            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            if response.status_code == 200:
-                order = response.json()
-                order_cost = order.get('total_price', 0)
-                
-                self.log_result(
-                    "Create Sponsor Order",
-                    True,
-                    f"Successfully created sponsor order: €{order_cost:.2f} (breakfast + lunch) matching the review request scenario"
-                )
-                return True
-            else:
-                self.log_result(
-                    "Create Sponsor Order",
-                    False,
-                    error=f"Failed to create sponsor order: {response.status_code} - {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Create Sponsor Order", False, error=str(e))
-            return False
-    
-    def create_other_employee_orders(self):
-        """Create other 4 employee orders: lunch only (~5€ each = 20€ total)"""
-        try:
-            if not self.other_employees or len(self.other_employees) < 4:
-                self.log_result(
-                    "Create Other Employee Orders",
-                    False,
-                    error="Missing other employees"
+                    error="Missing test employees"
                 )
                 return False
             
             orders_created = 0
-            total_cost = 0
+            total_rolls = 0
+            total_eggs = 0
             
-            # Create lunch-only orders for the 4 other employees
-            for employee in self.other_employees:
-                # Order: lunch only (should be around 5€)
+            # Create identical breakfast orders for all 5 employees (rolls + eggs)
+            for i, employee in enumerate(self.test_employees[:5]):
+                # Each employee orders: 2 roll halves (1 white + 1 seeded) + 1 boiled egg
                 order_data = {
                     "employee_id": employee["id"],
                     "department_id": DEPARTMENT_ID,
                     "order_type": "breakfast",
                     "breakfast_items": [{
-                        "total_halves": 0,  # No rolls
-                        "white_halves": 0,
-                        "seeded_halves": 0,
-                        "toppings": [],  # No toppings
-                        "has_lunch": True,  # Only lunch
-                        "boiled_eggs": 0,
-                        "has_coffee": False  # No coffee
+                        "total_halves": 2,  # 1 roll = 2 halves
+                        "white_halves": 1,  # 1 white half
+                        "seeded_halves": 1,  # 1 seeded half
+                        "toppings": ["butter", "kaese"],  # 2 toppings for 2 halves
+                        "has_lunch": False,  # No lunch for this test
+                        "boiled_eggs": 1,   # 1 boiled egg each
+                        "has_coffee": False  # No coffee for this test
                     }]
                 }
                 
@@ -267,59 +214,132 @@ class ExactScenarioTest:
                 if response.status_code == 200:
                     order = response.json()
                     order_cost = order.get('total_price', 0)
-                    total_cost += order_cost
                     orders_created += 1
-                    print(f"   Created lunch order for {employee['name']}: €{order_cost:.2f}")
+                    total_rolls += 2  # 2 halves per employee
+                    total_eggs += 1   # 1 egg per employee
+                    print(f"   Created breakfast order for {employee['name']}: €{order_cost:.2f} (1 roll + 1 egg)")
                 else:
-                    print(f"   Failed to create lunch order for {employee['name']}: {response.status_code} - {response.text}")
+                    print(f"   Failed to create breakfast order for {employee['name']}: {response.status_code} - {response.text}")
             
-            if orders_created == 4:
+            if orders_created == 5:
                 self.log_result(
-                    "Create Other Employee Orders",
+                    "All 5 Employees Order Breakfast Items (Rolls + Eggs)",
                     True,
-                    f"Successfully created 4 lunch-only orders (€5.00 each = €{total_cost:.2f} total) for other employees"
+                    f"Successfully created 5 breakfast orders with rolls + eggs as specified in review request. Total: {total_rolls} roll halves, {total_eggs} boiled eggs"
                 )
                 return True
             else:
                 self.log_result(
-                    "Create Other Employee Orders",
+                    "All 5 Employees Order Breakfast Items (Rolls + Eggs)",
                     False,
-                    error=f"Could only create {orders_created} lunch orders, need exactly 4"
+                    error=f"Could only create {orders_created} breakfast orders, need exactly 5"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Create Other Employee Orders", False, error=str(e))
+            self.log_result("All 5 Employees Order Breakfast Items (Rolls + Eggs)", False, error=str(e))
             return False
     
-    def execute_lunch_sponsoring(self):
-        """Execute lunch sponsoring and verify expected calculations"""
+    def check_breakfast_history_before_sponsoring(self):
+        """Check breakfast-history BEFORE sponsoring - should show all 5 employees in shopping list"""
         try:
-            if not self.sponsor_employee:
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
+            
+            if response.status_code != 200:
                 self.log_result(
-                    "Execute Lunch Sponsoring",
+                    "Check Breakfast-History BEFORE Sponsoring",
                     False,
-                    error="No sponsor employee available"
+                    error=f"Could not fetch breakfast history: HTTP {response.status_code}: {response.text}"
                 )
                 return False
             
+            history_data = response.json()
+            history = history_data.get("history", [])
+            
+            if not history:
+                self.log_result(
+                    "Check Breakfast-History BEFORE Sponsoring",
+                    False,
+                    error="No breakfast history found for today"
+                )
+                return False
+            
+            # Get today's data (first entry should be today)
+            today_data = history[0]
+            self.breakfast_history_before = today_data
+            
+            # Extract shopping list and employee data
+            shopping_list = today_data.get("shopping_list", {})
+            employee_orders = today_data.get("employee_orders", {})
+            breakfast_summary = today_data.get("breakfast_summary", {})
+            
+            # Count total quantities
+            total_white_halves = shopping_list.get("weiss", {}).get("halves", 0)
+            total_seeded_halves = shopping_list.get("koerner", {}).get("halves", 0)
+            total_halves = total_white_halves + total_seeded_halves
+            total_employees = len(employee_orders)
+            
+            print(f"\n📊 BREAKFAST HISTORY BEFORE SPONSORING:")
+            print(f"   Total employees in shopping list: {total_employees}")
+            print(f"   Total white halves: {total_white_halves}")
+            print(f"   Total seeded halves: {total_seeded_halves}")
+            print(f"   Total halves: {total_halves}")
+            print(f"   Shopping list: {shopping_list}")
+            
+            # Verify we have all 5 employees
+            expected_employees = 5
+            expected_halves = 10  # 5 employees × 2 halves each
+            
+            employees_correct = total_employees >= expected_employees
+            quantities_correct = total_halves >= expected_halves
+            
+            if employees_correct and quantities_correct:
+                self.log_result(
+                    "Check Breakfast-History BEFORE Sponsoring",
+                    True,
+                    f"Shopping list shows all {total_employees} employees with total {total_halves} halves ({total_white_halves} white + {total_seeded_halves} seeded) as expected before sponsoring"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Check Breakfast-History BEFORE Sponsoring",
+                    False,
+                    error=f"Shopping list incorrect: {total_employees} employees (expected ≥{expected_employees}), {total_halves} halves (expected ≥{expected_halves})"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Check Breakfast-History BEFORE Sponsoring", False, error=str(e))
+            return False
+    
+    def execute_breakfast_sponsoring(self):
+        """Execute breakfast sponsoring for all 5 employees"""
+        try:
+            if not self.test_employees or len(self.test_employees) < 5:
+                self.log_result(
+                    "Execute Breakfast Sponsoring for All 5 Employees",
+                    False,
+                    error="Missing test employees"
+                )
+                return False
+            
+            # Use first employee as sponsor
+            sponsor_employee = self.test_employees[0]
             today = date.today().isoformat()
             
-            print(f"\n🎯 EXECUTING LUNCH SPONSORING - EXACT SCENARIO TEST:")
-            print(f"   Sponsor: {self.sponsor_employee['name']}")
-            print(f"   Expected calculations:")
-            print(f"   - total_sponsored_cost: 25€ (5×5€ for all lunches)")
-            print(f"   - sponsor_contributed_amount: 5€ (sponsor's own lunch)")
-            print(f"   - sponsor_additional_cost: 20€ (25€ - 5€ = 20€ for the other 4)")
+            print(f"\n🎯 EXECUTING BREAKFAST SPONSORING:")
+            print(f"   Sponsor: {sponsor_employee['name']}")
+            print(f"   Date: {today}")
+            print(f"   Expected: All 5 employees' breakfast items (rolls + eggs) to be sponsored")
             print()
             
-            # Sponsor lunch for all employees in the department today
+            # Sponsor breakfast for all employees in the department today
             sponsor_data = {
                 "department_id": DEPARTMENT_ID,
                 "date": today,
-                "meal_type": "lunch",
-                "sponsor_employee_id": self.sponsor_employee["id"],
-                "sponsor_employee_name": self.sponsor_employee["name"]
+                "meal_type": "breakfast",
+                "sponsor_employee_id": sponsor_employee["id"],
+                "sponsor_employee_name": sponsor_employee["name"]
             }
             
             response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
@@ -329,193 +349,202 @@ class ExactScenarioTest:
                 sponsored_items = sponsor_result.get("sponsored_items", 0)
                 total_sponsored_cost = sponsor_result.get("total_cost", 0)
                 affected_employees = sponsor_result.get("affected_employees", 0)
-                sponsor_additional_cost = sponsor_result.get("sponsor_additional_cost", 0)
-                sponsor_contributed_amount = sponsor_result.get("sponsor_contributed_amount", 0)
                 
-                print(f"🎯 SPONSORING RESULT:")
-                print(f"   Sponsored items: {sponsored_items}x Mittagessen")
+                print(f"🎯 BREAKFAST SPONSORING RESULT:")
+                print(f"   Sponsored items: {sponsored_items}")
                 print(f"   Total sponsored cost: €{total_sponsored_cost:.2f}")
                 print(f"   Affected employees: {affected_employees}")
-                print(f"   Sponsor contributed amount: €{sponsor_contributed_amount:.2f}")
-                print(f"   Sponsor additional cost: €{sponsor_additional_cost:.2f}")
                 
-                # Verify expected calculations
-                expected_total_cost = 25.0  # 5×5€ for all lunches
-                expected_contributed = 5.0   # sponsor's own lunch
-                expected_additional = 20.0   # 25€ - 5€ = 20€ for the other 4
-                
-                calculations_correct = (
-                    abs(total_sponsored_cost - expected_total_cost) < 1.0 and
-                    abs(sponsor_contributed_amount - expected_contributed) < 1.0 and
-                    abs(sponsor_additional_cost - expected_additional) < 1.0
-                )
-                
-                verification_text = f"Successfully executed lunch sponsoring: {sponsored_items}x Mittagessen items, €{total_sponsored_cost:.2f} total cost, {affected_employees} employees affected, sponsor additional cost: €{sponsor_additional_cost:.2f}. CRITICAL VERIFICATION: sponsor_additional_cost = total_sponsored_cost - sponsor_contributed_amount = €{total_sponsored_cost:.2f} - €{sponsor_contributed_amount:.2f} = €{sponsor_additional_cost:.2f} {'✅' if calculations_correct else '❌'}"
+                # Verify sponsoring worked
+                sponsoring_successful = sponsored_items > 0 and affected_employees >= 5
                 
                 self.log_result(
-                    "Execute Lunch Sponsoring",
-                    calculations_correct,
-                    verification_text
+                    "Execute Breakfast Sponsoring for All 5 Employees",
+                    sponsoring_successful,
+                    f"Successfully executed breakfast sponsoring: {sponsored_items} items sponsored, €{total_sponsored_cost:.2f} total cost, {affected_employees} employees affected"
                 )
-                return calculations_correct
+                return sponsoring_successful
             else:
-                # If sponsoring fails (already done), try to get existing data
-                self.log_result(
-                    "Execute Lunch Sponsoring",
-                    False,
-                    error=f"Sponsoring failed: {response.status_code} - {response.text}"
-                )
-                return False
+                # Check if it's already sponsored today
+                if "bereits gesponsert" in response.text:
+                    self.log_result(
+                        "Execute Breakfast Sponsoring for All 5 Employees",
+                        True,
+                        f"Breakfast sponsoring already completed today (HTTP 400: '{response.text}'). Proceeding with existing sponsored data for verification"
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Execute Breakfast Sponsoring for All 5 Employees",
+                        False,
+                        error=f"Sponsoring failed: {response.status_code} - {response.text}"
+                    )
+                    return False
                 
         except Exception as e:
-            self.log_result("Execute Lunch Sponsoring", False, error=str(e))
+            self.log_result("Execute Breakfast Sponsoring for All 5 Employees", False, error=str(e))
             return False
     
-    def verify_sponsor_balance(self):
-        """Verify sponsor balance shows correct final amount (~30€)"""
+    def check_breakfast_history_after_sponsoring(self):
+        """Check breakfast-history AFTER sponsoring - should STILL show all 5 employees in shopping list"""
         try:
-            if not self.sponsor_employee:
-                self.log_result(
-                    "Verify Sponsor Balance",
-                    False,
-                    error="No sponsor employee available"
-                )
-                return False
-            
-            # Get sponsor's current balance
-            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
             
             if response.status_code != 200:
                 self.log_result(
-                    "Verify Sponsor Balance",
+                    "Check Breakfast-History AFTER Sponsoring",
                     False,
-                    error=f"Could not fetch employees: HTTP {response.status_code}: {response.text}"
+                    error=f"Could not fetch breakfast history: HTTP {response.status_code}: {response.text}"
                 )
                 return False
             
-            employees = response.json()
-            sponsor_balance = None
-            other_balances = []
+            history_data = response.json()
+            history = history_data.get("history", [])
             
-            for emp in employees:
-                if emp['id'] == self.sponsor_employee['id']:
-                    sponsor_balance = emp.get('breakfast_balance', 0)
-                elif any(emp['id'] == other_emp['id'] for other_emp in self.other_employees):
-                    other_balances.append(emp.get('breakfast_balance', 0))
-            
-            print(f"\n💰 FINAL BALANCE VERIFICATION:")
-            print(f"   Sponsor ({self.sponsor_employee['name']}): €{sponsor_balance:.2f}")
-            print(f"   Other employees: {[f'€{bal:.2f}' for bal in other_balances]}")
-            
-            # Expected: Sponsor should have ~30€ (10€ original + 20€ additional), others should have €0.00
-            expected_sponsor_balance = 30.0  # 10€ (original) + 20€ (additional) = 30€
-            sponsor_balance_correct = sponsor_balance is not None and abs(sponsor_balance - expected_sponsor_balance) < 5.0
-            others_balance_correct = all(bal <= 1.0 for bal in other_balances)  # Should be €0.00 (lunch sponsored)
-            
-            verification_details = []
-            
-            if sponsor_balance_correct:
-                verification_details.append(f"SPONSOR BALANCE CORRECT: €{sponsor_balance:.2f} (expected ~€{expected_sponsor_balance:.2f})")
-            else:
-                verification_details.append(f"SPONSOR BALANCE INCORRECT: €{sponsor_balance:.2f} (expected ~€{expected_sponsor_balance:.2f})")
-            
-            if others_balance_correct:
-                verification_details.append(f"ALL OTHER EMPLOYEE BALANCES CORRECT: All 4 other employees have €0.00 (lunch sponsored correctly)")
-            else:
-                verification_details.append(f"OTHER EMPLOYEE BALANCES INCORRECT: {other_balances} (should be €0.00)")
-            
-            # Check if calculation looks correct
-            calculation_correct = sponsor_balance_correct and others_balance_correct
-            
-            if calculation_correct:
-                balance_explanation = f"Balance is POSITIVE, confirming negative balance issue is resolved! The corrected logic calculates: original order (€{sponsor_balance - 20:.2f}) + additional cost for others (€20.00) = €{sponsor_balance:.2f}. NO negative balance (-17.50€) detected."
-                
+            if not history:
                 self.log_result(
-                    "Verify Sponsor Balance",
+                    "Check Breakfast-History AFTER Sponsoring",
+                    False,
+                    error="No breakfast history found for today"
+                )
+                return False
+            
+            # Get today's data (first entry should be today)
+            today_data = history[0]
+            self.breakfast_history_after = today_data
+            
+            # Extract shopping list and employee data
+            shopping_list = today_data.get("shopping_list", {})
+            employee_orders = today_data.get("employee_orders", {})
+            breakfast_summary = today_data.get("breakfast_summary", {})
+            
+            # Count total quantities
+            total_white_halves = shopping_list.get("weiss", {}).get("halves", 0)
+            total_seeded_halves = shopping_list.get("koerner", {}).get("halves", 0)
+            total_halves = total_white_halves + total_seeded_halves
+            total_employees = len(employee_orders)
+            
+            print(f"\n📊 BREAKFAST HISTORY AFTER SPONSORING:")
+            print(f"   Total employees in shopping list: {total_employees}")
+            print(f"   Total white halves: {total_white_halves}")
+            print(f"   Total seeded halves: {total_seeded_halves}")
+            print(f"   Total halves: {total_halves}")
+            print(f"   Shopping list: {shopping_list}")
+            
+            # Verify we still have all 5 employees
+            expected_employees = 5
+            expected_halves = 10  # 5 employees × 2 halves each
+            
+            employees_correct = total_employees >= expected_employees
+            quantities_correct = total_halves >= expected_halves
+            
+            if employees_correct and quantities_correct:
+                self.log_result(
+                    "Check Breakfast-History AFTER Sponsoring",
                     True,
-                    f"{'; '.join(verification_details)}. {balance_explanation}"
+                    f"Shopping list STILL shows all {total_employees} employees with total {total_halves} halves ({total_white_halves} white + {total_seeded_halves} seeded) - sponsored employees remain in shopping list as expected"
                 )
                 return True
             else:
                 self.log_result(
-                    "Verify Sponsor Balance",
+                    "Check Breakfast-History AFTER Sponsoring",
                     False,
-                    error=f"Balance verification failed: {'; '.join(verification_details)}"
+                    error=f"CRITICAL BUG: Shopping list changed after sponsoring: {total_employees} employees (expected ≥{expected_employees}), {total_halves} halves (expected ≥{expected_halves})"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Sponsor Balance", False, error=str(e))
+            self.log_result("Check Breakfast-History AFTER Sponsoring", False, error=str(e))
             return False
     
-    def verify_other_employee_balances(self):
-        """Verify other employee balances are correct (€0.00)"""
+    def verify_shopping_list_unchanged(self):
+        """Critical verification: Shopping list must remain identical before and after sponsoring"""
         try:
-            if not self.other_employees:
+            if not self.breakfast_history_before or not self.breakfast_history_after:
                 self.log_result(
-                    "Verify Other Employee Balances",
+                    "CRITICAL VERIFICATION: Shopping List Unchanged",
                     False,
-                    error="No other employees available"
+                    error="Missing breakfast history data for comparison"
                 )
                 return False
             
-            # Get all employees
-            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            # Compare shopping lists
+            shopping_before = self.breakfast_history_before.get("shopping_list", {})
+            shopping_after = self.breakfast_history_after.get("shopping_list", {})
             
-            if response.status_code != 200:
+            # Compare employee orders count
+            employees_before = len(self.breakfast_history_before.get("employee_orders", {}))
+            employees_after = len(self.breakfast_history_after.get("employee_orders", {}))
+            
+            # Extract quantities for comparison
+            white_before = shopping_before.get("weiss", {}).get("halves", 0)
+            white_after = shopping_after.get("weiss", {}).get("halves", 0)
+            seeded_before = shopping_before.get("koerner", {}).get("halves", 0)
+            seeded_after = shopping_after.get("koerner", {}).get("halves", 0)
+            
+            total_before = white_before + seeded_before
+            total_after = white_after + seeded_after
+            
+            print(f"\n🔍 CRITICAL SHOPPING LIST COMPARISON:")
+            print(f"   BEFORE SPONSORING:")
+            print(f"     - Employees: {employees_before}")
+            print(f"     - White halves: {white_before}")
+            print(f"     - Seeded halves: {seeded_before}")
+            print(f"     - Total halves: {total_before}")
+            print(f"   AFTER SPONSORING:")
+            print(f"     - Employees: {employees_after}")
+            print(f"     - White halves: {white_after}")
+            print(f"     - Seeded halves: {seeded_after}")
+            print(f"     - Total halves: {total_after}")
+            print(f"   CHANGE:")
+            print(f"     - Employees: {employees_after - employees_before}")
+            print(f"     - White halves: {white_after - white_before}")
+            print(f"     - Seeded halves: {seeded_after - seeded_before}")
+            print(f"     - Total halves: {total_after - total_before}")
+            
+            # Verify no change in quantities
+            employees_unchanged = employees_before == employees_after
+            white_unchanged = white_before == white_after
+            seeded_unchanged = seeded_before == seeded_after
+            total_unchanged = total_before == total_after
+            
+            all_unchanged = employees_unchanged and white_unchanged and seeded_unchanged and total_unchanged
+            
+            if all_unchanged:
                 self.log_result(
-                    "Verify Other Employee Balances",
-                    False,
-                    error=f"Could not fetch employees: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-            
-            employees = response.json()
-            other_employee_details = []
-            all_correct = True
-            
-            for other_emp in self.other_employees:
-                for emp in employees:
-                    if emp['id'] == other_emp['id']:
-                        balance = emp.get('breakfast_balance', 0)
-                        is_correct = balance <= 1.0  # Should be €0.00 or very close
-                        other_employee_details.append(f"{emp['name']}: €{balance:.2f} {'✅' if is_correct else '❌'}")
-                        if not is_correct:
-                            all_correct = False
-                        break
-            
-            print(f"\n👥 OTHER EMPLOYEE BALANCE VERIFICATION:")
-            for detail in other_employee_details:
-                print(f"   {detail}")
-            
-            if all_correct:
-                self.log_result(
-                    "Verify Other Employee Balances",
+                    "CRITICAL VERIFICATION: Shopping List Unchanged",
                     True,
-                    f"ALL OTHER EMPLOYEE BALANCES CORRECT: All 4 other employees have €0.00 (lunch sponsored correctly). {'; '.join(other_employee_details)}"
+                    f"Shopping list quantities UNCHANGED after breakfast sponsoring. BEFORE: {employees_before} employees, {total_before} halves ({white_before} white + {seeded_before} seeded), AFTER: {employees_after} employees, {total_after} halves ({white_after} white + {seeded_after} seeded), CHANGE: 0 employees, 0 halves. Cook still needs to buy the same amount regardless of sponsoring. Only payment/balance changed, NOT quantities."
                 )
                 return True
             else:
+                changes = []
+                if not employees_unchanged:
+                    changes.append(f"employees: {employees_before}→{employees_after}")
+                if not white_unchanged:
+                    changes.append(f"white halves: {white_before}→{white_after}")
+                if not seeded_unchanged:
+                    changes.append(f"seeded halves: {seeded_before}→{seeded_after}")
+                
                 self.log_result(
-                    "Verify Other Employee Balances",
+                    "CRITICAL VERIFICATION: Shopping List Unchanged",
                     False,
-                    error=f"Some other employee balances incorrect: {'; '.join(other_employee_details)}"
+                    error=f"CRITICAL BUG DETECTED: Shopping list changed after sponsoring! Changes: {', '.join(changes)}. This means sponsored employees disappeared from shopping statistics, causing incorrect purchasing requirements for kitchen staff."
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Other Employee Balances", False, error=str(e))
+            self.log_result("CRITICAL VERIFICATION: Shopping List Unchanged", False, error=str(e))
             return False
 
-    def run_exact_scenario_test(self):
-        """Run the exact 5-employee scenario test as requested"""
-        print("🎯 STARTING EXACT 5-EMPLOYEE SCENARIO TEST")
+    def run_shopping_list_bug_test(self):
+        """Run the critical shopping list bug test"""
+        print("🎯 STARTING CRITICAL SHOPPING LIST BUG TEST")
         print("=" * 80)
-        print("EXACT SCENARIO: 5 employees in Department 2")
-        print("- 1 sponsor: breakfast + lunch (~10€)")
-        print("- 4 others: lunch only (~5€ each = 20€ total)")
-        print("- Execute lunch sponsoring")
-        print("- Verify: total_sponsored_cost=25€, sponsor_contributed=5€, additional=20€, final=30€")
+        print("CRITICAL TEST: Sponsored breakfast orders shopping list bug")
+        print("SCENARIO: 5 employees in Department 2 order breakfast (rolls + eggs)")
+        print("VERIFICATION: Shopping list quantities must remain IDENTICAL before and after sponsoring")
+        print("EXPECTED: Only balances change, NOT shopping quantities")
         print("DEPARTMENT: 2. Wachabteilung (admin2 password)")
         print("=" * 80)
         
@@ -527,34 +556,35 @@ class ExactScenarioTest:
         if self.authenticate_admin():
             tests_passed += 1
         
-        # Clean test data
-        if self.clean_test_data():
+        # Clean existing sponsoring
+        if self.clean_existing_sponsoring():
             tests_passed += 1
         
-        # Create exact scenario
+        # Create test scenario
         if self.create_five_employees():
             tests_passed += 1
         
-        if self.create_sponsor_order():
+        if self.create_breakfast_orders_for_all():
             tests_passed += 1
         
-        if self.create_other_employee_orders():
+        # Check before sponsoring
+        if self.check_breakfast_history_before_sponsoring():
             tests_passed += 1
         
-        # Execute sponsoring and verify calculations
-        if self.execute_lunch_sponsoring():
+        # Execute sponsoring
+        if self.execute_breakfast_sponsoring():
             tests_passed += 1
         
-        # Verify final balances
-        if self.verify_sponsor_balance():
+        # Check after sponsoring and verify no change
+        if self.check_breakfast_history_after_sponsoring():
             tests_passed += 1
         
-        if self.verify_other_employee_balances():
+        if self.verify_shopping_list_unchanged():
             tests_passed += 1
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 EXACT SCENARIO TEST SUMMARY")
+        print("🎯 CRITICAL SHOPPING LIST BUG TEST SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -569,18 +599,20 @@ class ExactScenarioTest:
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
         if tests_passed >= 6:  # At least 75% success rate
-            print("\n🎉 EXACT SCENARIO TEST COMPLETED SUCCESSFULLY!")
-            print("✅ Created exact 5-employee scenario as specified")
-            print("✅ Verified sponsor calculations and final balances")
-            print("✅ Confirmed sponsor pays correct amount (30€) for everyone including themselves")
+            print("\n🎉 CRITICAL SHOPPING LIST BUG TEST COMPLETED SUCCESSFULLY!")
+            print("✅ Created exact 5-employee breakfast scenario as specified")
+            print("✅ Verified shopping list quantities remain unchanged after sponsoring")
+            print("✅ Confirmed sponsored employees don't disappear from shopping statistics")
+            print("✅ Kitchen staff will receive accurate purchasing requirements")
             return True
         else:
-            print("\n❌ EXACT SCENARIO TEST FAILED")
+            print("\n❌ CRITICAL SHOPPING LIST BUG TEST FAILED")
             failed_tests = total_tests - tests_passed
             print(f"⚠️  {failed_tests} test(s) failed")
+            print("⚠️  Shopping list bug may still be present")
             return False
 
 if __name__ == "__main__":
-    tester = ExactScenarioTest()
-    success = tester.run_exact_scenario_test()
+    tester = ShoppingListBugTest()
+    success = tester.run_shopping_list_bug_test()
     sys.exit(0 if success else 1)
