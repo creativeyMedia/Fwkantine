@@ -2676,6 +2676,12 @@ async def sponsor_meal(meal_data: dict):
                 "total_price": f"{total_others_cost:.2f} €"
             }]
             
+            # DEBUG: Print values for troubleshooting
+            print(f"DEBUG Sponsor Update:")
+            print(f"  - sponsor_order original total_price: {sponsor_order.get('total_price', 0)}")
+            print(f"  - sponsor_additional_cost: {sponsor_additional_cost}")  
+            print(f"  - calculated new total_price: {sponsor_order.get('total_price', 0) + sponsor_additional_cost}")
+            
             await db.orders.update_one(
                 {"id": sponsor_order["id"]},
                 {"$set": {
