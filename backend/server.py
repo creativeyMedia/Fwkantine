@@ -2658,19 +2658,21 @@ async def sponsor_meal(meal_data: dict):
             sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank!"
             
             # Create detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter - 20€"
+            total_others_cost = total_sponsored_cost - sponsor_contributed_amount
+            
             if others_count > 0:
-                avg_cost_per_meal = (total_sponsored_cost - sponsor_contributed_amount) / others_count
+                avg_cost_per_meal = total_others_cost / others_count
                 detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} á {avg_cost_per_meal:.2f}€ für {others_count} Mitarbeiter"
-                total_others_cost = total_sponsored_cost - sponsor_contributed_amount
+                unit_price_text = f"{others_count} × {avg_cost_per_meal:.2f}€"
             else:
                 detailed_breakdown = f"Keine anderen Mitarbeiter gesponsert"
-                total_others_cost = 0
+                unit_price_text = ""
             
             # Update sponsor order with detailed breakdown
             original_readable_items = sponsor_order.get("readable_items", [])
             sponsor_readable_items = original_readable_items + [{
                 "description": detailed_breakdown,
-                "unit_price": f"{others_count} × {avg_cost_per_meal:.2f}€" if others_count > 0 else "",
+                "unit_price": unit_price_text,
                 "total_price": f"{total_others_cost:.2f} €"
             }]
             
