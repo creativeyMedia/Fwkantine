@@ -2666,6 +2666,9 @@ async def sponsor_meal(meal_data: dict):
                                 egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
                                 employee_breakfast_cost += boiled_eggs * egg_price
                         
+                        # Round employee breakfast cost to avoid floating point errors
+                        employee_breakfast_cost = round(employee_breakfast_cost, 2)
+                        
                         # REFUND the sponsored amount (reduce their debt)
                         new_balance = employee["breakfast_balance"] - employee_breakfast_cost
                         # Round to 2 decimal places to avoid floating point precision errors
