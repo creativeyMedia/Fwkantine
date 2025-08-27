@@ -4692,7 +4692,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                       {/* Meal Sponsoring Buttons */}
                       <div className="flex items-center space-x-2 ml-4">
                         <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded border border-green-200">
-                          <span className="text-xs font-medium text-green-800">Sponsoring:</span>
+                          <span className="text-xs font-medium text-green-800">Ausgeben:</span>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
