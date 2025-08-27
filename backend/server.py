@@ -1313,13 +1313,17 @@ async def get_daily_summary(department_id: str):
     today = get_berlin_date()
     start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(today)
     
-    # Get today's orders (Berlin time)
+    # Get today's orders (Berlin time) - exclude cancelled orders
     orders = await db.orders.find({
         "department_id": department_id,
         "timestamp": {
             "$gte": start_of_day_utc.isoformat(),
             "$lte": end_of_day_utc.isoformat()
-        }
+        },
+        "$or": [
+            {"is_cancelled": {"$exists": False}},  # Legacy orders without is_cancelled field
+            {"is_cancelled": False}                # Explicitly not cancelled
+        ]
     }).to_list(1000)
     
     # Aggregate breakfast orders with employee details
