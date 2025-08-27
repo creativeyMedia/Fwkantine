@@ -2635,11 +2635,11 @@ async def sponsor_meal(meal_data: dict):
                     }}
                 )
                 
-                # Subtract the sponsored cost from their balance
+                # Refund the sponsored cost to their balance (subtract from debt)
                 employee = await db.employees.find_one({"id": employee_id})
                 if employee:
                     if meal_type == "breakfast":
-                        # Calculate this employee's breakfast cost (rolls + eggs only)
+                        # Calculate this employee's breakfast cost (rolls + eggs only) to refund
                         employee_breakfast_cost = 0.0
                         for item in order.get("breakfast_items", []):
                             # Rolls
@@ -2663,10 +2663,11 @@ async def sponsor_meal(meal_data: dict):
                                 egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
                                 employee_breakfast_cost += boiled_eggs * egg_price
                         
+                        # REFUND the sponsored amount (reduce their debt)
                         new_balance = employee["breakfast_balance"] - employee_breakfast_cost
                         await db.employees.update_one(
                             {"id": employee_id},
-                            {"$set": {"breakfast_balance": max(0, new_balance)}}
+                            {"$set": {"breakfast_balance": new_balance}}
                         )
                     else:  # lunch
                         # For lunch, subtract lunch cost from breakfast balance
