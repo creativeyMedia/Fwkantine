@@ -2754,17 +2754,9 @@ async def sponsor_meal(meal_data: dict):
             else:  # lunch
                 if sponsored_items.get("Mittagessen", 0) > 0:
                     count = sponsored_items["Mittagessen"]
-                    # Use the daily lunch price calculated above
-                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                        "department_id": department_id,
-                        "date": date_str
-                    })
-                    if daily_lunch_price_doc:
-                        price = daily_lunch_price_doc["lunch_price"]
-                    else:
-                        lunch_settings = await db.lunch_settings.find_one()
-                        price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                    cost_breakdown_items.append(f"{count}x Mittagessen ({count * price:.2f} €)")
+                    # Calculate average actual lunch price from total_cost
+                    avg_lunch_price = total_cost / count if count > 0 else 0
+                    cost_breakdown_items.append(f"{count}x Mittagessen ({total_cost:.2f} €)")
             
             cost_breakdown_text = " + ".join(cost_breakdown_items)
             
