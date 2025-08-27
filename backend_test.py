@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """
-REVIEW REQUEST SPECIFIC TESTING - EXACT 5 EMPLOYEE SCENARIO
+CRITICAL SHOPPING LIST BUG TESTING - SPONSORED BREAKFAST ORDERS
 
-Test the exact scenario from screenshot with 5 employees to see the actual values:
+Test the critical shopping list bug after the fix:
 
-**Create Exact User Scenario:**
-1. Clean any existing test data
+**Create Test Scenario:**
+1. Clean up any existing sponsoring
 2. Create exactly 5 employees in Department 2
-3. Sponsor orders: breakfast + lunch (~10€ total)
-4. Other 4 employees: lunch only (~5€ each = 20€ total)
-5. Execute lunch sponsoring 
+3. All 5 employees order breakfast items (rolls + eggs) 
+4. Check breakfast-history BEFORE sponsoring - should show all 5 employees in shopping list
+5. Execute breakfast sponsoring for all 5 employees  
+6. Check breakfast-history AFTER sponsoring - should STILL show all 5 employees in shopping list
 
-**Verify Expected Values:**
-- total_sponsored_cost should be: 25€ (5×5€ for all lunches)
-- sponsor_contributed_amount should be: 5€ (sponsor's own lunch)  
-- sponsor_additional_cost should be: 20€ (25€ - 5€ = 20€ for the other 4)
-- sponsor final total_price should be: 10€ (original) + 20€ (additional) = 30€
+**Critical Verification:**
+- BEFORE: Shopping list shows total quantities for all 5 employees
+- AFTER: Shopping list shows SAME total quantities (no change!)
+- Employee details: All 5 employees should remain in employee_orders list
+- Only balances should change, NOT the shopping quantities
 
-**Focus on the actual calculations** to see if we get the correct 30€ total_price for sponsor order that matches your screenshot expectation.
+**Expected Result:**
+The shopping list must remain identical before and after sponsoring. This verifies the fix works 
+and sponsored employees don't disappear from the statistics/einkaufsliste.
+
+Focus specifically on comparing the breakfast_summary and shopping_list fields in the breakfast-history response.
 """
 
 import requests
