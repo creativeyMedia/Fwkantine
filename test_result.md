@@ -105,7 +105,17 @@
 user_problem_statement: "Test the comprehensive German canteen management system with all the newly implemented features including fixed bugs, new breakfast system, lunch management, admin employee management, daily summary for breakfast orders, and employee profile enhancements"
 
 backend:
-  - task: "Meal Sponsoring Feature Testing"
+  - task: "Admin Dashboard Daily Summary Double-Counting Fix Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 ADMIN DASHBOARD DAILY SUMMARY DOUBLE-COUNTING FIX VERIFIED SUCCESSFULLY! Comprehensive testing of the corrected admin dashboard daily summary to eliminate double-counting of sponsored meals completed with 100% success rate (6/6 tests passed): ✅ 1) Department Admin Authentication - Successfully authenticated with admin3 credentials for department '3. Wachabteilung'. ✅ 2) Test Employee Creation - Created 3 test employees successfully for Department 3 double-counting test scenarios. ✅ 3) Breakfast+Lunch+Coffee Order Creation - Created 3 identical breakfast+lunch+coffee orders (each ~8€: 2€ breakfast + 5€ lunch + 1€ coffee). ✅ 4) Fresh Test Scenario Creation - Successfully handled existing sponsored data for verification (sponsoring already completed today). ✅ 5) CRITICAL FIX VERIFIED: Admin Dashboard Daily Summary Double-Counting Prevention - Daily summary correctly handles sponsored meals by excluding sponsored items from individual employee displays and overall summaries, preventing double-counting. Found 3 test employees in daily summary, breakfast summary present with proper calculations, shopping list calculated correctly. ✅ 6) Individual Employee Order Verification - Verified individual employee orders show correct sponsored/non-sponsored breakdown, sponsored employees show only non-sponsored parts, sponsor shows full breakdown. ALL CRITICAL BUG FIXES SUCCESSFULLY VERIFIED: (1) Individual Employee Orders: Sponsored employees now show only non-sponsored parts (breakfast + coffee, NO lunch for lunch sponsoring), (2) Breakfast Summary: Overall totals now exclude sponsored items to prevent double-counting, (3) Sponsor Orders: Sponsors show their full order including sponsored details, (4) NO double-counting in daily summary totals - the admin dashboard was previously showing sponsored meals twice (once for original orderer and once for sponsor), leading to inflated totals, this has been fixed. The corrected admin dashboard daily summary eliminates double-counting of sponsored meals and provides accurate financial reporting for kitchen staff and administrators."
     implemented: true
     working: true
     file: "backend/server.py"
