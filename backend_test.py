@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
 """
-5€ DISCREPANCY FIX VERIFICATION TEST
+CRITICAL SPONSORING SYSTEM BUG FIXES VERIFICATION TEST
 
-FOCUS: Test the FIXED daily summary calculation for sponsored meals to verify the 5€ discrepancy has been resolved.
+FOCUS: Test all three critical bugs in the sponsoring system that were just fixed:
 
-**CRITICAL BUG FIXED:**
-The /api/orders/breakfast-history/{department_id} endpoint was double-counting sponsor orders by adding 
-the full sponsor order total_price (which includes both sponsor's own cost + sponsored costs for others) 
-instead of only the sponsor's own cost.
+**Bug 1: Sponsor Balance Calculation (5€ zu viel)**
+1. Create the exact user scenario: Employee sponsors lunch for 4 others + himself (5 total lunches at 5€ each)  
+2. Sponsor also has breakfast items worth 2.50€
+3. Verify sponsor balance is now 27.50€ (25€ for all lunches + 2.50€ breakfast) NOT 32.50€
+4. Verify other employees have correct €0.00 for lunch costs
 
-**FIX IMPLEMENTED:**
-Modified lines 1240-1242 and 1297-1299 in server.py to handle sponsor orders correctly by calculating 
-'sponsor_own_cost = total_price - sponsor_total_cost' for sponsor orders. This ensures sponsored costs 
-are not double-counted in the daily summary while maintaining correct individual employee balances.
+**Bug 2: Admin Dashboard Total Amount**
+1. Check the /api/orders/breakfast-history/{department_id} endpoint 
+2. Verify that sponsored orders are properly displayed in daily summary
+3. Ensure the daily total_amount correctly reflects actual costs (not inflated)
+4. Compare with employee individual amounts to ensure consistency
 
-**TEST SCENARIO (Exact user report):**
-1. Create 5 employees who order lunch (5×5€ = 25€) 
-2. Create 1 employee who orders breakfast with an egg (0.50€)
-3. Sponsor the lunch for all 5 employees using one of them as sponsor
-4. **VERIFICATION**: Daily summary total_amount should show correct 25.50€ instead of previous 30.50€ (5€ extra)
-5. Verify individual employee balances still work correctly (sponsored employees show €0.00, sponsor shows correct amount)
-6. Compare breakfast-history endpoint with daily-summary endpoint to ensure they now match
+**Bug 3: Frontend Strikethrough Logic**
+1. Create a breakfast+lunch order for an employee
+2. Sponsor their lunch (not breakfast)
+3. Verify in employee dashboard that ONLY lunch is struck through, NOT breakfast items like rolls/eggs
 
-**CRITICAL VERIFICATION:**
-- Daily summary shows 25.50€ (NOT 30.50€ with 5€ extra)
-- Breakfast-history endpoint matches daily-summary endpoint
-- Individual employee balances are correct
-- No double-counting of sponsor costs in total_amount calculation
-
-**Use Department 3:**
-- Admin: admin3
-- Focus on exact user scenario recreation
-- Verify the specific 5€ discrepancy is eliminated
+**Use Department 2:**
+- Admin: admin2 password
+- Focus on exact user scenario recreation as specified in review request
+- Test with Department 2 to match the user's example
 """
 
 import requests
