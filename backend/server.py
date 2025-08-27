@@ -2704,6 +2704,72 @@ async def sponsor_meal(meal_data: dict):
                 sponsor_order = order
                 break
         
+        # Calculate sponsor's own cost to avoid double-charging (needed for both order update and balance calculation)
+        sponsor_own_cost = 0.0
+        if sponsor_order and meal_type == "breakfast":
+            # Calculate sponsor's own breakfast cost (rolls + eggs only)
+            for item in sponsor_order.get("breakfast_items", []):
+                # Rolls
+                white_halves = item.get("white_halves", 0)
+                seeded_halves = item.get("seeded_halves", 0)
+                
+                if white_halves > 0:
+                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                    roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                    sponsor_own_cost += white_halves * roll_price
+                
+                if seeded_halves > 0:
+                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                    roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                    sponsor_own_cost += seeded_halves * roll_price
+                
+                # Boiled eggs
+                boiled_eggs = item.get("boiled_eggs", 0)
+                if boiled_eggs > 0:
+                    lunch_settings = await db.lunch_settings.find_one()
+                    egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                    sponsor_own_cost += boiled_eggs * egg_price
+        elif sponsor_order and meal_type == "lunch":
+            # For lunch, calculate actual lunch cost from sponsor's order
+            order_total = sponsor_order.get("total_price", 0)
+            breakfast_cost = 0.0
+            
+            # Calculate breakfast cost to subtract from total
+            for item in sponsor_order.get("breakfast_items", []):
+                white_halves = item.get("white_halves", 0)
+                seeded_halves = item.get("seeded_halves", 0)
+                boiled_eggs = item.get("boiled_eggs", 0)
+                has_coffee = item.get("has_coffee", False)
+                
+                if white_halves > 0:
+                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                    roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                    breakfast_cost += white_halves * roll_price
+                
+                if seeded_halves > 0:
+                    breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                    roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                    breakfast_cost += seeded_halves * roll_price
+                
+                if boiled_eggs > 0:
+                    lunch_settings = await db.lunch_settings.find_one()
+                    egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                    breakfast_cost += boiled_eggs * egg_price
+                
+                if has_coffee:
+                    lunch_settings = await db.lunch_settings.find_one()
+                    coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
+                    breakfast_cost += coffee_price
+                
+                if item.get("has_lunch", False):
+                    # Lunch cost = total - breakfast cost (but only take lunch cost once)
+                    sponsor_lunch_cost = max(0, order_total - breakfast_cost)
+                    sponsor_own_cost += sponsor_lunch_cost
+                    break  # Only calculate once per order
+        
+        # Round sponsor own cost to avoid floating point errors
+        sponsor_own_cost = round(sponsor_own_cost, 2)
+        
         if sponsor_order:
             # Modify sponsor's existing order to show sponsorship details
             sponsor_description = f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde an alle Kollegen ausgegeben, vielen Dank!"
