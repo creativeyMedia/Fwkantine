@@ -2734,8 +2734,8 @@ async def sponsor_meal(meal_data: dict):
                         sponsor_own_cost += boiled_eggs * egg_price
             elif sponsor_order and meal_type == "lunch":
                 # For lunch, calculate lunch cost
-                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
-                lunch_cost = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                lunch_settings = await db.lunch_settings.find_one()
+                lunch_cost = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
                 for item in sponsor_order.get("breakfast_items", []):
                     if item.get("has_lunch", False):
                         sponsor_own_cost += lunch_cost
