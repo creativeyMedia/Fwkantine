@@ -2945,22 +2945,42 @@ async def sponsor_meal(meal_data: dict):
                         egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
                         sponsor_own_cost += boiled_eggs * egg_price
             elif sponsor_order and meal_type == "lunch":
-                # For lunch, calculate lunch cost using daily lunch price
-                daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                    "department_id": department_id,
-                    "date": date_str
-                })
+                # For lunch, calculate actual lunch cost from sponsor's order
+                order_total = sponsor_order.get("total_price", 0)
+                breakfast_cost = 0.0
                 
-                if daily_lunch_price_doc:
-                    daily_lunch_price = daily_lunch_price_doc["lunch_price"]
-                else:
-                    # Fall back to global lunch settings
-                    lunch_settings = await db.lunch_settings.find_one()
-                    daily_lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                
+                # Calculate breakfast cost to subtract from total
                 for item in sponsor_order.get("breakfast_items", []):
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    has_coffee = item.get("has_coffee", False)
+                    
+                    if white_halves > 0:
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                        breakfast_cost += white_halves * roll_price
+                    
+                    if seeded_halves > 0:
+                        breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                        roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                        breakfast_cost += seeded_halves * roll_price
+                    
+                    if boiled_eggs > 0:
+                        lunch_settings = await db.lunch_settings.find_one()
+                        egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                        breakfast_cost += boiled_eggs * egg_price
+                    
+                    if has_coffee:
+                        lunch_settings = await db.lunch_settings.find_one()
+                        coffee_price = lunch_settings.get("coffee_price", 1.0) if lunch_settings else 1.0
+                        breakfast_cost += coffee_price
+                    
                     if item.get("has_lunch", False):
-                        sponsor_own_cost += daily_lunch_price
+                        # Lunch cost = total - breakfast cost (but only take lunch cost once)
+                        sponsor_lunch_cost = max(0, order_total - breakfast_cost)
+                        sponsor_own_cost += sponsor_lunch_cost
+                        break  # Only calculate once per order
             
             # Round sponsor own cost to avoid floating point errors
             sponsor_own_cost = round(sponsor_own_cost, 2)
