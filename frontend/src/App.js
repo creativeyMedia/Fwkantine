@@ -273,6 +273,35 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
     setCurrentPage(1);
   };
 
+  const handleDeleteOrder = async (orderId, orderType, totalPrice) => {
+    if (window.confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+      try {
+        await axios.delete(`${API}/employee/${employee.id}/orders/${orderId}`);
+        
+        setSuccessMessage('Bestellung erfolgreich storniert!');
+        setShowSuccessNotification(true);
+        
+        // Refresh employee profile after successful deletion
+        setTimeout(() => {
+          fetchEmployeeProfile();
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Fehler beim Löschen der Bestellung:', error);
+        
+        let errorMessage = 'Fehler beim Löschen der Bestellung';
+        if (error.response?.data?.detail) {
+          errorMessage = error.response.data.detail;
+        }
+        alert(errorMessage);
+      }
+    }
+  };
+
+  // State for success notification in profile
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
