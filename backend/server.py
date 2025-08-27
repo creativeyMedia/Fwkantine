@@ -1570,7 +1570,7 @@ async def get_employee_profile(employee_id: str):
                 # Handle both old and new breakfast order formats
                 if "roll_type" in item:
                     # Old format with roll_type
-                    roll_name = {"weiss": "Weißes Brötchen", "koerner": "Körnerbrötchen"}.get(item["roll_type"], item["roll_type"])
+                    roll_name = {"weiss": "Helles Brötchen", "koerner": "Körnerbrötchen"}.get(item["roll_type"], item["roll_type"])
                     roll_count = item.get('roll_halves', item.get('roll_count', 1))
                     description = f"{roll_count}x {roll_name} Hälften" if 'roll_halves' in item else f"{roll_count}x {roll_name}"
                 else:
