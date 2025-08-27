@@ -929,11 +929,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "NEW Master Password Login Implementation Testing"
+    - "Meal Sponsoring Feature Testing"
   stuck_tasks:
     - "NEW Master Password Login Implementation Testing"
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
 agent_communication:
     - agent: "testing"
