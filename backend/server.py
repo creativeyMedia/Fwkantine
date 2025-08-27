@@ -2536,17 +2536,27 @@ async def sponsor_meal(meal_data: dict):
                 total_cost += order_breakfast_cost
         
         else:  # lunch
-            # Only lunch costs
+            # Only lunch costs - use daily lunch price for the specific date
+            daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                "department_id": department_id,
+                "date": date_str
+            })
+            
+            if daily_lunch_price_doc:
+                daily_lunch_price = daily_lunch_price_doc["lunch_price"]
+            else:
+                # Fall back to global lunch settings
+                lunch_settings = await db.lunch_settings.find_one()
+                daily_lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+            
             for order in orders:
                 affected_employees.add(order["employee_id"])
                 
                 for item in order.get("breakfast_items", []):
                     if item.get("has_lunch", False):
                         sponsored_items["Mittagessen"] = sponsored_items.get("Mittagessen", 0) + 1
-                        # Get actual lunch price from lunch settings
-                        lunch_settings = await db.lunch_settings.find_one()
-                        lunch_price = lunch_settings.get("price", 4.0) if lunch_settings else 4.0
-                        total_cost += lunch_price
+                        # Use the daily lunch price for this date
+                        total_cost += daily_lunch_price
         
         # Round total_cost to avoid floating point precision errors
         total_cost = round(total_cost, 2)
