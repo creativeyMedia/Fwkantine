@@ -2685,8 +2685,8 @@ async def sponsor_meal(meal_data: dict):
                     "sponsor_employee_count": sponsored_count,
                     "sponsored_meal_type": meal_type,
                     "readable_items": sponsor_readable_items,
-                    # WICHTIG: total_price wird NICHT geändert - bleibt bei ursprünglichen Kosten
-                    # Die zusätzlichen Kosten werden nur in der Balance reflektiert
+                    # WICHTIG: total_price muss die gesponserten Kosten enthalten für korrekte Anzeige
+                    "total_price": sponsor_order.get("total_price", 0) + sponsor_additional_cost,
                 }}
             )
         
