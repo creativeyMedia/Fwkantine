@@ -1,31 +1,38 @@
 #!/usr/bin/env python3
 """
-MASTER PASSWORD LOGIN IMPLEMENTATION TEST
+MEAL SPONSORING FEATURE TEST
 
-FOCUS: Test that the master password now works in the NORMAL login forms instead of requiring a separate Master button.
+FOCUS: Test the newly implemented meal sponsoring feature in the German canteen management system.
 
 Test specifically:
-1. **Department Employee Login with Master Password**: 
-   - Try to login with department "1. Wachabteilung" using the master password "master123dev" 
-   - Verify it returns access_level="master" and role="master_admin"
+1. **Authentication**: Test department admin authentication (admin1, admin2, admin3, admin4 credentials)
+2. **Meal Sponsoring API Endpoint**: Test POST /api/department-admin/sponsor-meal with parameters:
+   - department_id: Target department ID  
+   - date: Date for sponsoring (format: YYYY-MM-DD)
+   - meal_type: Either "breakfast" or "lunch"
+   - sponsor_employee_id: ID of employee who will pay
+   - sponsor_employee_name: Name of sponsoring employee
 
-2. **Department Admin Login with Master Password**:
-   - Try to login as admin for "1. Wachabteilung" using the master password "master123dev" 
-   - Verify it returns access_level="master" and role="master_admin"
+3. **Test Scenarios**:
+   - Create test employees in a department
+   - Create breakfast orders (rolls, toppings, eggs, lunch) for multiple employees
+   - Test breakfast sponsoring (should cover rolls + eggs + lunch, excluding coffee)
+   - Test lunch sponsoring (should cover only lunch costs)
+   - Verify cost calculation and transfer to sponsor employee
+   - Verify that sponsored orders are marked as sponsored (0€ cost)
+   - Verify audit trail with sponsored_by fields
 
-3. **Normal Logins Still Work**:
-   - Verify normal employee login still works with "password1"
-   - Verify normal admin login still works with "admin1"
-
-4. **Error Handling**:
-   - Verify wrong passwords are properly rejected
+4. **Expected Results**:
+   - API should return: sponsored_items count, total_cost, affected_employees count, sponsor name
+   - Individual orders should be updated with sponsored_by information
+   - Sponsor employee balance should be charged the total cost
+   - Other employees should have their meal costs set to 0€
 
 BACKEND URL: https://canteen-manager-1.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
-MASTER PASSWORD: master123dev
-NORMAL CREDENTIALS: Employee: password1, Admin: admin1
+ADMIN CREDENTIALS: admin1, admin2, admin3, admin4
 
-PURPOSE: Verify the "Option 1" implementation works - master password functions in normal login forms without needing separate Master button.
+PURPOSE: Verify the meal sponsoring feature works correctly for both breakfast and lunch scenarios.
 """
 
 import requests
