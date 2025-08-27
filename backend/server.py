@@ -2562,29 +2562,51 @@ async def sponsor_meal(meal_data: dict):
                 }}
             )
             
-            # Adjust employee balance (subtract the sponsored amount)
-            employee = await db.employees.find_one({"id": employee_id})
-            if employee:
-                if meal_type == "breakfast":
-                    # Calculate this employee's breakfast cost (without coffee)
-                    employee_cost = order.get("total_price", 0)
-                    has_coffee = any(item.get("has_coffee", False) for item in order.get("breakfast_items", []))
-                    if has_coffee:
-                        employee_cost -= 1.50
-                    
-                    new_balance = employee["breakfast_balance"] - max(0, employee_cost)
-                    await db.employees.update_one(
-                        {"id": employee_id},
-                        {"$set": {"breakfast_balance": max(0, new_balance)}}
-                    )
-                else:  # lunch
-                    # For lunch, subtract lunch cost from breakfast balance
-                    lunch_cost = 5.0  # Default lunch price
-                    new_balance = employee["breakfast_balance"] - lunch_cost
-                    await db.employees.update_one(
-                        {"id": employee_id},
-                        {"$set": {"breakfast_balance": max(0, new_balance)}}
-                    )
+            # If this is the sponsor employee, DON'T subtract their own order cost
+            # (they will pay the total cost instead)
+            if employee_id != sponsor_employee_id:
+                # For other employees: subtract the sponsored cost from their balance
+                employee = await db.employees.find_one({"id": employee_id})
+                if employee:
+                    if meal_type == "breakfast":
+                        # Calculate this employee's breakfast cost (rolls + eggs only)
+                        employee_breakfast_cost = 0.0
+                        for item in order.get("breakfast_items", []):
+                            # Rolls
+                            white_halves = item.get("white_halves", 0)
+                            seeded_halves = item.get("seeded_halves", 0)
+                            
+                            if white_halves > 0:
+                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                                roll_price = breakfast_menu.get("price", 0.50) if breakfast_menu else 0.50
+                                employee_breakfast_cost += white_halves * roll_price
+                            
+                            if seeded_halves > 0:
+                                breakfast_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                                roll_price = breakfast_menu.get("price", 0.60) if breakfast_menu else 0.60
+                                employee_breakfast_cost += seeded_halves * roll_price
+                            
+                            # Boiled eggs
+                            boiled_eggs = item.get("boiled_eggs", 0)
+                            if boiled_eggs > 0:
+                                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                                egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
+                                employee_breakfast_cost += boiled_eggs * egg_price
+                        
+                        new_balance = employee["breakfast_balance"] - employee_breakfast_cost
+                        await db.employees.update_one(
+                            {"id": employee_id},
+                            {"$set": {"breakfast_balance": max(0, new_balance)}}
+                        )
+                    else:  # lunch
+                        # For lunch, subtract lunch cost from breakfast balance
+                        lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
+                        lunch_cost = lunch_settings.get("lunch_price", 5.0) if lunch_settings else 5.0
+                        new_balance = employee["breakfast_balance"] - lunch_cost
+                        await db.employees.update_one(
+                            {"id": employee_id},
+                            {"$set": {"breakfast_balance": max(0, new_balance)}}
+                        )
         
         # Add cost to sponsor's balance
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
