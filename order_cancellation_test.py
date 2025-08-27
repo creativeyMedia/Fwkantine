@@ -398,9 +398,26 @@ class OrderCancellationTester:
                 )
                 return False
             
+            # Create another test employee for admin cancellation test
+            admin_employee_name = f"Admin Test Employee {datetime.now().strftime('%H%M%S')}"
+            employee_response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": admin_employee_name,
+                "department_id": self.department_id
+            })
+            
+            if employee_response.status_code != 200:
+                self.log_result(
+                    "Admin Cancellation Test",
+                    False,
+                    error=f"Failed to create admin test employee: HTTP {employee_response.status_code}: {employee_response.text}"
+                )
+                return False
+            
+            admin_employee_id = employee_response.json().get("id")
+            
             # Create another test order for admin cancellation
             order_data = {
-                "employee_id": self.employee_id,
+                "employee_id": admin_employee_id,
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [{
@@ -433,10 +450,17 @@ class OrderCancellationTester:
             
             if cancel_response.status_code == 200:
                 # Verify the order was cancelled with admin fields
-                orders_response = self.session.get(f"{BASE_URL}/employees/{self.employee_id}/orders")
+                orders_response = self.session.get(f"{BASE_URL}/employees/{admin_employee_id}/orders")
                 
                 if orders_response.status_code == 200:
-                    orders = orders_response.json()
+                    response_data = orders_response.json()
+                    
+                    # Handle both formats: direct array or {"orders": [...]}
+                    if isinstance(response_data, dict) and "orders" in response_data:
+                        orders = response_data["orders"]
+                    else:
+                        orders = response_data
+                    
                     admin_cancelled_order = None
                     
                     for order in orders:
