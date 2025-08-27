@@ -192,10 +192,12 @@ const playSucessSound = () => {
   }
 };
 
-// Individual Employee Profile Component
+// Individual Employee Profile Component with Combined Chronological History
 const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchEmployeeProfile();
@@ -231,6 +233,44 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
       case 'sweets': return 'Süßes';
       default: return orderType;
     }
+  };
+
+  // Combine and sort orders and payments chronologically
+  const getCombinedHistory = () => {
+    if (!employeeProfile) return [];
+    
+    const orders = (employeeProfile.order_history || []).map(order => ({
+      ...order,
+      type: 'order',
+      timestamp: order.timestamp
+    }));
+    
+    const payments = (employeeProfile.payment_history || []).map(payment => ({
+      ...payment,
+      type: 'payment',
+      timestamp: payment.timestamp
+    }));
+    
+    // Combine and sort by timestamp (newest first)
+    const combined = [...orders, ...payments];
+    combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    return combined;
+  };
+
+  // Pagination logic
+  const combinedHistory = getCombinedHistory();
+  const totalPages = Math.ceil(combinedHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = combinedHistory.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
+  const goToFirstPage = () => {
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -301,80 +341,116 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
             </div>
           </div>
 
-          {/* Order History */}
+          {/* Combined Chronological History */}
           <div>
-            <h3 className="text-xl font-semibold mb-4">Bestellverlauf</h3>
-            {employeeProfile.order_history.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">Keine Bestellungen vorhanden</p>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Chronologischer Verlauf</h3>
+              <span className="text-sm text-gray-600">
+                Seite {currentPage} von {totalPages} ({combinedHistory.length} Einträge gesamt)
+              </span>
+            </div>
+            
+            {combinedHistory.length === 0 ? (
+              <p className="text-gray-600 text-center py-8">Keine Einträge vorhanden</p>
             ) : (
               <div className="space-y-4">
-                {employeeProfile.order_history.map((order, index) => (
-                  <div key={order.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                          {getOrderTypeLabel(order.order_type)}
-                        </span>
-                        <span className="text-sm text-gray-600">{formatDate(order.timestamp)}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{order.total_price.toFixed(2)} €</p>
-                      </div>
-                    </div>
-                    
-                    {order.readable_items && order.readable_items.length > 0 && (
-                      <div className="space-y-1">
-                        {order.readable_items.map((item, idx) => (
-                          <div key={idx} className="text-sm flex justify-between items-start">
-                            <div className="flex-1">
-                              <span className="font-medium">{item.description}</span>
-                              {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
-                              {item.unit_price && <span className="text-gray-500 block text-xs">({item.unit_price})</span>}
-                            </div>
-                            {item.total_price && (
-                              <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
-                            )}
+                {currentItems.map((item, index) => {
+                  if (item.type === 'order') {
+                    // Render Order
+                    return (
+                      <div key={`order-${item.id || index}`} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                              {getOrderTypeLabel(item.order_type)}
+                            </span>
+                            <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <p className="font-semibold">{item.total_price.toFixed(2)} €</p>
+                          </div>
+                        </div>
+                        
+                        {item.readable_items && item.readable_items.length > 0 && (
+                          <div className="space-y-1">
+                            {item.readable_items.map((orderItem, idx) => (
+                              <div key={idx} className="text-sm flex justify-between items-start">
+                                <div className="flex-1">
+                                  <span className="font-medium">{orderItem.description}</span>
+                                  {orderItem.toppings && <span className="text-gray-600 block text-xs">mit {orderItem.toppings}</span>}
+                                  {orderItem.unit_price && <span className="text-gray-500 block text-xs">({orderItem.unit_price})</span>}
+                                </div>
+                                {orderItem.total_price && (
+                                  <span className="text-sm font-medium text-right ml-2">{orderItem.total_price}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    );
+                  } else {
+                    // Render Payment (Green styling)
+                    return (
+                      <div key={`payment-${item.id || index}`} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                              Zahlung
+                            </span>
+                            <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-green-600">{item.amount.toFixed(2)} €</p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-sm text-gray-700">
+                          <p><strong>Art:</strong> {item.payment_type === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes'}</p>
+                          <p><strong>Admin:</strong> {item.admin_user}</p>
+                          {item.notes && <p><strong>Hinweise:</strong> {item.notes}</p>}
+                        </div>
+                      </div>
+                    );
+                  }
+                })}
               </div>
             )}
           </div>
 
-          {/* Payment History */}
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-4">Zahlungsverlauf</h3>
-            {!employeeProfile.payment_history || employeeProfile.payment_history.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">Keine Zahlungen vorhanden</p>
-            ) : (
-              <div className="space-y-4">
-                {employeeProfile.payment_history.map((payment, index) => (
-                  <div key={payment.id || index} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                          Zahlung
-                        </span>
-                        <span className="text-sm text-gray-600">{formatDate(payment.timestamp)}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">€{payment.amount.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="text-sm text-gray-700">
-                      <p><strong>Art:</strong> {payment.payment_type === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes'}</p>
-                      <p><strong>Admin:</strong> {payment.admin_user}</p>
-                      {payment.notes && <p><strong>Hinweise:</strong> {payment.notes}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Pagination Navigation */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center items-center space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Zurück
+              </button>
+              
+              {currentPage > 1 && (
+                <button
+                  onClick={goToFirstPage}
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  Zur ersten Seite
+                </button>
+              )}
+              
+              <span className="px-4 py-2 bg-blue-600 text-white rounded">
+                {currentPage}
+              </span>
+              
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Vor →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
