@@ -2608,6 +2608,7 @@ async def sponsor_meal(meal_data: dict):
                         "sponsored_by_employee_id": sponsor_employee_id,
                         "sponsored_by_name": sponsor_employee_name,
                         "sponsored_date": datetime.now(timezone.utc).isoformat(),
+                        "sponsored_meal_type": meal_type,
                         "is_sponsor_order": True
                     }}
                 )
@@ -2622,6 +2623,7 @@ async def sponsor_meal(meal_data: dict):
                         "sponsored_by_employee_id": sponsor_employee_id,
                         "sponsored_by_name": sponsor_employee_name,
                         "sponsored_date": datetime.now(timezone.utc).isoformat(),
+                        "sponsored_meal_type": meal_type,
                         "sponsored_message": sponsored_message
                     }}
                 )
