@@ -512,8 +512,8 @@ class AdminDashboardDoubleCounting:
         if self.create_breakfast_lunch_coffee_orders():
             tests_passed += 1
         
-        # 4. Employee 3 sponsors lunch for all (should pay 3×5€ = 15€ extra)
-        if self.sponsor_lunch_for_all():
+        # 4. Create fresh test scenario with sponsoring
+        if self.create_fresh_test_scenario():
             tests_passed += 1
         
         # 5. MAIN TEST: Verify admin dashboard daily summary shows correct totals without double-counting
