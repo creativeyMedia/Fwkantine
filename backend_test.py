@@ -1525,20 +1525,21 @@ class MealSponsoringTester:
             return False
 
     def run_corrected_lunch_sponsoring_tests(self):
-        """Run corrected lunch sponsoring logic tests"""
-        print("🍽️ CORRECTED LUNCH SPONSORING LOGIC TEST")
+        """Run corrected lunch sponsoring balance calculation tests"""
+        print("🍽️ CORRECTED LUNCH SPONSORING BALANCE CALCULATION TEST")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
         print(f"Department: {DEPARTMENT_NAME} ({DEPARTMENT_ID})")
         print(f"Admin Password: {ADMIN_PASSWORD}")
         print("=" * 80)
-        print("🔧 TESTING CORRECTED LUNCH SPONSORING LOGIC:")
-        print("   1. Create 5 employees in Department 2")
-        print("   2. Each orders breakfast items + 1x lunch")
-        print("   3. Verify initial balances include both breakfast and lunch costs")
-        print("   4. Test lunch sponsoring - should ONLY sponsor lunch costs")
-        print("   5. Verify correct calculations (sponsor pays lunch only, others keep breakfast costs)")
-        print("   6. Expected: 5 × 4.00€ = 20.00€ lunch costs (not 28.00€)")
+        print("🔧 TESTING CORRECTED LUNCH SPONSORING BALANCE CALCULATION:")
+        print("   CRITICAL BUG FIX: 33.10€ vs 28.10€ discrepancy")
+        print("   1. Create 5 employees in Department 3")
+        print("   2. Each orders breakfast items + 1x lunch (varying actual lunch prices)")
+        print("   3. Test lunch sponsoring - verify exact balance calculations")
+        print("   4. Check that sponsor order total_price matches sponsor balance change")
+        print("   5. Verify detailed breakdown appears in employee chronological history")
+        print("   EXPECTED: NO MORE balance discrepancies, actual lunch costs used")
         print("=" * 80)
         print()
         
@@ -1574,13 +1575,13 @@ class MealSponsoringTester:
             print("❌ Cannot proceed without verifying initial balances")
             return False
         
-        # Test 5: Test Lunch Sponsoring Calculation (CRITICAL)
-        print("🧪 TEST 5: Test Lunch Sponsoring Calculation (ONLY lunch costs)")
-        test5_ok = self.test_lunch_sponsoring_calculation()
+        # Test 5: CRITICAL - Test Corrected Lunch Sponsoring Balance Calculation
+        print("🧪 TEST 5: CRITICAL - Test Corrected Lunch Sponsoring Balance Calculation")
+        test5_ok = self.test_corrected_lunch_sponsoring_balance_calculation()
         
-        # Test 6: Verify Final Balances (CRITICAL)
-        print("🧪 TEST 6: Verify Final Balances (sponsor pays lunch, others keep breakfast)")
-        test6_ok = self.verify_final_balances(initial_balances)
+        # Test 6: Verify Enhanced UI Details Display
+        print("🧪 TEST 6: Verify Enhanced UI Details Display")
+        test6_ok = self.verify_enhanced_ui_details_display()
         
         # Summary
         self.print_test_summary()
