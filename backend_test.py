@@ -1385,7 +1385,7 @@ class MealSponsoringTester:
     def print_test_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
-        print("🍽️ MEAL SPONSORING CRITICAL BUG FIXES TEST SUMMARY")
+        print("🍽️ CORRECTED LUNCH SPONSORING LOGIC TEST SUMMARY")
         print("=" * 80)
         
         passed = sum(1 for result in self.test_results if "✅ PASS" in result["status"])
@@ -1404,16 +1404,17 @@ class MealSponsoringTester:
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['error']}")
             print()
-            print("🚨 CONCLUSION: Critical meal sponsoring bug fixes have issues!")
+            print("🚨 CONCLUSION: Corrected lunch sponsoring logic has issues!")
         else:
-            print("✅ ALL CRITICAL BUG FIXES VERIFIED!")
-            print("   • ✅ Correct Cost Calculation: Breakfast sponsoring ONLY includes rolls + eggs")
-            print("   • ✅ No Double Charging: Sponsor employees not charged twice")
-            print("   • ✅ Sponsored Messages: Correct German messages implemented")
-            print("   • ✅ Security Features: Date restrictions and duplicate prevention working")
-            print("   • ✅ Lunch Sponsoring: ONLY includes lunch costs")
-            print("   • ✅ Audit Trail: Proper sponsored order tracking")
-            print("   • 🎉 THE CRITICAL MEAL SPONSORING BUG FIXES ARE WORKING CORRECTLY!")
+            print("✅ ALL CORRECTED LUNCH SPONSORING LOGIC TESTS PASSED!")
+            print("   • ✅ 5 employees created in Department 2")
+            print("   • ✅ Breakfast+lunch orders created successfully")
+            print("   • ✅ Initial balances verified (breakfast + lunch costs)")
+            print("   • ✅ Lunch sponsoring ONLY sponsors lunch costs (not breakfast)")
+            print("   • ✅ Correct balance calculations (sponsor pays lunch, others keep breakfast)")
+            print("   • ✅ No negative balances for employees")
+            print("   • 🎉 THE CORRECTED LUNCH SPONSORING LOGIC IS WORKING CORRECTLY!")
+            print("   • 🎯 Expected 20.00€ calculation verified (5 × 4.00€), not 28.00€")
         
         print("\n" + "=" * 80)
 
