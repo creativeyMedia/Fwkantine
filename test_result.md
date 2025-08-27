@@ -597,8 +597,8 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "7.0"
-  test_sequence: 7
+  version: "8.0"
+  test_sequence: 8
   run_ui: false
 
   - task: "Department-Specific Menu System Implementation"
