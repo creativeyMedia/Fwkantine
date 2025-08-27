@@ -1959,6 +1959,11 @@ const DepartmentAdminDashboard = () => {
   const [showNewEmployee, setShowNewEmployee] = useState(false);
   const [showNewDrink, setShowNewDrink] = useState(false);
   const [showNewSweet, setShowNewSweet] = useState(false);
+  
+  // Sponsoring state
+  const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
+  
   const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
