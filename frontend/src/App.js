@@ -4689,6 +4689,47 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         )}
                       </div>
                       
+                      {/* Meal Sponsoring Buttons */}
+                      <div className="flex items-center space-x-2 ml-4">
+                        <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded border border-green-200">
+                          <span className="text-xs font-medium text-green-800">Sponsoring:</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(`Frühstück für ${formatDate(day.date)} sponsern lassen?`)) {
+                                // We need to implement a way to pass employee selection here
+                                // For now, we'll create a simple prompt
+                                const sponsorName = prompt('Name des zahlenden Mitarbeiters eingeben:');
+                                if (sponsorName) {
+                                  // Find employee by name
+                                  // This is a simplified approach - in a real app you'd use a proper dropdown
+                                  alert('Sponsoring-Funktion wird implementiert!');
+                                }
+                              }
+                            }}
+                            className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                            title="Frühstück sponsern lassen"
+                          >
+                            🥖
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(`Mittagessen für ${formatDate(day.date)} sponsern lassen?`)) {
+                                const sponsorName = prompt('Name des zahlenden Mitarbeiters eingeben:');
+                                if (sponsorName) {
+                                  alert('Sponsoring-Funktion wird implementiert!');
+                                }
+                              }
+                            }}
+                            className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
+                            title="Mittagessen sponsern lassen"
+                          >
+                            🍽️
+                          </button>
+                        </div>
+                      </div>
+                      
                       <div className="flex items-center space-x-2 ml-4">
                         {/* Delete Button */}
                         <button
