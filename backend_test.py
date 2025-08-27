@@ -51,9 +51,9 @@ import uuid
 
 # Configuration - Use production backend URL from frontend/.env
 BASE_URL = "https://canteen-manager-1.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "1. Wachabteilung"
-DEPARTMENT_ID = "fw4abteilung1"
-ADMIN_PASSWORD = "admin1"
+DEPARTMENT_NAME = "4. Wachabteilung"
+DEPARTMENT_ID = "fw4abteilung4"
+ADMIN_PASSWORD = "admin4"
 
 class MealSponsoringTester:
     def __init__(self):
