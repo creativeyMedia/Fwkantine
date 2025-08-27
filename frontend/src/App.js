@@ -4462,7 +4462,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                   <div>🍽️ Mittagessen: Ja</div>
                                 )}
                                 <div className="pt-1 border-t">
-                                  <strong>Total: €{employeeData.total_amount.toFixed(2)}</strong>
+                                  <strong>Total: {employeeData.total_amount.toFixed(2)} €</strong>
                                 </div>
                                 {Object.keys(employeeData.toppings).length > 0 && (
                                   <div className="pt-1 text-xs">
