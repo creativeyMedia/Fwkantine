@@ -2665,6 +2665,8 @@ async def sponsor_meal(meal_data: dict):
                         
                         # REFUND the sponsored amount (reduce their debt)
                         new_balance = employee["breakfast_balance"] - employee_breakfast_cost
+                        # Round to 2 decimal places to avoid floating point precision errors
+                        new_balance = round(new_balance, 2)
                         await db.employees.update_one(
                             {"id": employee_id},
                             {"$set": {"breakfast_balance": new_balance}}
