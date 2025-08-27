@@ -2246,7 +2246,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
   const deleteOrder = async (orderId) => {
     if (window.confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       try {
-        await axios.delete(`${API}/department-admin/orders/${orderId}`);
+        await axios.delete(`${API}/department-admin/orders/${orderId}?admin_user=Admin`);
         alert('Bestellung erfolgreich gelöscht');
         fetchEmployeeOrders();
         if (onOrderUpdate) {
