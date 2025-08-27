@@ -1252,7 +1252,68 @@ class MealSponsoringTester:
             self.log_result("Create Additional Lunch Orders", False, error=str(e))
             return False
 
-    def run_meal_sponsoring_critical_bug_fixes_tests(self):
+    def run_corrected_lunch_sponsoring_tests(self):
+        """Run corrected lunch sponsoring logic tests"""
+        print("🍽️ CORRECTED LUNCH SPONSORING LOGIC TEST")
+        print("=" * 80)
+        print(f"Target System: {BASE_URL}")
+        print(f"Department: {DEPARTMENT_NAME} ({DEPARTMENT_ID})")
+        print(f"Admin Password: {ADMIN_PASSWORD}")
+        print("=" * 80)
+        print("🔧 TESTING CORRECTED LUNCH SPONSORING LOGIC:")
+        print("   1. Create 5 employees in Department 2")
+        print("   2. Each orders breakfast items + 1x lunch")
+        print("   3. Verify initial balances include both breakfast and lunch costs")
+        print("   4. Test lunch sponsoring - should ONLY sponsor lunch costs")
+        print("   5. Verify correct calculations (sponsor pays lunch only, others keep breakfast costs)")
+        print("   6. Expected: 5 × 4.00€ = 20.00€ lunch costs (not 28.00€)")
+        print("=" * 80)
+        print()
+        
+        # Test 1: Department Admin Authentication
+        print("🧪 TEST 1: Department Admin Authentication")
+        test1_ok = self.authenticate_admin()
+        
+        if not test1_ok:
+            print("❌ Cannot proceed without admin authentication")
+            return False
+        
+        # Test 2: Create 5 Test Employees
+        print("🧪 TEST 2: Create 5 Test Employees")
+        test2_ok = self.create_test_employees()
+        
+        if not test2_ok:
+            print("❌ Cannot proceed without 5 test employees")
+            return False
+        
+        # Test 3: Create Breakfast+Lunch Orders for all 5 employees
+        print("🧪 TEST 3: Create Breakfast+Lunch Orders for 5 employees")
+        test3_ok = self.create_breakfast_lunch_orders()
+        
+        if not test3_ok:
+            print("❌ Cannot proceed without breakfast+lunch orders")
+            return False
+        
+        # Test 4: Verify Initial Balances
+        print("🧪 TEST 4: Verify Initial Balances (breakfast + lunch costs)")
+        test4_ok, initial_balances = self.verify_initial_balances()
+        
+        if not test4_ok:
+            print("❌ Cannot proceed without verifying initial balances")
+            return False
+        
+        # Test 5: Test Lunch Sponsoring Calculation (CRITICAL)
+        print("🧪 TEST 5: Test Lunch Sponsoring Calculation (ONLY lunch costs)")
+        test5_ok = self.test_lunch_sponsoring_calculation()
+        
+        # Test 6: Verify Final Balances (CRITICAL)
+        print("🧪 TEST 6: Verify Final Balances (sponsor pays lunch, others keep breakfast)")
+        test6_ok = self.verify_final_balances(initial_balances)
+        
+        # Summary
+        self.print_test_summary()
+        
+        return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok])
         """Run all meal sponsoring critical bug fixes tests"""
         print("🍽️ MEAL SPONSORING CRITICAL BUG FIXES TEST")
         print("=" * 80)
