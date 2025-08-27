@@ -2837,7 +2837,7 @@ async def sponsor_meal(meal_data: dict):
                     "sponsor_total_cost": total_cost,
                     "sponsor_employee_count": len(affected_employees),
                     "sponsor_cost_breakdown": cost_breakdown_text,
-                    "total_price": sponsor_order.get("total_price", 0) + total_cost,  # Add sponsored cost to their own order
+                    "total_price": sponsor_order.get("total_price", 0) + (total_cost - sponsor_own_cost),  # Add only others' sponsored cost
                     "readable_items": combined_readable_items  # Show both own order AND sponsored details
                 }}
             )
