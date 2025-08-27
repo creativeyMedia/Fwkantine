@@ -167,7 +167,13 @@ class OrderCancellationTester:
             response = self.session.get(f"{BASE_URL}/employees/{self.employee_id}/orders")
             
             if response.status_code == 200:
-                orders = response.json()
+                response_data = response.json()
+                
+                # Handle both formats: direct array or {"orders": [...]}
+                if isinstance(response_data, dict) and "orders" in response_data:
+                    orders = response_data["orders"]
+                else:
+                    orders = response_data
                 
                 # Find our test order
                 test_order = None
