@@ -2662,8 +2662,8 @@ async def sponsor_meal(meal_data: dict):
                             # Boiled eggs
                             boiled_eggs = item.get("boiled_eggs", 0)
                             if boiled_eggs > 0:
-                                lunch_settings = await db.lunch_settings.find_one({"department_id": department_id})
-                                egg_price = lunch_settings.get("boiled_eggs_price", 0.60) if lunch_settings else 0.60
+                                lunch_settings = await db.lunch_settings.find_one()
+                                egg_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
                                 employee_breakfast_cost += boiled_eggs * egg_price
                         
                         # Round employee breakfast cost to avoid floating point errors
