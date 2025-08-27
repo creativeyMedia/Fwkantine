@@ -440,9 +440,27 @@ class CancelledOrdersTester:
                 )
                 return False
             
-            # Create another test order for admin cancellation
+            # Create a new test employee for admin cancellation test to avoid single breakfast constraint
+            employee_name = f"Admin Test Employee {uuid.uuid4().hex[:8]}"
+            
+            response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": employee_name,
+                "department_id": self.department_id
+            })
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Admin Cancellation Test",
+                    False,
+                    error=f"Failed to create admin test employee: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+            
+            admin_test_employee_id = response.json().get("id")
+            
+            # Create another test order for admin cancellation with the new employee
             order_data = {
-                "employee_id": self.employee_id,
+                "employee_id": admin_test_employee_id,
                 "department_id": self.department_id,
                 "order_type": "breakfast",
                 "breakfast_items": [{
@@ -475,7 +493,7 @@ class CancelledOrdersTester:
                 message = data.get("message", "")
                 
                 # Verify the order has correct cancellation fields for admin
-                response = self.session.get(f"{BASE_URL}/employees/{self.employee_id}/orders")
+                response = self.session.get(f"{BASE_URL}/employees/{admin_test_employee_id}/orders")
                 if response.status_code == 200:
                     orders_data = response.json()
                     orders = orders_data.get("orders", [])
