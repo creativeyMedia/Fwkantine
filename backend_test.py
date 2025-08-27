@@ -1588,7 +1588,8 @@ class MealSponsoringTester:
         self.print_test_summary()
         
         return all([test1_ok, test2_ok, test3_ok, test4_ok, test5_ok, test6_ok])
-        """Run all meal sponsoring critical bug fixes tests"""
+
+    def run_meal_sponsoring_critical_bug_fixes_tests(self):
         print("🍽️ MEAL SPONSORING CRITICAL BUG FIXES TEST")
         print("=" * 80)
         print(f"Target System: {BASE_URL}")
