@@ -14,7 +14,7 @@ Test specifically:
 3. GET the order to verify cancellation fields are set
 4. Test the admin order listing to ensure cancelled orders are handled correctly
 
-BACKEND URL: https://canteen-manager-1.preview.emergentagent.com/api
+BACKEND URL: https://fire-dept-cafe.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
 CREDENTIALS: Employee: password1, Admin: admin1
 """
@@ -26,7 +26,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Use production backend URL from frontend/.env
-BASE_URL = "https://canteen-manager-1.preview.emergentagent.com/api"
+BASE_URL = "https://fire-dept-cafe.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "1. Wachabteilung"
 EMPLOYEE_PASSWORD = "newTestPassword123"
 ADMIN_PASSWORD = "admin1"

@@ -1,0 +1,75 @@
+<analysis>
+The previous AI engineer successfully initiated a canteen management system, making several UI/UX and core logic improvements. Key early tasks included replacing numerical inputs with / buttons, integrating an acoustic success sound, standardizing currency display, and refactoring employee history into a single, paginated view. A significant portion of the trajectory focused on implementing a Meal Sponsoring feature, allowing admins to sponsor breakfast (excluding coffee) or lunch for employees.
+
+The development of the meal sponsoring feature encountered persistent, complex bugs. Initial backend implementation was followed by multiple cycles of user-reported errors related to incorrect balance calculations (e.g., mixing breakfast/lunch, double charging, 0.20€ floating-point discrepancies), missing UI elements (sponsored messages, strikethrough), and incorrect totals in the Admin Dashboard's daily summary. The AI engineer iteratively debugged and fixed these issues, often requiring database cleanups and detailed test cases. Despite numerous attempts to resolve a persistent 5€ discrepancy in the daily summary's total amount, the issue resurfaced. The trajectory concludes with the AI engineer acknowledging being stuck in a loop and proposing a strategic restart plan to the user, indicating a need for a fresh approach to the remaining bug.
+</analysis>
+
+<product_requirements>
+The canteen management system facilitates ordering breakfast, drinks, and sweets for German fire department employees, with functionalities for managing order histories and daily prices.
+
+Key requirements addressed:
+1.  **UI/UX Enhancements**: Implement / quantity buttons, acoustic order confirmation (with admin toggle), custom success animations, remove employee card balance displays, clean up employee history (remove Preisaufschlüsselung), correct Weißes Brötchen to Helles Brötchen, and standardize currency to X.XX €.
+2.  **History Refinements**: Combine employee Order History and Payment History into a single, chronologically sorted, paginated list (max 10 entries/page) in the Employee Dashboard.
+3.  **Order Cancellation**: Allow employees to soft-cancel their own orders, displaying them as Storniert (red, struck-through) with auditor information, and adjusting saldo.
+4.  **Meal Sponsoring**: Implement an Admin Dashboard feature where admins select an employee to pay for all breakfast (excluding coffee) or lunch orders for a day. This involves:
+    *   Transferring total sponsored cost to the sponsor's balance.
+    *   Marking individual sponsored orders as 0€ cost for other employees.
+    *   Adding an audit entry for sponsored orders.
+    *   Using a user-friendly modal for employee selection (replacing ).
+    *   Displaying detailed sponsored items for the sponsor in their history.
+    *   Ensuring the daily summary in the Admin Dashboard accurately reflects costs, avoiding double-counting sponsored meals.
+    *   Implementing security features: only today/yesterday editable, confirmation dialog.
+    *   Mobile optimization for Admin Dashboard elements.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
+-   **Environment Variables**: Strict usage for configuration.
+-   **API Routing**:  prefix for backend endpoints.
+-   **UI Components**: Reusable React components (, , ).
+-   **State Management**: React , .
+-   **Web Audio API**: For in-browser sounds.
+-   **Tailwind CSS**: Utility-first styling.
+-   **Soft Deletes**: Marking records as cancelled instead of permanent deletion.
+-   **Floating-point Arithmetic**: Handling precision issues through explicit rounding.
+</key_technical_concepts>
+
+<code_architecture>
+
+
+-   ****:
+    -   **Importance**: Central for all API logic and database interactions.
+    -   **Changes**:
+        -    endpoint: Implemented and iteratively refined to correctly calculate sponsor balance (sponsor pays own meal + sponsored for others), accurately deduct sponsored costs from other employees, exclude coffee from breakfast sponsoring, ensure only lunch items are sponsored for lunch, and add audit trails and sponsored messages. Significant effort in correcting floating-point errors via rounding, fixing original order price vs. setting price mismatches, and ensuring  in orders is consistent with .
+        -    and  function: Modified extensively to prevent double-counting of sponsored meals in the Admin Dashboard's total and individual employee summaries. Logic adjusted to correctly reflect the balance effect of sponsoring.
+        -   : A new endpoint was added to facilitate testing by cleaning orders and resetting employee balances.
+        -   Date validation added to allow sponsoring only for today/yesterday.
+        -   Check to prevent re-sponsoring already sponsored meals.
+        -    for sponsor orders updated to show both own items and sponsored items breakdown.
+-   ****:
+    -   **Importance**: Main React component managing UI, state, authentication, and core application logic.
+    -   **Changes**:
+        -    component: Created and integrated into  within  to replace  for selecting a sponsoring employee. Includes state management for visibility and data.
+        -    updated to show a confirmation dialog with a cost overview.
+        -   UI label Sponsoring changed to Ausgeben.
+        -    and : Updated to display sponsored messages and apply strikethrough styling to sponsored items (excluding coffee) for both employees and admins.
+        -   Admin Dashboard (): Mobile optimization applied to the daily summary layout, particularly for grouping Ausgeben and delete buttons into a responsive container.
+-   ****:
+    -   **Importance**: Stores backend environment variables.
+    -   **Changes**:  is referenced. No explicit modification within this trajectory.
+-   **, , **:
+    -   **Importance**: Utility scripts created during debugging to manage database state and inspect data for troubleshooting persistent bugs.
+    -   **Changes**: Created during the trajectory to aid in development and testing.
+</code_architecture>
+
+<pending_tasks>
+-   Resolve the persistent 5€ discrepancy in the Admin Dashboard's daily summary  calculation. The AI engineer has acknowledged being stuck in a loop regarding this issue and has proposed a RESTART-PLAN to the user.
+</pending_tasks>
+
+<current_work>
+The AI engineer is currently stalled on a critical bug related to the Meal Sponsoring feature. Despite multiple iterations and fixes, the Admin Dashboard's daily summary () still displays an incorrect total, consistently showing an extra 5€ (e.g., 34.10€ instead of 29.10€). This indicates a persistent double-counting issue within the backend's aggregation logic for sponsored meals. While individual employee balances and the sponsor's balance are reported as correct and consistent with their order  (e.g., sponsor Julian Takke's balance and order total match at 35€ for a specific test case), the overall daily summary remains flawed. The AI engineer has identified that the daily summary's  calculation is incorrectly accounting for sponsored orders. The latest message indicates the AI engineer has exhausted current approaches and is seeking strategic direction from the user, proposing a RESTART-PLAN to tackle this specific  calculation bug.
+</current_work>
+
+<optional_next_step>
+Based on the user's response to the proposed RESTART-PLAN, proceed with the chosen strategic approach to fix the persistent 5€ discrepancy in the Daily Summary total amount.
+</optional_next_step>
