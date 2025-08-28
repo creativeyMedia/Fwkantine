@@ -2584,7 +2584,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
 };
 
 // Employee Management Tab Component
-const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate }) => {
+const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, setShowNewEmployee, currentDepartment, onEmployeeUpdate, setPaymentEmployeeData, setShowPaymentModal }) => {
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [selectedEmployeeForOrders, setSelectedEmployeeForOrders] = useState(null);
   const [sortedEmployees, setSortedEmployees] = useState([]);
