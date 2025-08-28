@@ -1135,6 +1135,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "CRITICAL BUG FIXES VERIFICATION - Admin Dashboard & Brötchen Labels"
     - "Flexible Payment System Frontend Implementation"
     - "UI IMPROVEMENTS - Better price display and breakfast overview layout"
   stuck_tasks: []
