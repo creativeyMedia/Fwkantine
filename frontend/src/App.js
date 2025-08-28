@@ -6,6 +6,23 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
+// Helper function to format date in German format
+const formatGermanDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const months = [
+    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+  ];
+  
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day}. ${month} ${year}`;
+};
+
 // Context for authentication
 const AuthContext = React.createContext();
 
