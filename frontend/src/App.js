@@ -4716,6 +4716,10 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [lunchPriceInput, setLunchPriceInput] = useState(''); // temporary input value
   const [updatingLunchPrice, setUpdatingLunchPrice] = useState(null); // date being updated
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   // Sponsoring Modal State
   const [showSponsorModal, setShowSponsorModal] = useState(false);
   const [sponsorModalData, setSponsorModalData] = useState({
