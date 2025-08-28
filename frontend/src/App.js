@@ -2264,6 +2264,12 @@ const DepartmentAdminDashboard = () => {
               setShowNewEmployee={setShowNewEmployee}
               currentDepartment={currentDepartment}
               onEmployeeUpdate={fetchEmployees}
+              // Payment Modal Props
+              showPaymentModal={showPaymentModal}
+              setShowPaymentModal={setShowPaymentModal}
+              paymentEmployeeData={paymentEmployeeData}
+              setPaymentEmployeeData={setPaymentEmployeeData}
+              processFlexiblePayment={processFlexiblePayment}
             />
           )}
 
