@@ -135,12 +135,11 @@ frontend:
 
 ## test_plan:
 ##   current_focus:
-##     - "Bug 1 - Admin Dashboard Daily Summaries Calculation Fix"
-##     - "Bug 2 - Department-specific Egg/Coffee Prices"
-##     - "Bug 4 - Sponsored Employee Balance Calculation Fix"
+##     - "Bug 3 - Auto-update Prices After Ausgeben"
+##     - "Bug 5 - UI Colors and Label Changes"
 ##   stuck_tasks: []
 ##   test_all: false
-##   test_priority: "critical_first"
+##   test_priority: "frontend_remaining"
 ##
 ## agent_communication:
 ##     - agent: "main"
