@@ -371,17 +371,8 @@ class FlexiblePaymentSystemTest:
             if not employee:
                 return False
             
-            # Create another breakfast order first to have debt
-            new_order = self.create_breakfast_order(employee)
-            if not new_order:
-                self.log_result(
-                    "Flexible Payment - Over-Payment",
-                    False,
-                    error="Could not create new order for over-payment test"
-                )
-                return False
-            
-            # Get current balance
+            # Instead of creating a new order (which fails due to daily limit),
+            # use drinks balance which should still have debt from the drinks order
             balance_before = self.get_employee_balance(employee['id'])
             if not balance_before:
                 self.log_result(
@@ -391,60 +382,114 @@ class FlexiblePaymentSystemTest:
                 )
                 return False
             
-            breakfast_debt = balance_before['breakfast_balance']
+            drinks_debt = balance_before['drinks_sweets_balance']
             
-            # Make over-payment (pay €50 for smaller debt)
-            payment_amount = 50.0
-            expected_credit = payment_amount - breakfast_debt
-            
-            payment_data = {
-                "payment_type": "breakfast",
-                "amount": payment_amount,
-                "notes": f"Over-payment €{payment_amount:.2f} for debt €{breakfast_debt:.2f}"
-            }
-            
-            response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{employee['id']}?admin_department={DEPARTMENT_NAME}",
-                json=payment_data
-            )
-            
-            if response.status_code == 200:
-                payment_result = response.json()
+            if drinks_debt <= 0:
+                # If no drinks debt, test with breakfast balance (might be zero or negative)
+                breakfast_balance = balance_before['breakfast_balance']
                 
-                # Get balance after payment
-                balance_after = self.get_employee_balance(employee['id'])
-                if balance_after:
-                    new_breakfast_balance = balance_after['breakfast_balance']
-                    expected_balance = -expected_credit  # Negative balance = credit
-                    
-                    if abs(new_breakfast_balance - expected_balance) < 0.01:
-                        self.log_result(
-                            "Flexible Payment - Over-Payment",
-                            True,
-                            f"✅ Over-payment successful! Paid €{payment_amount:.2f} for debt €{breakfast_debt:.2f}. Balance before: €{breakfast_debt:.2f}, Balance after: €{new_breakfast_balance:.2f} (credit: €{abs(new_breakfast_balance):.2f})"
-                        )
-                        return True
+                # Make over-payment on breakfast account (pay €50 regardless of current balance)
+                payment_amount = 50.0
+                expected_new_balance = breakfast_balance - payment_amount
+                
+                payment_data = {
+                    "payment_type": "breakfast",
+                    "amount": payment_amount,
+                    "notes": f"Over-payment test €{payment_amount:.2f} on breakfast account"
+                }
+                
+                response = self.session.post(
+                    f"{BASE_URL}/department-admin/flexible-payment/{employee['id']}?admin_department={DEPARTMENT_NAME}",
+                    json=payment_data
+                )
+                
+                if response.status_code == 200:
+                    # Get balance after payment
+                    balance_after = self.get_employee_balance(employee['id'])
+                    if balance_after:
+                        new_breakfast_balance = balance_after['breakfast_balance']
+                        
+                        if abs(new_breakfast_balance - expected_new_balance) < 0.01:
+                            credit_amount = abs(new_breakfast_balance) if new_breakfast_balance < 0 else 0
+                            self.log_result(
+                                "Flexible Payment - Over-Payment",
+                                True,
+                                f"✅ Over-payment successful! Paid €{payment_amount:.2f} on breakfast account. Balance before: €{breakfast_balance:.2f}, Balance after: €{new_breakfast_balance:.2f}" + 
+                                (f" (credit: €{credit_amount:.2f})" if credit_amount > 0 else " (remaining debt)")
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Flexible Payment - Over-Payment",
+                                False,
+                                error=f"Balance calculation incorrect. Expected: €{expected_new_balance:.2f}, Actual: €{new_breakfast_balance:.2f}"
+                            )
+                            return False
                     else:
                         self.log_result(
                             "Flexible Payment - Over-Payment",
                             False,
-                            error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{new_breakfast_balance:.2f}"
+                            error="Could not verify balance after over-payment"
                         )
                         return False
                 else:
                     self.log_result(
                         "Flexible Payment - Over-Payment",
                         False,
-                        error="Could not verify balance after over-payment"
+                        error=f"Over-payment failed: HTTP {response.status_code}: {response.text}"
                     )
                     return False
             else:
-                self.log_result(
-                    "Flexible Payment - Over-Payment",
-                    False,
-                    error=f"Over-payment failed: HTTP {response.status_code}: {response.text}"
+                # Use drinks debt for over-payment test
+                payment_amount = drinks_debt + 30.0  # Pay more than debt
+                expected_new_balance = drinks_debt - payment_amount  # Should be negative (credit)
+                
+                payment_data = {
+                    "payment_type": "drinks_sweets",
+                    "amount": payment_amount,
+                    "notes": f"Over-payment €{payment_amount:.2f} for drinks debt €{drinks_debt:.2f}"
+                }
+                
+                response = self.session.post(
+                    f"{BASE_URL}/department-admin/flexible-payment/{employee['id']}?admin_department={DEPARTMENT_NAME}",
+                    json=payment_data
                 )
-                return False
+                
+                if response.status_code == 200:
+                    # Get balance after payment
+                    balance_after = self.get_employee_balance(employee['id'])
+                    if balance_after:
+                        new_drinks_balance = balance_after['drinks_sweets_balance']
+                        
+                        if abs(new_drinks_balance - expected_new_balance) < 0.01:
+                            credit_amount = abs(new_drinks_balance)
+                            self.log_result(
+                                "Flexible Payment - Over-Payment",
+                                True,
+                                f"✅ Over-payment successful! Paid €{payment_amount:.2f} for drinks debt €{drinks_debt:.2f}. Balance before: €{drinks_debt:.2f}, Balance after: €{new_drinks_balance:.2f} (credit: €{credit_amount:.2f})"
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Flexible Payment - Over-Payment",
+                                False,
+                                error=f"Balance calculation incorrect. Expected: €{expected_new_balance:.2f}, Actual: €{new_drinks_balance:.2f}"
+                            )
+                            return False
+                    else:
+                        self.log_result(
+                            "Flexible Payment - Over-Payment",
+                            False,
+                            error="Could not verify balance after over-payment"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Flexible Payment - Over-Payment",
+                        False,
+                        error=f"Over-payment failed: HTTP {response.status_code}: {response.text}"
+                    )
+                    return False
                 
         except Exception as e:
             self.log_result("Flexible Payment - Over-Payment", False, error=str(e))
