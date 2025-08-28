@@ -5484,11 +5484,11 @@ const AdminSettingsTab = ({ currentDepartment }) => {
   );
 };
 
-// Coffee and Eggs Management Component
+// Coffee and Eggs Management Component - Unified Design
 const CoffeeAndEggsManagement = () => {
   const [lunchSettings, setLunchSettings] = useState({ boiled_eggs_price: 0.50, coffee_price: 1.50 });
-  const [newBoiledEggsPrice, setNewBoiledEggsPrice] = useState('');
-  const [newCoffeePrice, setNewCoffeePrice] = useState('');
+  const [editingItem, setEditingItem] = useState(null); // 'eggs' or 'coffee' or null
+  const [editPrice, setEditPrice] = useState('');
 
   const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -5500,114 +5500,138 @@ const CoffeeAndEggsManagement = () => {
     try {
       const response = await axios.get(`${API}/api/lunch-settings`);
       setLunchSettings(response.data);
-      setNewBoiledEggsPrice((response.data.boiled_eggs_price || 0.50).toFixed(2));
-      setNewCoffeePrice((response.data.coffee_price || 1.50).toFixed(2));
     } catch (error) {
       console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
     }
   };
 
-  const updateBoiledEggsPrice = async () => {
-    if (!newBoiledEggsPrice || isNaN(parseFloat(newBoiledEggsPrice))) {
-      alert('Bitte gültigen Kochei-Preis eingeben');
-      return;
-    }
-
-    try {
-      await axios.put(`${API}/api/lunch-settings/boiled-eggs-price?price=${parseFloat(newBoiledEggsPrice)}`);
-      await fetchLunchSettings();
-      alert('Kochei-Preis erfolgreich aktualisiert');
-    } catch (error) {
-      console.error('Fehler beim Aktualisieren des Kochei-Preises:', error);
-      alert('Fehler beim Aktualisieren des Kochei-Preises');
-    }
+  const startEdit = (item, currentPrice) => {
+    setEditingItem(item);
+    setEditPrice(currentPrice.toFixed(2));
   };
 
-  const updateCoffeePrice = async () => {
-    if (!newCoffeePrice || isNaN(parseFloat(newCoffeePrice))) {
-      alert('Bitte gültigen Kaffee-Preis eingeben');
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setEditPrice('');
+  };
+
+  const updatePrice = async () => {
+    if (!editPrice || isNaN(parseFloat(editPrice))) {
+      alert('Bitte gültigen Preis eingeben');
       return;
     }
 
     try {
-      await axios.put(`${API}/api/lunch-settings/coffee-price?price=${parseFloat(newCoffeePrice)}`);
+      const endpoint = editingItem === 'eggs' 
+        ? `${API}/api/lunch-settings/boiled-eggs-price?price=${parseFloat(editPrice)}`
+        : `${API}/api/lunch-settings/coffee-price?price=${parseFloat(editPrice)}`;
+      
+      await axios.put(endpoint);
       await fetchLunchSettings();
-      alert('Kaffee-Preis erfolgreich aktualisiert');
+      setEditingItem(null);
+      setEditPrice('');
+      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
     } catch (error) {
-      console.error('Fehler beim Aktualisieren des Kaffee-Preises:', error);
-      alert('Fehler beim Aktualisieren des Kaffee-Preises');
+      console.error('Fehler beim Aktualisieren:', error);
+      alert('Fehler beim Aktualisieren des Preises');
     }
   };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="text-md font-semibold text-gray-700 border-b pb-2">🥚☕ Eier & Kaffee</h4>
-      </div>
+      <h4 className="text-md font-semibold text-gray-700 border-b pb-2 mb-4">🥚☕ Eier & Kaffee</h4>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Gekochte Eier */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="mb-4">
-            <h5 className="text-sm font-semibold mb-2 text-yellow-800">🥚 Gekochte Eier</h5>
-            <div className="text-lg font-bold text-yellow-600 mb-2">
-              {(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} € <span className="text-sm text-gray-500">pro Ei</span>
+          {editingItem === 'eggs' ? (
+            <div className="space-y-3">
+              <div className="font-medium text-gray-700">🥚 Gekochte Eier</div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Preis pro Ei (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={updatePrice}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                >
+                  Abbrechen
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="border-t border-yellow-300 pt-4">
-            <h6 className="text-xs font-semibold mb-2 text-gray-700">Preis ändern</h6>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={newBoiledEggsPrice}
-                onChange={(e) => setNewBoiledEggsPrice(e.target.value)}
-                className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-yellow-500 text-sm"
-                placeholder="0.50"
-              />
-              <span className="text-yellow-600 text-sm">€</span>
+          ) : (
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium">🥚 Gekochte Eier</span>
+                <div className="text-sm text-gray-600">{(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} € pro Ei</div>
+              </div>
               <button
-                onClick={updateBoiledEggsPrice}
-                className="bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700 transition-colors text-xs"
+                onClick={() => startEdit('eggs', lunchSettings.boiled_eggs_price || 0.50)}
+                className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
               >
-                Update
+                Preis ändern
               </button>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Kaffee */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="mb-4">
-            <h5 className="text-sm font-semibold mb-2 text-amber-800">☕ Kaffee</h5>
-            <div className="text-lg font-bold text-amber-600 mb-2">
-              {(lunchSettings.coffee_price || 1.50).toFixed(2)} € <span className="text-sm text-gray-500">pro Tag</span>
+          {editingItem === 'coffee' ? (
+            <div className="space-y-3">
+              <div className="font-medium text-gray-700">☕ Kaffee</div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Preis pro Tag (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={updatePrice}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                >
+                  Abbrechen
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="border-t border-amber-300 pt-4">
-            <h6 className="text-xs font-semibold mb-2 text-gray-700">Preis ändern</h6>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={newCoffeePrice}
-                onChange={(e) => setNewCoffeePrice(e.target.value)}
-                className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-amber-500 text-sm"
-                placeholder="1.50"
-              />
-              <span className="text-amber-600 text-sm">€</span>
+          ) : (
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium">☕ Kaffee</span>
+                <div className="text-sm text-gray-600">{(lunchSettings.coffee_price || 1.50).toFixed(2)} € pro Tag</div>
+              </div>
               <button
-                onClick={updateCoffeePrice}
-                className="bg-amber-600 text-white px-2 py-1 rounded hover:bg-amber-700 transition-colors text-xs"
+                onClick={() => startEdit('coffee', lunchSettings.coffee_price || 1.50)}
+                className="bg-amber-600 text-white px-3 py-1 rounded text-sm hover:bg-amber-700"
               >
-                Update
+                Preis ändern
               </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
