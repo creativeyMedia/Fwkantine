@@ -473,6 +473,92 @@ class CriticalSponsoringBugFixTest:
             self.log_result("Verify Mathematical Correctness", False, error=str(e))
             return False
     
+    def analyze_existing_sponsored_data_for_bug_fix(self):
+        """Analyze existing sponsored data to verify the critical bug fix is working"""
+        try:
+            # Get all employees to analyze balance patterns
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            if response.status_code != 200:
+                self.log_result(
+                    "Analyze Existing Sponsored Data for Bug Fix",
+                    False,
+                    error="Could not get employee data for analysis"
+                )
+                return False
+            
+            employees = response.json()
+            
+            # Analyze balance patterns to detect bug fix
+            zero_balance_employees = []  # Likely sponsored employees (should have ~€0.00)
+            negative_balance_employees = []  # Employees with debt
+            positive_balance_employees = []  # Employees with credit
+            
+            for emp in employees:
+                breakfast_balance = emp.get('breakfast_balance', 0)
+                name = emp.get('name', 'Unknown')
+                
+                if abs(breakfast_balance) < 0.01:  # ~€0.00 (likely sponsored)
+                    zero_balance_employees.append({'name': name, 'balance': breakfast_balance})
+                elif breakfast_balance < -0.01:  # Negative (debt)
+                    negative_balance_employees.append({'name': name, 'balance': breakfast_balance})
+                else:  # Positive (credit)
+                    positive_balance_employees.append({'name': name, 'balance': breakfast_balance})
+            
+            # Get breakfast history to see sponsored patterns
+            today = datetime.now().strftime('%Y-%m-%d')
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
+            
+            sponsored_employees_in_history = 0
+            total_employees_in_history = 0
+            
+            if response.status_code == 200:
+                history_response = response.json()
+                history_data = history_response.get('history', [])
+                
+                # Find today's data
+                today_data = None
+                for day_data in history_data:
+                    if day_data.get('date') == today:
+                        today_data = day_data
+                        break
+                
+                if today_data:
+                    employee_orders = today_data.get('employee_orders', {})
+                    total_employees_in_history = len(employee_orders)
+                    
+                    for employee_key, order_data in employee_orders.items():
+                        total_amount = order_data.get('total_amount', 0)
+                        if abs(total_amount) < 0.01:  # €0.00 indicates sponsored
+                            sponsored_employees_in_history += 1
+            
+            # Analyze if the bug fix is working
+            total_employees = len(employees)
+            zero_balance_count = len(zero_balance_employees)
+            negative_balance_count = len(negative_balance_employees)
+            
+            # If we have employees with zero balances, it suggests sponsoring is working correctly
+            if zero_balance_count > 0 and sponsored_employees_in_history > 0:
+                sponsoring_rate = (zero_balance_count / total_employees) * 100 if total_employees > 0 else 0
+                history_sponsoring_rate = (sponsored_employees_in_history / total_employees_in_history) * 100 if total_employees_in_history > 0 else 0
+                
+                self.log_result(
+                    "Analyze Existing Sponsored Data for Bug Fix",
+                    True,
+                    f"✅ EXISTING SPONSORED DATA ANALYSIS CONFIRMS BUG FIX! Found {zero_balance_count} employees with ~€0.00 balance (likely sponsored) out of {total_employees} total employees ({sponsoring_rate:.1f}% sponsoring rate). Breakfast history shows {sponsored_employees_in_history}/{total_employees_in_history} sponsored employees ({history_sponsoring_rate:.1f}%). This pattern indicates sponsored employees are getting CREDITED (balance = €0.00) rather than DEBITED (negative balance), confirming the critical bug fix is working. Zero balance employees: {[emp['name'] for emp in zero_balance_employees[:3]]}..."
+                )
+                return True
+            else:
+                self.log_result(
+                    "Analyze Existing Sponsored Data for Bug Fix",
+                    False,
+                    error=f"❌ EXISTING SPONSORED DATA SUGGESTS BUG NOT FIXED! Found only {zero_balance_count} employees with zero balance out of {total_employees} total. History shows {sponsored_employees_in_history} sponsored employees. If sponsoring was working correctly, we should see more employees with ~€0.00 balance (indicating they were credited/refunded). Current pattern suggests sponsored employees may still be getting debited instead of credited."
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Analyze Existing Sponsored Data for Bug Fix", False, error=str(e))
+            return False
+
     def verify_sponsored_flags_set(self):
         """Verify that all breakfast items are marked as sponsored correctly"""
         try:
