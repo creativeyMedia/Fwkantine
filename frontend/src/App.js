@@ -2195,10 +2195,12 @@ const DepartmentAdminDashboard = () => {
         price: parseFloat(newPrice)
       });
       fetchMenus();
-      alert('Preis erfolgreich aktualisiert');
+      setSuccessMessage('Preis erfolgreich aktualisiert');
+      setShowSuccessNotification(true);
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Preises:', error);
-      alert('Fehler beim Aktualisieren des Preises');
+      setSuccessMessage('Fehler beim Aktualisieren des Preises');
+      setShowSuccessNotification(true);
     }
   };
 
