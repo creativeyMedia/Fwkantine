@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Diagnose and restore missing functions: 1) Master password functionality (master123dev) for developer access to all dashboards, 2) Cancellation documentation showing red 'Storniert von Mitarbeiter/Admin' fields in order history instead of deleting orders. Verify both functions are working correctly or repair if broken."
+user_problem_statement: "Implement flexible payment system: Replace 'mark as paid' buttons with flexible payment input fields allowing any amount (over/under payment), separate balance tracking for breakfast vs drinks/sweets accounts, and comprehensive payment history with balance tracking. Remove total debt field and maintain separate balance displays."
 
 backend:
   - task: "Master Password Login Function Diagnosis"
