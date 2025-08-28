@@ -5556,7 +5556,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   const fetchLunchSettings = async () => {
     try {
       // First try to get department-specific settings
-      const response = await axios.get(`${API}/department-settings/${currentDepartment.department_id}`);
+      const response = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
       setLunchSettings({
         boiled_eggs_price: response.data.boiled_eggs_price,
         coffee_price: response.data.coffee_price
