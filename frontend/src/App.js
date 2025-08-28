@@ -5830,3 +5830,7 @@ export default function AppWithProvider() {
     </AuthProvider>
   );
 }
+
+// Success Notification State Management
+const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+const [successMessage, setSuccessMessage] = useState('');
