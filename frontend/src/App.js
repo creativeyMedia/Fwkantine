@@ -5522,6 +5522,15 @@ function App() {
 
 // App with Context Provider
 export default function AppWithProvider() {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentEmployeeData, setPaymentEmployeeData] = useState(null);
+
+  const processFlexiblePayment = async (paymentData) => {
+    // Implementation for processing flexible payment
+    console.log('Processing flexible payment:', paymentData);
+    // Add your payment processing logic here
+  };
+
   return (
     <AuthProvider>
       <App />
