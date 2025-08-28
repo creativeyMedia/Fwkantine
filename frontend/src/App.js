@@ -5590,15 +5590,16 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
     }
 
     try {
+      const price = parseFloat(editPrice);
       const endpoint = editingItem === 'eggs' 
-        ? `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price?price=${parseFloat(editPrice)}`
-        : `${API}/department-settings/${currentDepartment.department_id}/coffee-price?price=${parseFloat(editPrice)}`;
+        ? `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`
+        : `${API}/department-settings/${currentDepartment.department_id}/coffee-price`;
       
-      await axios.put(endpoint);
+      await axios.put(endpoint, null, { params: { price } });
       await fetchLunchSettings();
       setEditingItem(null);
       setEditPrice('');
-      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich für ${currentDepartment.department_name} aktualisiert`);
+      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich für ${currentDepartment.name} aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren:', error);
       alert('Fehler beim Aktualisieren des Preises');
