@@ -4915,13 +4915,18 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
             </div>
           </div>
 
-          {/* Daily History List */}
+          {/* Daily History List with Pagination */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="px-6 py-4 bg-gray-50 border-b">
-              <h4 className="font-semibold text-gray-800">Tägliche Übersichten</h4>
+              <div className="flex justify-between items-center">
+                <h4 className="font-semibold text-gray-800">Tägliche Übersichten</h4>
+                <span className="text-sm text-gray-600">
+                  Seite {currentPage} von {totalPages} ({breakfastHistory.length} Einträge gesamt)
+                </span>
+              </div>
             </div>
             <div className="divide-y divide-gray-200">
-              {breakfastHistory.map((day, index) => (
+              {currentItems.map((day, index) => (
                 <div
                   key={day.date}
                   className={`p-6 hover:bg-gray-50 ${
