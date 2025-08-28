@@ -1006,9 +1006,10 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
             )
             
             # Update employee balance (lunch goes to breakfast_balance)
+            # If price increases (+price_difference), balance should decrease (-price_difference)
             await db.employees.update_one(
                 {"id": order["employee_id"]},
-                {"$inc": {"breakfast_balance": price_difference}}
+                {"$inc": {"breakfast_balance": -price_difference}}
             )
             
             updated_orders += 1
