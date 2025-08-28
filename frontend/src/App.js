@@ -1057,24 +1057,31 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
   };
 
-  const fetchDepartmentPrices = async () => {
+  const fetchLunchSettings = async () => {
     if (!currentDepartment?.department_id) {
       return;
     }
     
     try {
-      console.log("🔍 Fetching prices for department:", currentDepartment.department_id);
+      console.log("🔍 Fetching settings for department:", currentDepartment.department_id);
+      // Load department-specific prices and set them like the old system
       const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
-      console.log("🔍 Department prices loaded:", deptResponse.data);
+      console.log("🔍 Department settings loaded:", deptResponse.data);
       
-      setDepartmentPrices({
+      // Set lunchSettings exactly like the old global system
+      setLunchSettings({
+        price: 0.0, // Lunch price handled separately 
+        enabled: true,
         boiled_eggs_price: deptResponse.data.boiled_eggs_price,
         coffee_price: deptResponse.data.coffee_price
       });
       
     } catch (error) {
-      console.error('🔍 ERROR loading department prices:', error);
-      setDepartmentPrices({
+      console.error('🔍 ERROR loading settings:', error);
+      // Fallback to 0 prices
+      setLunchSettings({
+        price: 0.0,
+        enabled: true,
         boiled_eggs_price: 0,
         coffee_price: 0
       });
