@@ -95,7 +95,7 @@ backend:
 
 frontend:
   - task: "Bug 3 - Auto-update Prices After Ausgeben"
-    implemented: false
+    implemented: true
     working: false
     file: "frontend/src/App.js"
     stuck_count: 0
@@ -105,9 +105,12 @@ frontend:
         - working: false
           agent: "main"
           comment: "IDENTIFIED BUG: Employee management doesn't auto-update prices after 'Ausgeben' function execution without page reload. Need to refresh employee data after sponsoring."
+        - working: false
+          agent: "main"
+          comment: "FIXED: Added useEffect in DepartmentAdminDashboard to auto-refresh employee data when switching to 'employees' tab. This ensures latest balances are shown after sponsoring operations."
 
   - task: "Bug 5 - UI Colors and Label Changes"
-    implemented: false
+    implemented: true
     working: false
     file: "frontend/src/App.js"
     stuck_count: 0
@@ -117,6 +120,9 @@ frontend:
         - working: false
           agent: "main"
           comment: "IDENTIFIED BUG: Employee history shows positive saldos in blue instead of green, negative in red. Need to change 'Frühstücksaldo' to 'Frühstück/Mittag Saldo'."
+        - working: false
+          agent: "main"
+          comment: "FIXED: Updated all employee profile components to show positive balances in green, negative in red (instead of blue). Changed label from 'Frühstück Saldo' to 'Frühstück/Mittag Saldo'. Removed 'Gesamt Schulden' and 'Gesamt Bestellungen' from admin views as requested, keeping 50/50 layout for balance displays."
 
 ## test_plan:
 ##   current_focus:
