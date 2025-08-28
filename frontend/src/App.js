@@ -4149,8 +4149,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   });
                                   
                                   const parts = [];
-                                  if (totalSeeded > 0) parts.push(`${totalSeeded}xK`);
-                                  if (totalWhite > 0) parts.push(`${totalWhite}x`);
+                                  if (totalSeeded > 0) parts.push(`${totalSeeded}K`);
+                                  if (totalWhite > 0) parts.push(`${totalWhite}N`);
                                   
                                   return (
                                     <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-bold">
