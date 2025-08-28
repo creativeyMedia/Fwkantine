@@ -1177,8 +1177,10 @@ async def create_order(order_data: OrderCreate):
             # Fall back to global lunch settings
             lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
         
-        boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50  # Default €0.50 per egg
-        coffee_price = lunch_settings.get("coffee_price", 1.50) if lunch_settings else 1.50  # Default €1.50 for coffee
+        # Get department-specific prices
+        department_prices = await get_department_prices(order_data.department_id)
+        boiled_eggs_price = department_prices["boiled_eggs_price"]
+        coffee_price = department_prices["coffee_price"]
         
         for breakfast_item in order_data.breakfast_items:
             # Allow orders without rolls (just eggs, coffee and/or lunch)
