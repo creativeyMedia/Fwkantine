@@ -2817,7 +2817,8 @@ async def sponsor_meal(meal_data: dict):
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
             # Sponsor zahlt zusätzlich nur für die anderen, nicht für sich selbst (das ist schon in der Bestellung)
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] + sponsor_additional_cost
+            # CORRECTED: Sponsor OWES more money (balance decreases)
+            new_sponsor_balance = sponsor_employee["breakfast_balance"] - sponsor_additional_cost
             new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
                 {"id": sponsor_employee_id},
