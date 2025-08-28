@@ -5505,6 +5505,77 @@ const CoffeeAndEggsManagement = () => {
   );
 };
 
+// Flexible Payment Modal Component
+const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, onPayment }) => {
+  const [amount, setAmount] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (amount && !isNaN(parseFloat(amount))) {
+      onPayment({
+        employee_id: employee.id,
+        payment_type: paymentType,
+        amount: parseFloat(amount),
+        notes: notes.trim()
+      });
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">Zahlung für {employee.name}</h2>
+        <p className="text-sm text-gray-600 mb-4">Konto: {accountLabel}</p>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Betrag (€)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+              autoFocus
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Notizen (optional)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              rows="3"
+              placeholder="Zusätzliche Informationen..."
+            />
+          </div>
+          
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+            >
+              Zahlung verbuchen
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
