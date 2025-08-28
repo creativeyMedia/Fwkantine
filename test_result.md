@@ -134,8 +134,8 @@ frontend:
 ##   test_priority: "critical_first"
 ##
 ## agent_communication:
-##     -agent: "main"  # or "testing" or "user"
-##     -message: "Communication message between agents"
+##     - agent: "main"
+##       message: "Implemented fixes for all 5 reported bugs: 1) Fixed breakfast sponsoring calculation to only sponsor rolls+eggs (not coffee/lunch), 2) Created department-specific egg/coffee pricing system, 3) Added auto-refresh for employee data when switching tabs, 4) Fixed individual employee balance calculations for sponsored meals, 5) Updated UI colors (green/red) and labels ('Frühstück/Mittag Saldo'). Ready for backend testing."
 
 # Protocol Guidelines for Main agent
 #
