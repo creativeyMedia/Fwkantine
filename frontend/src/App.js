@@ -972,24 +972,28 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       
       // Filter orders for today
       const today = new Date().toDateString();
-      const todaysOrders = orders.filter(order => {
+      // Get all today's orders (including cancelled ones) for display purposes
+      const allTodaysOrders = orders.filter(order => {
         const orderDate = new Date(order.timestamp).toDateString();
-        return orderDate === today && !order.is_cancelled;  // Exclude cancelled orders
+        return orderDate === today;
       });
 
-      // Populate existing order data if available
+      // Get only non-cancelled orders for form pre-filling
+      const activeTodaysOrders = allTodaysOrders.filter(order => !order.is_cancelled);
+
+      // Populate existing order data if available (only from active orders)
       const todaysOrder = {
         breakfast_items: [],
         drink_items: {},
         sweet_items: {}
       };
 
-      todaysOrders.forEach(order => {
-        if (order.order_type === 'breakfast' && order.breakfast_items && !order.is_cancelled) {
+      activeTodaysOrders.forEach(order => {
+        if (order.order_type === 'breakfast' && order.breakfast_items) {
           todaysOrder.breakfast_items.push(...order.breakfast_items);
-        } else if (order.order_type === 'drinks' && order.drink_items && !order.is_cancelled) {
+        } else if (order.order_type === 'drinks' && order.drink_items) {
           Object.assign(todaysOrder.drink_items, order.drink_items);
-        } else if (order.order_type === 'sweets' && order.sweet_items && !order.is_cancelled) {
+        } else if (order.order_type === 'sweets' && order.sweet_items) {
           Object.assign(todaysOrder.sweet_items, order.sweet_items);
         }
       });
