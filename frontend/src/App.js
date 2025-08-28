@@ -2778,11 +2778,43 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
               </button>
             </div>
 
+            {/* Payment Buttons */}
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setPaymentEmployeeData({
+                    employee: employee,
+                    paymentType: 'breakfast',
+                    accountLabel: 'Frühstück'
+                  });
+                  setShowPaymentModal(true);
+                }}
+                className="bg-blue-600 text-white text-xs py-2 px-2 rounded hover:bg-blue-700"
+                title="Frühstück Einzahlung"
+              >
+                💰 Frühstück
+              </button>
+              <button
+                onClick={() => {
+                  setPaymentEmployeeData({
+                    employee: employee,
+                    paymentType: 'drinks_sweets',
+                    accountLabel: 'Getränke/Süßes'
+                  });
+                  setShowPaymentModal(true);
+                }}
+                className="bg-green-600 text-white text-xs py-2 px-2 rounded hover:bg-green-700"
+                title="Getränke/Süßes Einzahlung"
+              >
+                💰 Getränke
+              </button>
+            </div>
+
             {/* Order Management Button */}
             <div className="mt-2">
               <button
                 onClick={() => viewEmployeeOrders(employee)}
-                className="w-full bg-green-600 text-white text-xs py-2 px-2 rounded hover:bg-green-700"
+                className="w-full bg-purple-600 text-white text-xs py-2 px-2 rounded hover:bg-purple-700"
               >
                 Bestellungen verwalten
               </button>
