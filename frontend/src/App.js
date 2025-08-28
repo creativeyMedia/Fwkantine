@@ -2363,6 +2363,7 @@ const DepartmentAdminDashboard = () => {
 // Employee Orders Management Modal
 const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpdate }) => {
   const [orders, setOrders] = useState([]);
+  const [paymentLogs, setPaymentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [drinksMenu, setDrinksMenu] = useState([]);
   const [sweetsMenu, setSweetsMenu] = useState([]);
