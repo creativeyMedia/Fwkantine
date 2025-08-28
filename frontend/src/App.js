@@ -4865,6 +4865,20 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     );
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(breakfastHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = breakfastHistory.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
+  const goToFirstPage = () => {
+    setCurrentPage(1);
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-6">Bestellverlauf - {currentDepartment.department_name}</h3>
