@@ -223,6 +223,12 @@ class MenuItemCreateToppings(BaseModel):
     price: float
     department_id: str
 
+# NEW: Flexible Payment Request Models
+class FlexiblePaymentRequest(BaseModel):
+    payment_type: str  # "breakfast" or "drinks_sweets"
+    amount: float      # Beliebiger Einzahlungsbetrag
+    notes: Optional[str] = ""  # Optionale Notizen (z.B. "Barzahlung 50€")
+
 # Initialize default data
 def get_department_data():
     """Generate department data using environment variables for passwords"""
