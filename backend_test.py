@@ -272,81 +272,137 @@ class CriticalSponsoringLogicTest:
     # SPONSORING LOGIC TESTING
     # ========================================
     
-    def execute_breakfast_sponsoring(self):
-        """Execute breakfast sponsoring and verify all items are included"""
+    def analyze_existing_sponsored_data(self):
+        """Analyze existing sponsored data to understand the reported issues"""
         try:
-            if not self.sponsor_employee or not self.sponsored_employees:
-                return False
-            
-            # Get balances before sponsoring
-            sponsor_balance_before = self.get_employee_balance(self.sponsor_employee['id'])
-            sponsored_balance_before = self.get_employee_balance(self.sponsored_employees[0]['id'])
-            
-            if not sponsor_balance_before or not sponsored_balance_before:
-                self.log_result(
-                    "Execute Breakfast Sponsoring",
-                    False,
-                    error="Could not get employee balances before sponsoring"
-                )
-                return False
-            
-            # Execute breakfast sponsoring
-            sponsor_data = {
-                "department_id": DEPARTMENT_ID,
-                "meal_type": "breakfast",
-                "date": datetime.now().strftime('%Y-%m-%d'),
-                "sponsor_employee_id": self.sponsor_employee["id"],
-                "sponsor_employee_name": self.sponsor_employee["name"]
-            }
-            
-            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
+            # Get breakfast history to analyze existing sponsored data
+            today = datetime.now().strftime('%Y-%m-%d')
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
             
             if response.status_code == 200:
-                sponsoring_result = response.json()
+                history_response = response.json()
                 
-                # Verify sponsoring response
-                sponsored_items = sponsoring_result.get('sponsored_items', 0)
-                total_cost = sponsoring_result.get('total_cost', 0)
-                affected_employees = sponsoring_result.get('affected_employees', 0)
-                
-                # Get balances after sponsoring
-                sponsor_balance_after = self.get_employee_balance(self.sponsor_employee['id'])
-                sponsored_balance_after = self.get_employee_balance(self.sponsored_employees[0]['id'])
-                
-                if not sponsor_balance_after or not sponsored_balance_after:
+                # Check if response has history key
+                if not isinstance(history_response, dict) or 'history' not in history_response:
                     self.log_result(
-                        "Execute Breakfast Sponsoring",
+                        "Analyze Existing Sponsored Data",
                         False,
-                        error="Could not get employee balances after sponsoring"
+                        error=f"Unexpected response format: {type(history_response)}"
                     )
                     return False
                 
-                # Calculate balance changes
-                sponsor_balance_change = sponsor_balance_after['breakfast_balance'] - sponsor_balance_before['breakfast_balance']
-                sponsored_balance_change = sponsored_balance_after['breakfast_balance'] - sponsored_balance_before['breakfast_balance']
+                history_data = history_response['history']
+                
+                if not isinstance(history_data, list) or not history_data:
+                    self.log_result(
+                        "Analyze Existing Sponsored Data",
+                        False,
+                        error="No history data found"
+                    )
+                    return False
+                
+                # Find today's data
+                today_data = None
+                for day_data in history_data:
+                    if day_data.get('date') == today:
+                        today_data = day_data
+                        break
+                
+                if not today_data:
+                    self.log_result(
+                        "Analyze Existing Sponsored Data",
+                        False,
+                        error="Could not find today's breakfast history data"
+                    )
+                    return False
+                
+                breakfast_summary = today_data.get('breakfast_summary', {})
+                employee_orders = today_data.get('employee_orders', {})
+                total_amount = today_data.get('total_amount', 0)
+                total_orders = today_data.get('total_orders', 0)
+                
+                # Analyze roll type distribution
+                weiss_halves = breakfast_summary.get('weiss', {}).get('halves', 0)
+                koerner_halves = breakfast_summary.get('koerner', {}).get('halves', 0)
+                
+                # Analyze individual employee orders for sponsored patterns
+                sponsored_employees = []
+                regular_employees = []
+                korner_employees = []
+                helles_employees = []
+                
+                for employee_key, order_data in employee_orders.items():
+                    total_amount_emp = order_data.get('total_amount', 0)
+                    seeded_halves = order_data.get('seeded_halves', 0)
+                    white_halves = order_data.get('white_halves', 0)
+                    
+                    # Check if employee has Körner rolls
+                    if seeded_halves > 0:
+                        korner_employees.append({
+                            'name': employee_key,
+                            'total_amount': total_amount_emp,
+                            'seeded_halves': seeded_halves,
+                            'white_halves': white_halves
+                        })
+                    
+                    # Check if employee has Helles rolls
+                    if white_halves > 0:
+                        helles_employees.append({
+                            'name': employee_key,
+                            'total_amount': total_amount_emp,
+                            'seeded_halves': seeded_halves,
+                            'white_halves': white_halves
+                        })
+                    
+                    # Classify as sponsored or regular based on amount
+                    if abs(total_amount_emp) < 0.01:  # €0.00 indicates fully sponsored
+                        sponsored_employees.append(employee_key)
+                    elif total_amount_emp < 2.0:  # Low amount might indicate partial sponsoring
+                        sponsored_employees.append(f"{employee_key} (partial: €{total_amount_emp:.2f})")
+                    else:
+                        regular_employees.append(f"{employee_key} (€{total_amount_emp:.2f})")
+                
+                # CRITICAL ANALYSIS: Check for Körnerbrötchen sponsoring issues
+                korner_sponsored_count = 0
+                korner_not_sponsored_count = 0
+                
+                for emp in korner_employees:
+                    if abs(emp['total_amount']) < 2.0:  # Likely sponsored
+                        korner_sponsored_count += 1
+                    else:
+                        korner_not_sponsored_count += 1
+                
+                # Determine if there's a Körnerbrötchen issue
+                korner_issue_detected = korner_not_sponsored_count > 0 and korner_sponsored_count == 0
                 
                 self.log_result(
-                    "Execute Breakfast Sponsoring",
+                    "Analyze Existing Sponsored Data",
                     True,
-                    f"✅ BREAKFAST SPONSORING EXECUTED! Sponsored {sponsored_items} items, total cost €{total_cost:.2f}, affected {affected_employees} employees. Sponsor balance change: €{sponsor_balance_change:.2f}, Sponsored balance change: €{sponsored_balance_change:.2f}. Response: {sponsoring_result}"
+                    f"🔍 EXISTING SPONSORED DATA ANALYSIS COMPLETE! Total orders: {total_orders}, Total amount: €{total_amount:.2f}. Roll distribution: {weiss_halves} Helles halves, {koerner_halves} Körner halves. Employees with Körner: {len(korner_employees)}, Employees with Helles: {len(helles_employees)}. Sponsored employees: {len(sponsored_employees)} ({sponsored_employees}). Regular employees: {len(regular_employees)} ({regular_employees}). CRITICAL: Körner sponsored: {korner_sponsored_count}, Körner not sponsored: {korner_not_sponsored_count}. Issue detected: {korner_issue_detected}"
                 )
-                return sponsoring_result
-            else:
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get('detail', 'Unknown error')
-                except:
-                    error_message = response.text or 'Unknown error'
                 
+                # Store analysis results for further verification
+                self.analysis_results = {
+                    'korner_employees': korner_employees,
+                    'helles_employees': helles_employees,
+                    'sponsored_employees': sponsored_employees,
+                    'regular_employees': regular_employees,
+                    'korner_issue_detected': korner_issue_detected,
+                    'total_amount': total_amount,
+                    'breakfast_summary': breakfast_summary
+                }
+                
+                return True
+            else:
                 self.log_result(
-                    "Execute Breakfast Sponsoring",
+                    "Analyze Existing Sponsored Data",
                     False,
-                    error=f"Sponsoring failed: HTTP {response.status_code}: {error_message}"
+                    error=f"Failed to get breakfast history: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Execute Breakfast Sponsoring", False, error=str(e))
+            self.log_result("Analyze Existing Sponsored Data", False, error=str(e))
             return False
     
     def verify_sponsored_flags(self):
