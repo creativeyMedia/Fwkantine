@@ -68,11 +68,11 @@ backend:
 
   - task: "Bug 2 - Department-specific Egg/Coffee Prices"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
@@ -80,6 +80,9 @@ backend:
         - working: false
           agent: "main"
           comment: "FIXED: Created new DepartmentSettings model and endpoints for department-specific egg/coffee prices. Added get_department_prices() helper function with fallback to global settings. Updated all price usage locations to use department-specific prices."
+        - working: true
+          agent: "testing"
+          comment: "✅ BUG 2 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (6/6 tests passed): ✅ 1) NEW ENDPOINTS WORKING - GET /api/department-settings/fw4abteilung2 returned current settings. PUT endpoints successfully updated: egg price €0.50 → €0.75 → €0.80, coffee price €1.50 → €2.00 → €2.10. Department-specific pricing system is functional. ✅ 2) Department-Specific Pricing in Orders - Created test employee and order with eggs+coffee. Order total: €5.90 (expected €5.90). Verification: Rolls €1.00 + Eggs €0.80 (dept price, not global €1.00) + Coffee €2.10 (dept price, not global €1.30) + Lunch €2.00 = €5.90. ✅ 3) Price Updates Per Department - Successfully tested PUT /api/department-settings/{department_id}/boiled-eggs-price and PUT /api/department-settings/{department_id}/coffee-price endpoints. ✅ 4) Fallback to Global Settings - get_department_prices() helper function working with proper fallback logic. ✅ 5) Order Calculations Use Department Prices - All price usage locations updated to use department-specific prices instead of global settings. ✅ 6) Other Departments Unaffected - Department-specific pricing isolated per department. CRITICAL VERIFICATION: The new DepartmentSettings model and endpoints for department-specific egg/coffee prices are FULLY FUNCTIONAL. Orders correctly use department-specific prices instead of global prices."
 
   - task: "Bug 4 - Sponsored Employee Balance Calculation Fix"
     implemented: true
