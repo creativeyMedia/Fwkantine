@@ -573,83 +573,54 @@ class CriticalSponsoringLogicTest:
     def analyze_korner_vs_helles_treatment(self):
         """Analyze if Körner and Helles rolls are treated equally in sponsoring"""
         try:
-            # Get breakfast history to analyze order processing
-            today = datetime.now().strftime('%Y-%m-%d')
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
+            if not hasattr(self, 'analysis_results'):
+                self.log_result(
+                    "Analyze Körner vs Helles Treatment",
+                    False,
+                    error="No analysis results available. Run analyze_existing_sponsored_data first."
+                )
+                return False
             
-            if response.status_code == 200:
-                history_data = response.json()
-                
-                # Check if response is a list or dict
-                if isinstance(history_data, str):
-                    self.log_result(
-                        "Analyze Körner vs Helles Treatment",
-                        False,
-                        error=f"Unexpected response format: {history_data}"
-                    )
-                    return False
-                
-                if not isinstance(history_data, list):
-                    self.log_result(
-                        "Analyze Körner vs Helles Treatment",
-                        False,
-                        error=f"Expected list response, got: {type(history_data)}"
-                    )
-                    return False
-                
-                # Find today's data
-                today_data = None
-                for day_data in history_data:
-                    if day_data.get('date') == today:
-                        today_data = day_data
-                        break
-                
-                if not today_data:
-                    self.log_result(
-                        "Analyze Körner vs Helles Treatment",
-                        False,
-                        error="Could not find today's breakfast history data for analysis"
-                    )
-                    return False
-                
-                breakfast_summary = today_data.get('breakfast_summary', {})
-                employee_orders = today_data.get('employee_orders', {})
-                
-                # Analyze roll type distribution
-                weiss_halves = breakfast_summary.get('weiss', {}).get('halves', 0)
-                koerner_halves = breakfast_summary.get('koerner', {}).get('halves', 0)
-                
-                # Check if both roll types are included in summary
-                both_types_included = weiss_halves > 0 and koerner_halves > 0
-                
-                # Analyze individual employee orders for sponsored status
-                sponsored_employees_count = 0
-                total_employees_count = len(employee_orders)
-                
-                for employee_key, order_data in employee_orders.items():
-                    total_amount = order_data.get('total_amount', 0)
-                    if abs(total_amount) < 0.01:  # €0.00 indicates sponsored
-                        sponsored_employees_count += 1
-                
-                if both_types_included and sponsored_employees_count > 0:
-                    self.log_result(
-                        "Analyze Körner vs Helles Treatment",
-                        True,
-                        f"✅ KÖRNER VS HELLES ANALYSIS COMPLETE! Both roll types included in summary: Helles {weiss_halves} halves, Körner {koerner_halves} halves. Sponsored employees: {sponsored_employees_count}/{total_employees_count}. Both Körner and Helles rolls appear to be processed equally in sponsoring logic."
-                    )
-                    return True
-                else:
-                    self.log_result(
-                        "Analyze Körner vs Helles Treatment",
-                        False,
-                        error=f"❌ POTENTIAL ISSUE DETECTED! Roll types included - Helles: {weiss_halves > 0}, Körner: {koerner_halves > 0}. Sponsored employees: {sponsored_employees_count}/{total_employees_count}. This may indicate differential treatment of roll types."
-                    )
-                    return False
+            results = self.analysis_results
+            breakfast_summary = results['breakfast_summary']
+            korner_employees = results['korner_employees']
+            helles_employees = results['helles_employees']
+            
+            # Analyze roll type distribution
+            weiss_halves = breakfast_summary.get('weiss', {}).get('halves', 0)
+            koerner_halves = breakfast_summary.get('koerner', {}).get('halves', 0)
+            
+            # Check if both roll types are included in summary
+            both_types_included = weiss_halves > 0 and koerner_halves > 0
+            
+            # Analyze sponsoring patterns by roll type
+            korner_sponsored_rate = 0
+            helles_sponsored_rate = 0
+            
+            if korner_employees:
+                korner_sponsored = sum(1 for emp in korner_employees if emp['total_amount'] < 2.0)
+                korner_sponsored_rate = (korner_sponsored / len(korner_employees)) * 100
+            
+            if helles_employees:
+                helles_sponsored = sum(1 for emp in helles_employees if emp['total_amount'] < 2.0)
+                helles_sponsored_rate = (helles_sponsored / len(helles_employees)) * 100
+            
+            # Check for differential treatment
+            rate_difference = abs(korner_sponsored_rate - helles_sponsored_rate)
+            equal_treatment = rate_difference < 20  # Allow 20% difference as reasonable
+            
+            if both_types_included and equal_treatment:
+                self.log_result(
+                    "Analyze Körner vs Helles Treatment",
+                    True,
+                    f"✅ KÖRNER VS HELLES ANALYSIS COMPLETE! Both roll types included in summary: Helles {weiss_halves} halves, Körner {koerner_halves} halves. Sponsoring rates: Körner {korner_sponsored_rate:.1f}% ({len(korner_employees)} employees), Helles {helles_sponsored_rate:.1f}% ({len(helles_employees)} employees). Rate difference: {rate_difference:.1f}%. Both Körner and Helles rolls appear to be processed equally in sponsoring logic."
+                )
+                return True
             else:
                 self.log_result(
                     "Analyze Körner vs Helles Treatment",
                     False,
-                    error=f"Failed to get breakfast history for analysis: HTTP {response.status_code}: {response.text}"
+                    error=f"❌ DIFFERENTIAL TREATMENT DETECTED! Roll types included - Helles: {weiss_halves > 0}, Körner: {koerner_halves > 0}. Sponsoring rates: Körner {korner_sponsored_rate:.1f}%, Helles {helles_sponsored_rate:.1f}%. Rate difference: {rate_difference:.1f}%. This may indicate differential treatment of roll types in sponsoring logic."
                 )
                 return False
                 
