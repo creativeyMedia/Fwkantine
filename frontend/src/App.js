@@ -4362,31 +4362,15 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
       <h3 className="text-lg font-semibold mb-6">Menü & Preise verwalten</h3>
 
       <div className="space-y-8">
-        {/* Breakfast Items */}
+        {/* Breakfast Items - Simplified Price Management */}
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Brötchen</h4>
-            <button
-              onClick={() => setShowNewBreakfast(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Neues Brötchen
-            </button>
-          </div>
+          <h4 className="text-md font-semibold text-gray-700 border-b pb-2 mb-4">Brötchen</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {breakfastMenu.map((item) => (
               <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 {editingItem?.id === item.id ? (
                   <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Name</label>
-                      <input
-                        type="text"
-                        value={editForm.name}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
+                    <div className="font-medium text-gray-700">{item.name || rollTypeLabels[item.roll_type]}</div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Preis (€)</label>
                       <input
@@ -4399,7 +4383,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
                     </div>
                     <div className="flex gap-2">
                       <button onClick={saveEdit} className="bg-green-600 text-white px-3 py-1 rounded text-sm">
-                        Speichern
+                        Update
                       </button>
                       <button onClick={cancelEdit} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">
                         Abbrechen
@@ -4412,20 +4396,12 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
                       <span className="font-medium">{item.name || rollTypeLabels[item.roll_type]}</span>
                       <div className="text-sm text-gray-600">{item.price.toFixed(2)} €</div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => startEditItem(item, 'breakfast')}
-                        className="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700"
-                      >
-                        Bearbeiten
-                      </button>
-                      <button
-                        onClick={() => onDeleteMenuItem('breakfast', item.id)}
-                        className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
-                      >
-                        Löschen
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => startEditItem(item, 'breakfast')}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                    >
+                      Preis ändern
+                    </button>
                   </div>
                 )}
               </div>
