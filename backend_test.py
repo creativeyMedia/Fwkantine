@@ -362,6 +362,23 @@ class CriticalSponsoringLogicTest:
             if response.status_code == 200:
                 history_data = response.json()
                 
+                # Check if response is a list or dict
+                if isinstance(history_data, str):
+                    self.log_result(
+                        "Verify Sponsored Flags",
+                        False,
+                        error=f"Unexpected response format: {history_data}"
+                    )
+                    return False
+                
+                if not isinstance(history_data, list):
+                    self.log_result(
+                        "Verify Sponsored Flags",
+                        False,
+                        error=f"Expected list response, got: {type(history_data)}"
+                    )
+                    return False
+                
                 # Find today's data
                 today_data = None
                 for day_data in history_data:
