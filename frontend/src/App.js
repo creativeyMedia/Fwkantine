@@ -3041,7 +3041,7 @@ const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMen
         </div>
 
         {/* Eier & Kaffee */}
-        <CoffeeAndEggsManagement />
+        <CoffeeAndEggsManagement currentDepartment={currentDepartment} />
 
         {/* Drinks */}
         <div>
