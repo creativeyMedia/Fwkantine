@@ -794,6 +794,56 @@ async def update_lunch_settings(price: float):
         "updated_orders": updated_orders
     }
 
+@api_router.get("/department-settings/{department_id}")
+async def get_department_settings(department_id: str):
+    """Get department-specific settings (eggs and coffee prices)"""
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if not dept_settings:
+        # Create default settings if none exist
+        default_settings = DepartmentSettings(department_id=department_id)
+        await db.department_settings.insert_one(default_settings.dict())
+        return default_settings
+    
+    # Clean the document by removing MongoDB _id field
+    clean_settings = {k: v for k, v in dept_settings.items() if k != '_id'}
+    return clean_settings
+
+@api_router.put("/department-settings/{department_id}/boiled-eggs-price")
+async def update_department_boiled_eggs_price(department_id: str, price: float):
+    """Update boiled eggs price for a specific department"""
+    if price < 0:
+        raise HTTPException(status_code=400, detail="Preis muss mindestens 0.00 € betragen")
+    
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        await db.department_settings.update_one(
+            {"department_id": department_id},
+            {"$set": {"boiled_eggs_price": price}}
+        )
+    else:
+        new_settings = DepartmentSettings(department_id=department_id, boiled_eggs_price=price)
+        await db.department_settings.insert_one(new_settings.dict())
+    
+    return {"message": "Abteilungsspezifischer Kochei-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
+
+@api_router.put("/department-settings/{department_id}/coffee-price")
+async def update_department_coffee_price(department_id: str, price: float):
+    """Update coffee price for a specific department"""
+    if price < 0:
+        raise HTTPException(status_code=400, detail="Preis muss mindestens 0.00 € betragen")
+    
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        await db.department_settings.update_one(
+            {"department_id": department_id},
+            {"$set": {"coffee_price": price}}
+        )
+    else:
+        new_settings = DepartmentSettings(department_id=department_id, coffee_price=price)
+        await db.department_settings.insert_one(new_settings.dict())
+    
+    return {"message": "Abteilungsspezifischer Kaffee-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
+
 @api_router.put("/lunch-settings/boiled-eggs-price")
 async def update_boiled_eggs_price(price: float):
     """Update boiled eggs price"""
