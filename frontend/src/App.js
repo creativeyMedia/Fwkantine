@@ -1201,7 +1201,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
           const today = new Date().toDateString();
           const todaysBreakfastOrders = orders.filter(order => {
             const orderDate = new Date(order.timestamp).toDateString();
-            return orderDate === today && order.order_type === 'breakfast';
+            return orderDate === today && order.order_type === 'breakfast' && !order.is_cancelled;
           });
 
           if (todaysBreakfastOrders.length > 0) {
