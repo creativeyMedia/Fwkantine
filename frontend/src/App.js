@@ -1058,8 +1058,13 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
   };
 
   const fetchLunchSettings = async () => {
+    if (!currentDepartment?.department_id) {
+      console.log("🔍 DEBUG: No department ID available, skipping department-specific fetch");
+      return;
+    }
+    
     try {
-      console.log("🔍 DEBUG: fetchLunchSettings called for department:", currentDepartment?.department_id);
+      console.log("🔍 DEBUG: fetchLunchSettings called for department:", currentDepartment.department_id);
       // First try to get department-specific settings for eggs and coffee prices
       const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
       console.log("🔍 DEBUG: Department response:", deptResponse.data);
