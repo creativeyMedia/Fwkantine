@@ -2318,7 +2318,8 @@ const DepartmentAdminDashboard = () => {
         }
       );
       
-      alert(`✅ ${response.data.message}\n${response.data.result_description}`);
+      setSuccessMessage(`✅ ${response.data.message}\n${response.data.result_description}`);
+      setShowSuccessNotification(true);
       
       // Refresh employee data
       fetchEmployees();
@@ -2327,7 +2328,8 @@ const DepartmentAdminDashboard = () => {
       
     } catch (error) {
       console.error('Fehler bei der Einzahlung:', error);
-      alert('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
+      setSuccessMessage('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
+      setShowSuccessNotification(true);
     }
   };
 
