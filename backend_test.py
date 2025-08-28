@@ -179,24 +179,24 @@ class CriticalSponsoringBugFixTest:
     # ========================================
     
     def create_breakfast_orders(self):
-        """Create breakfast orders as specified in review request"""
+        """Create simple breakfast orders as specified in review request - CLEAN DATABASE TEST"""
         try:
             if not self.sponsor_employee or not self.sponsored_employee:
                 return False
             
-            # Employee A: Create breakfast order (€5.50 example from review request)
+            # Employee A: Create simple breakfast order (Helles Brötchen €2.10 as per review request)
             sponsor_order_data = {
                 "employee_id": self.sponsor_employee["id"],
                 "department_id": DEPARTMENT_ID,
                 "order_type": "breakfast",
                 "breakfast_items": [{
-                    "total_halves": 6,  # 3 rolls = 6 halves
-                    "white_halves": 4,  # 2 Helles Brötchen (4 halves)
-                    "seeded_halves": 2,  # 1 Körner Brötchen (2 halves)
-                    "toppings": ["butter", "kaese", "schinken", "salami", "eiersalat", "spiegelei"],  # 6 toppings for 6 halves
+                    "total_halves": 4,  # 2 Helles Brötchen = 4 halves
+                    "white_halves": 4,  # 2 Helles Brötchen (4 halves) - €2.00
+                    "seeded_halves": 0,  # No Körner for sponsor
+                    "toppings": ["butter", "butter", "kaese", "kaese"],  # 4 toppings for 4 halves (free)
                     "has_lunch": False,  # No lunch for breakfast sponsoring test
-                    "boiled_eggs": 2,   # 2 boiled eggs to reach ~€5.50
-                    "has_coffee": True  # Add coffee to reach target price
+                    "boiled_eggs": 0,   # No eggs for simple test
+                    "has_coffee": False  # No coffee - CLEAN TEST as per review request
                 }]
             }
             
@@ -214,19 +214,19 @@ class CriticalSponsoringBugFixTest:
                 )
                 return False
             
-            # Employee B: Create breakfast order (€4.20 example from review request)
+            # Employee B: Create simple breakfast order (Körnerbrötchen €2.10 as per review request)
             sponsored_order_data = {
                 "employee_id": self.sponsored_employee["id"],
                 "department_id": DEPARTMENT_ID,
                 "order_type": "breakfast",
                 "breakfast_items": [{
-                    "total_halves": 4,  # 2 rolls = 4 halves
-                    "white_halves": 2,  # 1 Helles Brötchen (2 halves)
-                    "seeded_halves": 2,  # 1 Körner Brötchen (2 halves) - CRITICAL TEST CASE
-                    "toppings": ["butter", "kaese", "schinken", "eiersalat"],  # 4 toppings for 4 halves
+                    "total_halves": 4,  # 2 Körner Brötchen = 4 halves
+                    "white_halves": 0,  # No Helles for sponsored employee
+                    "seeded_halves": 4,  # 2 Körner Brötchen (4 halves) - €2.40 (0.60 each)
+                    "toppings": ["butter", "butter", "kaese", "kaese"],  # 4 toppings for 4 halves (free)
                     "has_lunch": False,  # No lunch for breakfast sponsoring test
-                    "boiled_eggs": 2,   # 2 boiled eggs to reach ~€4.20
-                    "has_coffee": True  # Add coffee
+                    "boiled_eggs": 0,   # No eggs for simple test
+                    "has_coffee": False  # No coffee - CLEAN TEST as per review request
                 }]
             }
             
