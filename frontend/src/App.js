@@ -2553,31 +2553,59 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
             <div className="text-center py-8">
               <div className="text-lg text-gray-600">Lade Bestellungen...</div>
             </div>
-          ) : orders.length === 0 ? (
+          ) : getCombinedHistory().length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>Keine Bestellungen für diesen Mitarbeiter gefunden.</p>
+              <p>Keine Bestellungen oder Zahlungen für diesen Mitarbeiter gefunden.</p>
             </div>
           ) : (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold mb-4">
-                Alle Bestellungen ({orders.length})
+                Chronologischer Verlauf ({getCombinedHistory().length})
               </h3>
               
-              {/* Orders List */}
+              {/* Combined History List */}
               <div className="space-y-3">
-                {orders.map((order) => {
-                  const isCancelled = order.is_cancelled;
-                  const cardStyle = isCancelled ? "border-red-200 bg-red-50" : "border-gray-200 hover:bg-gray-50";
-                  
-                  return (
-                    <div key={order.id} className={`border ${cardStyle} rounded-lg p-4`}>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-4 mb-2">
-                            <span className={`font-semibold text-lg ${isCancelled ? 'line-through text-red-700' : ''}`}>
-                              {order.order_type === 'breakfast' ? 'Frühstück' : 
-                               order.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
-                            </span>
+                {getCombinedHistory().map((item, index) => {
+                  if (item.type === 'payment') {
+                    // Payment entry
+                    return (
+                      <div key={`payment-${item.id}-${index}`} className="border border-green-200 bg-green-50 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-2">
+                              <span className="font-semibold text-lg text-green-700">
+                                💰 Einzahlung
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                {new Date(item.timestamp).toLocaleString('de-DE')}
+                              </span>
+                            </div>
+                            
+                            <div className="text-gray-700 mb-2">
+                              <strong>Betrag:</strong> {item.amount?.toFixed(2)} €<br/>
+                              <strong>Konto:</strong> {item.payment_type === 'breakfast' ? 'Frühstück/Mittag' : 'Getränke/Süßes'}<br/>
+                              <strong>Saldo vorher:</strong> {item.balance_before?.toFixed(2)} €<br/>
+                              <strong>Saldo nachher:</strong> {item.balance_after?.toFixed(2)} €<br/>
+                              {item.notes && <><strong>Notizen:</strong> {item.notes}</>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    // Order entry (existing code)
+                    const isCancelled = item.is_cancelled;
+                    const cardStyle = isCancelled ? "border-red-200 bg-red-50" : "border-gray-200 hover:bg-gray-50";
+                    
+                    return (
+                      <div key={`order-${item.id}-${index}`} className={`border ${cardStyle} rounded-lg p-4`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-2">
+                              <span className={`font-semibold text-lg ${isCancelled ? 'line-through text-red-700' : ''}`}>
+                                {item.order_type === 'breakfast' ? 'Frühstück' : 
+                                 item.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
+                              </span>
                             <span className="text-sm text-gray-500">
                               {formatDate(order.timestamp)}
                             </span>
