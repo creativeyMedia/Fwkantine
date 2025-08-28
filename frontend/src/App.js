@@ -524,7 +524,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-green-600">{item.amount.toFixed(2)} €</p>
+                            <p className="font-semibold text-green-600">+{item.amount.toFixed(2)} €</p>
                           </div>
                         </div>
                         
