@@ -5610,7 +5610,8 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
 
   const updatePrice = async () => {
     if (!editPrice || isNaN(parseFloat(editPrice))) {
-      alert('Bitte gültigen Preis eingeben');
+      setSuccessMessage('Bitte gültigen Preis eingeben');
+      setShowSuccessNotification(true);
       return;
     }
 
@@ -5624,10 +5625,13 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
       await fetchLunchSettings();
       setEditingItem(null);
       setEditPrice('');
-      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
+      
+      setSuccessMessage(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
+      setShowSuccessNotification(true);
     } catch (error) {
       console.error('Fehler beim Aktualisieren:', error);
-      alert('Fehler beim Aktualisieren des Preises');
+      setSuccessMessage('Fehler beim Aktualisieren des Preises');
+      setShowSuccessNotification(true);
     }
   };
 
