@@ -2115,9 +2115,76 @@ async def delete_topping_item(item_id: str, department_id: str = None):
         raise HTTPException(status_code=404, detail="Belag nicht gefunden oder keine Berechtigung")
     return {"message": "Belag erfolgreich gelöscht"}
 
+@api_router.post("/department-admin/flexible-payment/{employee_id}")
+async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentRequest, admin_department: str):
+    """Department Admin: Process flexible payment with any amount"""
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Validate payment_type
+    if payment_data.payment_type not in ["breakfast", "drinks_sweets"]:
+        raise HTTPException(status_code=400, detail="Invalid payment_type. Use 'breakfast' or 'drinks_sweets'")
+    
+    # Get current balance
+    if payment_data.payment_type == "breakfast":
+        current_balance = employee.get("breakfast_balance", 0.0)
+        balance_field = "breakfast_balance"
+    else:
+        current_balance = employee.get("drinks_sweets_balance", 0.0) 
+        balance_field = "drinks_sweets_balance"
+    
+    # Calculate new balance (subtract payment from debt, or add to credit)
+    # Negative balance = debt, Positive balance = credit
+    # Payment reduces debt (makes balance less negative) or increases credit
+    new_balance = current_balance - payment_data.amount
+    
+    # Create payment log with balance tracking
+    payment_log = PaymentLog(
+        employee_id=employee_id,
+        department_id=employee["department_id"],
+        amount=payment_data.amount,
+        payment_type=payment_data.payment_type,
+        action="payment",
+        admin_user=admin_department,
+        notes=payment_data.notes or f"Einzahlung: {payment_data.amount:.2f} €",
+        balance_before=current_balance,
+        balance_after=new_balance
+    )
+    
+    # Save payment log
+    payment_dict = prepare_for_mongo(payment_log.dict())
+    await db.payment_logs.insert_one(payment_dict)
+    
+    # Update employee balance
+    await db.employees.update_one(
+        {"id": employee_id},
+        {"$set": {balance_field: new_balance}}
+    )
+    
+    # Determine result type
+    if new_balance < 0:
+        result_description = f"Restschuld: {abs(new_balance):.2f} €"
+    elif new_balance > 0:
+        result_description = f"Guthaben: {new_balance:.2f} €"
+    else:
+        result_description = "Konto ausgeglichen"
+    
+    return {
+        "message": "Einzahlung erfolgreich verbucht",
+        "payment_amount": payment_data.amount,
+        "balance_before": current_balance,
+        "balance_after": new_balance,
+        "result_description": result_description
+    }
+
+# LEGACY: Keep old endpoint for backward compatibility (mark as deprecated)
 @api_router.post("/department-admin/payment/{employee_id}")
 async def mark_payment(employee_id: str, payment_type: str, amount: float, admin_department: str):
-    """Department Admin: Mark debt as paid and log the payment"""
+    """DEPRECATED: Department Admin: Mark debt as paid and log the payment
+    
+    This endpoint is deprecated. Use /department-admin/flexible-payment/{employee_id} instead.
+    """
     employee = await db.employees.find_one({"id": employee_id})
     if not employee:
         raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
@@ -2130,7 +2197,9 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
         payment_type=payment_type,
         action="payment",
         admin_user=admin_department,
-        notes=f"Schulden als bezahlt markiert: {amount:.2f} €"
+        notes=f"Schulden als bezahlt markiert: {amount:.2f} € (LEGACY)",
+        balance_before=employee.get(f"{payment_type}_balance", 0.0),
+        balance_after=0.0
     )
     
     # Save payment log
