@@ -1917,10 +1917,10 @@ async def get_employee_profile(employee_id: str):
                 # Create breakfast prices dictionary for this context
                 breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
                 
-                # Get current lunch settings for prices
-                lunch_settings = await db.lunch_settings.find_one() or {}
-                boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50)
-                coffee_price = lunch_settings.get("coffee_price", 1.50)
+                # Get department-specific prices
+                department_prices = await get_department_prices(order["department_id"])
+                boiled_eggs_price = department_prices["boiled_eggs_price"]
+                coffee_price = department_prices["coffee_price"]
                 
                 enriched_order["readable_items"] = []
                 
