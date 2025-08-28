@@ -976,11 +976,12 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
     
     updated_orders = 0
     
-    # Find all breakfast orders with lunch from that day
+    # Find all NON-CANCELLED breakfast orders with lunch from that day
     orders_cursor = db.orders.find({
         "department_id": department_id,
         "order_type": "breakfast",
         "has_lunch": True,
+        "is_cancelled": {"$ne": True},  # Exclude cancelled orders
         "timestamp": {
             "$gte": start_of_day_utc.isoformat(),
             "$lte": end_of_day_utc.isoformat()
