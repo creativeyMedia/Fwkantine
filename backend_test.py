@@ -1,53 +1,50 @@
 #!/usr/bin/env python3
 """
-CRITICAL SPONSORING LOGIC ANALYSIS & BUG DETECTION
+CRITICAL SPONSORING BUG FIX VERIFICATION
 
-**CRITICAL SPONSORING LOGIC ANALYSIS & BUG DETECTION**
+**CRITICAL SPONSORING BALANCE CALCULATION BUG FIX TESTING**
 
-Investigate critical sponsoring issues reported by user:
+Test the corrected sponsoring logic after fixing the critical balance calculation bug.
 
-**REPORTED PROBLEMS:**
-1. **Körnerbrötchen not showing strikethrough** in chronological history during sponsoring
-2. **Balance not updating correctly** when sponsoring breakfast 
-3. **Frontend shows correct calculation** ("Ausgegeben für 1 Mitarbeiter im Wert von 2.10€") but balance might be wrong
+**BUG FIX APPLIED:**
+- **CORRECTED**: Sponsored employees now get CREDITED (balance increases) instead of debited
+- **Line 2842**: Changed from `employee["breakfast_balance"] - sponsored_amount` to `employee["breakfast_balance"] + sponsored_amount`
 
-**TEST SCENARIO TO REPRODUCE:**
-1. **Setup**: Department "1. Wachabteilung"
-2. **Create Orders**: Create 2 breakfast orders for different employees 
-3. **Sponsor Orders**: Have one employee sponsor breakfast for others
-4. **Verify Issues**:
-   - Do Körnerbrötchen orders get `is_sponsored=true`?
-   - Are all order items marked as sponsored correctly?
-   - Does sponsor balance increase correctly (pay for others)?
-   - Do sponsored employees get balance adjusted (don't pay)?
+**VERIFICATION TEST SCENARIO:**
 
-**CRITICAL VERIFICATION POINTS:**
+1. **Create Fresh Test Data**:
+   - Create 2 new employees in Department "1. Wachabteilung" 
+   - Employee A (will be sponsor)
+   - Employee B (will be sponsored)
 
-**Backend Logic Analysis:**
-- Check `/api/department-admin/sponsor-meal` endpoint logic
-- Verify that ALL breakfast items (including Körnerbrötchen) are included in sponsoring
-- Confirm balance calculations: sponsor pays more, sponsored pay less/nothing
-- Ensure `is_sponsored`, `sponsored_by`, `sponsored_message` fields set correctly
+2. **Create Orders**:
+   - Employee A: Create breakfast order (e.g., €5.50) - balance becomes -5.50
+   - Employee B: Create breakfast order (e.g., €4.20) - balance becomes -4.20
 
-**Database State Verification:**
-- After sponsoring, check orders collection for correct sponsored flags
-- Verify employee balances reflect sponsoring correctly
-- Confirm all order types (breakfast items) are processed equally
+3. **Execute Sponsoring**:
+   - Employee A sponsors breakfast for Employee B
+   - Expected: Employee A balance = -5.50 - 4.20 = -9.70 (pays for both)
+   - Expected: Employee B balance = -4.20 + 4.20 = 0.00 (fully sponsored)
 
-**Expected Results:**
-- All breakfast orders (Helles + Körner) should be marked `is_sponsored=true`
-- Sponsor balance should increase by total sponsored amount
-- Sponsored employee balances should decrease (they don't pay)
-- All sponsored orders should show strikethrough in frontend display
-- Balance calculations should be mathematically correct
+4. **Verify Corrections**:
+   - Employee B should have 0.00 balance (fully refunded)
+   - Employee A should pay for both meals
+   - All breakfast items (Helles + Körner) should be marked `is_sponsored=true`
+   - Frontend should show strikethrough for sponsored items
 
-**Key Questions to Answer:**
-1. Does sponsoring logic include ALL breakfast order types?
-2. Are balance adjustments calculated correctly for sponsor vs sponsored?
-3. Why might Körnerbrötchen be treated differently than Helles Brötchen?
-4. Is there a bug in the order filtering logic during sponsoring?
+**EXPECTED RESULTS AFTER FIX:**
+- ✅ Sponsored employees get full refund (balance = 0.00)
+- ✅ Sponsor pays for all sponsored meals
+- ✅ Balance calculations mathematically correct
+- ✅ Equal treatment of all breakfast item types
+- ✅ Proper `is_sponsored` flags set
 
-Use Department "1. Wachabteilung" and create comprehensive test scenario to reproduce and analyze the reported issues.
+**CRITICAL VERIFICATION:**
+- The main reported issue should be resolved: balances now calculate correctly
+- User's concern about "false saldo" should be fixed
+- Körnerbrötchen should be treated equally to Helles Brötchen
+
+Use Department "1. Wachabteilung" and verify the fix works with fresh test data.
 """
 
 import requests
