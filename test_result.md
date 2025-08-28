@@ -1246,6 +1246,18 @@ frontend:
           agent: "main"
           comment: "✅ UI IMPROVEMENTS IMPLEMENTED: (1) BETTER PRICE DISPLAY: Separated egg prices from roll calculations in BreakfastOrderForm, added detailed cost breakdown showing rolls cost, eggs cost separately, and total summary with clear indication that lunch price is handled by backend. (2) IMPROVED BREAKFAST OVERVIEW LAYOUT: Removed duplicate lunch count display, created new side-by-side layout with main green Einkaufsliste box and smaller orange Mittagessen box, eliminated redundancy and improved visual clarity. Changes enhance user understanding of pricing logic and provide cleaner overview layout."
 
+  - task: "Flexible Payment System Frontend Implementation"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ FLEXIBLE PAYMENT SYSTEM FRONTEND NOT IMPLEMENTED! Comprehensive testing of the flexible payment system frontend completed with 0% success rate (0/9 expected features found): ❌ 1) Master Password Login - Successfully tested master password 'master123dev' login to Department 2 admin dashboard. ❌ 2) New Payment Buttons Missing - Found 0 new '💰 Einzahlung' buttons, expected to replace old 'Als bezahlt markieren' buttons. ❌ 3) Old Payment Buttons - Found 0 old 'Als bezahlt markieren' buttons, but also no replacement buttons. ❌ 4) Current UI State - Admin dashboard shows employee cards with balance displays (Frühstück: 0.00 €, Getränke/Süßes: 0.00 €) but buttons are 'Mitarbeiter löschen' and 'Bestellungen verwalten' instead of payment buttons. ❌ 5) Payment Modal - No payment modal functionality found as no payment buttons exist. ❌ 6) Balance Display Colors - Found 1 balance element but no color coding for credit/debt (green/red/blue). ❌ 7) Payment Scenarios - Cannot test different payment types without payment buttons. ❌ 8) Account Types - Cannot test Frühstück vs Getränke/Süßes payments without payment functionality. ❌ 9) Payment History - Cannot verify payment history integration without payment processing. CRITICAL FINDING: The flexible payment system has NOT been implemented in the frontend despite backend functionality being available. The admin dashboard shows the old interface without the new '💰 Einzahlung' buttons that should replace the 'mark as paid' functionality. The backend testing shows the flexible payment API is working, but the frontend integration is missing. RECOMMENDATION: Main agent needs to implement the flexible payment system frontend components including payment buttons, modal, and balance color coding as specified in the review request."
+
   - task: "Enhanced Menu Management with Name Editing - Breakfast & Toppings PUT Endpoints"
     implemented: true
     working: true
