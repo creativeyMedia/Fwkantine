@@ -2359,19 +2359,21 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
         employee = await db.employees.find_one({"id": order["employee_id"]})
         employee_name = employee["name"] if employee else "Unbekannt"
         
-        # Adjust employee balance before cancelling the order
+        # CORRECTED: Adjust employee balance before cancelling the order (refund)
         if employee:
             if order["order_type"] == "breakfast":
-                new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
+                # Admin cancellation = refund = balance increases
+                new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
                 await db.employees.update_one(
                     {"id": order["employee_id"]},
-                    {"$set": {"breakfast_balance": max(0, new_breakfast_balance)}}
+                    {"$set": {"breakfast_balance": new_breakfast_balance}}
                 )
             else:
-                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                # Admin cancellation = refund = balance increases
+                new_drinks_sweets_balance = employee["drinks_sweets_balance"] + order["total_price"]
                 await db.employees.update_one(
                     {"id": order["employee_id"]},
-                    {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
+                    {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
                 )
         
         # Mark order as cancelled instead of deleting
