@@ -165,6 +165,17 @@ const SuccessNotification = ({ message, onClose }) => {
           </div>
         </div>
       </div>
+      
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
     </div>
   );
 };
