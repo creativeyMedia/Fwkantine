@@ -141,7 +141,7 @@ const SuccessNotification = ({ message, onClose }) => {
       if (onClose) {
         onClose();
       }
-    }, 1500);
+    }, 1000);
     
     // Cleanup timer on unmount
     return () => {
