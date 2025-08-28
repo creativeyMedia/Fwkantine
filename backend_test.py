@@ -276,8 +276,10 @@ class CriticalSponsoringBugFixTest:
             # Execute breakfast sponsoring via admin endpoint
             today = datetime.now().strftime('%Y-%m-%d')
             sponsoring_data = {
+                "department_id": DEPARTMENT_ID,
                 "meal_type": "breakfast",
                 "sponsor_employee_id": self.sponsor_employee["id"],
+                "sponsor_employee_name": self.sponsor_employee["name"],
                 "date": today
             }
             
