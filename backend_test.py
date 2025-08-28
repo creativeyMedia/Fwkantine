@@ -1,45 +1,50 @@
 #!/usr/bin/env python3
 """
-FLEXIBLE PAYMENT SYSTEM TESTING
+PAYMENT PROTECTION SYSTEM TESTING
 
-**FLEXIBLE PAYMENT SYSTEM TESTING**
+**PAYMENT PROTECTION SYSTEM TESTING**
 
-Test the new flexible payment system that replaces the old "mark as paid" functionality.
+Test the new payment protection system that prevents order cancellation after payments to maintain balance integrity.
+
+**PAYMENT PROTECTION LOGIC:**
+- Orders placed BEFORE a payment cannot be cancelled by employees
+- Orders placed AFTER a payment can be cancelled normally  
+- Admin cancellations are not restricted (admins can override)
+- Cancellation = refund (balance increases)
 
 **TEST SCENARIOS:**
 
-1. **Create Test Employee**: Create a test employee in Department 2 for payment testing
-2. **Create Orders to Generate Debt**: Create some orders to generate balances (e.g., breakfast €15.50, drinks €8.20)
-3. **Test Flexible Payment - Exact Amount**: Pay exactly the debt amount (€15.50 for breakfast) 
-4. **Test Flexible Payment - Over-Payment**: Pay more than debt (€50 for €15.50 debt = €34.50 credit)
-5. **Test Flexible Payment - Under-Payment**: Pay less than debt (€10 for €15.50 debt = €5.50 remaining debt)
-6. **Test Different Payment Types**: Test both "breakfast" and "drinks_sweets" payments separately
-7. **Verify Balance Tracking**: Check that balance_before and balance_after are correctly logged
-8. **Payment History**: Verify that payment logs include proper balance tracking
+1. **Setup Clean Employee**: Create test employee with 0.00 balance
+2. **Create Initial Order**: Place breakfast order (should create debt, e.g., -5.50€)
+3. **Make Payment**: Pay amount (e.g., 20.00€, balance becomes +14.50€)
+4. **Test Protection - Order Before Payment**: 
+   - Try to cancel the initial order (placed before payment)
+   - Should FAIL with error about payment protection
+5. **Create New Order After Payment**: Place another order after payment
+6. **Test Normal Cancellation - Order After Payment**:
+   - Try to cancel the new order (placed after payment)
+   - Should SUCCEED and refund correctly
+7. **Verify Balance Calculations**:
+   - Cancellation should INCREASE balance (refund logic)
+   - No more `max(0, balance)` constraints
+8. **Admin Override Test**: Admin should be able to cancel protected orders
 
-**NEW ENDPOINT TO TEST:**
-```
-POST /api/department-admin/flexible-payment/{employee_id}?admin_department=2.%20Wachabteilung
-Body: {
-    "payment_type": "breakfast",
-    "amount": 50.0,
-    "notes": "Barzahlung 50 Euro"
-}
-```
+**EXPECTED RESULTS:**
+- Initial order (before payment): Cancellation BLOCKED ❌
+- New order (after payment): Cancellation ALLOWED ✅  
+- Balance increases with cancellation (refund behavior)
+- Clear error message for payment protection violations
+- Timestamp-based protection working correctly
 
-**EXPECTED BEHAVIOR:**
-- Payments can be any amount (over/under debt)
-- Balance calculation: new_balance = current_balance - payment_amount
-- Negative balance = debt, Positive balance = credit
-- Each payment logged with balance_before and balance_after
-- Separate tracking for breakfast vs drinks_sweets accounts
+**API ENDPOINTS TO TEST:**
+- `DELETE /api/employee/{employee_id}/orders/{order_id}` (should respect protection)
+- `DELETE /api/department-admin/orders/{order_id}` (admin override)
 
-**VERIFICATION POINTS:**
-- Employee balances update correctly
-- PaymentLog entries include balance tracking
-- Different payment types work independently
-- Over-payments create positive balance (credit)
-- Under-payments leave remaining debt
+**CRITICAL VERIFICATION:**
+- Payment protection prevents balance manipulation
+- Refund logic works correctly (balance increases on cancellation)
+- Timestamp comparison logic functions properly
+- German error messages are clear and helpful
 
 Use Department "2. Wachabteilung" for testing.
 """
