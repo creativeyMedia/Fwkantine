@@ -3434,7 +3434,8 @@ const AdminDashboard = () => {
 
   const fetchLunchSettings = async () => {
     try {
-      const response = await axios.get(`${API}/lunch-settings`);
+      // For Admin Dashboard, we'll use global lunch settings since this view spans all departments
+      const response = await axios.get(`${API}/api/lunch-settings`);
       setLunchSettings(response.data);
     } catch (error) {
       console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
