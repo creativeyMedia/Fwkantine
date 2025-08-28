@@ -1077,20 +1077,19 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         coffee_price: deptResponse.data.coffee_price
       };
       
-      console.log("🔍 Setting lunchSettings to:", newSettings);
-      setLunchSettings(newSettings);
-      setPricesLoaded(true);
+      console.log("🔍 Setting department prices:", { boiled_eggs_price: deptResponse.data.boiled_eggs_price, coffee_price: deptResponse.data.coffee_price });
+      setDepartmentPrices({
+        boiled_eggs_price: deptResponse.data.boiled_eggs_price,
+        coffee_price: deptResponse.data.coffee_price
+      });
       
     } catch (error) {
       console.error('🔍 ERROR in fetchLunchSettings:', error);
       // If department settings don't exist, use 0 prices
-      setLunchSettings({
-        price: 0.0,
-        enabled: true,
+      setDepartmentPrices({
         boiled_eggs_price: 0,
         coffee_price: 0
       });
-      setPricesLoaded(true);
     }
   };
 
