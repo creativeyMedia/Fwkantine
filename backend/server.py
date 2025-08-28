@@ -69,6 +69,32 @@ def get_berlin_day_bounds(date_obj):
     
     return start_of_day_utc, end_of_day_utc
 
+async def check_order_payment_protection(employee_id: str, order: dict):
+    """Check if order is protected by payment timestamp (prevents cancellation after payment)"""
+    # Get the most recent payment for this employee
+    recent_payment = await db.payment_logs.find_one(
+        {"employee_id": employee_id},
+        sort=[("timestamp", -1)]  # Most recent first
+    )
+    
+    if not recent_payment:
+        return  # No payments found, order can be cancelled
+    
+    # Parse timestamps for comparison
+    order_timestamp = datetime.fromisoformat(order["timestamp"].replace('Z', '+00:00'))
+    payment_timestamp = recent_payment["timestamp"]
+    
+    # If payment timestamp is a string, parse it
+    if isinstance(payment_timestamp, str):
+        payment_timestamp = datetime.fromisoformat(payment_timestamp.replace('Z', '+00:00'))
+    
+    # If order was placed BEFORE the most recent payment, it's protected
+    if order_timestamp < payment_timestamp:
+        raise HTTPException(
+            status_code=403,
+            detail="Diese Bestellung kann nicht storniert werden, da bereits eine Zahlung nach der Bestellung erfolgt ist."
+        )
+
 # Enums
 class OrderType(str, Enum):
     BREAKFAST = "breakfast"
