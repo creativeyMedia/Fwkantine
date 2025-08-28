@@ -2828,10 +2828,10 @@ async def sponsor_meal(meal_data: dict):
             seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
             if seeded_menu: seeded_roll_price = seeded_menu.get("price", 0.60)
             
-            lunch_settings = await db.lunch_settings.find_one()
-            if lunch_settings:
-                egg_price = lunch_settings.get("boiled_eggs_price", 0.50)
-                coffee_price = lunch_settings.get("coffee_price", 1.00)
+            # Get department-specific egg and coffee prices
+            department_prices = await get_department_prices(department_id)
+            egg_price = department_prices["boiled_eggs_price"]
+            coffee_price = department_prices["coffee_price"]
         except:
             pass  # Use defaults if DB calls fail
         
