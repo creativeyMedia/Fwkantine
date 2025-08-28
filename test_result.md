@@ -47,14 +47,76 @@
 ##   test_sequence: 0
 ##   run_ui: false
 ##
+backend:
+  - task: "Bug 1 - Admin Dashboard Daily Summaries Calculation Fix"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IDENTIFIED BUG: In breakfast-history endpoint (lines 1248-1273), when sponsored_meal_type='breakfast', almost everything is set to 0 except coffee. Should only sponsor rolls+eggs, NOT coffee and lunch. Lunch and coffee should remain in employee's balance."
+
+  - task: "Bug 2 - Department-specific Egg/Coffee Prices"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IDENTIFIED BUG: boiled_eggs_price and coffee_price are stored in global lunch_settings collection (lines 791-825), not per department. Need to create department-specific pricing structure."
+
+  - task: "Bug 4 - Sponsored Employee Balance Calculation Fix"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IDENTIFIED BUG: Similar issue to Bug 1 - individual employee calculation in breakfast-history endpoint has wrong logic for sponsored employees after lunch sponsoring."
+
+frontend:
+  - task: "Bug 3 - Auto-update Prices After Ausgeben"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IDENTIFIED BUG: Employee management doesn't auto-update prices after 'Ausgeben' function execution without page reload. Need to refresh employee data after sponsoring."
+
+  - task: "Bug 5 - UI Colors and Label Changes"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IDENTIFIED BUG: Employee history shows positive saldos in blue instead of green, negative in red. Need to change 'Frühstücksaldo' to 'Frühstück/Mittag Saldo'."
+
 ## test_plan:
 ##   current_focus:
-##     - "Task name 1"
-##     - "Task name 2"
-##   stuck_tasks:
-##     - "Task name with persistent issues"
+##     - "Bug 1 - Admin Dashboard Daily Summaries Calculation Fix"
+##     - "Bug 2 - Department-specific Egg/Coffee Prices"
+##     - "Bug 4 - Sponsored Employee Balance Calculation Fix"
+##   stuck_tasks: []
 ##   test_all: false
-##   test_priority: "high_first"  # or "sequential" or "stuck_first"
+##   test_priority: "critical_first"
 ##
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
