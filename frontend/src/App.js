@@ -3844,7 +3844,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
       >
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Frühstück Tagesübersicht - {dailySummary?.date}</h2>
+            <h2 className="text-2xl font-bold">Frühstück Tagesübersicht - {formatGermanDate(dailySummary?.date)}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-xl"
