@@ -292,10 +292,11 @@ class CriticalSponsoringLogicTest:
             
             # Execute breakfast sponsoring
             sponsor_data = {
+                "department_id": DEPARTMENT_ID,
                 "meal_type": "breakfast",
                 "date": datetime.now().strftime('%Y-%m-%d'),
                 "sponsor_employee_id": self.sponsor_employee["id"],
-                "sponsor_message": "Frühstück für alle Kollegen!"
+                "sponsor_employee_name": self.sponsor_employee["name"]
             }
             
             response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
