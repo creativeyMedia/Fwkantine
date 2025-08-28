@@ -2134,10 +2134,10 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
         current_balance = employee.get("drinks_sweets_balance", 0.0) 
         balance_field = "drinks_sweets_balance"
     
-    # Calculate new balance (subtract payment from debt, or add to credit)
-    # Negative balance = debt, Positive balance = credit
-    # Payment reduces debt (makes balance less negative) or increases credit
-    new_balance = current_balance - payment_data.amount
+    # Calculate new balance - CORRECTED LOGIC
+    # Negative balance = debt (owes money), Positive balance = credit (has money)
+    # Payment INCREASES balance (reduces debt or adds credit)
+    new_balance = current_balance + payment_data.amount
     
     # Create payment log with balance tracking
     payment_log = PaymentLog(
