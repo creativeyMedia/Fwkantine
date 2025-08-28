@@ -367,13 +367,37 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
         <div className="p-6">
           {/* Balance Overview - Simplified 50/50 Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
-              <p className="text-2xl font-bold text-blue-600">{employeeProfile.breakfast_total.toFixed(2)} €</p>
+            <div className={`border border-gray-300 rounded-lg p-4 ${
+              employeeProfile.breakfast_total >= 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold ${
+                employeeProfile.breakfast_total >= 0 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Frühstück/Mittag Saldo</h3>
+              <p className={`text-2xl font-bold ${
+                employeeProfile.breakfast_total >= 0 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{employeeProfile.breakfast_total.toFixed(2)} €</p>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
-              <p className="text-2xl font-bold text-green-600">{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
+            <div className={`border border-gray-300 rounded-lg p-4 ${
+              employeeProfile.drinks_sweets_total >= 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold ${
+                employeeProfile.drinks_sweets_total >= 0 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Getränke/Süßes Saldo</h3>
+              <p className={`text-2xl font-bold ${
+                employeeProfile.drinks_sweets_total >= 0 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
             </div>
           </div>
 
