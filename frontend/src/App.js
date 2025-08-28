@@ -5711,7 +5711,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
                 <div className="text-sm text-gray-600">{lunchSettings.coffee_price.toFixed(2)} € pro Tag</div>
               </div>
               <button
-                onClick={() => startEdit('coffee', lunchSettings.coffee_price || 1.50)}
+                onClick={() => startEdit('coffee', lunchSettings.coffee_price)}
                 className="bg-amber-600 text-white px-3 py-1 rounded text-sm hover:bg-amber-700"
               >
                 Preis ändern
