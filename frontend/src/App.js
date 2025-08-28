@@ -3812,23 +3812,27 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
                 Zurücksetzen
               </button>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
-              <p className="text-2xl font-bold text-green-600">{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
+            <div className={`border border-gray-300 rounded-lg p-4 ${
+              employeeProfile.drinks_sweets_total >= 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold ${
+                employeeProfile.drinks_sweets_total >= 0 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Getränke/Süßes Saldo</h3>
+              <p className={`text-2xl font-bold ${
+                employeeProfile.drinks_sweets_total >= 0 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
               <button
                 onClick={() => resetBalance('drinks_sweets')}
-                className="mt-2 text-sm bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                className="mt-2 text-sm bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
               >
                 Zurücksetzen
               </button>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-800">Gesamt Bestellungen</h3>
-              <p className="text-2xl font-bold text-purple-600">{employeeProfile.total_orders}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
-              <p className="text-2xl font-bold text-orange-600">{(employeeProfile.breakfast_total + employeeProfile.drinks_sweets_total).toFixed(2)} €</p>
             </div>
           </div>
 
