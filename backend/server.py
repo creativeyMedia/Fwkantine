@@ -1616,7 +1616,7 @@ async def get_employee_today_orders(employee_id: str):
 
 @api_router.delete("/employee/{employee_id}/orders/{order_id}")
 async def delete_employee_order(employee_id: str, order_id: str):
-    """Allow employee to cancel their own order (if breakfast not closed)"""
+    """Allow employee to cancel their own order (with payment protection)"""
     # Check if order belongs to employee
     order = await db.orders.find_one({"id": order_id, "employee_id": employee_id})
     if not order:
@@ -1625,6 +1625,9 @@ async def delete_employee_order(employee_id: str, order_id: str):
     # Check if already cancelled
     if order.get("is_cancelled"):
         raise HTTPException(status_code=400, detail="Bestellung bereits storniert")
+    
+    # NEW: Check if order is protected by payment timestamp
+    await check_order_payment_protection(employee_id, order)
     
     # For breakfast orders, check if breakfast is closed
     if order["order_type"] == "breakfast":
@@ -1644,19 +1647,21 @@ async def delete_employee_order(employee_id: str, order_id: str):
     employee = await db.employees.find_one({"id": employee_id})
     employee_name = employee["name"] if employee else "Unbekannt"
     
-    # Adjust employee balance
+    # CORRECTED: Adjust employee balance (add back the order amount)
     if employee:
         if order["order_type"] == "breakfast":
-            new_breakfast_balance = employee["breakfast_balance"] - order["total_price"]
+            # Order cancellation = refund = balance increases
+            new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
             await db.employees.update_one(
                 {"id": employee_id},
-                {"$set": {"breakfast_balance": max(0, new_breakfast_balance)}}
+                {"$set": {"breakfast_balance": new_breakfast_balance}}
             )
         else:
-            new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+            # Order cancellation = refund = balance increases  
+            new_drinks_sweets_balance = employee["drinks_sweets_balance"] + order["total_price"]
             await db.employees.update_one(
                 {"id": employee_id},
-                {"$set": {"drinks_sweets_balance": max(0, new_drinks_sweets_balance)}}
+                {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
             )
     
     # Mark order as cancelled instead of deleting
