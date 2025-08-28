@@ -1382,19 +1382,15 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         let whiteIndex = 1;
         let seededIndex = 1;
         
-        // Find breakfast menu items for consistent naming
-        const hellesItem = breakfastMenu.find(item => item.roll_type === 'weiss');
-        const koernerItem = breakfastMenu.find(item => item.roll_type === 'koerner');
-        
         existingOrderData.toppings.forEach((topping, index) => {
           const rollType = index < (existingOrderData.white_halves || 0) ? 'weiss' : 'koerner';
           let rollLabel;
           
           if (rollType === 'weiss') {
-            rollLabel = hellesItem ? `${hellesItem.name} ${whiteIndex}` : `Helles Brötchen ${whiteIndex}`;
+            rollLabel = `Helles Brötchen ${whiteIndex}`;  // Use consistent simple naming
             whiteIndex++;
           } else {
-            rollLabel = koernerItem ? `${koernerItem.name} ${seededIndex}` : `Körnerbrötchen ${seededIndex}`;
+            rollLabel = `Körnerbrötchen ${seededIndex}`;  // Use consistent simple naming
             seededIndex++;
           }
           
