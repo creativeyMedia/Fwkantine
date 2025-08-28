@@ -3488,10 +3488,12 @@ const AdminDashboard = () => {
     try {
       await axios.put(`${API}/lunch-settings?price=${newPrice}`);
       setLunchSettings(prev => ({ ...prev, price: newPrice }));
-      alert('Mittagessen-Preis erfolgreich aktualisiert');
+      setSuccessMessage('Mittagessen-Preis erfolgreich aktualisiert');
+      setShowSuccessNotification(true);
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Lunch-Preises:', error);
-      alert('Fehler beim Aktualisieren des Preises');
+      setSuccessMessage('Fehler beim Aktualisieren des Preises');
+      setShowSuccessNotification(true);
     }
   };
 
