@@ -1359,8 +1359,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             
                             # Add eggs cost
                             if boiled_eggs > 0:
-                                lunch_settings = await db.lunch_settings.find_one()
-                                eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                                department_prices = await get_department_prices(department_id)
+                                eggs_price = department_prices["boiled_eggs_price"]
                                 sponsored_breakfast_cost += boiled_eggs * eggs_price
                         
                         # Employee pays: total_cost - sponsored_breakfast_cost
