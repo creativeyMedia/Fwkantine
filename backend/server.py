@@ -1142,6 +1142,7 @@ async def create_order(order_data: OrderCreate):
         existing_breakfast = await db.orders.find_one({
             "employee_id": order_data.employee_id,
             "order_type": "breakfast",
+            "is_cancelled": {"$ne": True},  # Only check non-cancelled orders
             "timestamp": {
                 "$gte": start_of_day_utc.isoformat(),
                 "$lte": end_of_day_utc.isoformat()
