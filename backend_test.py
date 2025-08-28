@@ -255,7 +255,7 @@ class CriticalSponsoringBugFixTest:
             self.log_result(
                 "Create Breakfast Orders",
                 True,
-                f"Created 2 breakfast orders: Employee A (Sponsor) order €{sponsor_cost:.2f}, Employee B (Sponsored) order €{sponsored_cost:.2f}. Total: €{total_cost:.2f}. Initial balances: Sponsor €{self.initial_balances['sponsor']['breakfast_balance']:.2f}, Sponsored €{self.initial_balances['sponsored']['breakfast_balance']:.2f}. CRITICAL: Both orders contain Körnerbrötchen for equal treatment testing."
+                f"CLEAN DATABASE TEST: Created 2 simple breakfast orders as per review request: Employee A (Sponsor) Helles Brötchen order €{sponsor_cost:.2f}, Employee B (Sponsored) Körnerbrötchen order €{sponsored_cost:.2f}. Total: €{total_cost:.2f}. Initial balances: Sponsor €{self.initial_balances['sponsor']['breakfast_balance']:.2f}, Sponsored €{self.initial_balances['sponsored']['breakfast_balance']:.2f}. CRITICAL: Testing equal treatment of Helles vs Körner breakfast items with NO coffee/eggs to ensure clean sponsoring test."
             )
             return True
                 
