@@ -5662,7 +5662,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
             <div className="flex justify-between items-center">
               <div>
                 <span className="font-medium">🥚 Gekochte Eier</span>
-                <div className="text-sm text-gray-600">{(lunchSettings.boiled_eggs_price || 0.50).toFixed(2)} € pro Ei</div>
+                <div className="text-sm text-gray-600">{lunchSettings.boiled_eggs_price.toFixed(2)} € pro Ei</div>
               </div>
               <button
                 onClick={() => startEdit('eggs', lunchSettings.boiled_eggs_price || 0.50)}
