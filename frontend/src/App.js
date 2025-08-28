@@ -985,11 +985,11 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       };
 
       todaysOrders.forEach(order => {
-        if (order.order_type === 'breakfast' && order.breakfast_items) {
+        if (order.order_type === 'breakfast' && order.breakfast_items && !order.is_cancelled) {
           todaysOrder.breakfast_items.push(...order.breakfast_items);
-        } else if (order.order_type === 'drinks' && order.drink_items) {
+        } else if (order.order_type === 'drinks' && order.drink_items && !order.is_cancelled) {
           Object.assign(todaysOrder.drink_items, order.drink_items);
-        } else if (order.order_type === 'sweets' && order.sweet_items) {
+        } else if (order.order_type === 'sweets' && order.sweet_items && !order.is_cancelled) {
           Object.assign(todaysOrder.sweet_items, order.sweet_items);
         }
       });
