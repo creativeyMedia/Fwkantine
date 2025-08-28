@@ -153,6 +153,9 @@ class PaymentLog(BaseModel):
     admin_user: str  # department name who performed action
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     notes: str = ""
+    # NEW: Balance tracking for flexible payments
+    balance_before: Optional[float] = None  # Saldo vor Einzahlung
+    balance_after: Optional[float] = None   # Saldo nach Einzahlung
 
 class BreakfastOrder(BaseModel):
     total_halves: int  # Total number of roll halves
