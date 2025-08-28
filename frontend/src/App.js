@@ -5025,8 +5025,6 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       setEditingLunchPrice(null);
       setLunchPriceInput('');
       
-      // This should show a notification - but BreakfastHistoryTab doesn't have SuccessNotification
-      // For now, we'll keep the alert until we implement proper notification system for this component
       alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf ${newPrice.toFixed(2)} € aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Mittagessen-Preises:', error);
