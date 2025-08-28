@@ -2737,6 +2737,17 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
           )}
         </div>
       </div>
+      
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
     </div>
   );
 };
