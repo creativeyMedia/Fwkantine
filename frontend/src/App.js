@@ -4643,14 +4643,6 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
         />
       )}
 
-      {showNewBreakfast && (
-        <NewBreakfastItemModal
-          title="Neues Brötchen hinzufügen"
-          onCreateItem={(rollType, price) => onCreateMenuItem('breakfast', rollType, price)}
-          onClose={() => setShowNewBreakfast(false)}
-        />
-      )}
-
       {showNewTopping && (
         <NewToppingItemModal
           title="Neuer Belag hinzufügen"
