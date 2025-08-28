@@ -2005,6 +2005,10 @@ const DepartmentAdminDashboard = () => {
   const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
   const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
   
+  // NEW: Flexible Payment Modal State  
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentEmployeeData, setPaymentEmployeeData] = useState(null);
+  
   const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
