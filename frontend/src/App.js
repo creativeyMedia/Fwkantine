@@ -2427,6 +2427,36 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
     }
   }, [employee?.id]);
 
+  // Combined history logic (same as IndividualEmployeeProfile)
+  const getCombinedHistory = () => {
+    const combinedItems = [];
+    
+    // Add orders
+    if (orders) {
+      orders.forEach(order => {
+        combinedItems.push({
+          type: 'order',
+          date: order.timestamp,
+          ...order
+        });
+      });
+    }
+    
+    // Add payment logs
+    if (paymentLogs) {
+      paymentLogs.forEach(log => {
+        combinedItems.push({
+          type: 'payment',
+          date: log.timestamp,
+          ...log
+        });
+      });
+    }
+    
+    // Sort by date (most recent first)
+    return combinedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+
   const deleteOrder = async (orderId) => {
     if (window.confirm('Bestellung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       try {
