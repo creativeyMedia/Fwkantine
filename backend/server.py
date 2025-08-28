@@ -148,12 +148,18 @@ class MenuItemSweet(BaseModel):
     name: str
     price: float
 
+class DepartmentSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str
+    boiled_eggs_price: float = 0.50  # Price per boiled egg for this department
+    coffee_price: float = 1.50  # Daily coffee price for this department
+
 class LunchSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     price: float = 0.0
     enabled: bool = True
-    boiled_eggs_price: float = 0.50  # Default price per boiled egg
-    coffee_price: float = 1.50  # Default price for daily coffee
+    boiled_eggs_price: float = 0.50  # Default price per boiled egg (global fallback)
+    coffee_price: float = 1.50  # Default price for daily coffee (global fallback)
 
 class DailyLunchPrice(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
