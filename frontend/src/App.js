@@ -365,8 +365,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
         </div>
 
         <div className="p-6">
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Balance Overview - Simplified 50/50 Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
               <p className="text-2xl font-bold text-blue-600">{employeeProfile.breakfast_total.toFixed(2)} €</p>
@@ -374,14 +374,6 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
               <p className="text-2xl font-bold text-green-600">{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-800">Gesamt Bestellungen</h3>
-              <p className="text-2xl font-bold text-purple-600">{employeeProfile.total_orders}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
-              <p className="text-2xl font-bold text-orange-600">{(employeeProfile.breakfast_total + employeeProfile.drinks_sweets_total).toFixed(2)} €</p>
             </div>
           </div>
 
