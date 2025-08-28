@@ -9,7 +9,7 @@ import requests
 import json
 from datetime import datetime, date
 
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 DEPARTMENT_ID = "fw4abteilung2"
 
 def debug_balance_calculations():

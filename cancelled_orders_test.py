@@ -19,7 +19,7 @@ Key endpoints to test:
 - GET /orders/breakfast-history/{department_id} (should exclude cancelled)
 - GET /department-admin/breakfast-history/{department_id} (should exclude cancelled)
 
-BACKEND URL: https://mealflow-1.preview.emergentagent.com/api
+BACKEND URL: https://canteen-manager-2.preview.emergentagent.com/api
 DEPARTMENT: 1. Wachabteilung (fw4abteilung1)
 CREDENTIALS: Employee: password1, Admin: admin1
 
@@ -33,7 +33,7 @@ from datetime import datetime
 import uuid
 
 # Configuration - Use production backend URL from frontend/.env
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "1. Wachabteilung"
 EMPLOYEE_PASSWORD = "password1"
 ADMIN_PASSWORD = "admin1"

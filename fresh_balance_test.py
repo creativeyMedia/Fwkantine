@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, date, timedelta
 import uuid
 
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "4. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung4"
 ADMIN_PASSWORD = "admin4"

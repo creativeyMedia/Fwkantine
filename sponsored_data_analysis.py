@@ -13,7 +13,7 @@ from datetime import datetime, date, timedelta
 import uuid
 
 # Configuration
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 
 class SponsoredDataAnalysis:
     def __init__(self):

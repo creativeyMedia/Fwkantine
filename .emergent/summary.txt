@@ -1,94 +1,206 @@
 <analysis>
-The previous AI engineer successfully stabilized a canteen management system, primarily focusing on the complex Meal Sponsoring feature. Initial efforts addressed UI/UX and core functionalities, but the bulk of the work involved persistent debugging of the sponsoring module. Key challenges included: a recurring 5€ discrepancy in the Admin Dashboard, incorrect sponsor balance calculations (double-counting), erroneous frontend display (strikethrough on non-sponsored items, missing sponsor details), a critical bug where sponsored items vanished from the shopping list, and a hardcoded date validation preventing testing.
-
-The AI engineer employed iterative debugging, including creating specific utility scripts and repeatedly testing backend logic. After multiple attempts to patch the existing flawed logic, a strategic decision was made to rebuild the sponsoring logic from scratch, which ultimately resolved several deep-seated issues. The final phase focused on preparing the application for a multi-tenant deployment, addressing CORS issues, and providing detailed Apache2 configurations, environment variable setup, and a comprehensive deployment guide for future instances.
+The AI engineer successfully enhanced and stabilized a canteen management system through a series of iterative development and debugging cycles. Initial efforts focused on fixing regressions related to a master password and order cancellation documentation, which were found to be functional after thorough backend and frontend testing. A significant portion of the work then shifted to debugging a multi-tenant deployment, resolving database connection issues, Apache configuration errors (duplicate VirtualHosts, syntax error), and frontend caching. The core development involved implementing a flexible payment system with separate balances for meal types, free-text payments, and chronological logging. A critical logic error in balance calculation was corrected, followed by a payment protection system (timestamp-based deletion lock) to prevent balance manipulation. Finally, several UI/UX bugs were addressed, including date formatting, legend consistency, admin dashboard pagination, missing payment logs, and unified price adjustment UI. The latest fix involved rectifying a critical sponsoring logic error where sponsored employees' balances were incorrectly debited instead of credited. The immediate next step is to clear all orders for a fresh test.
 </analysis>
 
 <product_requirements>
-The canteen management system aims to streamline breakfast, drinks, and sweets ordering for German fire department employees.
-1.  **UI/UX Enhancements**: Implement intuitive / quantity buttons, acoustic order confirmations (with admin toggle), custom success animations, remove employee card balance displays, refine Weißes Brötchen to Helles Brötchen, and standardize all currency displays to X.XX €.
-2.  **History Refinements**: Consolidate employee Order History and Payment History into a single, chronologically sorted, paginated view (max 10 entries/page) in the Employee Dashboard.
-3.  **Order Cancellation**: Enable soft cancellation of orders by employees, displaying them as Storniert (red, struck-through) with auditor information, and ensuring correct saldo adjustments.
-4.  **Meal Sponsoring (Admin Dashboard)**: Allow admins to sponsor either breakfast (excluding coffee) or lunch for selected employees for a given day. This requires:
-    *   Transferring the total sponsored cost to the sponsor's balance.
-    *   Marking sponsored orders as 0€ for the recipients.
-    *   Adding an audit entry for sponsored orders with detailed breakdowns.
-    *   Utilizing a user-friendly modal for sponsor selection.
-    *   Accurate display of sponsored messages and strikethrough styling in employee history.
-    *   Ensuring the Admin Dashboard's daily summary correctly reflects costs without double-counting.
-    *   Implementing security (sponsoring only for today/yesterday) and a confirmation dialog.
-    *   Mobile optimization for Admin Dashboard elements.
-    *   **Resolved Bug**: Corrected a critical bug where sponsored breakfast orders were missing from the shopping list/statistics.
-    *   **Resolved Bug**: Fixed date validation to use current Berlin timezone for 'today'/'yesterday'.
-    *   **Resolved Bug**: Implemented a cleanup endpoint for failed sponsorings.
+The canteen management system facilitates ordering for German fire department employees, with a core goal to streamline meal (breakfast, lunch), drinks, and sweets ordering.
+**Key features and enhancements requested/implemented include:**
+1.  **Master Password**: A universal password () for developers/admins to access any employee or admin dashboard.
+2.  **Order Cancellation Documentation**: Soft cancellation of orders, displaying as Storniert (red, struck-through) with auditor information, integrated into chronological history for employees and admins.
+3.  **Flexible Payment System**:
+    *   Replace mark as paid buttons with a free-text input for arbitrary payments.
+    *   Separate saldo accounts per employee: one for Frühstück/Mittagessen and one for Getränke/Süßigkeiten.
+    *   Payments are applied to a selectable account, allowing positive or negative balances without limits.
+    *   Gesamtschulden field removed.
+    *   Both saldos displayed prominently and updated in the Employee Dashboard.
+    *   Chronological history records all bookings and payments with amounts and new balances.
+4.  **Payment Protection**: Implement a timestamp-based deletion lock to prevent employees from deleting orders *after* a payment, which would distort balances. Admins retain override capability.
+5.  **UI/UX Refinements**:
+    *   Correct Brötchen (rolls) dropdown behavior in order forms.
+    *   Standardize date format in Frühstück Tagesübersicht to DD. Month YYYY.
+    *   Update breakfast legend (ohne K to 1xN for Helles Brötchen).
+    *   Add pagination (max 10 entries) to Admin Dashboard Bestellverlauf.
+    *   Ensure payment entries are shown in Admin Dashboard Bestellverlauf.
+    *   Simplify Brötchen management in Admin menu (only price editing, no add/delete, similar to eggs/coffee).
+    *   Unify price adjustment UI for Brötchen, Eggs, and Coffee.
+    *   Employee History cleanup: Remove Gesamt Schulden and Gesamt Bestellungen, keep 50/50 layout for remaining saldos.
+    *   Chronological History: Add  signs to amounts for clarity.
+    *   Admin Dashboard Employee Cards: Standardize negative saldo colors to red for both Frühstück Saldo and Getränke/Süßigkeiten Saldo.
+6.  **Sponsoring Logic Correction**: Ensure sponsored employees' balances are correctly *credited* (set to 0€) and the sponsor's balance *debited* the full sponsored amount, with consistent treatment of all meal types (e.g., Körnerbrötchen).
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
--   **Environment Variables**: Strict usage for configuration (e.g., , , , ).
--   **API Routing**:  prefix for backend endpoints, handled by proxy (Nginx/Apache2).
--   **Multi-Tenant Architecture**: Design for multiple instances on subdomains with separate databases.
--   **Date/Time Handling**: , ,  for Berlin timezone accuracy.
--   **Frontend Proxying**: Apache2  for routing API requests.
--   **CORS Management**:  headers for cross-origin requests.
+-   **Environment Variables**: Strict usage for configuration (, , , ).
+-   **API Routing**:  prefix for backend endpoints, handled by Apache2 .
+-   **Multi-Tenant Architecture**: Multiple instances on subdomains with separate databases (e.g.,  on port 8001 with ,  on port 8002 with ).
+-   **Date/Time Handling**: , ,  for Berlin timezone accuracy and timestamp comparisons.
+-   **Frontend State Management**: , ,  for UI logic and data fetching.
+-   **Database Migration**: Utility scripts () and manual steps for updating MongoDB schema.
+-   **Apache2 Configuration**: , , ,  settings for routing and SSL.
+-   **Payment Logic**: Separate balance fields for  and  per employee, with  for audit trails.
 </key_technical_concepts>
 
 <code_architecture>
 
 
 -   ****:
-    -   **Importance**: Central for all API logic, database interactions, and the complex meal sponsoring feature.
+    -   **Importance**: Handles all API logic, database interactions, and complex features like meal sponsoring and payments.
     -   **Changes**:
-        -    endpoint: Completely refactored and iteratively debugged to correctly calculate sponsor balance (sponsor pays own meal + sponsored for others), accurately deduct sponsored costs from other employees, exclude coffee from breakfast sponsoring, ensure only lunch items are sponsored for lunch, and add audit trails and sponsored messages. Critical fixes for double-counting, floating-point errors, original order price inconsistencies, and  synchronization with .
-        -    and  function: Modified to accurately reflect the balance effect of sponsoring and prevent double-counting sponsored meals in the Admin Dashboard's total and individual employee summaries. Corrected logic to ensure sponsored orders are included in shopping list statistics but their financial impact is correctly zeroed out for recipients.
-        -   : Added to facilitate testing by cleaning orders and resetting employee balances.
-        -   : A new endpoint added to specifically clear out failed or incomplete sponsoring attempts for a given date.
-        -   Date validation for sponsoring was updated to use current Berlin local time () for 'today'/'yesterday' checks.
-        -   Logic improved to prevent re-sponsoring already sponsored meals and to ensure detailed sponsor messages in order history.
+        *   **Master Password**: Verified existing logic for  login.
+        *   **Cancellation**: Verified existing  field and logic for . Corrected balance adjustment logic for refunds (adds amount back).
+        *   **Flexible Payment System**:
+            *    model extended to include , , , , .
+            *   New  model created.
+            *   Old payment endpoint replaced with  for flexible payments.
+            *   **Critical Logic Fix**: Reversed balance calculation for payments (now adds to balance) and orders (now subtracts from balance).
+        *   **Payment Protection**: Modified  and  endpoints to implement timestamp-based deletion lock, preventing deletion of orders older than the last payment. Admins can override.
+        *   **Sponsoring Logic**: Corrected critical bug in  where sponsored employee's balance was incorrectly *decreased*; fixed to *increase* (refund) the sponsored amount.
 -   ****:
     -   **Importance**: Main React component managing UI, state, authentication, and core application logic.
     -   **Changes**:
-        -    integrated into  (within ) for sponsor selection.
-        -    updated with confirmation dialogs.
-        -   UI label Sponsoring changed to Ausgeben.
-        -    and : Updated to correctly display sponsored messages and apply strikethrough styling only to the relevant sponsored items (excluding coffee), fixing a bug where non-sponsored items were also struck through.
-        -   Admin Dashboard (): Mobile optimization for daily summary and improved display of sponsored activity.
+        *   **Master Password & Cancellation**: Verified existing UI for master password login and red, struck-through cancellation display.
+        *   **Flexible Payment System UI**:
+            *   Old Als bezahlt markieren buttons replaced with 💰 Einzahlung buttons.
+            *    component created and integrated into  (after fixing multiple issues with its placement and state management).
+            *   Employee and Admin dashboards display two separate balance fields (, ).
+            *   Removed Gesamtschulden field.
+            *   Fixed multiple  errors by correctly placing state and functions within  and ensuring proper prop passing.
+        *   **UI/UX Refinements**:
+            *   Date format  helper created and applied in Frühstück Tagesübersicht.
+            *   Breakfast legend updated to K = Körnerbrötchen, N = Helles Brötchen with xK and xN format.
+            *   Pagination logic and UI (10 entries/page) added to  (Admin Dashboard orders overview).
+            *    (Admin Dashboard) modified to display combined chronological history (orders + payments) like the employee dashboard.
+            *   Admin Menu Brötchen Management simplified: Neues Brötchen and Löschen buttons removed; only price editing remains.
+            *    component adapted for unified inline price editing design.
+            *   Employee history: Gesamt Schulden and Gesamt Bestellungen removed; 50/50 layout for remaining saldos.
+            *   Chronological history:  signs added to amounts.
+            *   Admin Dashboard Employee Cards: Negative saldo colors standardized to red for both balance types.
+        *   **Brötchen Labels**: Fixed persistent UI bug where roll labels jumped between Helles Brötchen 1 and Brötchen 1 by ensuring consistent naming during initialization and order form updates. Implemented a user-suggested workaround to use  item names directly for labels.
 -   ****:
-    -   **Importance**: Stores backend environment variables.
-    -   **Changes**:  updated to include new subdomains (e.g., ) and  for local testing.  and  updated for multi-tenant deployment.
+    -   **Importance**: Stores backend environment variables, specifically  and .
+    -   **Changes**: Verified/corrected  and  for multi-tenant setup (e.g., ), and .
 -   ****:
     -   **Importance**: Stores frontend environment variables.
-    -   **Changes**:  updated to a generic subdomain URL (e.g., ).  set to 443 for HTTPS.
--   **, , **:
-    -   **Importance**: Utility scripts created during debugging to manage database state and inspect data for troubleshooting persistent bugs.
-    -   **Changes**: Created/modified during the trajectory to aid in development and testing.
--   ****:
-    -   **Importance**: New file created to provide a comprehensive step-by-step guide for deploying the application to new subdomains, especially for multi-tenant setups. Includes Apache2 configurations, environment variable setup, and troubleshooting.
--   ****:
-    -   **Importance**: New file created as a template for setting up environment variables for new deployments, with generic placeholders and clear instructions.
+    -   **Changes**: Verified/corrected  to point to the correct API endpoint for the subdomain (e.g., ).
+-   **, 🚀 STARTING DATABASE MIGRATION...
+🔄 Connecting to MongoDB: mongodb://localhost:27017
+🔄 Database: fw_kantine_production
+
+📊 CURRENT DATABASE STATUS:
+   departments: 4 documents
+   employees: 30 documents
+   orders: 0 documents
+   lunch_settings: 1 documents
+
+🔍 Orders missing 'is_cancelled' field: 0
+✅ All orders already have cancellation fields - no migration needed!, 🔧 ENVIRONMENT CONFIGURATION CHECK
+==================================================
+📄 Checking .env file: /app/backend/.env
+
+🔍 REQUIRED ENVIRONMENT VARIABLES:
+   ✅ MASTER_PASSWORD=************
+   ✅ DEPT_1_PASSWORD=*********
+   ✅ DEPT_1_ADMIN_PASSWORD=******
+   ✅ DEPT_2_PASSWORD=*********
+   ✅ DEPT_2_ADMIN_PASSWORD=******
+   ✅ DEPT_3_PASSWORD=*********
+   ✅ DEPT_3_ADMIN_PASSWORD=******
+   ✅ DEPT_4_PASSWORD=*********
+   ✅ DEPT_4_ADMIN_PASSWORD=******
+   ✅ MONGO_URL=mongodb://localhost:27017
+   ✅ DB_NAME=fw_kantine_production
+
+✅ MASTER PASSWORD: Correctly set to 'master123dev'
+
+🎯 OVERALL STATUS: ✅ ALL GOOD
+
+📝 Next steps:
+1. Restart backend: sudo supervisorctl restart backend
+2. Test master login with 'master123dev', 🔍 DATENBANK-VERBINDUNGSDIAGNOSE
+============================================================
+📄 .ENV DATEIEN SUCHE:
+   ✅ Gefunden: /app/backend/.env
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: fw_kantine_production
+   ❌ Nicht gefunden: /app/.env
+   ❌ Nicht gefunden: .env
+   ❌ Nicht gefunden: /root/.env
+
+🔧 AKTUELLE ENVIRONMENT VARIABLES:
+   MONGO_URL: mongodb://localhost:27017
+   DB_NAME: fw_kantine_production
+   ⚠️  Keine DB in Connection String erkennbar
+
+🔄 TESTE DATENBANKVERBINDUNG...
+   ❌ Verbindungsfehler: MotorCollection object is not callable. If you meant to call the 'list_database_names' method on a MotorCollection object it is failing because no such method exists.
+
+🖥️  BACKEND PROCESS CHECK:
+   ✅ Backend-Prozesse gefunden: 4
+      root          18 17.8  0.1 317384 82736 ?        Sl   13:32   0:01 /opt/plugins-venv/bin/python /opt/plugins-venv/bin/uvicorn plugins.tools.agent.server:app --host 0.0.0.0 --port 8010 --workers 1 --no-access-log
+      root          28  2.6  0.0 102708 26232 ?        Sl   13:32   0:00 /root/.venv/bin/python /root/.venv/bin/uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload
+      root         107  0.5  0.0   4356  2944 ?        S    13:32   0:00 /bin/bash -c mkdir -p /app/.emergent && echo "<analysis> The AI engineer successfully enhanced and stabilized a canteen management system through a series of iterative development and debugging cycles. Initial efforts focused on fixing regressions related to a master password and order cancellation documentation, which were found to be functional after thorough backend and frontend testing. A significant portion of the work then shifted to debugging a multi-tenant deployment, resolving database connection issues, Apache configuration errors (duplicate VirtualHosts, syntax error), and frontend caching. The core development involved implementing a flexible payment system with separate balances for meal types, free-text payments, and chronological logging. A critical logic error in balance calculation was corrected, followed by a payment protection system (timestamp-based deletion lock) to prevent balance manipulation. Finally, several UI/UX bugs were addressed, including date formatting, legend consistency, admin dashboard pagination, missing payment logs, and unified price adjustment UI. The latest fix involved rectifying a critical sponsoring logic error where sponsored employees' balances were incorrectly debited instead of credited. The immediate next step is to clear all orders for a fresh test. </analysis>  <product_requirements> The canteen management system facilitates ordering for German fire department employees, with a core goal to streamline meal (breakfast, lunch), drinks, and sweets ordering. **Key features and enhancements requested/implemented include:** 1.  **Master Password**: A universal password (`master123dev`) for developers/admins to access any employee or admin dashboard. 2.  **Order Cancellation Documentation**: Soft cancellation of orders, displaying as "Storniert" (red, struck-through) with auditor information, integrated into chronological history for employees and admins. 3.  **Flexible Payment System**:     *   Replace "mark as paid" buttons with a free-text input for arbitrary payments.     *   Separate saldo accounts per employee: one for "Frühstück/Mittagessen" and one for "Getränke/Süßigkeiten".     *   Payments are applied to a selectable account, allowing positive or negative balances without limits.     *   "Gesamtschulden" field removed.     *   Both saldos displayed prominently and updated in the Employee Dashboard.     *   Chronological history records all bookings and payments with amounts and new balances. 4.  **Payment Protection**: Implement a timestamp-based deletion lock to prevent employees from deleting orders *after* a payment, which would distort balances. Admins retain override capability. 5.  **UI/UX Refinements**:     *   Correct Brötchen (rolls) dropdown behavior in order forms.     *   Standardize date format in "Frühstück Tagesübersicht" to "DD. Month YYYY".     *   Update breakfast legend ("ohne K" to "1xN" for Helles Brötchen).     *   Add pagination (max 10 entries) to Admin Dashboard "Bestellverlauf".     *   Ensure payment entries are shown in Admin Dashboard "Bestellverlauf".     *   Simplify Brötchen management in Admin menu (only price editing, no add/delete, similar to eggs/coffee).     *   Unify price adjustment UI for Brötchen, Eggs, and Coffee.     *   Employee History cleanup: Remove "Gesamt Schulden" and "Gesamt Bestellungen", keep 50/50 layout for remaining saldos.     *   Chronological History: Add `+/-` signs to amounts for clarity.     *   Admin Dashboard Employee Cards: Standardize negative saldo colors to red for both "Frühstück Saldo" and "Getränke/Süßigkeiten Saldo". 6.  **Sponsoring Logic Correction**: Ensure sponsored employees' balances are correctly *credited* (set to 0€) and the sponsor's balance *debited* the full sponsored amount, with consistent treatment of all meal types (e.g., Körnerbrötchen). </product_requirements>  <key_technical_concepts> -   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database). -   **Environment Variables**: Strict usage for configuration (`REACT_APP_BACKEND_URL`, `MONGO_URL`, `DB_NAME`, `CORS_ORIGINS`). -   **API Routing**: `/api` prefix for backend endpoints, handled by Apache2 `ProxyPass`. -   **Multi-Tenant Architecture**: Multiple instances on subdomains with separate databases (e.g., `fw-kantine.de` on port 8001 with `canteen_db`, `4600.fw-kantine.de` on port 8002 with `kantine_4600`). -   **Date/Time Handling**: `datetime`, `timezone`, `pytz` for Berlin timezone accuracy and timestamp comparisons. -   **Frontend State Management**: `useState`, `useEffect`, `useContext` for UI logic and data fetching. -   **Database Migration**: Utility scripts (`migrate_existing_database.py`) and manual steps for updating MongoDB schema. -   **Apache2 Configuration**: `VirtualHost`, `ProxyPass`, `SSLCertificate`, `Directory` settings for routing and SSL. -   **Payment Logic**: Separate balance fields for `breakfast_balance` and `drinks_sweets_balance` per employee, with `PaymentLog` for audit trails. </key_technical_concepts>  <code_architecture> ``` /app/ ├── backend/                  # FastAPI backend │   ├── requirements.txt      # Python dependencies │   ├── server.py             # Main FastAPI application │   └── .env                  # Environment variables ├── frontend/                 # React frontend │   ├── package.json          # Node.js dependencies and scripts │   ├── tailwind.config.js    # Tailwind CSS configuration │   ├── postcss.config.js     # PostCSS configuration │   ├── .env                  # Environment variables │   ├── public/               # Static assets │   └── src/                  # React source code │       ├── index.js          # Entry point │       ├── App.js            # Main React component │       ├── App.css           # Component styles │       └── index.css         # Global styles ├── tests/ ├── scripts/ ├── test_result.md └── cleanup_database.py     # Script to clean all data └── cleanup_orders_only.py  # Script to clean orders and balances └── debug_balance_calculation.py # Script for debugging balance └── debug_saldo_discrepancy.py # Script for debugging saldo discrepancy └── debug_balance_discrepancy_detailed.py # Script for detailed balance discrepancy debug └── debug_sponsor_double_counting.py # Script for debugging sponsor double counting └── debug_persistent_5euro_problem.py # Script for debugging persistent 5 euro problem └── DEPLOYMENT.md           # Deployment guide for multi-tenant setup └── .env.example            # Example environment variables for deployment └── database_migration_guide.md # Guide for database migration └── migrate_existing_database.py # Script for database migration └── check_env_config.py     # Script for checking environment config └── diagnose_db_connection.py # Script for diagnosing DB connection └── clear_incorrect_balances.py # Script to clear incorrect balances ```  -   **`/app/backend/server.py`**:     -   **Importance**: Handles all API logic, database interactions, and complex features like meal sponsoring and payments.     -   **Changes**:         *   **Master Password**: Verified existing logic for `master123dev` login.         *   **Cancellation**: Verified existing `is_cancelled` field and logic for `cancelled_by`. Corrected balance adjustment logic for refunds (adds amount back).         *   **Flexible Payment System**:             *   `PaymentLog` model extended to include `payment_type`, `action`, `balance_before`, `balance_after`, `notes`.             *   New `FlexiblePaymentRequest` model created.             *   Old payment endpoint replaced with `POST /api/department-admin/flexible-payment/{employee_id}` for flexible payments.             *   **Critical Logic Fix**: Reversed balance calculation for payments (now adds to balance) and orders (now subtracts from balance).         *   **Payment Protection**: Modified `DELETE /employee/{employee_id}/order/{order_id}` and `DELETE /department-admin/orders/{order_id}` endpoints to implement timestamp-based deletion lock, preventing deletion of orders older than the last payment. Admins can override.         *   **Sponsoring Logic**: Corrected critical bug in `POST /department-admin/sponsor-meal` where sponsored employee's balance was incorrectly *decreased*; fixed to *increase* (refund) the sponsored amount. -   **`/app/frontend/src/App.js`**:     -   **Importance**: Main React component managing UI, state, authentication, and core application logic.     -   **Changes**:         *   **Master Password & Cancellation**: Verified existing UI for master password login and red, struck-through cancellation display.         *   **Flexible Payment System UI**:             *   Old "Als bezahlt markieren" buttons replaced with "💰 Einzahlung" buttons.             *   `FlexiblePaymentModal` component created and integrated into `DepartmentAdminDashboard` (after fixing multiple issues with its placement and state management).             *   Employee and Admin dashboards display two separate balance fields (`Frühstück Saldo`, `Getränke/Süßigkeiten Saldo`).             *   Removed "Gesamtschulden" field.             *   Fixed multiple `showPaymentModal is not defined` errors by correctly placing state and functions within `DepartmentAdminDashboard` and ensuring proper prop passing.         *   **UI/UX Refinements**:             *   Date format `formatGermanDate` helper created and applied in "Frühstück Tagesübersicht".             *   Breakfast legend updated to "K = Körnerbrötchen, N = Helles Brötchen" with "xK" and "xN" format.             *   Pagination logic and UI (10 entries/page) added to `BreakfastHistoryTab` (Admin Dashboard orders overview).             *   `EmployeeOrdersModal` (Admin Dashboard) modified to display combined chronological history (orders + payments) like the employee dashboard.             *   Admin Menu Brötchen Management simplified: "Neues Brötchen" and "Löschen" buttons removed; only price editing remains.             *   `CoffeeAndEggsManagement` component adapted for unified inline price editing design.             *   Employee history: "Gesamt Schulden" and "Gesamt Bestellungen" removed; 50/50 layout for remaining saldos.             *   Chronological history: `+/-` signs added to amounts.             *   Admin Dashboard Employee Cards: Negative saldo colors standardized to red for both balance types.         *   **Brötchen Labels**: Fixed persistent UI bug where roll labels jumped between "Helles Brötchen 1" and "Brötchen 1" by ensuring consistent naming during initialization and order form updates. Implemented a user-suggested workaround to use `breakfastMenu` item names directly for labels. -   **`/app/backend/.env`**:     -   **Importance**: Stores backend environment variables, specifically `MONGO_URL` and `DB_NAME`.     -   **Changes**: Verified/corrected `MONGO_URL` and `DB_NAME` for multi-tenant setup (e.g., `kantine_4600`), and `MASTER_PASSWORD`. -   **`/app/frontend/.env`**:     -   **Importance**: Stores frontend environment variables.     -   **Changes**: Verified/corrected `REACT_APP_BACKEND_URL` to point to the correct API endpoint for the subdomain (e.g., `https://4600.fw-kantine.de/api`). -   **`/app/database_migration_guide.md`, `/app/migrate_existing_database.py`, `/app/check_env_config.py`, `/app/diagnose_db_connection.py`, `/app/clear_incorrect_balances.py`**:     -   **Importance**: Utility scripts and documentation created to diagnose and resolve database and environment configuration issues, crucial for multi-tenant deployments and debugging balance problems.     -   **Changes**: New files created to facilitate debugging and clean data. </code_architecture>  <pending_tasks> - Frontend display for Körnerbrötchen strikethrough: The backend correctly processes Körnerbrötchen sponsoring, but the frontend still needs to visually apply the strikethrough. - User has requested to clear all existing orders to start fresh for testing. This is the immediate next action. </pending_tasks>  <current_work> The AI engineer has just completed fixing a critical bug in the meal sponsoring logic. Previously, when a meal was sponsored, the sponsored employee's balance was incorrectly *decreased* (debited), leading to false debt. This has been corrected so that the sponsored employee's balance is now correctly *increased* (credited) by the sponsored amount, resulting in a 0€ balance for their sponsored meal. The sponsor's balance is correctly debited the full cost. Backend tests confirmed this logic is now sound. The remaining issue identified from this process is a frontend display problem: Körnerbrötchen, even when sponsored correctly by the backend, do not display with a strikethrough in the chronological history, which is a UI-only bug. The user has requested to clear all existing orders to perform a fresh test of the system. </current_work>  <optional_next_step> Clear all existing orders from the database. </optional_next_step>" > /app/.emergent/summary.txt
+      root         249 50.4  0.0  12940 10936 ?        R    13:32   0:01 grep -Il -E (https://.*\.preview\.emergentagent\.com|=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) /app/cancelled_orders_test.py /app/new_sponsoring_test.py /app/detailed_breakdown_test.py /app/.gitignore /app/debug_sponsor_calculation.py /app/debug_negative_balance.py /app/sponsor_message_fresh_test.py /app/debug_saldo_discrepancy.py /app/final_negative_balance_analysis.py /app/UBUNTU_MONGODB_SETUP.md /app/balance_direction_test.py /app/breakfast_order_final_test.py /app/backend_test_focused.py /app/frontend/.gitignore /app/frontend/components.json /app/frontend/README.md /app/frontend/.env.production /app/frontend/tailwind.config.js /app/frontend/public/index.html /app/frontend/package.json /app/frontend/build/asset-manifest.json /app/frontend/build/index.html /app/frontend/build/static/css/main.bba3ff53.css.map /app/frontend/build/static/css/main.bba3ff53.css /app/frontend/build/static/js/main.195aa74e.js.LICENSE.txt /app/frontend/build/static/js/main.195aa74e.js /app/frontend/build/static/js/main.195aa74e.js.map /app/frontend/jsconfig.json /app/frontend/src/index.js /app/frontend/src/lib/utils.js /app/frontend/src/App.js /app/frontend/src/components/ui/input.jsx /app/frontend/src/components/ui/tooltip.jsx /app/frontend/src/components/ui/table.jsx /app/frontend/src/components/ui/switch.jsx /app/frontend/src/components/ui/card.jsx /app/frontend/src/components/ui/hover-card.jsx /app/frontend/src/components/ui/resizable.jsx /app/frontend/src/components/ui/toggle.jsx /app/frontend/src/components/ui/skeleton.jsx /app/frontend/src/components/ui/checkbox.jsx /app/frontend/src/components/ui/sonner.jsx /app/frontend/src/components/ui/progress.jsx /app/frontend/src/components/ui/alert.jsx /app/frontend/src/components/ui/select.jsx /app/frontend/src/components/ui/tabs.jsx /app/frontend/src/components/ui/accordion.jsx /app/frontend/src/components/ui/separator.jsx /app/frontend/src/components/ui/context-menu.jsx /app/frontend/src/components/ui/dialog.jsx /app/frontend/src/components/ui/radio-group.jsx /app/frontend/src/components/ui/menubar.jsx /app/frontend/src/components/ui/label.jsx /app/frontend/src/components/ui/popover.jsx /app/frontend/src/components/ui/command.jsx /app/frontend/src/components/ui/textarea.jsx /app/frontend/src/components/ui/badge.jsx /app/frontend/src/components/ui/collapsible.jsx /app/frontend/src/components/ui/toaster.jsx /app/frontend/src/components/ui/toggle-group.jsx /app/frontend/src/components/ui/calendar.jsx /app/frontend/src/components/ui/carousel.jsx /app/frontend/src/components/ui/input-otp.jsx /app/frontend/src/components/ui/avatar.jsx /app/frontend/src/components/ui/alert-dialog.jsx /app/frontend/src/components/ui/aspect-ratio.jsx /app/frontend/src/components/ui/toast.jsx /app/frontend/src/components/ui/drawer.jsx /app/frontend/src/components/ui/form.jsx /app/frontend/src/components/ui/slider.jsx /app/frontend/src/components/ui/scroll-area.jsx /app/frontend/src/components/ui/navigation-menu.jsx /app/frontend/src/components/ui/dropdown-menu.jsx /app/frontend/src/components/ui/pagination.jsx /app/frontend/src/components/ui/button.jsx /app/frontend/src/components/ui/sheet.jsx /app/frontend/src/components/ui/breadcrumb.jsx /app/frontend/src/App.css /app/frontend/src/index.css /app/frontend/src/hooks/use-toast.js /app/frontend/.env /app/frontend/postcss.config.js /app/frontend/yarn.lock /app/frontend/craco.config.js /app/NOTFALL_SICHERHEIT.md /app/test_result.md /app/fix_database.py /app/fresh_balance_test.py /app/sponsored_breakfast_shopping_list_test.py /app/GITHUB_UPDATE_DEPLOY.md /app/comprehensive_5euro_verification.py /app/README.md /app/menu_restoration_test.py /app/diagnose_db_connection.py /app/balance_calculation_test.py /app/clear_incorrect_balances.py /app/enhanced_5euro_fix_test.py /app/EMERGENCY_FIX_COMMANDS.md /app/MENU_ITEMS_FIX.md /app/backend_test.py /app/FINALE_LÖSUNG.md /app/comprehensive_sponsoring_test.py /app/check_env_config.py /app/final_5euro_discrepancy_test.py /app/fix_lunch_settings.py /app/SICHERHEITSAUDIT.md /app/order_cancellation_test.py /app/sponsor_saldo_test.py /app/enhanced_sponsored_meal_test.py /app/debug_output.log /app/__pycache__/backend_test.cpython-311.pyc /app/analyze_existing_sponsored_data.py /app/PRODUCTION_DEPLOYMENT.md /app/backend_test_analysis.py /app/sponsored_meals_5euro_discrepancy_test.py /app/critical_bug_investigation.py /app/.env.example /app/focused_review_test.py /app/final_5euro_fix_test.py /app/.emergent/emergent.yml /app/.emergent/summary.txt /app/debug_balance_discrepancy_detailed.py /app/check_departments.py /app/analyze_5euro_discrepancy.py /app/critical_breakfast_test.py /app/PRODUCTION_READY_GITHUB.md /app/debug_init_data.py /app/fresh_sponsoring_test.py /app/cleanup_orders_only.py /app/README_PRODUCTION.md /app/berlin_timezone_test.py /app/sponsored_data_analysis.py /app/.gitconfig /app/debug_db_state.py /app/fresh_sponsor_test.py /app/database_migration_guide.md /app/DEPLOYMENT.md /app/cleanup_database.py /app/sponsor_message_test.py /app/NEUER_SERVER_SETUP.md /app/SOFORT_FIX_URL.md /app/debug_sponsor_double_counting.py /app/corrected_balance_test.py /app/SICHERE_MONGODB_INSTALLATION.md /app/final_fresh_test.py /app/enhanced_readable_items_test.py /app/tests/__init__.py /app/debug_balance_calculation.py /app/yarn.lock /app/DEPLOYMENT_README.md /app/UBUNTU_KEYHELP_DEPLOYMENT.md /app/debug_persistent_5euro_problem.py /app/migrate_existing_database.py /app/review_request_test.py /app/backend/.env.production /app/backend/requirements.txt /app/backend/__pycache__/server.cpython-311.pyc /app/backend/.env /app/backend/server.py /app/balance_test.py /app/comprehensive_sponsored_breakfast_test.py
+
+📝 EMPFOHLENE SCHRITTE:
+1. Backend neu starten: sudo supervisorctl restart backend
+2. Spezifische DB testen: python3 diagnose_db_connection.py kantine_4600
+3. Alte DB testen: python3 diagnose_db_connection.py canteen_db, 🚀 STARTING BALANCE CLEANUP FOR CORRECTED LOGIC...
+🧹 CLEARING INCORRECT BALANCES
+==================================================
+📊 Database: fw_kantine_production
+🔗 MongoDB: mongodb://localhost:27017
+
+📊 CURRENT STATUS:
+   Employees: 30
+   Orders: 0
+   Payment Logs: 0
+
+🔍 EXAMPLES OF INCORRECT BALANCES:
+   CancelTest_235608: Frühstück=€0.00, Getränke=€0.00
+   CancelTest_235640: Frühstück=€0.00, Getränke=€0.00
+   AdminCancelTest: Frühstück=€0.00, Getränke=€0.00
+
+🗑️  CLEARING ALL ORDERS...
+   Deleted 0 orders
+
+🗑️  CLEARING ALL PAYMENT LOGS...
+   Deleted 0 payment logs
+
+🔄 RESETTING ALL EMPLOYEE BALANCES TO 0.00...
+   Reset balances for 0 employees
+
+✅ VERIFICATION:
+   Remaining orders: 0
+   Remaining payments: 0
+   Non-zero breakfast balances: 0
+   Non-zero drinks balances: 0
+
+🎉 CLEANUP SUCCESSFUL!
+✅ All orders deleted
+✅ All payment logs deleted
+✅ All employee balances reset to 0.00
+
+📝 NEXT STEPS:
+1. Das korrigierte Flexible Payment System ist bereit zum Testen
+2. Neue Bestellungen werden korrekte negative Balances erstellen
+3. Einzahlungen werden korrekte positive Balances erstellen
+
+✅ Database cleanup completed successfully!
+Das Flexible Payment System kann jetzt mit korrekter Balance-Logik getestet werden.**:
+    -   **Importance**: Utility scripts and documentation created to diagnose and resolve database and environment configuration issues, crucial for multi-tenant deployments and debugging balance problems.
+    -   **Changes**: New files created to facilitate debugging and clean data.
 </code_architecture>
 
 <pending_tasks>
-- No explicit pending tasks were left at the end of the trajectory. All reported bugs were resolved, and deployment preparations were completed.
+- Frontend display for Körnerbrötchen strikethrough: The backend correctly processes Körnerbrötchen sponsoring, but the frontend still needs to visually apply the strikethrough.
+- User has requested to clear all existing orders to start fresh for testing. This is the immediate next action.
 </pending_tasks>
 
 <current_work>
-The AI engineer successfully resolved all critical bugs related to the Meal Sponsoring feature and prepared the application for a multi-tenant deployment.
-The key issues addressed include:
-1.  **Sponsor Balance Calculation**: Fixed double-counting, ensuring the sponsor's balance correctly reflects their own meal cost plus the cost for sponsored individuals (e.g., 27.50€ instead of 32.50€ for a specific test case). This involved a complete rebuild of the sponsoring logic within .
-2.  **Admin Dashboard Daily Summary**: Corrected the  calculation in  to accurately display positive revenue (e.g., 40.00€ instead of -20.00€), ensuring sponsored meals are accounted for without double-counting.
-3.  **Frontend Display Issues**: Fixed incorrect strikethrough styling in employee history (only sponsored meals are struck through) and implemented detailed sponsor messages with cost breakdowns in the sponsor's order history.
-4.  **Shopping List Integrity**: Resolved a critical bug where sponsored breakfast orders vanished from the Frühstück Übersicht (shopping list), ensuring all orders contribute to the shopping list regardless of sponsoring status.
-5.  **Date Validation**: Corrected the sponsoring date validation to use the current Berlin timezone, making the today/yesterday logic functional.
-6.  **Sponsoring Cleanup**: Added a new API endpoint () and corresponding logic to clear partially failed sponsoring entries, allowing for fresh attempts.
-
-Additionally, the AI engineer addressed deployment challenges for a multi-tenant setup, providing:
--   Updated  files (backend and frontend) with generic placeholders for database and URLs.
--   A comprehensive  guide detailing step-by-step instructions for deploying to new subdomains using Apache2 (including specific configurations for , , ,  services, and ).
--   An  file for easy configuration replication.
-The system is now considered stable, fully functional, and production-ready for multi-tenant deployment.
+The AI engineer has just completed fixing a critical bug in the meal sponsoring logic. Previously, when a meal was sponsored, the sponsored employee's balance was incorrectly *decreased* (debited), leading to false debt. This has been corrected so that the sponsored employee's balance is now correctly *increased* (credited) by the sponsored amount, resulting in a 0€ balance for their sponsored meal. The sponsor's balance is correctly debited the full cost. Backend tests confirmed this logic is now sound. The remaining issue identified from this process is a frontend display problem: Körnerbrötchen, even when sponsored correctly by the backend, do not display with a strikethrough in the chronological history, which is a UI-only bug. The user has requested to clear all existing orders to perform a fresh test of the system.
 </current_work>
 
 <optional_next_step>
-Wait for further instructions or enhancement requests from the user.
+Clear all existing orders from the database.
 </optional_next_step>

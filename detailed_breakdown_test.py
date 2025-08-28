@@ -11,7 +11,7 @@ import json
 from datetime import datetime, date, timedelta
 
 # Configuration
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "2. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"

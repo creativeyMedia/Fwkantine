@@ -9,7 +9,7 @@ import requests
 import json
 from datetime import datetime, date
 
-BASE_URL = "https://mealflow-1.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
 DEPARTMENT_ID = "fw4abteilung3"  # 3. Wachabteilung wie vom User angegeben
 
 def debug_saldo_discrepancy():
