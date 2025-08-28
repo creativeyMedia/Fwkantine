@@ -1326,7 +1326,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
                   <p className="text-orange-600">Getränke und Süßigkeiten können weiterhin bestellt werden.</p>
                 </div>
               </div>
-            ) : lunchSettings.boiled_eggs_price !== undefined && lunchSettings.coffee_price !== undefined ? (
+            ) : lunchSettings.boiled_eggs_price !== null && lunchSettings.coffee_price !== null ? (
               <BreakfastOrderForm
                 breakfastMenu={breakfastMenu}
                 toppingsMenu={toppingsMenu}
