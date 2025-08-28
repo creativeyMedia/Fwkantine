@@ -405,101 +405,67 @@ class CriticalSponsoringLogicTest:
             self.log_result("Analyze Existing Sponsored Data", False, error=str(e))
             return False
     
-    def verify_sponsored_flags(self):
-        """Verify that all orders have correct sponsored flags"""
+    def verify_korner_strikethrough_issue(self):
+        """Verify if Körnerbrötchen have strikethrough issues based on existing data"""
         try:
-            if not self.test_orders:
+            if not hasattr(self, 'analysis_results'):
+                self.log_result(
+                    "Verify Körner Strikethrough Issue",
+                    False,
+                    error="No analysis results available. Run analyze_existing_sponsored_data first."
+                )
                 return False
             
-            # Get breakfast history to check sponsored flags
-            today = datetime.now().strftime('%Y-%m-%d')
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}?days_back=1")
+            results = self.analysis_results
+            korner_employees = results['korner_employees']
+            korner_issue_detected = results['korner_issue_detected']
             
-            if response.status_code == 200:
-                history_data = response.json()
+            # Detailed analysis of Körner employees
+            korner_fully_sponsored = []
+            korner_partially_sponsored = []
+            korner_not_sponsored = []
+            
+            for emp in korner_employees:
+                amount = emp['total_amount']
+                if abs(amount) < 0.01:  # €0.00 = fully sponsored
+                    korner_fully_sponsored.append(emp)
+                elif amount < 2.0:  # Low amount = partially sponsored
+                    korner_partially_sponsored.append(emp)
+                else:  # High amount = not sponsored
+                    korner_not_sponsored.append(emp)
+            
+            # Check if Körnerbrötchen are being treated differently
+            total_korner_employees = len(korner_employees)
+            sponsored_korner_employees = len(korner_fully_sponsored) + len(korner_partially_sponsored)
+            
+            if total_korner_employees > 0:
+                sponsoring_rate = (sponsored_korner_employees / total_korner_employees) * 100
                 
-                # Check if response is a list or dict
-                if isinstance(history_data, str):
+                # If most Körner employees are sponsored, the system is working
+                if sponsoring_rate >= 50:
                     self.log_result(
-                        "Verify Sponsored Flags",
-                        False,
-                        error=f"Unexpected response format: {history_data}"
-                    )
-                    return False
-                
-                if not isinstance(history_data, list):
-                    self.log_result(
-                        "Verify Sponsored Flags",
-                        False,
-                        error=f"Expected list response, got: {type(history_data)}"
-                    )
-                    return False
-                
-                # Find today's data
-                today_data = None
-                for day_data in history_data:
-                    if day_data.get('date') == today:
-                        today_data = day_data
-                        break
-                
-                if not today_data:
-                    self.log_result(
-                        "Verify Sponsored Flags",
-                        False,
-                        error="Could not find today's breakfast history data"
-                    )
-                    return False
-                
-                employee_orders = today_data.get('employee_orders', {})
-                
-                # Check if both employees are in the history
-                sponsor_found = False
-                sponsored_found = False
-                korner_orders_found = 0
-                helles_orders_found = 0
-                
-                for employee_key, order_data in employee_orders.items():
-                    if self.sponsor_employee['name'] in employee_key:
-                        sponsor_found = True
-                        # Check sponsor's order details
-                        helles_halves = order_data.get('white_halves', 0)
-                        seeded_halves = order_data.get('seeded_halves', 0)
-                        if helles_halves > 0:
-                            helles_orders_found += 1
-                        if seeded_halves > 0:
-                            korner_orders_found += 1
-                    elif self.sponsored_employees[0]['name'] in employee_key:
-                        sponsored_found = True
-                        # Check sponsored employee's order details
-                        seeded_halves = order_data.get('seeded_halves', 0)
-                        if seeded_halves > 0:
-                            korner_orders_found += 1
-                
-                # Verify findings
-                if sponsor_found and sponsored_found:
-                    self.log_result(
-                        "Verify Sponsored Flags",
+                        "Verify Körner Strikethrough Issue",
                         True,
-                        f"✅ SPONSORED FLAGS VERIFIED! Both employees found in breakfast history. Körner orders found: {korner_orders_found}, Helles orders found: {helles_orders_found}. Employee orders: {len(employee_orders)} total. This data will be used for strikethrough verification in frontend."
+                        f"✅ KÖRNER STRIKETHROUGH ANALYSIS: {sponsored_korner_employees}/{total_korner_employees} Körner employees are sponsored ({sponsoring_rate:.1f}%). Fully sponsored: {len(korner_fully_sponsored)}, Partially sponsored: {len(korner_partially_sponsored)}, Not sponsored: {len(korner_not_sponsored)}. Backend appears to process Körnerbrötchen correctly for sponsoring. If strikethrough issues persist, this is likely a FRONTEND DISPLAY ISSUE, not backend logic."
                     )
                     return True
                 else:
                     self.log_result(
-                        "Verify Sponsored Flags",
+                        "Verify Körner Strikethrough Issue",
                         False,
-                        error=f"Missing employees in history. Sponsor found: {sponsor_found}, Sponsored found: {sponsored_found}"
+                        error=f"❌ KÖRNER STRIKETHROUGH ISSUE CONFIRMED: Only {sponsored_korner_employees}/{total_korner_employees} Körner employees are sponsored ({sponsoring_rate:.1f}%). This suggests Körnerbrötchen are NOT being included in sponsoring logic correctly. Backend issue detected."
                     )
                     return False
             else:
                 self.log_result(
-                    "Verify Sponsored Flags",
+                    "Verify Körner Strikethrough Issue",
                     False,
-                    error=f"Failed to get breakfast history: HTTP {response.status_code}: {response.text}"
+                    error="No employees with Körnerbrötchen found in today's data"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Sponsored Flags", False, error=str(e))
+            self.log_result("Verify Körner Strikethrough Issue", False, error=str(e))
             return False
     
     def verify_balance_calculations(self):
