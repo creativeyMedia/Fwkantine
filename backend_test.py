@@ -670,7 +670,7 @@ class CriticalSponsoringBugFixTest:
         
         # Test sequence
         tests_passed = 0
-        total_tests = 6
+        total_tests = 7
         
         # SETUP
         print("\n🔧 SETUP AND AUTHENTICATION")
