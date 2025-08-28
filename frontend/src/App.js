@@ -1448,9 +1448,13 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       oldAssignmentsByLabel[assignment.rollLabel] = assignment.topping;
     });
     
-    // Add white roll topping slots
+    // Find breakfast menu items for helles and körner
+    const hellesItem = breakfastMenu.find(item => item.roll_type === 'weiss');
+    const koernerItem = breakfastMenu.find(item => item.roll_type === 'koerner');
+    
+    // Add white roll topping slots using menu names
     for (let i = 0; i < whiteRolls; i++) {
-      const rollLabel = `Helles Brötchen ${i + 1}`;
+      const rollLabel = hellesItem ? `${hellesItem.name} ${i + 1}` : `Helles Brötchen ${i + 1}`;
       newAssignments.push({
         id: `white_${i}`,
         rollType: 'weiss',
@@ -1458,9 +1462,9 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         topping: oldAssignmentsByLabel[rollLabel] || ''
       });
     }
-    // Add seeded roll topping slots
+    // Add seeded roll topping slots using menu names  
     for (let i = 0; i < seededRolls; i++) {
-      const rollLabel = `Körnerbrötchen ${i + 1}`;
+      const rollLabel = koernerItem ? `${koernerItem.name} ${i + 1}` : `Körnerbrötchen ${i + 1}`;
       newAssignments.push({
         id: `seeded_${i}`,
         rollType: 'koerner',
@@ -1469,7 +1473,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       });
     }
     setToppingAssignments(newAssignments);
-  }, [whiteRolls, seededRolls]); // Removed toppingAssignments from dependencies to avoid infinite loop
+  }, [whiteRolls, seededRolls, breakfastMenu]); // Added breakfastMenu to dependencies
 
   // Update form data when any valid combination is selected
   useEffect(() => {
