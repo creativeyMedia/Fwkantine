@@ -2436,6 +2436,17 @@ const DepartmentAdminDashboard = () => {
           onPayment={processFlexiblePayment}
         />
       )}
+      
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
       </div>
     </div>
   );
