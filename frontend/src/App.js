@@ -3710,6 +3710,17 @@ const AdminDashboard = () => {
             onRefresh={fetchAllEmployees}
           />
         )}
+        
+        {/* Success Notification */}
+        {showSuccessNotification && (
+          <SuccessNotification
+            message={successMessage}
+            onClose={() => {
+              setShowSuccessNotification(false);
+              setSuccessMessage('');
+            }}
+          />
+        )}
       </div>
     </div>
   );
