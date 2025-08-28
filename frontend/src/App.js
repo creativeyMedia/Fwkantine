@@ -2733,16 +2733,23 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Frühstück:</span>
-                <span className="font-bold text-blue-600">{employee.breakfast_balance.toFixed(2)} €</span>
+                <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                  {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
+                </span>
               </div>
-              {employee.breakfast_balance > 0 && (
-                <button
-                  onClick={() => markAsPaid(employee, 'breakfast')}
-                  className="w-full bg-blue-600 text-white text-xs py-1 px-2 rounded hover:bg-blue-700"
-                >
-                  Als bezahlt markieren
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setPaymentEmployeeData({
+                    employee: employee,
+                    paymentType: 'breakfast',
+                    accountLabel: 'Frühstück'
+                  });
+                  setShowPaymentModal(true);
+                }}
+                className="w-full bg-blue-600 text-white text-xs py-1 px-2 rounded hover:bg-blue-700"
+              >
+                💰 Einzahlung
+              </button>
             </div>
             
             {/* Drinks/Sweets Balance */}
