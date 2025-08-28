@@ -2289,6 +2289,8 @@ const DepartmentAdminDashboard = () => {
               setShowNewEmployee={setShowNewEmployee}
               currentDepartment={currentDepartment}
               onEmployeeUpdate={fetchEmployees}
+              setPaymentEmployeeData={setPaymentEmployeeData}
+              setShowPaymentModal={setShowPaymentModal}
             />
           )}
 
