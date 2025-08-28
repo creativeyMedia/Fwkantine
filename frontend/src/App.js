@@ -974,7 +974,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       const today = new Date().toDateString();
       const todaysOrders = orders.filter(order => {
         const orderDate = new Date(order.timestamp).toDateString();
-        return orderDate === today;
+        return orderDate === today && !order.is_cancelled;  // Exclude cancelled orders
       });
 
       // Populate existing order data if available
