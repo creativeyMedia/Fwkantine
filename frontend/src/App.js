@@ -1058,34 +1058,23 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
   };
 
-  const fetchLunchSettings = async () => {
+  const fetchDepartmentPrices = async () => {
     if (!currentDepartment?.department_id) {
-      console.log("🔍 No department ID available");
       return;
     }
     
     try {
-      console.log("🔍 Fetching for department:", currentDepartment.department_id);
-      // Simple department-specific fetch - just like breakfast/toppings/drinks
+      console.log("🔍 Fetching prices for department:", currentDepartment.department_id);
       const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
-      console.log("🔍 Raw response:", deptResponse.data);
+      console.log("🔍 Department prices loaded:", deptResponse.data);
       
-      const newSettings = {
-        price: 0.0, // Lunch price is handled separately per day
-        enabled: true,
-        boiled_eggs_price: deptResponse.data.boiled_eggs_price,
-        coffee_price: deptResponse.data.coffee_price
-      };
-      
-      console.log("🔍 Setting department prices:", { boiled_eggs_price: deptResponse.data.boiled_eggs_price, coffee_price: deptResponse.data.coffee_price });
       setDepartmentPrices({
         boiled_eggs_price: deptResponse.data.boiled_eggs_price,
         coffee_price: deptResponse.data.coffee_price
       });
       
     } catch (error) {
-      console.error('🔍 ERROR in fetchLunchSettings:', error);
-      // If department settings don't exist, use 0 prices
+      console.error('🔍 ERROR loading department prices:', error);
       setDepartmentPrices({
         boiled_eggs_price: 0,
         coffee_price: 0
