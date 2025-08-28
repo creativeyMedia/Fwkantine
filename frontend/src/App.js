@@ -1065,7 +1065,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     try {
       console.log("🔍 Fetching settings for department:", currentDepartment.department_id);
       // Load department-specific prices and set them like the old system
-      const deptResponse = await axios.get(`${API}/department-settings/${currentDepartment.department_id}`);
+      const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
       console.log("🔍 Department settings loaded:", deptResponse.data);
       
       // Set lunchSettings exactly like the old global system
