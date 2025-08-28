@@ -5622,7 +5622,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
       await fetchLunchSettings();
       setEditingItem(null);
       setEditPrice('');
-      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich für ${currentDepartment.name} aktualisiert`);
+      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren:', error);
       alert('Fehler beim Aktualisieren des Preises');
