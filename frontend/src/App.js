@@ -2606,10 +2606,6 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     }
   };
   
-  // NEW: Flexible Payment Modal State  
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentEmployeeData, setPaymentEmployeeData] = useState(null);
-  
   // NEW: Flexible Payment Function
   const processFlexiblePayment = async (employee, paymentType, amount, notes = '') => {
     try {
