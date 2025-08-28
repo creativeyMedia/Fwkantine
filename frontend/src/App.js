@@ -1059,22 +1059,30 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const fetchLunchSettings = async () => {
     try {
+      console.log("🔍 DEBUG: fetchLunchSettings called for department:", currentDepartment?.department_id);
       // First try to get department-specific settings for eggs and coffee prices
       const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
+      console.log("🔍 DEBUG: Department response:", deptResponse.data);
+      
       // Also get global lunch settings for lunch price and enabled status
       const globalResponse = await axios.get(`${API}/api/lunch-settings`);
+      console.log("🔍 DEBUG: Global response:", globalResponse.data);
       
-      setLunchSettings({
+      const newSettings = {
         price: globalResponse.data.price,
         enabled: globalResponse.data.enabled,
         boiled_eggs_price: deptResponse.data.boiled_eggs_price,
         coffee_price: deptResponse.data.coffee_price
-      });
+      };
+      
+      console.log("🔍 DEBUG: Setting lunchSettings to:", newSettings);
+      setLunchSettings(newSettings);
     } catch (error) {
       console.error('Fehler beim Laden der Department-Einstellungen:', error);
       // Fallback to global settings only
       try {
         const response = await axios.get(`${API}/api/lunch-settings`);
+        console.log("🔍 DEBUG: Fallback to global settings:", response.data);
         setLunchSettings(response.data);
       } catch (fallbackError) {
         console.error('Fehler beim Laden der globalen Lunch-Einstellungen:', fallbackError);
