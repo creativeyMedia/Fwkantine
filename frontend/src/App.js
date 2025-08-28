@@ -1067,10 +1067,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
     
     try {
-      console.log("🔍 Fetching settings for department:", currentDepartment.department_id);
       // Load department-specific prices and set them like the old system
       const deptResponse = await axios.get(`${API}/department-settings/${currentDepartment.department_id}`);
-      console.log("🔍 Department settings loaded:", deptResponse.data);
       
       // Set lunchSettings exactly like the old global system
       setLunchSettings({
@@ -1081,7 +1079,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       });
       
     } catch (error) {
-      console.error('🔍 ERROR loading settings:', error);
+      console.error('Fehler beim Laden der Department-Einstellungen:', error);
       // Fallback to 0 prices
       setLunchSettings({
         price: 0.0,
