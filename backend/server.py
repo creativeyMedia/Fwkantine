@@ -1246,12 +1246,44 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 if order.get("is_sponsored") and not order.get("is_sponsor_order"):
                     # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
                     if order.get("sponsored_meal_type") == "breakfast":
-                        # Only coffee cost remains for breakfast sponsoring
-                        coffee_cost = 0
+                        # For breakfast sponsoring: only rolls + eggs are sponsored, coffee + lunch remain
+                        breakfast_cost = order.get("total_price", 0)
+                        # Calculate the sponsored breakfast cost (rolls + eggs)
+                        sponsored_breakfast_cost = 0
                         for item in order.get("breakfast_items", []):
-                            if item.get("has_coffee", False):
-                                coffee_cost += 1.0  # Coffee price
-                        total_amount += coffee_cost
+                            # Calculate actual breakfast items cost (rolls + eggs)
+                            white_halves = item.get("white_halves", 0)
+                            seeded_halves = item.get("seeded_halves", 0)
+                            boiled_eggs = item.get("boiled_eggs", 0)
+                            
+                            # Get menu prices (use defaults if not found)
+                            white_roll_price = 0.50  # Default
+                            seeded_roll_price = 0.60  # Default
+                            
+                            # Try to get actual department prices
+                            try:
+                                white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                                if white_menu:
+                                    white_roll_price = white_menu.get("price", 0.50)
+                                
+                                seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                                if seeded_menu:
+                                    seeded_roll_price = seeded_menu.get("price", 0.60)
+                            except:
+                                pass  # Use defaults
+                            
+                            # Calculate sponsored breakfast cost
+                            sponsored_breakfast_cost += (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price)
+                            
+                            # Add eggs cost
+                            if boiled_eggs > 0:
+                                lunch_settings = await db.lunch_settings.find_one()
+                                eggs_price = lunch_settings.get("boiled_eggs_price", 0.50) if lunch_settings else 0.50
+                                sponsored_breakfast_cost += boiled_eggs * eggs_price
+                        
+                        # Employee pays: total_cost - sponsored_breakfast_cost
+                        remaining_cost = max(0, breakfast_cost - sponsored_breakfast_cost)
+                        total_amount += remaining_cost
                     elif order.get("sponsored_meal_type") == "lunch":
                         # Breakfast costs remain for lunch sponsoring
                         breakfast_cost = order.get("total_price", 0)
