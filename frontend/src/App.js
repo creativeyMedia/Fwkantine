@@ -5665,7 +5665,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
                 <div className="text-sm text-gray-600">{lunchSettings.boiled_eggs_price.toFixed(2)} € pro Ei</div>
               </div>
               <button
-                onClick={() => startEdit('eggs', lunchSettings.boiled_eggs_price || 0.50)}
+                onClick={() => startEdit('eggs', lunchSettings.boiled_eggs_price)}
                 className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
               >
                 Preis ändern
