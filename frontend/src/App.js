@@ -4287,7 +4287,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
 const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice, onCreateMenuItem, onDeleteMenuItem, fetchMenus, currentDepartment }) => {
   const [showNewDrink, setShowNewDrink] = useState(false);
   const [showNewSweet, setShowNewSweet] = useState(false);
-  const [showNewBreakfast, setShowNewBreakfast] = useState(false);
+  // Removed showNewBreakfast - no longer needed
   const [showNewTopping, setShowNewTopping] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', price: '' });
