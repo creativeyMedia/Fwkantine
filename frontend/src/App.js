@@ -2094,6 +2094,13 @@ const DepartmentAdminDashboard = () => {
     }
   }, [currentDepartment]);
 
+  // Auto-refresh employee data when switching to employees tab
+  useEffect(() => {
+    if (activeTab === 'employees' && currentDepartment) {
+      fetchEmployees();
+    }
+  }, [activeTab, currentDepartment]);
+
   const fetchEmployees = async () => {
     try {
       const response = await axios.get(
