@@ -1,50 +1,46 @@
 #!/usr/bin/env python3
 """
-CRITICAL SPONSORING BUG FIX VERIFICATION
+FINAL SPONSORING BUG FIX VERIFICATION - CLEAN DATABASE
 
-**CRITICAL SPONSORING BALANCE CALCULATION BUG FIX TESTING**
+**CRITICAL BUG FIX APPLIED:**
+- **Line 2842**: Sponsored employees now get CREDITED (`+sponsored_amount`) instead of debited (`-sponsored_amount`)
+- **Clean Database**: All orders, payments, and balances reset to 0.00
 
-Test the corrected sponsoring logic after fixing the critical balance calculation bug.
+**CLEAN TEST SCENARIO:**
 
-**BUG FIX APPLIED:**
-- **CORRECTED**: Sponsored employees now get CREDITED (balance increases) instead of debited
-- **Line 2842**: Changed from `employee["breakfast_balance"] - sponsored_amount` to `employee["breakfast_balance"] + sponsored_amount`
+1. **Create 2 Fresh Employees** in Department "1. Wachabteilung":
+   - Employee A (sponsor) - starts with 0.00 balance
+   - Employee B (sponsored) - starts with 0.00 balance
 
-**VERIFICATION TEST SCENARIO:**
-
-1. **Create Fresh Test Data**:
-   - Create 2 new employees in Department "1. Wachabteilung" 
-   - Employee A (will be sponsor)
-   - Employee B (will be sponsored)
-
-2. **Create Orders**:
-   - Employee A: Create breakfast order (e.g., €5.50) - balance becomes -5.50
-   - Employee B: Create breakfast order (e.g., €4.20) - balance becomes -4.20
+2. **Create Simple Orders**:
+   - Employee A: Simple breakfast order (e.g., Helles Brötchen €2.10)
+   - Employee B: Simple breakfast order (e.g., Körnerbrötchen €2.10)
+   - Both should have -€2.10 balance after ordering
 
 3. **Execute Sponsoring**:
    - Employee A sponsors breakfast for Employee B
-   - Expected: Employee A balance = -5.50 - 4.20 = -9.70 (pays for both)
-   - Expected: Employee B balance = -4.20 + 4.20 = 0.00 (fully sponsored)
+   - Expected after fix:
+     - Employee A: -€2.10 (own) -€2.10 (sponsored) = -€4.20 total
+     - Employee B: -€2.10 +€2.10 (refund) = €0.00 (fully sponsored)
 
-4. **Verify Corrections**:
-   - Employee B should have 0.00 balance (fully refunded)
-   - Employee A should pay for both meals
-   - All breakfast items (Helles + Körner) should be marked `is_sponsored=true`
-   - Frontend should show strikethrough for sponsored items
+4. **Critical Verifications**:
+   - Employee B balance = €0.00 (user's main concern: "false saldo")
+   - Employee A pays for both meals
+   - Orders marked `is_sponsored=true` correctly
+   - Both Helles and Körner treated equally
 
-**EXPECTED RESULTS AFTER FIX:**
-- ✅ Sponsored employees get full refund (balance = 0.00)
-- ✅ Sponsor pays for all sponsored meals
-- ✅ Balance calculations mathematically correct
+**EXPECTED SUCCESS CRITERIA:**
+- ✅ Sponsored employee gets FULL REFUND (balance = 0.00)
+- ✅ Mathematics: Sponsor balance = own_cost + sponsored_cost  
+- ✅ No more "false saldo" issue reported by user
 - ✅ Equal treatment of all breakfast item types
-- ✅ Proper `is_sponsored` flags set
+- ✅ Clean, verifiable test results with fresh data
 
-**CRITICAL VERIFICATION:**
-- The main reported issue should be resolved: balances now calculate correctly
-- User's concern about "false saldo" should be fixed
-- Körnerbrötchen should be treated equally to Helles Brötchen
+**USER'S ORIGINAL PROBLEM:**
+"sollte sich der saldo ändern, wenn ein frühstück ausgegeben wurde, da man ja das frühstück dann nicht mehr selbst bezahlt"
+→ This should now be FIXED with the corrected balance calculation
 
-Use Department "1. Wachabteilung" and verify the fix works with fresh test data.
+Use Department "1. Wachabteilung" with the clean database for accurate testing.
 """
 
 import requests
