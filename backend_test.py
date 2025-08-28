@@ -808,6 +808,10 @@ class CriticalSponsoringBugFixTest:
         print("\n🔍 ADDITIONAL VERIFICATIONS")
         print("-" * 50)
         
+        # Investigate sponsoring discrepancy first
+        if self.investigate_sponsoring_discrepancy():
+            tests_passed += 1
+        
         # Analyze existing sponsored data to verify bug fix
         if self.analyze_existing_sponsored_data_for_bug_fix():
             tests_passed += 1
