@@ -1968,23 +1968,39 @@ const EmployeeProfileDetail = ({ profile, onBack, onClose }) => {
         </div>
 
         <div className="p-6">
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800">Frühstück Saldo</h3>
-              <p className="text-2xl font-bold text-blue-600">{profile.breakfast_total.toFixed(2)} €</p>
+          {/* Summary Stats - 50/50 Layout Only */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className={`border border-gray-300 rounded-lg p-4 ${
+              profile.breakfast_total >= 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold ${
+                profile.breakfast_total >= 0 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Frühstück/Mittag Saldo</h3>
+              <p className={`text-2xl font-bold ${
+                profile.breakfast_total >= 0 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{profile.breakfast_total.toFixed(2)} €</p>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800">Getränke/Süßes Saldo</h3>
-              <p className="text-2xl font-bold text-green-600">{profile.drinks_sweets_total.toFixed(2)} €</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-800">Gesamt Bestellungen</h3>
-              <p className="text-2xl font-bold text-purple-600">{profile.total_orders}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-800">Gesamt Schulden</h3>
-              <p className="text-2xl font-bold text-orange-600">{(profile.breakfast_total + profile.drinks_sweets_total).toFixed(2)} €</p>
+            <div className={`border border-gray-300 rounded-lg p-4 ${
+              profile.drinks_sweets_total >= 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <h3 className={`font-semibold ${
+                profile.drinks_sweets_total >= 0 
+                  ? 'text-green-800' 
+                  : 'text-red-800'
+              }`}>Getränke/Süßes Saldo</h3>
+              <p className={`text-2xl font-bold ${
+                profile.drinks_sweets_total >= 0 
+                  ? 'text-green-600' 
+                  : 'text-red-600'
+              }`}>{profile.drinks_sweets_total.toFixed(2)} €</p>
             </div>
           </div>
 
