@@ -2094,6 +2094,10 @@ const DepartmentAdminDashboard = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentEmployeeData, setPaymentEmployeeData] = useState(null);
   
+  // Success Notification State
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  
   const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
