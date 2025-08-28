@@ -1081,12 +1081,12 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       
     } catch (error) {
       console.error('🔍 ERROR in fetchLunchSettings:', error);
-      // If department settings don't exist, use 0 prices (no fallback to global)
+      // If department settings don't exist, set to null (will show loading)
       setLunchSettings({
         price: 0.0,
         enabled: true,
-        boiled_eggs_price: 0,
-        coffee_price: 0
+        boiled_eggs_price: null,
+        coffee_price: null
       });
     }
   };
