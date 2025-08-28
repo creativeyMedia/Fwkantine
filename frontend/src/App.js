@@ -1015,7 +1015,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   useEffect(() => {
     fetchMenus();
-    fetchDepartmentPrices();
+    fetchLunchSettings();
     fetchBreakfastStatus();
   }, [currentDepartment]);
 
