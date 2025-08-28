@@ -2836,10 +2836,11 @@ async def sponsor_meal(meal_data: dict):
                 }}
             )
             
-            # Refund sponsored amount from employee balance
+            # CORRECTED: Refund sponsored amount to employee balance (INCREASE balance = less debt)
             employee = await db.employees.find_one({"id": employee_id})
             if employee:
-                new_balance = employee["breakfast_balance"] - sponsored_amount
+                # Sponsored employee gets credited (balance increases = less debt or more credit)
+                new_balance = employee["breakfast_balance"] + sponsored_amount
                 new_balance = round(new_balance, 2)
                 await db.employees.update_one(
                     {"id": employee_id},
