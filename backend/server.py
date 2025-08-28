@@ -2582,14 +2582,14 @@ async def update_order(order_id: str, order_update: dict):
                 # Add boiled eggs price if applicable
                 boiled_eggs = item.get("boiled_eggs", 0)
                 if boiled_eggs > 0:
-                    lunch_settings = await db.lunch_settings.find_one({}) or {"boiled_eggs_price": 0.50}
-                    boiled_eggs_price = lunch_settings.get("boiled_eggs_price", 0.50)
+                    department_prices = await get_department_prices(existing_order["department_id"])
+                    boiled_eggs_price = department_prices["boiled_eggs_price"]
                     total_price += boiled_eggs * boiled_eggs_price
                 
                 # Add coffee price if applicable
                 if item.get("has_coffee", False):
-                    lunch_settings = await db.lunch_settings.find_one({}) or {"coffee_price": 1.50}
-                    coffee_price = lunch_settings.get("coffee_price", 1.50)
+                    department_prices = await get_department_prices(existing_order["department_id"])
+                    coffee_price = department_prices["coffee_price"]
                     total_price += coffee_price
                 
                 # Add lunch price if applicable
