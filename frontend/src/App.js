@@ -2210,6 +2210,31 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
+  // NEW: Flexible Payment Function
+  const processFlexiblePayment = async (paymentData) => {
+    try {
+      const response = await axios.post(
+        `${API}/department-admin/flexible-payment/${paymentData.employee_id}?admin_department=${currentDepartment.department_name}`,
+        {
+          payment_type: paymentData.payment_type,
+          amount: parseFloat(paymentData.amount),
+          notes: paymentData.notes || ''
+        }
+      );
+      
+      alert(`✅ ${response.data.message}\n${response.data.result_description}`);
+      
+      // Refresh employee data
+      fetchEmployees();
+      setShowPaymentModal(false);
+      setPaymentEmployeeData(null);
+      
+    } catch (error) {
+      console.error('Fehler bei der Einzahlung:', error);
+      alert('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
