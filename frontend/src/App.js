@@ -549,42 +549,39 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
             )}
           </div>
 
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 bg-gray-50 border-t flex justify-center items-center space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Zurück
+              </button>
+              
+              {currentPage > 1 && (
+                <button
+                  onClick={goToFirstPage}
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  Erste Seite
+                </button>
+              )}
+              
+              <span className="px-4 py-2 bg-blue-600 text-white rounded">
+                {currentPage}
+              </span>
+              
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Vor →
+              </button>
             </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="px-6 py-4 bg-gray-50 border-t flex justify-center items-center space-x-2">
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ← Zurück
-                </button>
-                
-                {currentPage > 1 && (
-                  <button
-                    onClick={goToFirstPage}
-                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                  >
-                    Erste Seite
-                  </button>
-                )}
-                
-                <span className="px-4 py-2 bg-blue-600 text-white rounded">
-                  {currentPage}
-                </span>
-                
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Vor →
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
