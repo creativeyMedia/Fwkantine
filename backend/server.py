@@ -45,6 +45,30 @@ def parse_from_mongo(item):
             item['timestamp'] = datetime.fromisoformat(item['timestamp'])
     return item
 
+async def get_department_prices(department_id: str):
+    """Get department-specific prices with fallback to global settings"""
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    
+    if dept_settings:
+        return {
+            "boiled_eggs_price": dept_settings.get("boiled_eggs_price", 0.50),
+            "coffee_price": dept_settings.get("coffee_price", 1.50)
+        }
+    
+    # Fallback to global lunch settings
+    lunch_settings = await db.lunch_settings.find_one()
+    if lunch_settings:
+        return {
+            "boiled_eggs_price": lunch_settings.get("boiled_eggs_price", 0.50),
+            "coffee_price": lunch_settings.get("coffee_price", 1.50)
+        }
+    
+    # Final fallback to defaults
+    return {
+        "boiled_eggs_price": 0.50,
+        "coffee_price": 1.50
+    }
+
 # Berlin timezone helper functions
 def get_berlin_now():
     """Get current time in Berlin timezone"""
