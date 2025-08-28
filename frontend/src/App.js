@@ -5578,14 +5578,14 @@ const CoffeeAndEggsManagement = () => {
 
     try {
       const endpoint = editingItem === 'eggs' 
-        ? `${API}/api/lunch-settings/boiled-eggs-price?price=${parseFloat(editPrice)}`
-        : `${API}/api/lunch-settings/coffee-price?price=${parseFloat(editPrice)}`;
+        ? `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price?price=${parseFloat(editPrice)}`
+        : `${API}/department-settings/${currentDepartment.department_id}/coffee-price?price=${parseFloat(editPrice)}`;
       
       await axios.put(endpoint);
       await fetchLunchSettings();
       setEditingItem(null);
       setEditPrice('');
-      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
+      alert(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich für ${currentDepartment.department_name} aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren:', error);
       alert('Fehler beim Aktualisieren des Preises');
