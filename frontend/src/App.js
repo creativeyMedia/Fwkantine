@@ -2746,27 +2746,21 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
             
             {/* Breakfast Balance */}
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Frühstück:</span>
                 <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-blue-600'}`}>
                   {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
                 </span>
               </div>
-              <div className="text-xs text-gray-500 text-center">
-                Balance anzeigen
-              </div>
             </div>
             
             {/* Drinks/Sweets Balance */}
             <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Getränke/Süßes:</span>
                 <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
                   {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
                 </span>
-              </div>
-              <div className="text-xs text-gray-500 text-center">
-                Balance anzeigen
               </div>
             </div>
             
