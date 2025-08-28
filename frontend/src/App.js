@@ -2421,10 +2421,10 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
       // Load both orders and payment logs
       const [ordersResponse, paymentLogsResponse] = await Promise.all([
         axios.get(`${API}/employees/${employee.id}/orders`),
-        axios.get(`${API}/employees/${employee.id}/payment-logs`)
+        axios.get(`${API}/department-admin/payment-logs/${employee.id}`)
       ]);
       setOrders(ordersResponse.data.orders || []);
-      setPaymentLogs(paymentLogsResponse.data.payment_logs || []);
+      setPaymentLogs(paymentLogsResponse.data || []);
     } catch (error) {
       console.error('Fehler beim Laden der Bestellungen:', error);
       setOrders([]);
