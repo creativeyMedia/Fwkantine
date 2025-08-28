@@ -2837,7 +2837,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Frühstück:</span>
-                <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
                 </span>
               </div>
