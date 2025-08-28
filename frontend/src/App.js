@@ -4173,8 +4173,8 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                     
                                     // Format with abbreviations  
                                     const parts = [];
-                                    if (seededCount > 0) parts.push(`${seededCount}K`);
-                                    if (whiteCount > 0) parts.push(`${whiteCount}N`);
+                                    if (seededCount > 0) parts.push(`${seededCount}xK`);
+                                    if (whiteCount > 0) parts.push(`${whiteCount}xN`);
                                     
                                     return (
                                       <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
