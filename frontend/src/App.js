@@ -1403,6 +1403,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
 // Simplified Breakfast Order Form with Memo to prevent unnecessary re-renders - Direct Roll Selection with Topping Assignment
 const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLabels, toppingLabels, onDirectSubmit, existingOrderData, boiledEggsPrice, coffeePrice }) => {
+  console.log("🔍 DEBUG: BreakfastOrderForm rendered with prices:", { boiledEggsPrice, coffeePrice });
   const [whiteRolls, setWhiteRolls] = useState(0);
   const [seededRolls, setSeededRolls] = useState(0);
   const [toppingAssignments, setToppingAssignments] = useState([]);
