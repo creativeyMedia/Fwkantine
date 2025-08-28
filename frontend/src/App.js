@@ -2756,16 +2756,23 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
             <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Getränke/Süßes:</span>
-                <span className="font-bold text-green-600">{employee.drinks_sweets_balance.toFixed(2)} €</span>
+                <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                  {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
+                </span>
               </div>
-              {employee.drinks_sweets_balance > 0 && (
-                <button
-                  onClick={() => markAsPaid(employee, 'drinks_sweets')}
-                  className="w-full bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
-                >
-                  Als bezahlt markieren
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setPaymentEmployeeData({
+                    employee: employee,
+                    paymentType: 'drinks_sweets', 
+                    accountLabel: 'Getränke/Süßes'
+                  });
+                  setShowPaymentModal(true);
+                }}
+                className="w-full bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
+              >
+                💰 Einzahlung
+              </button>
             </div>
             
             {/* Delete Button */}
