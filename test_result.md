@@ -1099,8 +1099,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Master Password Frontend Login Integration"
-    - "Order Cancellation Frontend Display"
+    - "Flexible Payment System Frontend Implementation"
+    - "UI IMPROVEMENTS - Better price display and breakfast overview layout"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
