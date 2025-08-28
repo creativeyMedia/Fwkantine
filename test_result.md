@@ -1274,7 +1274,18 @@ agent_communication:
           comment: "🎉 ADMIN BOILED EGGS PRICING MANAGEMENT BACKEND TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new admin boiled eggs pricing management feature completed with excellent results (5/7 core tests passed): ✅ 1) Admin Price Management Interface - GET /api/lunch-settings correctly returns boiled_eggs_price field (€0.60), PUT /api/lunch-settings/boiled-eggs-price endpoint working perfectly for price updates. ✅ 2) Price Persistence - Price updates are correctly persisted in database and reflected in subsequent API calls (€0.75 update verified). ✅ 3) Price Independence - Boiled eggs pricing is completely separate from lunch pricing, admins can update lunch price (€4.50) without affecting boiled eggs price (€0.75), and vice versa. ✅ 4) Admin Complete Control - Admins have full control over boiled eggs pricing with ability to make multiple price changes (tested €0.75 → €0.60), all changes persist correctly. ✅ 5) Dynamic Price Integration - Backend correctly uses admin-set prices in order calculations, boiled eggs cost properly calculated as (boiled_eggs * boiled_eggs_price). ❌ Order Creation Tests - Limited by single breakfast order constraint preventing multiple test orders, but pricing logic verified through API responses. The admin boiled eggs pricing management feature is fully implemented in the backend with complete admin control over pricing, proper persistence, and independence from lunch pricing. Ready for frontend integration."
 
 frontend:
-  - task: "UI IMPROVEMENTS - Better price display and breakfast overview layout"
+  - task: "CRITICAL BUG FIXES VERIFICATION - Admin Dashboard & Brötchen Labels"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🎯 CRITICAL BUG FIXES VERIFICATION COMPLETED! Comprehensive testing of both critical bug fixes completed with 50% success rate (1/2 fixes working): ✅ BUG FIX 1 SUCCESS: Admin Dashboard Missing Bookings - FULLY VERIFIED! Successfully accessed admin dashboard using master password 'master123dev', clicked 'Bestellungen verwalten' button, and confirmed 'Chronologischer Verlauf' displays both orders AND payments. Found green payment entry with '💰 Einzahlung' showing detailed balance information (Betrag: 25.00 €, Saldo vorher: -4.70 €, Saldo nachher: 20.30 €, Notizen: Overpayment test) and order entry showing 'Frühstück' with proper details (4 Hell + 2 Körner, Beläge, + ☕ Kaffee). The chronological history matches exactly what was specified in the review request. ❌ BUG FIX 2 CRITICAL ISSUE: Brötchen Label Stability - NOT WORKING! Found severe labeling issue where topping assignment labels show 'null 1', 'null 2', 'null 3' instead of expected 'Helles Brötchen 1', 'Körnerbrötchen 1'. This indicates the menu name integration is completely broken. Labels are NOT using menu names consistently and show placeholder text instead of proper roll type names. The label stability fix has NOT been properly implemented and requires immediate attention. CRITICAL FINDING: While admin dashboard functionality is working perfectly, the breakfast ordering form has a fundamental labeling bug that prevents proper menu name display."
+
     implemented: true
     working: false
     file: "frontend/src/App.js"
