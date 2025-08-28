@@ -86,11 +86,11 @@ backend:
 
   - task: "Bug 4 - Sponsored Employee Balance Calculation Fix"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
@@ -98,6 +98,9 @@ backend:
         - working: false
           agent: "main"
           comment: "FIXED: Updated individual employee calculation logic in breakfast-history endpoint to properly handle sponsored meals. Now calculates remaining cost correctly for both breakfast and lunch sponsoring."
+        - working: true
+          agent: "testing"
+          comment: "✅ BUG 4 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Lunch Sponsoring Calculation - Successfully sponsored 7x Mittagessen lunch items for €14.90. Verification: sponsored employee retains breakfast+coffee costs (~€4.50), only lunch was sponsored. Sponsor pays for sponsored lunch items. Department-specific pricing correctly applied. ✅ 2) Individual Employee Balance Calculations - Updated individual employee calculation logic in breakfast-history endpoint properly handles sponsored meals. Calculates remaining cost correctly for both breakfast and lunch sponsoring. ✅ 3) Breakfast Sponsoring Balance Logic - For breakfast sponsoring: only rolls+eggs are sponsored, coffee+lunch costs remain with employee. Sponsored employees show correct remaining balances. ✅ 4) Lunch Sponsoring Balance Logic - For lunch sponsoring: only lunch costs are sponsored, breakfast+coffee costs remain with employee. Mathematical verification passed. ✅ 5) Sponsored Employee Refunds - Sponsored employees get proper refunds (balance adjustments) for sponsored meal components only. ✅ 6) Sponsor Additional Costs - Sponsor pays correct additional costs for sponsored employees without double-charging. ✅ 7) Balance Conservation - Total balance conservation maintained (sponsor pays more, sponsored pays less, total debt unchanged). CRITICAL VERIFICATION: Individual employee calculation logic in breakfast-history endpoint now properly handles sponsored meals for both breakfast and lunch sponsoring scenarios. The sponsored employee balance calculation fix is FULLY FUNCTIONAL."
 
 frontend:
   - task: "Bug 3 - Auto-update Prices After Ausgeben"
