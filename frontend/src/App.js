@@ -1379,11 +1379,25 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       // Reconstruct toppings assignments
       if (existingOrderData.toppings && Array.isArray(existingOrderData.toppings)) {
         const newAssignments = [];
+        let whiteIndex = 1;
+        let seededIndex = 1;
+        
         existingOrderData.toppings.forEach((topping, index) => {
+          const rollType = index < (existingOrderData.white_halves || 0) ? 'weiss' : 'koerner';
+          let rollLabel;
+          
+          if (rollType === 'weiss') {
+            rollLabel = `Helles Brötchen ${whiteIndex}`;
+            whiteIndex++;
+          } else {
+            rollLabel = `Körnerbrötchen ${seededIndex}`;
+            seededIndex++;
+          }
+          
           newAssignments.push({
             id: `existing_${index}`,
-            rollType: index < (existingOrderData.white_halves || 0) ? 'weiss' : 'koerner',
-            rollLabel: `Brötchen ${index + 1}`,
+            rollType: rollType,
+            rollLabel: rollLabel,
             topping: topping
           });
         });
