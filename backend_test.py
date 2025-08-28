@@ -473,6 +473,92 @@ class CriticalSponsoringBugFixTest:
             self.log_result("Verify Mathematical Correctness", False, error=str(e))
             return False
     
+    def investigate_sponsoring_discrepancy(self):
+        """Investigate why sponsoring says it's done but no employees have zero balance"""
+        try:
+            # Get all employees and their balances
+            response = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
+            if response.status_code != 200:
+                self.log_result(
+                    "Investigate Sponsoring Discrepancy",
+                    False,
+                    error="Could not get employee data"
+                )
+                return False
+            
+            employees = response.json()
+            
+            # Analyze balance distribution
+            balance_analysis = {
+                'zero_balance': [],
+                'negative_balance': [],
+                'positive_balance': [],
+                'total_employees': len(employees)
+            }
+            
+            for emp in employees:
+                balance = emp.get('breakfast_balance', 0)
+                name = emp.get('name', 'Unknown')
+                emp_id = emp.get('id', 'Unknown')
+                
+                if abs(balance) < 0.01:
+                    balance_analysis['zero_balance'].append({'name': name, 'id': emp_id, 'balance': balance})
+                elif balance < 0:
+                    balance_analysis['negative_balance'].append({'name': name, 'id': emp_id, 'balance': balance})
+                else:
+                    balance_analysis['positive_balance'].append({'name': name, 'id': emp_id, 'balance': balance})
+            
+            # Try to execute sponsoring to see the exact error
+            today = datetime.now().strftime('%Y-%m-%d')
+            
+            # Try with the employee that has positive balance (likely a previous sponsor)
+            if balance_analysis['positive_balance']:
+                test_sponsor = balance_analysis['positive_balance'][0]
+                sponsoring_data = {
+                    "department_id": DEPARTMENT_ID,
+                    "meal_type": "breakfast",
+                    "sponsor_employee_id": test_sponsor['id'],
+                    "sponsor_employee_name": test_sponsor['name'],
+                    "date": today
+                }
+                
+                response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsoring_data)
+                sponsoring_error = response.text if response.status_code != 200 else "Success"
+            else:
+                sponsoring_error = "No suitable sponsor found"
+            
+            # CRITICAL ANALYSIS: If sponsoring says "already done" but no zero balances exist,
+            # this suggests the bug fix may not be working correctly
+            zero_count = len(balance_analysis['zero_balance'])
+            negative_count = len(balance_analysis['negative_balance'])
+            positive_count = len(balance_analysis['positive_balance'])
+            
+            if "bereits gesponsert" in sponsoring_error and zero_count == 0:
+                self.log_result(
+                    "Investigate Sponsoring Discrepancy",
+                    False,
+                    error=f"🚨 CRITICAL DISCREPANCY DETECTED! Sponsoring API says breakfast is 'bereits gesponsert' (already sponsored) for {today}, but NO employees have zero balance. This suggests the CRITICAL BUG FIX IS NOT WORKING! Expected: sponsored employees should have ~€0.00 balance. Actual: {zero_count} zero, {negative_count} negative, {positive_count} positive balances. Sponsoring error: {sponsoring_error}. This indicates sponsored employees are still getting DEBITED instead of CREDITED."
+                )
+                return False
+            elif zero_count > 0:
+                self.log_result(
+                    "Investigate Sponsoring Discrepancy",
+                    True,
+                    f"✅ SPONSORING WORKING CORRECTLY! Found {zero_count} employees with zero balance (sponsored), {negative_count} with debt, {positive_count} with credit. Sponsoring status: {sponsoring_error}. This indicates the bug fix is working - sponsored employees are getting CREDITED to zero balance."
+                )
+                return True
+            else:
+                self.log_result(
+                    "Investigate Sponsoring Discrepancy",
+                    False,
+                    error=f"❌ UNCLEAR SPONSORING STATUS! {zero_count} zero balance, {negative_count} negative, {positive_count} positive. Sponsoring error: {sponsoring_error}. Cannot determine if bug fix is working without clear sponsored employee pattern."
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Investigate Sponsoring Discrepancy", False, error=str(e))
+            return False
+
     def analyze_existing_sponsored_data_for_bug_fix(self):
         """Analyze existing sponsored data to verify the critical bug fix is working"""
         try:
