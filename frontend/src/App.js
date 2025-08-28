@@ -2446,6 +2446,8 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
   const [loading, setLoading] = useState(true);
   const [drinksMenu, setDrinksMenu] = useState([]);
   const [sweetsMenu, setSweetsMenu] = useState([]);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchEmployeeOrders();
