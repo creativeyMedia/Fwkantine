@@ -3438,6 +3438,10 @@ const AdminDashboard = () => {
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
   const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true });
   
+  // Success Notification State
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  
   // Sponsoring state
   const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
   const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
