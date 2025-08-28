@@ -2735,19 +2735,9 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                   {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
                 </span>
               </div>
-              <button
-                onClick={() => {
-                  setPaymentEmployeeData({
-                    employee: employee,
-                    paymentType: 'breakfast',
-                    accountLabel: 'Frühstück'
-                  });
-                  setShowPaymentModal(true);
-                }}
-                className="w-full bg-blue-600 text-white text-xs py-1 px-2 rounded hover:bg-blue-700"
-              >
-                💰 Einzahlung
-              </button>
+              <div className="text-xs text-gray-500 text-center">
+                Balance anzeigen
+              </div>
             </div>
             
             {/* Drinks/Sweets Balance */}
@@ -2758,19 +2748,9 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                   {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
                 </span>
               </div>
-              <button
-                onClick={() => {
-                  setPaymentEmployeeData({
-                    employee: employee,
-                    paymentType: 'drinks_sweets', 
-                    accountLabel: 'Getränke/Süßes'
-                  });
-                  setShowPaymentModal(true);
-                }}
-                className="w-full bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
-              >
-                💰 Einzahlung
-              </button>
+              <div className="text-xs text-gray-500 text-center">
+                Balance anzeigen
+              </div>
             </div>
             
             {/* Delete Button */}
