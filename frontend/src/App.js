@@ -2606,55 +2606,56 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                                 {item.order_type === 'breakfast' ? 'Frühstück' : 
                                  item.order_type === 'drinks' ? 'Getränke' : 'Süßes'}
                               </span>
-                            <span className="text-sm text-gray-500">
-                              {formatDate(order.timestamp)}
-                            </span>
-                            <span className={`${isCancelled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} text-sm px-2 py-1 rounded ${isCancelled ? 'line-through' : ''}`}>
-                              {order.total_price.toFixed(2)} €
-                            </span>
-                            {isCancelled && (
-                              <span className="bg-red-200 text-red-900 text-xs px-2 py-1 rounded font-semibold">
-                                STORNIERT
+                              <span className="text-sm text-gray-500">
+                                {new Date(item.timestamp).toLocaleString('de-DE')}
                               </span>
-                            )}
-                          </div>
-                          
-                          {/* Show cancellation info if cancelled */}
-                          {isCancelled && (
-                            <div className="mb-2 text-sm text-red-700 bg-red-100 p-2 rounded">
-                              <strong>Storniert durch {order.cancelled_by === 'employee' ? 'Mitarbeiter' : 'Admin'}</strong> ({order.cancelled_by_name}) am {formatDate(order.cancelled_at)}
-                            </div>
-                          )}
-                          
-                          {/* Show sponsored info if sponsored */}
-                          {order.is_sponsored && (
-                            <div className="mb-2 text-sm text-green-700 bg-green-100 p-2 rounded">
-                              {order.sponsored_message || (order.is_sponsor_order ? 
-                                `${order.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
-                                `Dieses ${order.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${order.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
+                              <span className={`${isCancelled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} text-sm px-2 py-1 rounded ${isCancelled ? 'line-through' : ''}`}>
+                                {item.total_price?.toFixed(2)} €
+                              </span>
+                              {isCancelled && (
+                                <span className="bg-red-200 text-red-900 text-xs px-2 py-1 rounded font-semibold">
+                                  STORNIERT
+                                </span>
                               )}
                             </div>
-                          )}
+                            
+                            {/* Show cancellation info if cancelled */}
+                            {isCancelled && (
+                              <div className="mb-2 text-sm text-red-700 bg-red-100 p-2 rounded">
+                                <strong>Storniert durch {item.cancelled_by === 'employee' ? 'Mitarbeiter' : 'Admin'}</strong> ({item.cancelled_by_name}) am {formatDate(item.cancelled_at)}
+                              </div>
+                            )}
+                            
+                            {/* Show sponsored info if sponsored */}
+                            {item.is_sponsored && (
+                              <div className="mb-2 text-sm text-green-700 bg-green-100 p-2 rounded">
+                                {item.sponsored_message || (item.is_sponsor_order ? 
+                                  `${item.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
+                                  `Dieses ${item.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${item.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className={`text-gray-700 mb-2 ${isCancelled ? 'line-through' : ''}`}>
+                              <strong>Details:</strong> {formatOrderDetails(item)}
+                            </div>
+                          </div>
                           
-                          <div className={`text-gray-700 mb-2 ${isCancelled ? 'line-through' : ''}`}>
-                            <strong>Details:</strong> {formatOrderDetails(order)}
+                          <div className="flex gap-2 ml-4">
+                            {/* Only show delete button for non-cancelled orders */}
+                            {!isCancelled && (
+                              <button
+                                onClick={() => deleteOrder(item.id)}
+                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                              >
+                                Löschen
+                              </button>
+                            )}
                           </div>
                         </div>
-                        
-                        <div className="flex gap-2 ml-4">
-                          {/* Only show delete button for non-cancelled orders */}
-                          {!isCancelled && (
-                            <button
-                              onClick={() => deleteOrder(order.id)}
-                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                            >
-                              Löschen
-                            </button>
-                          )}
-                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  }
                 })}
               </div>
             </div>
