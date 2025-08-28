@@ -1165,13 +1165,15 @@ async def create_order(order_data: OrderCreate):
     employee = await db.employees.find_one({"id": order_data.employee_id})
     if employee:
         if order_data.order_type == OrderType.BREAKFAST:
-            new_breakfast_balance = employee["breakfast_balance"] + total_price
+            # CORRECTED: Orders DECREASE balance (create debt)
+            new_breakfast_balance = employee["breakfast_balance"] - total_price
             await db.employees.update_one(
                 {"id": order_data.employee_id},
                 {"$set": {"breakfast_balance": new_breakfast_balance}}
             )
         else:  # DRINKS or SWEETS
-            new_drinks_sweets_balance = employee["drinks_sweets_balance"] + total_price
+            # CORRECTED: Orders DECREASE balance (create debt) 
+            new_drinks_sweets_balance = employee["drinks_sweets_balance"] - total_price
             await db.employees.update_one(
                 {"id": order_data.employee_id},
                 {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
