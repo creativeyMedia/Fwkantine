@@ -1336,17 +1336,13 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
                 rollTypeLabels={rollTypeLabels}
                 toppingLabels={finalToppingLabels}
                 existingOrderData={breakfastFormData}
-                boiledEggsPrice={lunchSettings.boiled_eggs_price}
-                coffeePrice={lunchSettings.coffee_price}
+                boiledEggsPrice={departmentPrices.boiled_eggs_price}
+                coffeePrice={departmentPrices.coffee_price}
                 onDirectSubmit={(breakfastData) => {
                   // This will be called directly when breakfast form is submitted
                   setBreakfastFormData(breakfastData);
                 }}
               />
-            ) : (
-              <div className="text-center p-4">
-                <p>Lade Preise...</p>
-              </div>
             )
           )}
 
