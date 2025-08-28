@@ -945,7 +945,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
   const [toppingsMenu, setToppingsMenu] = useState([]);
   const [drinksMenu, setDrinksMenu] = useState([]);
   const [sweetsMenu, setSweetsMenu] = useState([]);
-  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true, boiled_eggs_price: 0, coffee_price: 0 });
+  const [lunchSettings, setLunchSettings] = useState({ price: 0.0, enabled: true, boiled_eggs_price: undefined, coffee_price: undefined });
   const [order, setOrder] = useState({
     breakfast_items: [],
     drink_items: {},
