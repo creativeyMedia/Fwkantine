@@ -1059,46 +1059,30 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const fetchLunchSettings = async () => {
     if (!currentDepartment?.department_id) {
-      console.log("🔍 DEBUG: No department ID available, skipping department-specific fetch");
       return;
     }
     
     try {
-      console.log("🔍 DEBUG: fetchLunchSettings called for department:", currentDepartment.department_id);
-      
-      // First try to get department-specific settings for eggs and coffee prices
+      // Simple department-specific fetch - just like breakfast/toppings/drinks
       const deptResponse = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
-      console.log("🔍 DEBUG: Department response:", deptResponse.data);
       
-      // Also get global lunch settings for lunch price and enabled status  
-      const globalResponse = await axios.get(`${API}/api/lunch-settings`);
-      console.log("🔍 DEBUG: Global response:", globalResponse.data);
-      
-      const newSettings = {
-        price: globalResponse.data.price,
-        enabled: globalResponse.data.enabled,
-        boiled_eggs_price: deptResponse.data.boiled_eggs_price,
-        coffee_price: deptResponse.data.coffee_price
-      };
-      
-      console.log("🔍 DEBUG: Setting lunchSettings to:", newSettings);
-      setLunchSettings(newSettings);
-      console.log("🔍 DEBUG: ✅ Successfully set department-specific settings!");
+      // Set lunch settings with department-specific prices (no fallback needed)
+      setLunchSettings({
+        price: 0.0, // Lunch price is handled separately per day
+        enabled: true,
+        boiled_eggs_price: deptResponse.data.boiled_eggs_price || 0,
+        coffee_price: deptResponse.data.coffee_price || 0
+      });
       
     } catch (error) {
-      console.error("🔍 DEBUG: ❌ Error in fetchLunchSettings:", error);
-      console.error("🔍 DEBUG: Error details:", error.response?.status, error.response?.data);
-      
-      // Fallback to global settings only
-      try {
-        console.log("🔍 DEBUG: Falling back to global settings...");
-        const response = await axios.get(`${API}/api/lunch-settings`);
-        console.log("🔍 DEBUG: Fallback to global settings:", response.data);
-        setLunchSettings(response.data);
-        console.log("🔍 DEBUG: ⚠️ Using global fallback settings");
-      } catch (fallbackError) {
-        console.error('🔍 DEBUG: ❌ Fallback also failed:', fallbackError);
-      }
+      console.error('Fehler beim Laden der Department-Einstellungen:', error);
+      // If department settings don't exist, use 0 prices (no fallback to global)
+      setLunchSettings({
+        price: 0.0,
+        enabled: true,
+        boiled_eggs_price: 0,
+        coffee_price: 0
+      });
     }
   };
 
