@@ -4170,7 +4170,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           
                           {/* Legend */}
                           <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                            <strong>Legende:</strong> K = Körnerbrötchen, ohne K = Helle Brötchen (z.B. "2xK 1x" = 2x auf Körnern + 1x auf Hell), X = Mittagessen bestellt
+                            <strong>Legende:</strong> K = Körnerbrötchen, N = Helle Brötchen (z.B. "2K 1N" = 2x auf Körnern + 1x auf Hell), X = Mittagessen bestellt
                           </div>
                         </div>
                       );
