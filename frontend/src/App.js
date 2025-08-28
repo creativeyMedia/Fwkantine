@@ -1079,16 +1079,18 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       
       console.log("🔍 Setting lunchSettings to:", newSettings);
       setLunchSettings(newSettings);
+      setPricesLoaded(true);
       
     } catch (error) {
       console.error('🔍 ERROR in fetchLunchSettings:', error);
-      // If department settings don't exist, set to null (will show loading)
+      // If department settings don't exist, use 0 prices
       setLunchSettings({
         price: 0.0,
         enabled: true,
-        boiled_eggs_price: null,
-        coffee_price: null
+        boiled_eggs_price: 0,
+        coffee_price: 0
       });
+      setPricesLoaded(true);
     }
   };
 
