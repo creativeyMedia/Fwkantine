@@ -722,6 +722,10 @@ class CriticalSponsoringBugFixTest:
         print("\n🔍 ADDITIONAL VERIFICATIONS")
         print("-" * 50)
         
+        # Analyze existing sponsored data to verify bug fix
+        if self.analyze_existing_sponsored_data_for_bug_fix():
+            tests_passed += 1
+        
         self.verify_mathematical_correctness()
         self.verify_sponsored_flags_set()
         
