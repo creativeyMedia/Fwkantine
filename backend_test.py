@@ -1,52 +1,53 @@
 #!/usr/bin/env python3
 """
-PAYMENT PROTECTION SYSTEM TESTING
+CRITICAL SPONSORING LOGIC ANALYSIS & BUG DETECTION
 
-**PAYMENT PROTECTION SYSTEM TESTING**
+**CRITICAL SPONSORING LOGIC ANALYSIS & BUG DETECTION**
 
-Test the new payment protection system that prevents order cancellation after payments to maintain balance integrity.
+Investigate critical sponsoring issues reported by user:
 
-**PAYMENT PROTECTION LOGIC:**
-- Orders placed BEFORE a payment cannot be cancelled by employees
-- Orders placed AFTER a payment can be cancelled normally  
-- Admin cancellations are not restricted (admins can override)
-- Cancellation = refund (balance increases)
+**REPORTED PROBLEMS:**
+1. **Körnerbrötchen not showing strikethrough** in chronological history during sponsoring
+2. **Balance not updating correctly** when sponsoring breakfast 
+3. **Frontend shows correct calculation** ("Ausgegeben für 1 Mitarbeiter im Wert von 2.10€") but balance might be wrong
 
-**TEST SCENARIOS:**
+**TEST SCENARIO TO REPRODUCE:**
+1. **Setup**: Department "1. Wachabteilung"
+2. **Create Orders**: Create 2 breakfast orders for different employees 
+3. **Sponsor Orders**: Have one employee sponsor breakfast for others
+4. **Verify Issues**:
+   - Do Körnerbrötchen orders get `is_sponsored=true`?
+   - Are all order items marked as sponsored correctly?
+   - Does sponsor balance increase correctly (pay for others)?
+   - Do sponsored employees get balance adjusted (don't pay)?
 
-1. **Setup Clean Employee**: Create test employee with 0.00 balance
-2. **Create Initial Order**: Place breakfast order (should create debt, e.g., -5.50€)
-3. **Make Payment**: Pay amount (e.g., 20.00€, balance becomes +14.50€)
-4. **Test Protection - Order Before Payment**: 
-   - Try to cancel the initial order (placed before payment)
-   - Should FAIL with error about payment protection
-5. **Create New Order After Payment**: Place another order after payment
-6. **Test Normal Cancellation - Order After Payment**:
-   - Try to cancel the new order (placed after payment)
-   - Should SUCCEED and refund correctly
-7. **Verify Balance Calculations**:
-   - Cancellation should INCREASE balance (refund logic)
-   - No more `max(0, balance)` constraints
-8. **Admin Override Test**: Admin should be able to cancel protected orders
+**CRITICAL VERIFICATION POINTS:**
 
-**EXPECTED RESULTS:**
-- Initial order (before payment): Cancellation BLOCKED ❌
-- New order (after payment): Cancellation ALLOWED ✅  
-- Balance increases with cancellation (refund behavior)
-- Clear error message for payment protection violations
-- Timestamp-based protection working correctly
+**Backend Logic Analysis:**
+- Check `/api/department-admin/sponsor-meal` endpoint logic
+- Verify that ALL breakfast items (including Körnerbrötchen) are included in sponsoring
+- Confirm balance calculations: sponsor pays more, sponsored pay less/nothing
+- Ensure `is_sponsored`, `sponsored_by`, `sponsored_message` fields set correctly
 
-**API ENDPOINTS TO TEST:**
-- `DELETE /api/employee/{employee_id}/orders/{order_id}` (should respect protection)
-- `DELETE /api/department-admin/orders/{order_id}` (admin override)
+**Database State Verification:**
+- After sponsoring, check orders collection for correct sponsored flags
+- Verify employee balances reflect sponsoring correctly
+- Confirm all order types (breakfast items) are processed equally
 
-**CRITICAL VERIFICATION:**
-- Payment protection prevents balance manipulation
-- Refund logic works correctly (balance increases on cancellation)
-- Timestamp comparison logic functions properly
-- German error messages are clear and helpful
+**Expected Results:**
+- All breakfast orders (Helles + Körner) should be marked `is_sponsored=true`
+- Sponsor balance should increase by total sponsored amount
+- Sponsored employee balances should decrease (they don't pay)
+- All sponsored orders should show strikethrough in frontend display
+- Balance calculations should be mathematically correct
 
-Use Department "2. Wachabteilung" for testing.
+**Key Questions to Answer:**
+1. Does sponsoring logic include ALL breakfast order types?
+2. Are balance adjustments calculated correctly for sponsor vs sponsored?
+3. Why might Körnerbrötchen be treated differently than Helles Brötchen?
+4. Is there a bug in the order filtering logic during sponsoring?
+
+Use Department "1. Wachabteilung" and create comprehensive test scenario to reproduce and analyze the reported issues.
 """
 
 import requests
