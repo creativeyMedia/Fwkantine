@@ -2602,6 +2602,37 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     }
   };
   
+  // NEW: Flexible Payment Modal State  
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentEmployeeData, setPaymentEmployeeData] = useState(null);
+  
+  // NEW: Flexible Payment Function
+  const processFlexiblePayment = async (employee, paymentType, amount, notes = '') => {
+    try {
+      const response = await axios.post(
+        `${API}/department-admin/flexible-payment/${employee.id}?admin_department=${currentDepartment.department_name}`,
+        {
+          payment_type: paymentType,
+          amount: parseFloat(amount),
+          notes: notes
+        }
+      );
+      
+      alert(`✅ ${response.data.message}\n${response.data.result_description}`);
+      
+      // Refresh employee data
+      if (onEmployeeUpdate) {
+        onEmployeeUpdate();
+      }
+      setShowPaymentModal(false);
+      
+    } catch (error) {
+      console.error('Fehler bei der Einzahlung:', error);
+      alert('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  // LEGACY: Keep old function for backward compatibility (but mark as deprecated)
   const markAsPaid = async (employee, balanceType) => {
     const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
     const balanceLabel = balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes';
@@ -2611,10 +2642,10 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       return;
     }
     
-    if (window.confirm(`${balanceLabel}-Saldo von ${balanceAmount.toFixed(2)} € für ${employee.name} als bezahlt markieren?`)) {
+    if (window.confirm(`LEGACY: ${balanceLabel}-Saldo von ${balanceAmount.toFixed(2)} € für ${employee.name} als bezahlt markieren?`)) {
       try {
         await axios.post(`${API}/department-admin/payment/${employee.id}?payment_type=${balanceType}&amount=${balanceAmount}&admin_department=${currentDepartment.department_name}`);
-        alert('Zahlung erfolgreich verbucht');
+        alert('Zahlung erfolgreich verbucht (Legacy-Modus)');
         // Refresh employee data instead of full page reload
         if (onEmployeeUpdate) {
           onEmployeeUpdate();
