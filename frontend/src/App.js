@@ -2297,6 +2297,20 @@ const DepartmentAdminDashboard = () => {
             onClose={() => setShowNewEmployee(false)}
           />
         )}
+
+      {/* NEW: Flexible Payment Modal */}
+      {showPaymentModal && paymentEmployeeData && (
+        <FlexiblePaymentModal
+          employee={paymentEmployeeData.employee}
+          paymentType={paymentEmployeeData.paymentType}
+          accountLabel={paymentEmployeeData.accountLabel}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentEmployeeData(null);
+          }}
+          onPayment={processFlexiblePayment}
+        />
+      )}
       </div>
     </div>
   );
