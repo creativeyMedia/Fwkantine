@@ -5548,15 +5548,28 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   useEffect(() => {
-    fetchLunchSettings();
-  }, []);
+    if (currentDepartment) {
+      fetchLunchSettings();
+    }
+  }, [currentDepartment]);
 
   const fetchLunchSettings = async () => {
     try {
-      const response = await axios.get(`${API}/api/lunch-settings`);
-      setLunchSettings(response.data);
+      // First try to get department-specific settings
+      const response = await axios.get(`${API}/department-settings/${currentDepartment.department_id}`);
+      setLunchSettings({
+        boiled_eggs_price: response.data.boiled_eggs_price,
+        coffee_price: response.data.coffee_price
+      });
     } catch (error) {
-      console.error('Fehler beim Laden der Lunch-Einstellungen:', error);
+      console.error('Fehler beim Laden der Department-Einstellungen:', error);
+      // Fallback to global settings
+      try {
+        const response = await axios.get(`${API}/api/lunch-settings`);
+        setLunchSettings(response.data);
+      } catch (fallbackError) {
+        console.error('Fehler beim Laden der globalen Lunch-Einstellungen:', fallbackError);
+      }
     }
   };
 
