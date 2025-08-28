@@ -2619,30 +2619,6 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       alert('Fehler beim Speichern der Sortierung. Die Änderungen gehen beim Neuladen verloren.');
     }
   };
-  
-  // NEW: Flexible Payment Function
-  const processFlexiblePayment = async (paymentData) => {
-    try {
-      const response = await axios.post(
-        `${API}/department-admin/flexible-payment/${paymentData.employee_id}?admin_department=${currentDepartment.department_name}`,
-        {
-          payment_type: paymentData.payment_type,
-          amount: parseFloat(paymentData.amount),
-          notes: paymentData.notes || ''
-        }
-      );
-      
-      alert(`✅ ${response.data.message}\n${response.data.result_description}`);
-      
-      // Refresh employee data
-      fetchEmployees();
-      setShowPaymentModal(false);
-      
-    } catch (error) {
-      console.error('Fehler bei der Einzahlung:', error);
-      alert('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
-    }
-  };
 
   // LEGACY: Keep old function for backward compatibility (but mark as deprecated)
   const markAsPaid = async (employee, balanceType) => {
