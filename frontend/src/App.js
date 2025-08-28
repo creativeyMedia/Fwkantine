@@ -2972,7 +2972,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
 };
 
 // Price Management Tab Component
-const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice }) => {
+const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMenu, onUpdatePrice, currentDepartment }) => {
   const rollTypeLabels = {
     'weiss': 'Helles Brötchen',
     'koerner': 'Körnerbrötchen'
