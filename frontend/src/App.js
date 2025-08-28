@@ -5567,7 +5567,7 @@ const AdminSettingsTab = ({ currentDepartment }) => {
 
 // Coffee and Eggs Management Component - Unified Design
 const CoffeeAndEggsManagement = ({ currentDepartment }) => {
-  const [lunchSettings, setLunchSettings] = useState({ boiled_eggs_price: 0.50, coffee_price: 1.50 });
+  const [lunchSettings, setLunchSettings] = useState({ boiled_eggs_price: 0, coffee_price: 0 });
   const [editingItem, setEditingItem] = useState(null); // 'eggs' or 'coffee' or null
   const [editPrice, setEditPrice] = useState('');
 
