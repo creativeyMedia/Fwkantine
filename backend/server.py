@@ -2462,8 +2462,10 @@ async def update_order(order_id: str, order_update: dict):
             new_price = update_fields.get("total_price", old_price)
             price_difference = new_price - old_price
             
-            # Update employee balance
-            new_breakfast_balance = employee.get("breakfast_balance", 0.0) + price_difference
+            # Update employee balance - CORRECTED LOGIC
+            # Price increase = more debt (balance decreases)
+            # Price decrease = less debt (balance increases)
+            new_breakfast_balance = employee.get("breakfast_balance", 0.0) - price_difference
             await db.employees.update_one(
                 {"id": existing_order["employee_id"]},
                 {"$set": {"breakfast_balance": new_breakfast_balance}}
