@@ -49,7 +49,7 @@
 ##
 backend:
   - task: "Bug 1 - Admin Dashboard Daily Summaries Calculation Fix"
-    implemented: false
+    implemented: true
     working: false
     file: "backend/server.py"
     stuck_count: 0
@@ -59,9 +59,12 @@ backend:
         - working: false
           agent: "main"
           comment: "IDENTIFIED BUG: In breakfast-history endpoint (lines 1248-1273), when sponsored_meal_type='breakfast', almost everything is set to 0 except coffee. Should only sponsor rolls+eggs, NOT coffee and lunch. Lunch and coffee should remain in employee's balance."
+        - working: false
+          agent: "main"
+          comment: "FIXED: Updated breakfast-history endpoint to calculate sponsored breakfast cost correctly. Now only rolls + eggs are sponsored for breakfast sponsoring, coffee and lunch remain with employee. Applied same fix to individual employee calculation logic."
 
   - task: "Bug 2 - Department-specific Egg/Coffee Prices"
-    implemented: false
+    implemented: true
     working: false
     file: "backend/server.py"
     stuck_count: 0
@@ -71,9 +74,12 @@ backend:
         - working: false
           agent: "main"
           comment: "IDENTIFIED BUG: boiled_eggs_price and coffee_price are stored in global lunch_settings collection (lines 791-825), not per department. Need to create department-specific pricing structure."
+        - working: false
+          agent: "main"
+          comment: "FIXED: Created new DepartmentSettings model and endpoints for department-specific egg/coffee prices. Added get_department_prices() helper function with fallback to global settings. Updated all price usage locations to use department-specific prices."
 
   - task: "Bug 4 - Sponsored Employee Balance Calculation Fix"
-    implemented: false
+    implemented: true
     working: false
     file: "backend/server.py"
     stuck_count: 0
@@ -83,6 +89,9 @@ backend:
         - working: false
           agent: "main"
           comment: "IDENTIFIED BUG: Similar issue to Bug 1 - individual employee calculation in breakfast-history endpoint has wrong logic for sponsored employees after lunch sponsoring."
+        - working: false
+          agent: "main"
+          comment: "FIXED: Updated individual employee calculation logic in breakfast-history endpoint to properly handle sponsored meals. Now calculates remaining cost correctly for both breakfast and lunch sponsoring."
 
 frontend:
   - task: "Bug 3 - Auto-update Prices After Ausgeben"
