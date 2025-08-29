@@ -9,7 +9,7 @@ import requests
 import json
 from datetime import datetime, date
 
-BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
+BASE_URL = "https://meal-tracker-49.preview.emergentagent.com/api"
 
 def debug_sponsor_counting():
     print("🔍 Debugging Sponsor Double Counting...")

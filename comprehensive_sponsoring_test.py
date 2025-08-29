@@ -50,7 +50,7 @@ from datetime import datetime, date, timedelta
 import uuid
 
 # Configuration
-BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
+BASE_URL = "https://meal-tracker-49.preview.emergentagent.com/api"
 
 class ComprehensiveSponsoringTest:
     def __init__(self):

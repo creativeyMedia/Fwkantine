@@ -14,7 +14,7 @@ import uuid
 import time
 
 # Configuration
-BASE_URL = "https://canteen-manager-2.preview.emergentagent.com/api"
+BASE_URL = "https://meal-tracker-49.preview.emergentagent.com/api"
 
 class FreshSponsoringTest:
     def __init__(self):
