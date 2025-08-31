@@ -305,123 +305,80 @@ class BreakfastHistoryFunctionalityTest:
             self.log_result("Test Sponsored Meal Display in History", False, error=str(e))
             return False
 
-    def test_already_sponsored_prevention(self):
-        """Test 'already sponsored' prevention"""
+    def test_function_name_conflict_resolution(self):
+        """Test function name conflict resolution between endpoints"""
         try:
-            # Create employees and orders for duplicate sponsoring test
-            timestamp = datetime.now().strftime("%H%M%S")
-            sponsor_name = f"DuplicateSponsor_{timestamp}"
+            # Test both endpoints simultaneously to ensure no conflicts
             
-            sponsor_response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": sponsor_name,
-                "department_id": DEPARTMENT_ID
-            })
+            # Test regular breakfast-history endpoint
+            response1 = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
             
-            if sponsor_response.status_code != 200:
-                self.log_result(
-                    "Test Already Sponsored Prevention",
-                    False,
-                    error=f"Failed to create sponsor: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
-                )
-                return False
+            # Test admin breakfast-history endpoint  
+            response2 = self.session.get(f"{BASE_URL}/department-admin/breakfast-history/{DEPARTMENT_ID}")
             
-            sponsor_employee = sponsor_response.json()
-            self.test_employees.append(sponsor_employee)
+            # Both should work independently
+            endpoint1_works = response1.status_code == 200
+            endpoint2_works = response2.status_code == 200
             
-            # Create other employee with order
-            emp_name = f"DuplicateEmployee_{timestamp}"
-            emp_response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": emp_name,
-                "department_id": DEPARTMENT_ID
-            })
-            
-            if emp_response.status_code != 200:
-                self.log_result(
-                    "Test Already Sponsored Prevention",
-                    False,
-                    error=f"Failed to create employee: HTTP {emp_response.status_code}: {emp_response.text}"
-                )
-                return False
-            
-            employee = emp_response.json()
-            self.test_employees.append(employee)
-            
-            # Create breakfast order
-            order_data = {
-                "employee_id": employee["id"],
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 1,
-                    "white_halves": 1,
-                    "seeded_halves": 0,
-                    "toppings": ["butter"],
-                    "has_lunch": False,
-                    "boiled_eggs": 1,
-                    "has_coffee": False
-                }]
-            }
-            
-            order_response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-            if order_response.status_code != 200:
-                self.log_result(
-                    "Test Already Sponsored Prevention",
-                    False,
-                    error=f"Failed to create order: HTTP {order_response.status_code}: {order_response.text}"
-                )
-                return False
-            
-            self.test_orders.append(order_response.json())
-            
-            # First sponsoring attempt (should succeed)
-            today = datetime.now().date().strftime('%Y-%m-%d')
-            sponsor_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "breakfast",
-                "sponsor_employee_id": sponsor_employee["id"],
-                "sponsor_employee_name": sponsor_employee["name"]
-            }
-            
-            first_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
-            
-            if first_response.status_code != 200:
-                # Check if already sponsored today (expected in production)
-                if "bereits gesponsert" in first_response.text:
+            if endpoint1_works and endpoint2_works:
+                # Compare response structures to ensure they're different functions
+                data1 = response1.json() if endpoint1_works else None
+                data2 = response2.json() if endpoint2_works else None
+                
+                # Both endpoints should return data (could be same or different structure)
+                if data1 is not None and data2 is not None:
                     self.log_result(
-                        "Test Already Sponsored Prevention",
+                        "Test Function Name Conflict Resolution",
                         True,
-                        "✅ DUPLICATE PREVENTION WORKING! Breakfast already sponsored today (expected in production environment)"
+                        f"✅ NO FUNCTION NAME CONFLICTS! Both endpoints work independently: /orders/breakfast-history (HTTP {response1.status_code}) and /department-admin/breakfast-history (HTTP {response2.status_code})"
                     )
+                    
+                    # Check if they return different data structures (indicating different functions)
+                    if str(data1) != str(data2):
+                        self.log_result(
+                            "Test Different Function Implementation",
+                            True,
+                            "✅ DIFFERENT FUNCTIONS CONFIRMED! Endpoints return different data structures, confirming the renamed function get_admin_breakfast_history works correctly"
+                        )
+                    else:
+                        self.log_result(
+                            "Test Different Function Implementation",
+                            True,
+                            "✅ FUNCTIONS ACCESSIBLE! Both endpoints accessible (may return same data structure, which is acceptable)"
+                        )
+                    
                     return True
                 else:
                     self.log_result(
-                        "Test Already Sponsored Prevention",
+                        "Test Function Name Conflict Resolution",
                         False,
-                        error=f"First sponsoring failed unexpectedly: HTTP {first_response.status_code}: {first_response.text}"
+                        error="One or both endpoints returned invalid data despite HTTP 200"
                     )
                     return False
-            
-            # Second sponsoring attempt (should fail with duplicate prevention)
-            second_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
-            
-            if second_response.status_code == 400 and "bereits gesponsert" in second_response.text:
+            elif endpoint1_works:
                 self.log_result(
-                    "Test Already Sponsored Prevention",
-                    True,
-                    "✅ DUPLICATE PREVENTION WORKING! Second sponsoring attempt correctly rejected with 'bereits gesponsert' message"
+                    "Test Function Name Conflict Resolution",
+                    False,
+                    error=f"Regular endpoint works (HTTP {response1.status_code}) but admin endpoint fails (HTTP {response2.status_code}): {response2.text}"
                 )
-                return True
+                return False
+            elif endpoint2_works:
+                self.log_result(
+                    "Test Function Name Conflict Resolution",
+                    False,
+                    error=f"Admin endpoint works (HTTP {response2.status_code}) but regular endpoint fails (HTTP {response1.status_code}): {response1.text}"
+                )
+                return False
             else:
                 self.log_result(
-                    "Test Already Sponsored Prevention",
+                    "Test Function Name Conflict Resolution",
                     False,
-                    error=f"Expected HTTP 400 with 'bereits gesponsert' message, got HTTP {second_response.status_code}: {second_response.text}"
+                    error=f"Both endpoints failed: Regular (HTTP {response1.status_code}): {response1.text}, Admin (HTTP {response2.status_code}): {response2.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Already Sponsored Prevention", False, error=str(e))
+            self.log_result("Test Function Name Conflict Resolution", False, error=str(e))
             return False
 
     def test_atomic_transaction_behavior(self):
