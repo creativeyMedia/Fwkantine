@@ -1,36 +1,32 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR CORRECTED SPONSORING FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR BREAKFAST-HISTORY FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the corrected sponsoring functionality as per review request:
+Test the corrected breakfast-history functionality after fixing the duplicate function name bug:
 
-1. **Test sponsoring with sponsor who has no own order**:
-   - Create an employee who has NOT placed any order today
-   - Create other employees who have breakfast/lunch orders
-   - Test that the sponsor (without own order) can successfully sponsor breakfast or lunch for others
-   - Verify the sponsor gets a proper sponsoring order created
-   - Verify others_count is calculated correctly
+1. **Test breakfast-history endpoint**:
+   - Test GET /api/orders/breakfast-history/{department_id} 
+   - Verify it returns proper breakfast history data
+   - Check that sponsored meals are included and displayed correctly
+   - Verify data structure matches frontend expectations
 
-2. **Test sponsoring error recovery**:
-   - Simulate various error scenarios during sponsoring
-   - Verify that if sponsoring fails, no orders are marked as "is_sponsored: true"
-   - Test that failed sponsoring attempts don't prevent future sponsoring attempts
+2. **Test admin breakfast-history endpoint**:
+   - Test GET /api/department-admin/breakfast-history/{department_id}
+   - Verify the renamed function get_admin_breakfast_history works correctly
+   - Ensure both endpoints work independently without conflicts
 
-3. **Test normal sponsoring (sponsor with own order)**:
-   - Create a sponsor who has their own breakfast/lunch order
-   - Create other employees with orders
-   - Test successful sponsoring
-   - Verify sponsor order is updated correctly with sponsoring details
-   - Verify all sponsored employees get correct messages
+3. **Test sponsored meal display in history**:
+   - Verify sponsored orders appear correctly in the breakfast history
+   - Check that sponsoring information is preserved
+   - Verify employee_orders data includes sponsored employees
 
-4. **Test "already sponsored" prevention**:
-   - Successfully sponsor a meal for a day
-   - Try to sponsor the same meal type again for the same day
-   - Verify it properly prevents duplicate sponsoring
-   - Verify the error message is correct
+4. **Test function name conflict resolution**:
+   - Verify both breakfast-history functions are accessible
+   - Test that the endpoints return different data structures if applicable
+   - Confirm no more function name conflicts exist
 
-Use Department "fw4abteilung2" and create realistic test scenarios. Focus on the others_count bug and the atomic transaction behavior.
+Use Department "fw4abteilung2" and verify the breakfast overview will show data correctly after the fix.
 """
 
 import requests
