@@ -49,12 +49,12 @@
 ##
 backend:
   - task: "Feature 3 - Backend Support for Negative Payment Amounts"
-    implemented: true
-    working: true
+    implemented: false
+    working: "NA"
     file: "backend/server.py"
     stuck_count: 0
-    priority: "critical"
-    needs_retesting: false
+    priority: "medium"
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
