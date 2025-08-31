@@ -181,11 +181,13 @@ class DepartmentSettings(BaseModel):
 class PayPalSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     department_id: str
-    use_separate_links: bool = False  # True = separate links for breakfast/drinks, False = one combined link
+    enabled: bool = False  # Whether PayPal payment is enabled for this department
+    breakfast_enabled: bool = False  # Whether breakfast PayPal button is enabled
+    drinks_enabled: bool = False  # Whether drinks PayPal button is enabled
+    use_separate_links: bool = False  # True = separate links for breakfast/drinks, False = same link for both
     combined_link: Optional[str] = None  # Used when use_separate_links = False
     breakfast_link: Optional[str] = None  # Used when use_separate_links = True
     drinks_link: Optional[str] = None  # Used when use_separate_links = True
-    enabled: bool = False  # Whether PayPal payment is enabled for this department
 
 class LunchSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
