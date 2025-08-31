@@ -919,6 +919,10 @@ const DepartmentDashboard = () => {
   const [selectedEmployeeForProfile, setSelectedEmployeeForProfile] = useState(null);
   const [showBreakfastSummary, setShowBreakfastSummary] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [sponsorStatus, setSponsorStatus] = useState({
+    breakfast_sponsored: null,
+    lunch_sponsored: null
+  });
   const { currentDepartment, logout, loginDepartmentAdmin } = React.useContext(AuthContext);
 
   useEffect(() => {
