@@ -178,6 +178,15 @@ class DepartmentSettings(BaseModel):
     boiled_eggs_price: float = 0.50  # Price per boiled egg for this department
     coffee_price: float = 1.50  # Daily coffee price for this department
 
+class PayPalSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str
+    use_separate_links: bool = False  # True = separate links for breakfast/drinks, False = one combined link
+    combined_link: Optional[str] = None  # Used when use_separate_links = False
+    breakfast_link: Optional[str] = None  # Used when use_separate_links = True
+    drinks_link: Optional[str] = None  # Used when use_separate_links = True
+    enabled: bool = False  # Whether PayPal payment is enabled for this department
+
 class LunchSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     price: float = 0.0
