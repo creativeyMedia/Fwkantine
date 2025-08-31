@@ -522,9 +522,11 @@ class CorrectedFunctionalityTest:
             # Attempt to sponsor lunch
             today = datetime.now().strftime('%Y-%m-%d')
             sponsor_data = {
+                "department_id": DEPARTMENT_ID,
                 "meal_type": "lunch",
                 "date": today,
-                "sponsor_employee_id": sponsor_employee["id"]
+                "sponsor_employee_id": sponsor_employee["id"],
+                "sponsor_employee_name": sponsor_employee["name"]
             }
             
             response = self.session.post(
