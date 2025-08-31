@@ -3053,6 +3053,49 @@ async def sponsor_meal(meal_data: dict):
                     {"$set": {"breakfast_balance": new_balance}}
                 )
         
+        # 2. Create sponsor order if they don't have one (sponsor without own order scenario)
+        if not sponsor_calculation and sponsor_additional_cost > 0:
+            # Create a sponsoring order for the sponsor
+            today = get_berlin_date().strftime('%Y-%m-%d')
+            current_time = datetime.utcnow()
+            
+            # Calculate total cost for display
+            total_others_cost = total_sponsored_cost  # All cost since sponsor has no own order
+            
+            if others_count > 0:
+                avg_cost_per_meal = total_others_cost / others_count
+                detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} á {avg_cost_per_meal:.2f}€ für {others_count} Mitarbeiter"
+                unit_price_text = f"{others_count} × {avg_cost_per_meal:.2f}€"
+            else:
+                detailed_breakdown = f"Keine Mitarbeiter gesponsert"
+                unit_price_text = ""
+            
+            sponsor_order_data = {
+                "id": str(uuid.uuid4()),
+                "employee_id": sponsor_employee_id,
+                "department_id": department_id,
+                "order_type": "breakfast",  # Sponsoring always goes to breakfast account
+                "total_price": total_others_cost,
+                "timestamp": current_time.isoformat(),
+                "breakfast_items": [],  # Empty - this is a pure sponsoring order
+                "drink_items": {},
+                "sweet_items": {},
+                "has_lunch": False,
+                "lunch_price": 0.0,
+                "is_sponsored": False,  # Sponsor is not sponsored
+                "is_sponsor_order": True,  # This IS a sponsor order
+                "sponsored_meal_type": meal_type,
+                "sponsored_by_employee_id": sponsor_employee_id,
+                "sponsor_message": f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)",
+                "readable_items": [{
+                    "description": detailed_breakdown,
+                    "unit_price": unit_price_text,
+                    "total_price": f"{total_others_cost:.2f} €"
+                }]
+            }
+            
+            await db.orders.insert_one(sponsor_order_data)
+
         # 3. Update sponsor balance and create payment log
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
