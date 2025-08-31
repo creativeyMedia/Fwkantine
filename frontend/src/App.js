@@ -5108,7 +5108,20 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
 
   const handleSponsorMeal = async (selectedEmployee, mealType, date) => {
     try {
+      // Check if meal has already been sponsored
+      const statusResponse = await axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${date}`);
+      const sponsorStatus = statusResponse.data;
+      
       const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
+      const alreadySponsored = mealType === 'breakfast' ? sponsorStatus.breakfast_sponsored : sponsorStatus.lunch_sponsored;
+      
+      if (alreadySponsored) {
+        alert(
+          `${mealTypeLabel} für ${date} wurde bereits ausgegeben!\n\n` +
+          `Ausgegeben von: ${alreadySponsored.sponsored_by}`
+        );
+        return;
+      }
       
       const response = await axios.post(`${API}/department-admin/sponsor-meal`, {
         department_id: currentDepartment.department_id,
