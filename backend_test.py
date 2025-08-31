@@ -305,62 +305,149 @@ class DailyLunchPriceTest:
             self.log_result("Test Order With Lunch Uses Zero Price", False, error=str(e))
             return False
 
-    def test_negative_breakfast_payment(self):
-        """Test negative payment amounts for breakfast account"""
+    def test_set_daily_lunch_price(self):
+        """Test setting a lunch price for today and verify it's saved correctly"""
         try:
-            if not self.test_employee:
-                return False
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            test_price = 4.50
             
-            initial_balance = self.get_employee_balance(self.test_employee['id'])
-            if not initial_balance:
-                return False
-            
-            initial_breakfast_balance = initial_balance['breakfast_balance']
-            
-            negative_amount = -10.00
-            payment_data = {
-                "payment_type": "breakfast",
-                "amount": negative_amount,
-                "notes": "Test negative breakfast payment"
-            }
-            
-            employee_id = self.test_employee["id"]
-            response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{employee_id}?admin_department={DEPARTMENT_NAME}", 
-                json=payment_data
+            # Set lunch price for today
+            response = self.session.put(
+                f"{BASE_URL}/daily-lunch-settings/{DEPARTMENT_ID}/{today}",
+                params={"lunch_price": test_price}
             )
             
             if response.status_code == 200:
-                final_balance = self.get_employee_balance(self.test_employee['id'])
-                final_breakfast_balance = final_balance['breakfast_balance']
+                # Verify the price was saved by retrieving it
+                get_response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{today}")
                 
-                expected_balance = initial_breakfast_balance + negative_amount
-                balance_difference = abs(final_breakfast_balance - expected_balance)
-                
-                if balance_difference < 0.01:
-                    self.log_result(
-                        "Test Negative Breakfast Payment",
-                        True,
-                        f"✅ NEGATIVE BREAKFAST PAYMENT WORKING! Amount: €{negative_amount:.2f}, Balance: €{initial_breakfast_balance:.2f} → €{final_breakfast_balance:.2f}"
-                    )
-                    return True
+                if get_response.status_code == 200:
+                    price_data = get_response.json()
+                    saved_price = price_data.get('lunch_price', 0.0)
+                    
+                    if abs(saved_price - test_price) < 0.01:
+                        self.log_result(
+                            "Test Set Daily Lunch Price",
+                            True,
+                            f"✅ DAILY LUNCH PRICE SET SUCCESSFULLY! Date: {today}, Price: €{saved_price:.2f}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Set Daily Lunch Price",
+                            False,
+                            error=f"Price not saved correctly. Expected: €{test_price:.2f}, Got: €{saved_price:.2f}"
+                        )
+                        return False
                 else:
                     self.log_result(
-                        "Test Negative Breakfast Payment",
+                        "Test Set Daily Lunch Price",
                         False,
-                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}"
+                        error=f"Failed to retrieve saved price: HTTP {get_response.status_code}: {get_response.text}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Negative Breakfast Payment",
+                    "Test Set Daily Lunch Price",
                     False,
-                    error=f"Negative payment failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Failed to set price: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Negative Breakfast Payment", False, error=str(e))
+            self.log_result("Test Set Daily Lunch Price", False, error=str(e))
+            return False
+
+    def test_order_after_price_set_uses_correct_price(self):
+        """Test that orders created after setting the price use the correct price"""
+        try:
+            if not self.test_employee:
+                return False
+            
+            # First, set a lunch price for today
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            test_price = 5.25
+            
+            response = self.session.put(
+                f"{BASE_URL}/daily-lunch-settings/{DEPARTMENT_ID}/{today}",
+                params={"lunch_price": test_price}
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Test Order After Price Set Uses Correct Price",
+                    False,
+                    error=f"Failed to set lunch price: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+            
+            # Create a new test employee for this test
+            timestamp = datetime.now().strftime("%H%M%S")
+            employee_name = f"LunchPriceTest_{timestamp}"
+            
+            emp_response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": employee_name,
+                "department_id": DEPARTMENT_ID
+            })
+            
+            if emp_response.status_code != 200:
+                self.log_result(
+                    "Test Order After Price Set Uses Correct Price",
+                    False,
+                    error=f"Failed to create test employee: HTTP {emp_response.status_code}: {emp_response.text}"
+                )
+                return False
+            
+            test_employee = emp_response.json()
+            self.test_employees.append(test_employee)
+            
+            # Create breakfast order with lunch
+            breakfast_order_data = {
+                "employee_id": test_employee["id"],
+                "department_id": DEPARTMENT_ID,
+                "order_type": "breakfast",
+                "breakfast_items": [{
+                    "total_halves": 2,
+                    "white_halves": 2,
+                    "seeded_halves": 0,
+                    "toppings": ["butter", "kaese"],
+                    "has_lunch": True,
+                    "boiled_eggs": 0,
+                    "has_coffee": False
+                }]
+            }
+            
+            order_response = self.session.post(f"{BASE_URL}/orders", json=breakfast_order_data)
+            
+            if order_response.status_code == 200:
+                order = order_response.json()
+                lunch_price = order.get('lunch_price', 0.0)
+                
+                if abs(lunch_price - test_price) < 0.01:
+                    self.log_result(
+                        "Test Order After Price Set Uses Correct Price",
+                        True,
+                        f"✅ ORDER USES CORRECT LUNCH PRICE! Set Price: €{test_price:.2f}, Order Lunch Price: €{lunch_price:.2f}, Total: €{order['total_price']:.2f}"
+                    )
+                    self.test_orders.append(order)
+                    return True
+                else:
+                    self.log_result(
+                        "Test Order After Price Set Uses Correct Price",
+                        False,
+                        error=f"Order lunch price incorrect. Expected: €{test_price:.2f}, Got: €{lunch_price:.2f}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Order After Price Set Uses Correct Price",
+                    False,
+                    error=f"Order creation failed: HTTP {order_response.status_code}: {order_response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Order After Price Set Uses Correct Price", False, error=str(e))
             return False
 
     def test_negative_drinks_payment(self):
