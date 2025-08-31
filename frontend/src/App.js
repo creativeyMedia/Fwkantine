@@ -3670,6 +3670,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchSponsorStatus = async (date, departmentId) => {
+    try {
+      const response = await axios.get(`${API}/department-admin/sponsor-status/${departmentId}/${date}`);
+      setSponsorStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Sponsor-Status:', error);
+      setSponsorStatus({
+        breakfast_sponsored: null,
+        lunch_sponsored: null
+      });
+    }
+  };
+
   const fetchLunchSettings = async () => {
     try {
       // For Admin Dashboard, we'll use global lunch settings since this view spans all departments
