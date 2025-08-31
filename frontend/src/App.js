@@ -257,6 +257,22 @@ const playSucessSound = () => {
   }
 };
 
+// Helper function to ensure URL has protocol
+const normalizeUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) return '';
+  
+  // Check if URL already has a protocol
+  if (trimmedUrl.match(/^https?:\/\//i)) {
+    return trimmedUrl;
+  }
+  
+  // Add https:// if missing
+  return `https://${trimmedUrl}`;
+};
+
 // Individual Employee Profile Component with Combined Chronological History
 const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
