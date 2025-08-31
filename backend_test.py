@@ -214,69 +214,55 @@ class PayPalSettingsTest:
     # ========================================
     
     def test_get_default_paypal_settings(self):
-        """Test that negative payments create proper notes"""
+        """Test GET endpoint returns default settings if none exist"""
         try:
-            if not self.test_employee:
-                return False
-            
-            initial_balance = self.get_employee_balance(self.test_employee['id'])
-            if not initial_balance:
-                return False
-            
-            initial_breakfast_balance = initial_balance['breakfast_balance']
-            
-            # Test negative payment with corrected notes
-            negative_amount = -12.50
-            payment_data = {
-                "payment_type": "breakfast",
-                "amount": negative_amount,
-                "notes": "Test corrected negative payment notes"
-            }
-            
-            employee_id = self.test_employee["id"]
-            response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{employee_id}?admin_department={DEPARTMENT_NAME}", 
-                json=payment_data
-            )
+            response = self.session.get(f"{BASE_URL}/department-paypal-settings/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
-                payment_result = response.json()
+                settings = response.json()
                 
-                # Get final balance
-                final_balance = self.get_employee_balance(self.test_employee['id'])
-                final_breakfast_balance = final_balance['breakfast_balance']
+                # Verify default settings structure
+                expected_fields = ['id', 'department_id', 'use_separate_links', 'combined_link', 
+                                 'breakfast_link', 'drinks_link', 'enabled']
                 
-                # Check balance calculation - CORRECTED LOGIC
-                # new_balance = current_balance + payment_data.amount
-                # For negative amount: balance decreases (more debt)
-                expected_balance = initial_breakfast_balance + negative_amount
-                balance_difference = abs(final_breakfast_balance - expected_balance)
+                missing_fields = [field for field in expected_fields if field not in settings]
                 
-                if balance_difference < 0.01:
-                    response_notes = payment_result.get('notes', '')
-                    self.log_result(
-                        "Test Corrected Negative Payment Notes",
-                        True,
-                        f"✅ NEGATIVE PAYMENT PROCESSED! Amount: €{negative_amount:.2f}, Balance: €{initial_breakfast_balance:.2f} → €{final_breakfast_balance:.2f}. Notes: '{response_notes}'. Payment functionality working correctly."
-                    )
-                    return True
+                if not missing_fields:
+                    # Verify default values
+                    if (settings['department_id'] == DEPARTMENT_ID and
+                        settings['enabled'] == False and
+                        settings['use_separate_links'] == False):
+                        
+                        self.log_result(
+                            "Test GET Default PayPal Settings",
+                            True,
+                            f"✅ DEFAULT SETTINGS RETURNED! Department: {settings['department_id']}, Enabled: {settings['enabled']}, Use Separate Links: {settings['use_separate_links']}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test GET Default PayPal Settings",
+                            False,
+                            error=f"Default values incorrect. Settings: {settings}"
+                        )
+                        return False
                 else:
                     self.log_result(
-                        "Test Corrected Negative Payment Notes",
+                        "Test GET Default PayPal Settings",
                         False,
-                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}"
+                        error=f"Missing fields in response: {missing_fields}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Corrected Negative Payment Notes",
+                    "Test GET Default PayPal Settings",
                     False,
-                    error=f"Negative payment failed: HTTP {response.status_code}: {response.text}"
+                    error=f"GET request failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Corrected Negative Payment Notes", False, error=str(e))
+            self.log_result("Test GET Default PayPal Settings", False, error=str(e))
             return False
 
     def test_negative_breakfast_payment(self):
