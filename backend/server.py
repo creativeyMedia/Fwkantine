@@ -3126,6 +3126,13 @@ async def sponsor_meal(meal_data: dict):
             
             await db.payment_logs.insert_one(sponsoring_log.dict())
         
+        # 4. Apply sponsor order updates (after all other operations are complete)
+        if 'sponsor_order_updates' in locals():
+            await db.orders.update_one(
+                {"id": sponsor_order_updates["id"]},
+                {"$set": sponsor_order_updates["updates"]}
+            )
+        
         # === RÜCKGABE ===
         sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
         
