@@ -6102,16 +6102,25 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
 
   const fetchLunchSettings = async () => {
     try {
-      // First try to get department-specific settings
-      const response = await axios.get(`${API}/api/department-settings/${currentDepartment.department_id}`);
+      // Get department-specific egg and coffee prices using separate endpoints
+      const [eggsResponse, coffeeResponse] = await Promise.all([
+        axios.get(`${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`),
+        axios.get(`${API}/department-settings/${currentDepartment.department_id}/coffee-price`)
+      ]);
+      
       setLunchSettings({
-        boiled_eggs_price: response.data.boiled_eggs_price,
-        coffee_price: response.data.coffee_price
+        boiled_eggs_price: eggsResponse.data.boiled_eggs_price,
+        coffee_price: coffeeResponse.data.coffee_price
       });
     } catch (error) {
       console.error('Fehler beim Laden der Department-Einstellungen:', error);
-      // Fallback to global settings
-      try {
+      // Fallback to default settings
+      setLunchSettings({
+        boiled_eggs_price: 0.50,
+        coffee_price: 1.50
+      });
+    }
+  };
         const response = await axios.get(`${API}/api/lunch-settings`);
         setLunchSettings(response.data);
       } catch (fallbackError) {
