@@ -275,7 +275,19 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
 
   useEffect(() => {
     fetchEmployeeProfile();
+    fetchPayPalSettings();
   }, [employee.id]);
+
+  const fetchPayPalSettings = async () => {
+    try {
+      if (currentDepartment?.department_id) {
+        const response = await axios.get(`${API}/department-paypal-settings/${currentDepartment.department_id}`);
+        setPaypalSettings(response.data);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der PayPal-Einstellungen:', error);
+    }
+  };
 
   const fetchEmployeeProfile = async () => {
     try {
