@@ -2381,8 +2381,8 @@ const DepartmentAdminDashboard = () => {
       setPaymentEmployeeData(null);
       
     } catch (error) {
-      console.error('Fehler bei der Einzahlung:', error);
-      setSuccessMessage('❌ Fehler bei der Einzahlung: ' + (error.response?.data?.detail || error.message));
+      console.error('Fehler bei der Ein-/Auszahlung:', error);
+      setSuccessMessage('❌ Fehler bei der Ein-/Auszahlung: ' + (error.response?.data?.detail || error.message));
       setShowSuccessNotification(true);
     }
   };
