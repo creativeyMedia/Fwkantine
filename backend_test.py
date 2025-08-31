@@ -847,6 +847,13 @@ class DailyLunchPriceTest:
         if self.test_date_edge_cases():
             tests_passed += 1
         
+        # Test the endpoint mentioned in review request
+        print("\n🔍 TEST REVIEW REQUEST ENDPOINT")
+        print("-" * 50)
+        
+        if self.test_review_request_endpoint():
+            tests_passed += 1
+        
         # Print summary
         print("\n" + "=" * 80)
         print("🎯 DAILY LUNCH PRICE RESET TESTING SUMMARY")
