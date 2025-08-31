@@ -253,7 +253,7 @@ class NegativePaymentAmountsTest:
             }
             
             response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee[\'id\']}?admin_department={DEPARTMENT_NAME}", 
                 json=payment_data
             )
             
@@ -316,7 +316,7 @@ class NegativePaymentAmountsTest:
             }
             
             response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee[\'id\']}?admin_department={DEPARTMENT_NAME}", 
                 json=payment_data
             )
             
@@ -379,7 +379,7 @@ class NegativePaymentAmountsTest:
             }
             
             response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee[\'id\']}?admin_department={DEPARTMENT_NAME}", 
                 json=payment_data
             )
             
@@ -442,7 +442,7 @@ class NegativePaymentAmountsTest:
             }
             
             response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee[\'id\']}?admin_department={DEPARTMENT_NAME}", 
                 json=payment_data
             )
             
