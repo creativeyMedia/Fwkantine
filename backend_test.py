@@ -109,56 +109,38 @@ class NegativePaymentAmountsTest:
             self.log_result("Admin Authentication", False, error=str(e))
             return False
     
-    def create_fresh_test_employees(self):
-        """Create 2 fresh test employees for the bug fix verification"""
+    def create_test_employee(self):
+        """Create a test employee for negative payment testing"""
         try:
             timestamp = datetime.now().strftime("%H%M%S")
             
-            # Create Employee A (will be sponsor)
-            sponsor_name = f"EmployeeA_Sponsor_{timestamp}"
+            # Create test employee for payment testing
+            employee_name = f"PaymentTest_{timestamp}"
             response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": sponsor_name,
+                "name": employee_name,
                 "department_id": DEPARTMENT_ID
             })
             
             if response.status_code == 200:
-                self.sponsor_employee = response.json()
-                self.test_employees.append(self.sponsor_employee)
+                self.test_employee = response.json()
+                self.test_employees.append(self.test_employee)
+                
+                self.log_result(
+                    "Create Test Employee",
+                    True,
+                    f"Created test employee '{employee_name}' (ID: {self.test_employee['id']}) in Department 2 for negative payment testing"
+                )
+                return True
             else:
                 self.log_result(
-                    "Create Fresh Test Employees",
+                    "Create Test Employee",
                     False,
-                    error=f"Failed to create sponsor employee: HTTP {response.status_code}: {response.text}"
+                    error=f"Failed to create test employee: HTTP {response.status_code}: {response.text}"
                 )
                 return False
-            
-            # Create Employee B (will be sponsored)
-            sponsored_name = f"EmployeeB_Sponsored_{timestamp}"
-            response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": sponsored_name,
-                "department_id": DEPARTMENT_ID
-            })
-            
-            if response.status_code == 200:
-                self.sponsored_employee = response.json()
-                self.test_employees.append(self.sponsored_employee)
-            else:
-                self.log_result(
-                    "Create Fresh Test Employees",
-                    False,
-                    error=f"Failed to create sponsored employee: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-            
-            self.log_result(
-                "Create Fresh Test Employees",
-                True,
-                f"Created 2 fresh employees in Department 1: Employee A (Sponsor) '{sponsor_name}' (ID: {self.sponsor_employee['id']}) and Employee B (Sponsored) '{sponsored_name}' (ID: {self.sponsored_employee['id']})"
-            )
-            return True
                 
         except Exception as e:
-            self.log_result("Create Fresh Test Employees", False, error=str(e))
+            self.log_result("Create Test Employee", False, error=str(e))
             return False
     
     # ========================================
