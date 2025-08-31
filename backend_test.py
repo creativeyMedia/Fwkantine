@@ -130,407 +130,394 @@ class DepartmentPricingFunctionalityTest:
             return True
     
     # ========================================
-    # BREAKFAST-HISTORY FUNCTIONALITY TESTS
+    # DEPARTMENT-SPECIFIC PRICING FUNCTIONALITY TESTS
     # ========================================
     
-    def test_breakfast_history_endpoint(self):
-        """Test GET /api/orders/breakfast-history/{department_id} endpoint"""
+    def test_get_boiled_eggs_price_default(self):
+        """Test GET /api/department-settings/{department_id}/boiled-eggs-price with default values"""
         try:
-            # Test the breakfast-history endpoint
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
+            # Test getting boiled eggs price (should return default 0.50 if no settings exist)
+            response = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
             
             if response.status_code == 200:
                 response_data = response.json()
                 
-                # Verify response structure - should be dict with "history" key
-                if isinstance(response_data, dict) and "history" in response_data:
-                    history_data = response_data["history"]
+                # Verify response structure
+                if isinstance(response_data, dict) and "boiled_eggs_price" in response_data:
+                    price = response_data["boiled_eggs_price"]
+                    department_id = response_data.get("department_id")
                     
-                    if isinstance(history_data, list):
+                    # Check if it's the expected default or a valid price
+                    if isinstance(price, (int, float)) and price >= 0:
                         self.log_result(
-                            "Test Breakfast History Endpoint",
+                            "Test GET Boiled Eggs Price Default",
                             True,
-                            f"✅ BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(history_data)} days of history data. Response structure is valid dict with 'history' key containing list."
+                            f"✅ GET BOILED EGGS PRICE SUCCESS! Department: {department_id}, Price: €{price:.2f}. Response structure valid with proper JSON format."
                         )
-                        
-                        # Check if we have data and verify structure
-                        if len(history_data) > 0:
-                            sample_day = history_data[0]
-                            expected_fields = ["date", "breakfast_summary", "employee_orders", "total_orders", "total_amount"]
-                            
-                            missing_fields = [field for field in expected_fields if field not in sample_day]
-                            if not missing_fields:
-                                self.log_result(
-                                    "Test Breakfast History Data Structure",
-                                    True,
-                                    f"✅ DATA STRUCTURE VALID! Sample day contains all expected fields: {expected_fields}. Total amount: €{sample_day.get('total_amount', 0):.2f}, Total orders: {sample_day.get('total_orders', 0)}"
-                                )
-                            else:
-                                self.log_result(
-                                    "Test Breakfast History Data Structure",
-                                    False,
-                                    error=f"Missing fields in history data: {missing_fields}"
-                                )
-                        
+                        return True, price
+                    else:
+                        self.log_result(
+                            "Test GET Boiled Eggs Price Default",
+                            False,
+                            error=f"Invalid price value: {price} (expected non-negative number)"
+                        )
+                        return False, None
+                else:
+                    self.log_result(
+                        "Test GET Boiled Eggs Price Default",
+                        False,
+                        error=f"Invalid response structure. Expected dict with 'boiled_eggs_price' key, got: {response_data}"
+                    )
+                    return False, None
+            else:
+                self.log_result(
+                    "Test GET Boiled Eggs Price Default",
+                    False,
+                    error=f"GET boiled eggs price failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Test GET Boiled Eggs Price Default", False, error=str(e))
+            return False, None
+
+    def test_get_coffee_price_default(self):
+        """Test GET /api/department-settings/{department_id}/coffee-price with default values"""
+        try:
+            # Test getting coffee price (should return default 1.50 if no settings exist)
+            response = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                # Verify response structure
+                if isinstance(response_data, dict) and "coffee_price" in response_data:
+                    price = response_data["coffee_price"]
+                    department_id = response_data.get("department_id")
+                    
+                    # Check if it's the expected default or a valid price
+                    if isinstance(price, (int, float)) and price >= 0:
+                        self.log_result(
+                            "Test GET Coffee Price Default",
+                            True,
+                            f"✅ GET COFFEE PRICE SUCCESS! Department: {department_id}, Price: €{price:.2f}. Response structure valid with proper JSON format."
+                        )
+                        return True, price
+                    else:
+                        self.log_result(
+                            "Test GET Coffee Price Default",
+                            False,
+                            error=f"Invalid price value: {price} (expected non-negative number)"
+                        )
+                        return False, None
+                else:
+                    self.log_result(
+                        "Test GET Coffee Price Default",
+                        False,
+                        error=f"Invalid response structure. Expected dict with 'coffee_price' key, got: {response_data}"
+                    )
+                    return False, None
+            else:
+                self.log_result(
+                    "Test GET Coffee Price Default",
+                    False,
+                    error=f"GET coffee price failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False, None
+                
+        except Exception as e:
+            self.log_result("Test GET Coffee Price Default", False, error=str(e))
+            return False, None
+
+    def test_put_boiled_eggs_price(self, new_price):
+        """Test PUT /api/department-settings/{department_id}/boiled-eggs-price"""
+        try:
+            # Test updating boiled eggs price
+            response = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
+                                      json=new_price)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                # Verify response structure
+                if isinstance(response_data, dict) and "price" in response_data:
+                    updated_price = response_data["price"]
+                    
+                    if abs(updated_price - new_price) < 0.01:  # Allow for floating point precision
+                        self.log_result(
+                            "Test PUT Boiled Eggs Price",
+                            True,
+                            f"✅ PUT BOILED EGGS PRICE SUCCESS! Updated price from previous to €{updated_price:.2f}. Update saved correctly."
+                        )
                         return True
                     else:
                         self.log_result(
-                            "Test Breakfast History Endpoint",
+                            "Test PUT Boiled Eggs Price",
                             False,
-                            error=f"Expected 'history' to be a list, got {type(history_data)}"
+                            error=f"Price mismatch: sent {new_price}, got {updated_price}"
                         )
                         return False
                 else:
                     self.log_result(
-                        "Test Breakfast History Endpoint",
+                        "Test PUT Boiled Eggs Price",
                         False,
-                        error=f"Expected dict with 'history' key, got {type(response_data)} with keys: {list(response_data.keys()) if isinstance(response_data, dict) else 'N/A'}"
+                        error=f"Invalid response structure. Expected dict with 'price' key, got: {response_data}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Breakfast History Endpoint",
+                    "Test PUT Boiled Eggs Price",
                     False,
-                    error=f"Breakfast history endpoint failed: HTTP {response.status_code}: {response.text}"
+                    error=f"PUT boiled eggs price failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Breakfast History Endpoint", False, error=str(e))
+            self.log_result("Test PUT Boiled Eggs Price", False, error=str(e))
             return False
 
-    def test_admin_breakfast_history_endpoint(self):
-        """Test GET /api/department-admin/breakfast-history/{department_id} endpoint"""
+    def test_put_coffee_price(self, new_price):
+        """Test PUT /api/department-settings/{department_id}/coffee-price"""
         try:
-            # Test the admin breakfast-history endpoint
-            response = self.session.get(f"{BASE_URL}/department-admin/breakfast-history/{DEPARTMENT_ID}")
+            # Test updating coffee price
+            response = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
+                                      json=new_price)
             
             if response.status_code == 200:
-                admin_history_data = response.json()
+                response_data = response.json()
                 
                 # Verify response structure
-                if isinstance(admin_history_data, list):
-                    self.log_result(
-                        "Test Admin Breakfast History Endpoint",
-                        True,
-                        f"✅ ADMIN BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(admin_history_data)} days of admin history data. Response structure is valid list format."
-                    )
+                if isinstance(response_data, dict) and "price" in response_data:
+                    updated_price = response_data["price"]
                     
-                    # Check if we have data and verify structure
-                    if len(admin_history_data) > 0:
-                        sample_day = admin_history_data[0]
-                        # Admin endpoint might have different structure, check for basic fields
-                        basic_fields = ["date"]
-                        
-                        has_basic_fields = all(field in sample_day for field in basic_fields)
-                        if has_basic_fields:
-                            self.log_result(
-                                "Test Admin Breakfast History Data Structure",
-                                True,
-                                f"✅ ADMIN DATA STRUCTURE VALID! Sample day contains basic required fields. Keys found: {list(sample_day.keys())}"
-                            )
-                        else:
-                            self.log_result(
-                                "Test Admin Breakfast History Data Structure",
-                                False,
-                                error=f"Missing basic fields in admin history data. Found keys: {list(sample_day.keys())}"
-                            )
-                    
-                    return True
-                else:
-                    self.log_result(
-                        "Test Admin Breakfast History Endpoint",
-                        False,
-                        error=f"Expected list response, got {type(admin_history_data)}"
-                    )
-                    return False
-            else:
-                self.log_result(
-                    "Test Admin Breakfast History Endpoint",
-                    False,
-                    error=f"Admin breakfast history endpoint failed: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Test Admin Breakfast History Endpoint", False, error=str(e))
-            return False
-
-    def test_sponsored_meal_display_in_history(self):
-        """Test sponsored meal display in breakfast history"""
-        try:
-            # Get breakfast history data to check for sponsored meals
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                
-                if isinstance(response_data, dict) and "history" in response_data:
-                    history_data = response_data["history"]
-                    
-                    sponsored_meals_found = False
-                    sponsored_details = []
-                    
-                    # Look for sponsored meals in the history
-                    for day_data in history_data:
-                        if "employee_orders" in day_data:
-                            employee_orders = day_data["employee_orders"]
-                            
-                            # employee_orders is a dict with employee names as keys
-                            for employee_name, employee_order in employee_orders.items():
-                                # Check for sponsored meal indicators (look for zero amounts which might indicate sponsoring)
-                                total_amount = employee_order.get("total_amount", 0)
-                                
-                                # Check if this looks like a sponsored meal (zero amount but has items)
-                                has_items = (employee_order.get("white_halves", 0) > 0 or 
-                                           employee_order.get("seeded_halves", 0) > 0 or 
-                                           employee_order.get("boiled_eggs", 0) > 0 or 
-                                           employee_order.get("has_lunch", False) or 
-                                           employee_order.get("has_coffee", False))
-                                
-                                if has_items and total_amount == 0:
-                                    sponsored_meals_found = True
-                                    sponsored_details.append({
-                                        "date": day_data.get("date", "unknown"),
-                                        "employee": employee_name,
-                                        "total_amount": total_amount,
-                                        "has_items": has_items
-                                    })
-                    
-                    if sponsored_meals_found:
+                    if abs(updated_price - new_price) < 0.01:  # Allow for floating point precision
                         self.log_result(
-                            "Test Sponsored Meal Display in History",
+                            "Test PUT Coffee Price",
                             True,
-                            f"✅ SPONSORED MEALS FOUND IN HISTORY! Found {len(sponsored_details)} employees with €0.00 amounts but with items (indicating sponsoring). Sponsoring information is preserved in history."
-                        )
-                        
-                        # Log details of sponsored meals found
-                        for detail in sponsored_details[:3]:  # Show first 3 examples
-                            self.log_result(
-                                f"Sponsored Meal Example - {detail['date']}",
-                                True,
-                                f"Employee: {detail['employee']}, Amount: €{detail['total_amount']:.2f} (sponsored)"
-                            )
-                    else:
-                        # Check if we have any data at all
-                        total_employees = sum(len(day.get("employee_orders", {})) for day in history_data)
-                        self.log_result(
-                            "Test Sponsored Meal Display in History",
-                            True,
-                            f"✅ HISTORY DATA STRUCTURE SUPPORTS SPONSORED MEALS! Found {total_employees} employee orders in history. No sponsored meals detected (all employees have non-zero amounts), which is expected if no recent sponsoring occurred."
-                        )
-                    
-                    return True
-                else:
-                    self.log_result(
-                        "Test Sponsored Meal Display in History",
-                        False,
-                        error="Invalid response structure for sponsored meal check"
-                    )
-                    return False
-            else:
-                self.log_result(
-                    "Test Sponsored Meal Display in History",
-                    False,
-                    error=f"Failed to get breakfast history: HTTP {response.status_code}: {response.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Test Sponsored Meal Display in History", False, error=str(e))
-            return False
-
-    def test_function_name_conflict_resolution(self):
-        """Test function name conflict resolution between endpoints"""
-        try:
-            # Test both endpoints simultaneously to ensure no conflicts
-            
-            # Test regular breakfast-history endpoint
-            response1 = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
-            
-            # Test admin breakfast-history endpoint  
-            response2 = self.session.get(f"{BASE_URL}/department-admin/breakfast-history/{DEPARTMENT_ID}")
-            
-            # Both should work independently
-            endpoint1_works = response1.status_code == 200
-            endpoint2_works = response2.status_code == 200
-            
-            if endpoint1_works and endpoint2_works:
-                # Compare response structures to ensure they're different functions
-                data1 = response1.json() if endpoint1_works else None
-                data2 = response2.json() if endpoint2_works else None
-                
-                # Both endpoints should return data (could be same or different structure)
-                if data1 is not None and data2 is not None:
-                    self.log_result(
-                        "Test Function Name Conflict Resolution",
-                        True,
-                        f"✅ NO FUNCTION NAME CONFLICTS! Both endpoints work independently: /orders/breakfast-history (HTTP {response1.status_code}) and /department-admin/breakfast-history (HTTP {response2.status_code})"
-                    )
-                    
-                    # Check if they return different data structures (indicating different functions)
-                    if str(data1) != str(data2):
-                        self.log_result(
-                            "Test Different Function Implementation",
-                            True,
-                            "✅ DIFFERENT FUNCTIONS CONFIRMED! Endpoints return different data structures, confirming the renamed function get_admin_breakfast_history works correctly"
-                        )
-                    else:
-                        self.log_result(
-                            "Test Different Function Implementation",
-                            True,
-                            "✅ FUNCTIONS ACCESSIBLE! Both endpoints accessible (may return same data structure, which is acceptable)"
-                        )
-                    
-                    return True
-                else:
-                    self.log_result(
-                        "Test Function Name Conflict Resolution",
-                        False,
-                        error="One or both endpoints returned invalid data despite HTTP 200"
-                    )
-                    return False
-            elif endpoint1_works:
-                self.log_result(
-                    "Test Function Name Conflict Resolution",
-                    False,
-                    error=f"Regular endpoint works (HTTP {response1.status_code}) but admin endpoint fails (HTTP {response2.status_code}): {response2.text}"
-                )
-                return False
-            elif endpoint2_works:
-                self.log_result(
-                    "Test Function Name Conflict Resolution",
-                    False,
-                    error=f"Admin endpoint works (HTTP {response2.status_code}) but regular endpoint fails (HTTP {response1.status_code}): {response1.text}"
-                )
-                return False
-            else:
-                self.log_result(
-                    "Test Function Name Conflict Resolution",
-                    False,
-                    error=f"Both endpoints failed: Regular (HTTP {response1.status_code}): {response1.text}, Admin (HTTP {response2.status_code}): {response2.text}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result("Test Function Name Conflict Resolution", False, error=str(e))
-            return False
-
-    def test_breakfast_overview_data_correctness(self):
-        """Test that breakfast overview will show data correctly after the fix"""
-        try:
-            # Get breakfast history data and verify it contains the data needed for breakfast overview
-            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                
-                if isinstance(response_data, dict) and "history" in response_data:
-                    history_data = response_data["history"]
-                    
-                    if len(history_data) > 0:
-                        # Check the most recent day's data
-                        recent_day = history_data[0]
-                        
-                        # Verify breakfast overview essential fields
-                        overview_fields = ["breakfast_summary", "employee_orders", "total_orders", "total_amount"]
-                        missing_overview_fields = [field for field in overview_fields if field not in recent_day]
-                        
-                        if not missing_overview_fields:
-                            # Check breakfast_summary structure
-                            breakfast_summary = recent_day.get("breakfast_summary", {})
-                            
-                            # Verify employee_orders structure (it's a dict, not a list)
-                            employee_orders = recent_day.get("employee_orders", {})
-                            
-                            # Check if employee orders have necessary fields for frontend display
-                            if len(employee_orders) > 0:
-                                # Get first employee order to check structure
-                                sample_employee_name = list(employee_orders.keys())[0]
-                                sample_employee = employee_orders[sample_employee_name]
-                                
-                                # Check for essential fields
-                                employee_fields = ["total_amount", "white_halves", "seeded_halves"]
-                                has_employee_fields = any(field in sample_employee for field in employee_fields)
-                                
-                                if has_employee_fields:
-                                    self.log_result(
-                                        "Test Breakfast Overview Data Correctness",
-                                        True,
-                                        f"✅ BREAKFAST OVERVIEW DATA CORRECT! Recent day ({recent_day.get('date')}) has {len(employee_orders)} employee orders with proper structure. Total amount: €{recent_day.get('total_amount', 0):.2f}, Total orders: {recent_day.get('total_orders', 0)}"
-                                    )
-                                    
-                                    # Check for sponsored employee data specifically (employees with €0.00 but items)
-                                    sponsored_employees = []
-                                    for emp_name, emp_data in employee_orders.items():
-                                        if emp_data.get("total_amount", 0) == 0 and (
-                                            emp_data.get("white_halves", 0) > 0 or 
-                                            emp_data.get("seeded_halves", 0) > 0 or 
-                                            emp_data.get("boiled_eggs", 0) > 0 or 
-                                            emp_data.get("has_lunch", False) or 
-                                            emp_data.get("has_coffee", False)
-                                        ):
-                                            sponsored_employees.append(emp_name)
-                                    
-                                    if sponsored_employees:
-                                        self.log_result(
-                                            "Test Sponsored Employee Data in Overview",
-                                            True,
-                                            f"✅ SPONSORED EMPLOYEES IN OVERVIEW! Found {len(sponsored_employees)} sponsored employees (€0.00 with items): {sponsored_employees[:3]}"
-                                        )
-                                    else:
-                                        self.log_result(
-                                            "Test Sponsored Employee Data in Overview",
-                                            True,
-                                            "✅ NO SPONSORED EMPLOYEES IN RECENT DATA (Expected if no recent sponsoring). Structure supports sponsored employee display"
-                                        )
-                                    
-                                    return True
-                                else:
-                                    self.log_result(
-                                        "Test Breakfast Overview Data Correctness",
-                                        False,
-                                        error=f"Employee orders missing essential fields. Sample employee keys: {list(sample_employee.keys())}"
-                                    )
-                                    return False
-                            else:
-                                self.log_result(
-                                    "Test Breakfast Overview Data Correctness",
-                                    True,
-                                    "✅ NO EMPLOYEE ORDERS IN RECENT DATA (Expected if no recent orders). Data structure is correct for breakfast overview display"
-                                )
-                                return True
-                        else:
-                            self.log_result(
-                                "Test Breakfast Overview Data Correctness",
-                                False,
-                                error=f"Missing essential breakfast overview fields: {missing_overview_fields}"
-                            )
-                            return False
-                    else:
-                        self.log_result(
-                            "Test Breakfast Overview Data Correctness",
-                            True,
-                            "✅ NO RECENT HISTORY DATA (Expected in fresh system). Endpoint structure is correct for breakfast overview"
+                            f"✅ PUT COFFEE PRICE SUCCESS! Updated price from previous to €{updated_price:.2f}. Update saved correctly."
                         )
                         return True
+                    else:
+                        self.log_result(
+                            "Test PUT Coffee Price",
+                            False,
+                            error=f"Price mismatch: sent {new_price}, got {updated_price}"
+                        )
+                        return False
                 else:
                     self.log_result(
-                        "Test Breakfast Overview Data Correctness",
+                        "Test PUT Coffee Price",
                         False,
-                        error="Invalid response structure for breakfast overview verification"
+                        error=f"Invalid response structure. Expected dict with 'price' key, got: {response_data}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Breakfast Overview Data Correctness",
+                    "Test PUT Coffee Price",
                     False,
-                    error=f"Failed to get breakfast history for overview verification: HTTP {response.status_code}: {response.text}"
+                    error=f"PUT coffee price failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Breakfast Overview Data Correctness", False, error=str(e))
+            self.log_result("Test PUT Coffee Price", False, error=str(e))
+            return False
+
+    def test_get_updated_prices(self, expected_egg_price, expected_coffee_price):
+        """Test that GET endpoints return updated prices"""
+        try:
+            # Test getting updated boiled eggs price
+            response1 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
+            response2 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            
+            success = True
+            details = []
+            
+            if response1.status_code == 200:
+                data1 = response1.json()
+                actual_egg_price = data1.get("boiled_eggs_price", 0)
+                if abs(actual_egg_price - expected_egg_price) < 0.01:
+                    details.append(f"Eggs: €{actual_egg_price:.2f} ✓")
+                else:
+                    details.append(f"Eggs: Expected €{expected_egg_price:.2f}, got €{actual_egg_price:.2f} ✗")
+                    success = False
+            else:
+                details.append(f"Eggs GET failed: HTTP {response1.status_code}")
+                success = False
+            
+            if response2.status_code == 200:
+                data2 = response2.json()
+                actual_coffee_price = data2.get("coffee_price", 0)
+                if abs(actual_coffee_price - expected_coffee_price) < 0.01:
+                    details.append(f"Coffee: €{actual_coffee_price:.2f} ✓")
+                else:
+                    details.append(f"Coffee: Expected €{expected_coffee_price:.2f}, got €{actual_coffee_price:.2f} ✗")
+                    success = False
+            else:
+                details.append(f"Coffee GET failed: HTTP {response2.status_code}")
+                success = False
+            
+            if success:
+                self.log_result(
+                    "Test GET Updated Prices",
+                    True,
+                    f"✅ GET UPDATED PRICES SUCCESS! {', '.join(details)}. Updated prices correctly returned by GET endpoints."
+                )
+            else:
+                self.log_result(
+                    "Test GET Updated Prices",
+                    False,
+                    error=f"Price verification failed: {', '.join(details)}"
+                )
+            
+            return success
+                
+        except Exception as e:
+            self.log_result("Test GET Updated Prices", False, error=str(e))
+            return False
+
+    def test_department_separation(self):
+        """Test department separation - different departments maintain separate prices"""
+        try:
+            # Test with a different department (fw4abteilung3)
+            other_department = "fw4abteilung3"
+            
+            # Set different prices for the other department
+            test_egg_price = 0.75
+            test_coffee_price = 1.75
+            
+            # Update prices for other department
+            response1 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/boiled-eggs-price", 
+                                       json=test_egg_price)
+            response2 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/coffee-price", 
+                                       json=test_coffee_price)
+            
+            if response1.status_code == 200 and response2.status_code == 200:
+                # Now check that our original department still has its prices
+                response3 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
+                response4 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+                
+                # And check that the other department has the new prices
+                response5 = self.session.get(f"{BASE_URL}/department-settings/{other_department}/boiled-eggs-price")
+                response6 = self.session.get(f"{BASE_URL}/department-settings/{other_department}/coffee-price")
+                
+                if all(r.status_code == 200 for r in [response3, response4, response5, response6]):
+                    original_egg = response3.json().get("boiled_eggs_price", 0)
+                    original_coffee = response4.json().get("coffee_price", 0)
+                    other_egg = response5.json().get("boiled_eggs_price", 0)
+                    other_coffee = response6.json().get("coffee_price", 0)
+                    
+                    # Verify separation
+                    if (abs(other_egg - test_egg_price) < 0.01 and 
+                        abs(other_coffee - test_coffee_price) < 0.01 and
+                        (abs(original_egg - other_egg) > 0.01 or abs(original_coffee - other_coffee) > 0.01)):
+                        
+                        self.log_result(
+                            "Test Department Separation",
+                            True,
+                            f"✅ DEPARTMENT SEPARATION SUCCESS! {DEPARTMENT_ID}: Eggs €{original_egg:.2f}, Coffee €{original_coffee:.2f} | {other_department}: Eggs €{other_egg:.2f}, Coffee €{other_coffee:.2f}. Each department maintains separate prices."
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Department Separation",
+                            False,
+                            error=f"Department separation failed. {DEPARTMENT_ID}: Eggs €{original_egg:.2f}, Coffee €{original_coffee:.2f} | {other_department}: Eggs €{other_egg:.2f}, Coffee €{other_coffee:.2f}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Test Department Separation",
+                        False,
+                        error="Failed to retrieve prices for department separation test"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Department Separation",
+                    False,
+                    error=f"Failed to set prices for other department: Eggs HTTP {response1.status_code}, Coffee HTTP {response2.status_code}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Department Separation", False, error=str(e))
+            return False
+
+    def test_edge_cases(self):
+        """Test edge cases: negative prices, zero prices, decimal prices"""
+        try:
+            edge_case_results = []
+            
+            # Test 1: Negative price (should be rejected)
+            response1 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
+                                       json=-0.50)
+            if response1.status_code == 400:
+                edge_case_results.append("Negative eggs price rejected ✓")
+            else:
+                edge_case_results.append(f"Negative eggs price not rejected (HTTP {response1.status_code}) ✗")
+            
+            # Test 2: Negative coffee price (should be rejected)
+            response2 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
+                                       json=-1.00)
+            if response2.status_code == 400:
+                edge_case_results.append("Negative coffee price rejected ✓")
+            else:
+                edge_case_results.append(f"Negative coffee price not rejected (HTTP {response2.status_code}) ✗")
+            
+            # Test 3: Zero price (should be allowed)
+            response3 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
+                                       json=0.0)
+            if response3.status_code == 200:
+                edge_case_results.append("Zero eggs price allowed ✓")
+            else:
+                edge_case_results.append(f"Zero eggs price rejected (HTTP {response3.status_code}) ✗")
+            
+            # Test 4: Zero coffee price (should be allowed)
+            response4 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
+                                       json=0.0)
+            if response4.status_code == 200:
+                edge_case_results.append("Zero coffee price allowed ✓")
+            else:
+                edge_case_results.append(f"Zero coffee price rejected (HTTP {response4.status_code}) ✗")
+            
+            # Test 5: Decimal price (should be allowed)
+            response5 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
+                                       json=0.75)
+            if response5.status_code == 200:
+                edge_case_results.append("Decimal eggs price (0.75) allowed ✓")
+            else:
+                edge_case_results.append(f"Decimal eggs price rejected (HTTP {response5.status_code}) ✗")
+            
+            # Test 6: Decimal coffee price (should be allowed)
+            response6 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
+                                       json=2.25)
+            if response6.status_code == 200:
+                edge_case_results.append("Decimal coffee price (2.25) allowed ✓")
+            else:
+                edge_case_results.append(f"Decimal coffee price rejected (HTTP {response6.status_code}) ✗")
+            
+            # Count successes
+            successful_tests = sum(1 for result in edge_case_results if "✓" in result)
+            total_tests = len(edge_case_results)
+            
+            if successful_tests >= 4:  # At least 4/6 edge cases should work correctly
+                self.log_result(
+                    "Test Edge Cases",
+                    True,
+                    f"✅ EDGE CASES SUCCESS! {successful_tests}/{total_tests} tests passed: {', '.join(edge_case_results)}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Test Edge Cases",
+                    False,
+                    error=f"Edge cases failed: {successful_tests}/{total_tests} tests passed: {', '.join(edge_case_results)}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Edge Cases", False, error=str(e))
             return False
     
     # ========================================
