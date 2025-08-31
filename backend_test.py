@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR BREAKFAST-HISTORY FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR DEPARTMENT-SPECIFIC EGG AND COFFEE PRICES
 
 **TESTING FOCUS:**
-Test the corrected breakfast-history functionality after fixing the duplicate function name bug:
+Test the fixed egg and coffee price functionality in admin dashboard:
 
-1. **Test breakfast-history endpoint**:
-   - Test GET /api/orders/breakfast-history/{department_id} 
-   - Verify it returns proper breakfast history data
-   - Check that sponsored meals are included and displayed correctly
-   - Verify data structure matches frontend expectations
+1. **Test GET endpoints for department-specific prices**:
+   - Test GET /api/department-settings/fw4abteilung2/boiled-eggs-price
+   - Test GET /api/department-settings/fw4abteilung2/coffee-price  
+   - Verify both endpoints return proper JSON with prices
+   - Check default values (0.50 for eggs, 1.50 for coffee) if no settings exist
 
-2. **Test admin breakfast-history endpoint**:
-   - Test GET /api/department-admin/breakfast-history/{department_id}
-   - Verify the renamed function get_admin_breakfast_history works correctly
-   - Ensure both endpoints work independently without conflicts
+2. **Test PUT endpoints for updating prices**:
+   - Test PUT /api/department-settings/fw4abteilung2/boiled-eggs-price with price=0.60
+   - Test PUT /api/department-settings/fw4abteilung2/coffee-price with price=2.00
+   - Verify updates are saved correctly
+   - Test that updated prices are returned by GET endpoints
 
-3. **Test sponsored meal display in history**:
-   - Verify sponsored orders appear correctly in the breakfast history
-   - Check that sponsoring information is preserved
-   - Verify employee_orders data includes sponsored employees
+3. **Test department separation**:
+   - Set different prices for different departments
+   - Verify each department maintains its own prices
+   - Test that updates to one department don't affect others
 
-4. **Test function name conflict resolution**:
-   - Verify both breakfast-history functions are accessible
-   - Test that the endpoints return different data structures if applicable
-   - Confirm no more function name conflicts exist
+4. **Test edge cases**:
+   - Test negative prices (should be rejected)
+   - Test zero prices (should be allowed)
+   - Test decimal prices (e.g., 0.75)
 
-Use Department "fw4abteilung2" and verify the breakfast overview will show data correctly after the fix.
+Use Department "fw4abteilung2" for testing and verify the complete CRUD functionality for department-specific egg and coffee prices.
 """
 
 import requests
