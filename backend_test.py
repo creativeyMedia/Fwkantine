@@ -708,6 +708,6 @@ class SponsorStatusFunctionalityTest:
         return feature_working
 
 if __name__ == "__main__":
-    tester = DepartmentPricingFunctionalityTest()
-    success = tester.run_department_pricing_tests()
+    tester = SponsorStatusFunctionalityTest()
+    success = tester.run_sponsor_status_tests()
     sys.exit(0 if success else 1)
