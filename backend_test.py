@@ -42,12 +42,14 @@ DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"
 DEPARTMENT_PASSWORD = "password2"
 
-class PayPalSettingsTest:
+class DailyLunchPriceTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
         self.admin_auth = None
-        self.paypal_settings = None
+        self.test_employees = []
+        self.test_orders = []
+        self.test_employee = None
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
