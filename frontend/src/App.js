@@ -5672,6 +5672,220 @@ const AdminSettingsTab = ({ currentDepartment }) => {
   );
 };
 
+// PayPal Settings Component
+const PayPalSettings = ({ currentDepartment }) => {
+  const [paypalSettings, setPaypalSettings] = useState({
+    enabled: false,
+    use_separate_links: false,
+    combined_link: '',
+    breakfast_link: '',
+    drinks_link: ''
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
+  useEffect(() => {
+    if (currentDepartment) {
+      fetchPayPalSettings();
+    }
+  }, [currentDepartment]);
+
+  const fetchPayPalSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/api/department-paypal-settings/${currentDepartment.department_id}`);
+      setPaypalSettings(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der PayPal-Einstellungen:', error);
+    }
+  };
+
+  const saveSettings = async () => {
+    try {
+      await axios.put(`${API}/api/department-paypal-settings/${currentDepartment.department_id}`, paypalSettings);
+      setSuccessMessage('✅ PayPal-Einstellungen erfolgreich gespeichert!');
+      setShowSuccessNotification(true);
+      setIsEditing(false);
+      fetchPayPalSettings(); // Refresh data
+    } catch (error) {
+      setSuccessMessage('❌ Fehler beim Speichern: ' + (error.response?.data?.detail || error.message));
+      setShowSuccessNotification(true);
+    }
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    fetchPayPalSettings(); // Reset to original data
+  };
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <h4 className="text-md font-semibold mb-4 text-blue-800">💳 PayPal-Einstellungen</h4>
+      
+      {!isEditing ? (
+        // Display Mode
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-white border border-blue-300 rounded">
+            <div>
+              <div className="font-medium">PayPal-Integration</div>
+              <div className="text-sm text-gray-600 mt-1">
+                Status: <span className={`font-semibold ${paypalSettings.enabled ? 'text-green-600' : 'text-red-600'}`}>
+                  {paypalSettings.enabled ? 'Aktiviert' : 'Deaktiviert'}
+                </span>
+              </div>
+              {paypalSettings.enabled && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Modus: <span className="font-medium">
+                    {paypalSettings.use_separate_links ? 'Getrennte Links (Frühstück + Getränke)' : 'Gemeinsamer Link'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Bearbeiten
+            </button>
+          </div>
+          
+          {paypalSettings.enabled && (
+            <div className="p-4 bg-white border border-blue-300 rounded">
+              <div className="font-medium mb-2">Konfigurierte Links:</div>
+              {paypalSettings.use_separate_links ? (
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-sm font-medium text-blue-700">Frühstück: </span>
+                    <span className="text-sm text-gray-600">{paypalSettings.breakfast_link || 'Nicht konfiguriert'}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-green-700">Getränke: </span>
+                    <span className="text-sm text-gray-600">{paypalSettings.drinks_link || 'Nicht konfiguriert'}</span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <span className="text-sm font-medium text-purple-700">Gemeinsamer Link: </span>
+                  <span className="text-sm text-gray-600">{paypalSettings.combined_link || 'Nicht konfiguriert'}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        // Edit Mode
+        <div className="space-y-4">
+          <div className="p-4 bg-white border border-blue-300 rounded">
+            <label className="flex items-center mb-4">
+              <input
+                type="checkbox"
+                checked={paypalSettings.enabled}
+                onChange={(e) => setPaypalSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                className="mr-3 h-4 w-4 text-blue-600"
+              />
+              <span className="font-medium">PayPal-Integration aktivieren</span>
+            </label>
+            
+            {paypalSettings.enabled && (
+              <>
+                <label className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    checked={paypalSettings.use_separate_links}
+                    onChange={(e) => setPaypalSettings(prev => ({ 
+                      ...prev, 
+                      use_separate_links: e.target.checked,
+                      // Clear opposite links when switching modes
+                      combined_link: e.target.checked ? '' : prev.combined_link,
+                      breakfast_link: !e.target.checked ? '' : prev.breakfast_link,
+                      drinks_link: !e.target.checked ? '' : prev.drinks_link
+                    }))}
+                    className="mr-3 h-4 w-4 text-blue-600"
+                  />
+                  <span className="font-medium">Getrennte Links für Frühstück und Getränke</span>
+                </label>
+                
+                {paypalSettings.use_separate_links ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Frühstück PayPal-Link</label>
+                      <input
+                        type="url"
+                        value={paypalSettings.breakfast_link}
+                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, breakfast_link: e.target.value }))}
+                        placeholder="https://paypal.me/username"
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Getränke PayPal-Link</label>
+                      <input
+                        type="url"
+                        value={paypalSettings.drinks_link}
+                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, drinks_link: e.target.value }))}
+                        placeholder="https://paypal.me/username"
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Gemeinsamer PayPal-Link</label>
+                    <input
+                      type="url"
+                      value={paypalSettings.combined_link}
+                      onChange={(e) => setPaypalSettings(prev => ({ ...prev, combined_link: e.target.value }))}
+                      placeholder="https://paypal.me/username"
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          
+          <div className="flex gap-4">
+            <button
+              onClick={saveSettings}
+              className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+            >
+              Einstellungen speichern
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="mt-4 text-sm text-gray-600">
+        <p><strong>Info:</strong></p>
+        <ul className="list-disc list-inside space-y-1">
+          <li>PayPal-Links öffnen sich in einem neuen Fenster</li>
+          <li>Beispiel: paypal.me/benutzername oder paypal.me/benutzername/betrag</li>
+          <li>Links werden nur angezeigt, wenn Mitarbeiter ein negatives Saldo haben</li>
+        </ul>
+      </div>
+      
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 // Coffee and Eggs Management Component - Unified Design
 const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   const [lunchSettings, setLunchSettings] = useState({ boiled_eggs_price: 0, coffee_price: 0 });
