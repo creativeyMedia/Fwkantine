@@ -877,6 +877,46 @@ async def update_department_coffee_price(department_id: str, price: float):
     
     return {"message": "Abteilungsspezifischer Kaffee-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
 
+@api_router.get("/department-paypal-settings/{department_id}")
+async def get_department_paypal_settings(department_id: str):
+    """Get PayPal settings for a specific department"""
+    paypal_settings = await db.paypal_settings.find_one({"department_id": department_id})
+    if not paypal_settings:
+        # Create default settings if none exist
+        default_settings = PayPalSettings(department_id=department_id)
+        await db.paypal_settings.insert_one(default_settings.dict())
+        return default_settings
+    
+    # Clean the document by removing MongoDB _id field
+    clean_settings = {k: v for k, v in paypal_settings.items() if k != '_id'}
+    return clean_settings
+
+@api_router.put("/department-paypal-settings/{department_id}")
+async def update_department_paypal_settings(department_id: str, settings: PayPalSettings):
+    """Update PayPal settings for a specific department"""
+    # Validation
+    if settings.enabled:
+        if settings.use_separate_links:
+            if not settings.breakfast_link or not settings.drinks_link:
+                raise HTTPException(status_code=400, detail="Bei getrennten Links müssen sowohl Frühstück- als auch Getränke-Link angegeben werden")
+        else:
+            if not settings.combined_link:
+                raise HTTPException(status_code=400, detail="Bei kombiniertem Link muss der gemeinsame Link angegeben werden")
+    
+    # Set department_id to ensure consistency
+    settings.department_id = department_id
+    
+    existing_settings = await db.paypal_settings.find_one({"department_id": department_id})
+    if existing_settings:
+        await db.paypal_settings.update_one(
+            {"department_id": department_id},
+            {"$set": settings.dict()}
+        )
+    else:
+        await db.paypal_settings.insert_one(settings.dict())
+    
+    return {"message": "PayPal-Einstellungen erfolgreich aktualisiert", "department_id": department_id}
+
 @api_router.put("/lunch-settings/boiled-eggs-price")
 async def update_boiled_eggs_price(price: float):
     """Update boiled eggs price"""
