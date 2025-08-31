@@ -871,6 +871,16 @@ async def update_department_boiled_eggs_price(department_id: str, price: float):
     
     return {"message": "Abteilungsspezifischer Kochei-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
 
+@api_router.get("/department-settings/{department_id}/coffee-price")
+async def get_department_coffee_price(department_id: str):
+    """Get coffee price for a specific department"""
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        return {"department_id": department_id, "coffee_price": dept_settings["coffee_price"]}
+    else:
+        # Return default price if no department-specific settings exist
+        return {"department_id": department_id, "coffee_price": 1.50}
+
 @api_router.put("/department-settings/{department_id}/coffee-price")
 async def update_department_coffee_price(department_id: str, price: float):
     """Update coffee price for a specific department"""
