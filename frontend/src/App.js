@@ -2719,8 +2719,8 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-4 mb-2">
-                              <span className="font-semibold text-lg text-green-700">
-                                💰 Einzahlung
+                              <span className={`font-semibold text-lg ${item.amount >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                {item.amount >= 0 ? '💰 Einzahlung' : '💸 Auszahlung'}
                               </span>
                               <span className="text-sm text-gray-600">
                                 {new Date(item.timestamp).toLocaleString('de-DE')}
@@ -2728,7 +2728,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                             </div>
                             
                             <div className="text-gray-700 mb-2">
-                              <strong>Betrag:</strong> {item.amount?.toFixed(2)} €<br/>
+                              <strong>Betrag:</strong> {Math.abs(item.amount)?.toFixed(2)} €<br/>
                               <strong>Konto:</strong> {item.payment_type === 'breakfast' ? 'Frühstück/Mittag' : 'Getränke/Süßes'}<br/>
                               <strong>Saldo vorher:</strong> {item.balance_before?.toFixed(2)} €<br/>
                               <strong>Saldo nachher:</strong> {item.balance_after?.toFixed(2)} €<br/>
