@@ -5319,18 +5319,29 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                           </div>
                         ) : (
                           <div className="flex items-center space-x-1">
-                            <span className="font-semibold text-orange-600">
-                              {(day.daily_lunch_price || 0).toFixed(2)} €
+                            <span className={`font-semibold ${
+                              day.daily_lunch_price > 0 
+                                ? 'text-orange-600' 
+                                : 'text-gray-500'
+                            }`}>
+                              {day.daily_lunch_price > 0 
+                                ? `${day.daily_lunch_price.toFixed(2)} €`
+                                : 'Nicht gesetzt'
+                              }
                             </span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 startEditingLunchPrice(day.date, day.daily_lunch_price || 0);
                               }}
-                              className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
-                              title="Mittagessen-Preis bearbeiten"
+                              className={`px-2 py-1 text-white text-xs rounded hover:opacity-90 ${
+                                day.daily_lunch_price > 0 
+                                  ? 'bg-orange-600 hover:bg-orange-700' 
+                                  : 'bg-red-600 hover:bg-red-700'
+                              }`}
+                              title={day.daily_lunch_price > 0 ? 'Mittagessen-Preis bearbeiten' : 'Mittagessen-Preis setzen (erforderlich)'}
                             >
-                              ✏️
+                              {day.daily_lunch_price > 0 ? '✏️' : '⚠️'}
                             </button>
                           </div>
                         )}
