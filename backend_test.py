@@ -652,6 +652,6 @@ class DepartmentPricingFunctionalityTest:
         return feature_working
 
 if __name__ == "__main__":
-    tester = BreakfastHistoryFunctionalityTest()
-    success = tester.run_breakfast_history_tests()
+    tester = DepartmentPricingFunctionalityTest()
+    success = tester.run_department_pricing_tests()
     sys.exit(0 if success else 1)
