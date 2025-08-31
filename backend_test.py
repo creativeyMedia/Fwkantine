@@ -1,37 +1,29 @@
 #!/usr/bin/env python3
 """
-FEATURE 3 - NEGATIVE PAYMENT AMOUNTS SUPPORT TESTING
+COMPREHENSIVE BACKEND TESTING FOR CORRECTED FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the newly implemented Feature 3 - Backend Support for Negative Payment Amounts
+Test the corrected functionality for the 4 implemented features as per review request:
 
-**TEST SCENARIOS:**
+1. **Test flexible payment with negative amounts and corrected notes**:
+   - Verify negative payment amounts create proper notes ("Auszahlung: X.XX €" instead of "Einzahlung: -X.XX €")
+   - Test both breakfast and drinks_sweets payment types
+   - Verify payment logs show correct amount signs and descriptions
 
-1. **Negative Payment Amounts Support**:
-   - Test POST /api/department-admin/flexible-payment/{employee_id} endpoint
-   - Verify it accepts negative amounts for withdrawals (e.g., amount: -10.00)
-   - Check that negative amounts correctly reduce the employee balance
-   - Test both payment types: "breakfast" and "drinks_sweets"
-   - Verify payment logging includes correct balance_before and balance_after values
-   - Ensure negative payments don't cause validation errors
+2. **Test sponsoring payment log creation**:
+   - Verify that when an employee sponsors a meal, it creates a payment log entry for the sponsor
+   - Check that the payment log has action="sponsoring" and negative amount
+   - Verify the notes describe the sponsoring action properly
+   - Ensure the balance_before and balance_after are correctly tracked
 
-2. **Verify Existing Functionality Still Works**:
-   - Test flexible payment with positive amounts (normal deposits)
-   - Test authentication endpoints work correctly
-   - Test department settings endpoints are functional
+3. **Test existing flexible payment functionality still works**:
+   - Test positive payment amounts (normal deposits) 
+   - Verify all payment functionality remains intact
 
-3. **Test Data Integrity**:
-   - Ensure balance calculations are mathematically correct for negative payments
-   - Verify payment logs are properly recorded with negative amounts
-   - Check that employees can have negative balances after withdrawals
-
-**EXPECTED SUCCESS CRITERIA:**
-- ✅ Negative payment amounts accepted without validation errors
-- ✅ Employee balances correctly reduced by negative payment amounts
-- ✅ Payment logs include proper balance_before and balance_after tracking
-- ✅ Both breakfast and drinks_sweets payment types support negative amounts
-- ✅ Existing positive payment functionality remains intact
-- ✅ Authentication and department settings endpoints functional
+4. **Verify data integrity**:
+   - Check that sponsored meals create proper audit trails
+   - Verify balance calculations are mathematically correct
+   - Test that payment logs can be retrieved correctly
 
 Use Department "2. Wachabteilung" for testing as specified in review request.
 """
