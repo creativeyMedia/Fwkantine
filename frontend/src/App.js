@@ -435,7 +435,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
 
         <div className="p-6">
           {/* Balance Overview - Simplified 50/50 Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className={`border border-gray-300 rounded-lg p-4 ${
               employeeProfile.breakfast_total >= 0 
                 ? 'bg-green-50 border-green-200' 
@@ -451,6 +451,31 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                   ? 'text-green-600' 
                   : 'text-red-600'
               }`}>{employeeProfile.breakfast_total.toFixed(2)} €</p>
+              
+              {/* PayPal Button for Breakfast */}
+              {paypalSettings.enabled && employeeProfile.breakfast_total < 0 && (
+                <div className="mt-3">
+                  {paypalSettings.use_separate_links && paypalSettings.breakfast_link ? (
+                    <a
+                      href={paypalSettings.breakfast_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      💳 Bezahlen mit PayPal
+                    </a>
+                  ) : !paypalSettings.use_separate_links && paypalSettings.combined_link ? (
+                    <a
+                      href={paypalSettings.combined_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      💳 Bezahlen mit PayPal
+                    </a>
+                  ) : null}
+                </div>
+              )}
             </div>
             <div className={`border border-gray-300 rounded-lg p-4 ${
               employeeProfile.drinks_sweets_total >= 0 
@@ -467,6 +492,31 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                   ? 'text-green-600' 
                   : 'text-red-600'
               }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
+              
+              {/* PayPal Button for Drinks */}
+              {paypalSettings.enabled && employeeProfile.drinks_sweets_total < 0 && (
+                <div className="mt-3">
+                  {paypalSettings.use_separate_links && paypalSettings.drinks_link ? (
+                    <a
+                      href={paypalSettings.drinks_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                    >
+                      💳 Bezahlen mit PayPal
+                    </a>
+                  ) : !paypalSettings.use_separate_links && paypalSettings.combined_link ? (
+                    <a
+                      href={paypalSettings.combined_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                    >
+                      💳 Bezahlen mit PayPal
+                    </a>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
 
