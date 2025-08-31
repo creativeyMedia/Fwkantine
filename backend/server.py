@@ -2969,7 +2969,12 @@ async def sponsor_meal(meal_data: dict):
         
         # === PHASE 5: ATOMISCHE UPDATES ===
         
-        # 1. Update sponsor's order to show sponsoring details
+        # Calculate counts for all scenarios (sponsor with or without own order)
+        sponsored_count = len(order_calculations)
+        others_count = sponsored_count - (1 if sponsor_calculation else 0)  # Exclude sponsor only if they have an order
+        meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
+        
+        # 1. Update sponsor's order to show sponsoring details (if sponsor has an order)
         if sponsor_calculation:
             sponsor_order = sponsor_calculation["order"]
             
