@@ -5854,8 +5854,16 @@ const PayPalSettings = ({ currentDepartment }) => {
 
   const saveSettings = async () => {
     try {
-      console.log('Saving PayPal settings:', paypalSettings);
-      await axios.put(`${API}/department-paypal-settings/${currentDepartment.department_id}`, paypalSettings);
+      // Normalize URLs before saving
+      const normalizedSettings = {
+        ...paypalSettings,
+        combined_link: paypalSettings.combined_link ? normalizeUrl(paypalSettings.combined_link) : '',
+        breakfast_link: paypalSettings.breakfast_link ? normalizeUrl(paypalSettings.breakfast_link) : '',
+        drinks_link: paypalSettings.drinks_link ? normalizeUrl(paypalSettings.drinks_link) : ''
+      };
+      
+      console.log('Saving PayPal settings:', normalizedSettings);
+      await axios.put(`${API}/department-paypal-settings/${currentDepartment.department_id}`, normalizedSettings);
       setSuccessMessage('✅ PayPal-Einstellungen erfolgreich gespeichert!');
       setShowSuccessNotification(true);
       setIsEditing(false);
