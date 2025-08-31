@@ -625,7 +625,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                 (item.sponsored_meal_type === 'lunch' && orderItem.description.includes('Mittagessen')) ||
                                 // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee or lunch
                                 (item.sponsored_meal_type === 'breakfast' && 
-                                  (orderItem.description.includes('Brötchen') || orderItem.description.includes('Ei')) &&
+                                  (orderItem.description.includes('Brötchen') || 
+                                   orderItem.description.includes('Helle') || 
+                                   orderItem.description.includes('Körner') || 
+                                   orderItem.description.includes('Ei')) &&
                                   !orderItem.description.includes('Kaffee') && !orderItem.description.includes('Mittagessen'))
                               );
                               
