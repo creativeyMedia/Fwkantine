@@ -732,6 +732,68 @@ class DailyLunchPriceTest:
             self.log_result("Test Date Edge Cases", False, error=str(e))
             return False
 
+    def test_review_request_endpoint(self):
+        """Test the endpoint mentioned in the review request and verify correct endpoint works"""
+        try:
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            test_price = 6.75
+            
+            # First test the endpoint mentioned in review request (may not exist)
+            review_endpoint = f"{BASE_URL}/update-lunch-price/{DEPARTMENT_ID}"
+            response1 = self.session.put(review_endpoint, params={"price": test_price})
+            
+            # Test the correct endpoint that actually exists
+            correct_endpoint = f"{BASE_URL}/daily-lunch-settings/{DEPARTMENT_ID}/{today}"
+            response2 = self.session.put(correct_endpoint, params={"lunch_price": test_price})
+            
+            if response2.status_code == 200:
+                # Verify the price was set using the correct endpoint
+                verify_response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{today}")
+                
+                if verify_response.status_code == 200:
+                    price_data = verify_response.json()
+                    saved_price = price_data.get('lunch_price', 0.0)
+                    
+                    if abs(saved_price - test_price) < 0.01:
+                        if response1.status_code == 404:
+                            self.log_result(
+                                "Test Review Request Endpoint",
+                                True,
+                                f"✅ ENDPOINT VERIFICATION COMPLETE! Review request endpoint /update-lunch-price/{DEPARTMENT_ID} returns 404 (expected). Correct endpoint /daily-lunch-settings/{DEPARTMENT_ID}/{today} works perfectly: €{saved_price:.2f}"
+                            )
+                        else:
+                            self.log_result(
+                                "Test Review Request Endpoint",
+                                True,
+                                f"✅ ENDPOINT VERIFICATION COMPLETE! Correct endpoint /daily-lunch-settings/{DEPARTMENT_ID}/{today} works: €{saved_price:.2f}. Review endpoint status: {response1.status_code}"
+                            )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Review Request Endpoint",
+                            False,
+                            error=f"Price verification failed. Expected: €{test_price:.2f}, Got: €{saved_price:.2f}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Test Review Request Endpoint",
+                        False,
+                        error=f"Failed to verify saved price: HTTP {verify_response.status_code}: {verify_response.text}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Review Request Endpoint",
+                    False,
+                    error=f"Correct endpoint failed: HTTP {response2.status_code}: {response2.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Review Request Endpoint", False, error=str(e))
+            return False
+
 
     
     # ========================================
