@@ -265,6 +265,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const itemsPerPage = 10;
   const [paypalSettings, setPaypalSettings] = useState({
     enabled: false,
+    breakfast_enabled: false,
+    drinks_enabled: false,
     use_separate_links: false,
     combined_link: '',
     breakfast_link: '',
