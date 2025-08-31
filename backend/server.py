@@ -1694,25 +1694,16 @@ async def get_daily_summary(department_id: str):
                         white_halves = 0
                         seeded_halves = roll_halves
                 
-                # Determine what to show based on sponsoring status
+                # FIXED: Always show original orders for shopping/einkauf purposes
+                # The breakfast overview is for purchasing decisions - must always show what was originally ordered
+                # Sponsoring affects payments/balances, NOT the shopping list
                 show_breakfast = True
                 show_lunch = item.get("has_lunch", False)
                 show_coffee = item.get("has_coffee", False)
                 
-                if is_sponsored and not is_sponsor_order:
-                    # For sponsored employees (not the sponsor), hide sponsored parts
-                    if sponsored_meal_type == "breakfast":
-                        # Hide breakfast items (rolls, eggs), keep coffee and lunch
-                        show_breakfast = False
-                    elif sponsored_meal_type == "lunch":
-                        # Hide lunch, keep breakfast and coffee
-                        show_lunch = False
-                elif is_sponsor_order:
-                    # For sponsor orders, we need to be careful about double-counting
-                    # The sponsor order contains both original order AND sponsored details
-                    # We should only count the original parts, not the sponsored parts
-                    # The sponsored parts are already handled by the sponsored orders themselves
-                    pass  # Keep original behavior for now, but this might need adjustment
+                # NOTE: Sponsoring status does NOT affect what is shown in breakfast overview
+                # The overview shows ORIGINAL orders for shopping purposes
+                # Balances and payments are handled separately
                 
                 # Update employee totals only for visible items
                 if show_breakfast:
