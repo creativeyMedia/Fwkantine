@@ -2465,7 +2465,7 @@ async def get_payment_logs(employee_id: str):
     return [parse_from_mongo({k: v for k, v in log.items() if k != '_id'}) for log in logs]
 
 @api_router.get("/department-admin/breakfast-history/{department_id}")
-async def get_breakfast_history(department_id: str, days: int = 7):
+async def get_admin_breakfast_history(department_id: str, days: int = 7):
     """Get breakfast history for past days"""
     histories = []
     
