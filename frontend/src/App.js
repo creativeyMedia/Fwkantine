@@ -5512,28 +5512,44 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         {/* Meal Sponsoring Buttons */}
                         <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded border border-green-200">
                           <span className="text-xs font-medium text-green-800">Ausgeben:</span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSponsorModalData({ mealType: 'breakfast', date: day.date });
-                              setShowSponsorModal(true);
-                            }}
-                            className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                            title="Frühstück ausgeben lassen"
-                          >
-                            🥖
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSponsorModalData({ mealType: 'lunch', date: day.date });
-                              setShowSponsorModal(true);
-                            }}
-                            className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
-                            title="Mittagessen ausgeben lassen"
-                          >
-                            🍽️
-                          </button>
+                          
+                          {/* Breakfast Sponsor Button */}
+                          {dailySponsorStatus[day.date]?.breakfast_sponsored ? (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded border border-orange-300" title={`Frühstück bereits ausgegeben von: ${dailySponsorStatus[day.date].breakfast_sponsored.sponsored_by}`}>
+                              🥖✅
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSponsorModalData({ mealType: 'breakfast', date: day.date });
+                                setShowSponsorModal(true);
+                              }}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                              title="Frühstück ausgeben lassen"
+                            >
+                              🥖
+                            </button>
+                          )}
+                          
+                          {/* Lunch Sponsor Button */}
+                          {dailySponsorStatus[day.date]?.lunch_sponsored ? (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded border border-orange-300" title={`Mittagessen bereits ausgegeben von: ${dailySponsorStatus[day.date].lunch_sponsored.sponsored_by}`}>
+                              🍽️✅
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSponsorModalData({ mealType: 'lunch', date: day.date });
+                                setShowSponsorModal(true);
+                              }}
+                              className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
+                              title="Mittagessen ausgeben lassen"
+                            >
+                              🍽️
+                            </button>
+                          )}
                         </div>
                         
                         {/* Delete Button */}
