@@ -2150,7 +2150,7 @@ const DepartmentAdminDashboard = () => {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
-  const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
+  const { currentDepartment, logout, loginDepartment } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
     // Use the loginDepartment function to properly save employee mode in localStorage
