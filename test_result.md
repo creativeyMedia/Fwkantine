@@ -163,6 +163,18 @@ frontend:
           agent: "main"
           comment: "IMPLEMENTED: Added app version '1.1.2' display in admin dashboard department information section. Updated grid layout to 3 columns to accommodate version display. Version shows in blue text for visibility."
 
+  - task: "Feature 5 - Daily Lunch Price Reset"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py + frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Modified all lunch price retrieval functions to return 0.0 instead of falling back to global settings for new days. Updated get_daily_lunch_price endpoint, order creation logic, order update logic, and breakfast history functions. Added improved UI indicators in BreakfastHistoryTab to show 'Nicht gesetzt' for unset prices with warning icon. Admin must now manually set lunch price each day."
+
   - task: "Legacy Bug 5 - UI Colors and Label Changes"
     implemented: true
     working: true
