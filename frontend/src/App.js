@@ -30,23 +30,70 @@ const AuthProvider = ({ children }) => {
   const [currentDepartment, setCurrentDepartment] = useState(null);
   const [isDepartmentAdmin, setIsDepartmentAdmin] = useState(false);
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // LocalStorage keys for persistence
+  const STORAGE_KEYS = {
+    DEPARTMENT: 'fw_kantine_last_department',
+    IS_DEPARTMENT_ADMIN: 'fw_kantine_is_department_admin',
+    IS_MASTER_ADMIN: 'fw_kantine_is_master_admin'
+  };
+
+  // Initialize app state from localStorage on mount
+  useEffect(() => {
+    const initializeFromStorage = () => {
+      try {
+        const savedDepartment = localStorage.getItem(STORAGE_KEYS.DEPARTMENT);
+        const savedIsDepartmentAdmin = localStorage.getItem(STORAGE_KEYS.IS_DEPARTMENT_ADMIN);
+        const savedIsMasterAdmin = localStorage.getItem(STORAGE_KEYS.IS_MASTER_ADMIN);
+
+        if (savedDepartment && savedIsDepartmentAdmin !== null) {
+          const departmentData = JSON.parse(savedDepartment);
+          setCurrentDepartment(departmentData);
+          setIsDepartmentAdmin(savedIsDepartmentAdmin === 'true');
+          setIsMasterAdmin(savedIsMasterAdmin === 'true');
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der gespeicherten Sitzung:', error);
+        // Clear invalid localStorage data
+        Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeFromStorage();
+  }, []);
 
   const loginDepartment = (departmentData) => {
     setCurrentDepartment(departmentData);
     setIsDepartmentAdmin(false);
     setIsMasterAdmin(false);
+    
+    // Persist to localStorage
+    localStorage.setItem(STORAGE_KEYS.DEPARTMENT, JSON.stringify(departmentData));
+    localStorage.setItem(STORAGE_KEYS.IS_DEPARTMENT_ADMIN, 'false');
+    localStorage.setItem(STORAGE_KEYS.IS_MASTER_ADMIN, 'false');
   };
 
   const loginDepartmentAdmin = (departmentData) => {
     setCurrentDepartment(departmentData);
     setIsDepartmentAdmin(true);
     setIsMasterAdmin(departmentData.access_level === "master");
+    
+    // Persist to localStorage
+    localStorage.setItem(STORAGE_KEYS.DEPARTMENT, JSON.stringify(departmentData));
+    localStorage.setItem(STORAGE_KEYS.IS_DEPARTMENT_ADMIN, 'true');
+    localStorage.setItem(STORAGE_KEYS.IS_MASTER_ADMIN, (departmentData.access_level === "master").toString());
   };
 
   const logout = () => {
     setCurrentDepartment(null);
     setIsDepartmentAdmin(false);
     setIsMasterAdmin(false);
+    
+    // Clear localStorage
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
   };
 
   const setAuthState = (state) => {
