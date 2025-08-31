@@ -144,92 +144,87 @@ class NegativePaymentAmountsTest:
             return False
     
     # ========================================
-    # ORDER CREATION FOR BUG FIX TEST
+    # ORDER CREATION FOR PAYMENT TESTING
     # ========================================
     
-    def create_breakfast_orders(self):
-        """Create simple breakfast orders as specified in review request - CLEAN DATABASE TEST"""
+    def create_test_orders(self):
+        """Create test orders to generate employee debt for payment testing"""
         try:
-            if not self.sponsor_employee or not self.sponsored_employee:
+            if not self.test_employee:
                 return False
             
-            # Employee A: Create simple breakfast order (Helles Brötchen €2.10 as per review request)
-            sponsor_order_data = {
-                "employee_id": self.sponsor_employee["id"],
+            # Create breakfast order to generate breakfast debt
+            breakfast_order_data = {
+                "employee_id": self.test_employee["id"],
                 "department_id": DEPARTMENT_ID,
                 "order_type": "breakfast",
                 "breakfast_items": [{
-                    "total_halves": 4,  # 2 Helles Brötchen = 4 halves
-                    "white_halves": 4,  # 2 Helles Brötchen (4 halves) - €2.00
-                    "seeded_halves": 0,  # No Körner for sponsor
-                    "toppings": ["butter", "butter", "kaese", "kaese"],  # 4 toppings for 4 halves (free)
-                    "has_lunch": False,  # No lunch for breakfast sponsoring test
-                    "boiled_eggs": 0,   # No eggs for simple test
-                    "has_coffee": False  # No coffee - CLEAN TEST as per review request
+                    "total_halves": 2,  # 1 Helles Brötchen = 2 halves
+                    "white_halves": 2,  # 1 Helles Brötchen (2 halves) - €1.00
+                    "seeded_halves": 0,  # No Körner
+                    "toppings": ["butter", "kaese"],  # 2 toppings for 2 halves (free)
+                    "has_lunch": False,  # No lunch
+                    "boiled_eggs": 1,   # 1 egg for additional cost
+                    "has_coffee": True  # Add coffee for more cost
                 }]
             }
             
-            response = self.session.post(f"{BASE_URL}/orders", json=sponsor_order_data)
+            response = self.session.post(f"{BASE_URL}/orders", json=breakfast_order_data)
             
             if response.status_code == 200:
-                sponsor_order = response.json()
-                self.test_orders.append(sponsor_order)
-                sponsor_cost = sponsor_order.get('total_price', 0)
+                breakfast_order = response.json()
+                self.test_orders.append(breakfast_order)
+                breakfast_cost = breakfast_order.get('total_price', 0)
             else:
                 self.log_result(
-                    "Create Breakfast Orders",
+                    "Create Test Orders",
                     False,
-                    error=f"Failed to create sponsor breakfast order: HTTP {response.status_code}: {response.text}"
+                    error=f"Failed to create breakfast order: HTTP {response.status_code}: {response.text}"
                 )
                 return False
             
-            # Employee B: Create simple breakfast order (Körnerbrötchen €2.10 as per review request)
-            sponsored_order_data = {
-                "employee_id": self.sponsored_employee["id"],
+            # Create drinks order to generate drinks_sweets debt
+            drinks_order_data = {
+                "employee_id": self.test_employee["id"],
                 "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 4,  # 2 Körner Brötchen = 4 halves
-                    "white_halves": 0,  # No Helles for sponsored employee
-                    "seeded_halves": 4,  # 2 Körner Brötchen (4 halves) - €2.40 (0.60 each)
-                    "toppings": ["butter", "butter", "kaese", "kaese"],  # 4 toppings for 4 halves (free)
-                    "has_lunch": False,  # No lunch for breakfast sponsoring test
-                    "boiled_eggs": 0,   # No eggs for simple test
-                    "has_coffee": False  # No coffee - CLEAN TEST as per review request
-                }]
+                "order_type": "drinks",
+                "drink_items": {}  # Will get drink menu first
             }
             
-            response = self.session.post(f"{BASE_URL}/orders", json=sponsored_order_data)
+            # Get drinks menu to create a valid order
+            drinks_response = self.session.get(f"{BASE_URL}/menu/drinks/{DEPARTMENT_ID}")
+            if drinks_response.status_code == 200:
+                drinks_menu = drinks_response.json()
+                if drinks_menu:
+                    # Use first drink item
+                    first_drink = drinks_menu[0]
+                    drinks_order_data["drink_items"] = {first_drink["id"]: 2}  # Order 2 drinks
+            
+            response = self.session.post(f"{BASE_URL}/orders", json=drinks_order_data)
             
             if response.status_code == 200:
-                sponsored_order = response.json()
-                self.test_orders.append(sponsored_order)
-                sponsored_cost = sponsored_order.get('total_price', 0)
+                drinks_order = response.json()
+                self.test_orders.append(drinks_order)
+                drinks_cost = drinks_order.get('total_price', 0)
             else:
                 self.log_result(
-                    "Create Breakfast Orders",
+                    "Create Test Orders",
                     False,
-                    error=f"Failed to create sponsored breakfast order: HTTP {response.status_code}: {response.text}"
+                    error=f"Failed to create drinks order: HTTP {response.status_code}: {response.text}"
                 )
                 return False
             
-            # Store initial balances after orders
-            self.initial_balances = {
-                'sponsor': self.get_employee_balance(self.sponsor_employee['id']),
-                'sponsored': self.get_employee_balance(self.sponsored_employee['id'])
-            }
-            
-            total_cost = sponsor_cost + sponsored_cost
+            total_cost = breakfast_cost + drinks_cost
             
             self.log_result(
-                "Create Breakfast Orders",
+                "Create Test Orders",
                 True,
-                f"CLEAN DATABASE TEST: Created 2 simple breakfast orders as per review request: Employee A (Sponsor) Helles Brötchen order €{sponsor_cost:.2f}, Employee B (Sponsored) Körnerbrötchen order €{sponsored_cost:.2f}. Total: €{total_cost:.2f}. Initial balances: Sponsor €{self.initial_balances['sponsor']['breakfast_balance']:.2f}, Sponsored €{self.initial_balances['sponsored']['breakfast_balance']:.2f}. CRITICAL: Testing equal treatment of Helles vs Körner breakfast items with NO coffee/eggs to ensure clean sponsoring test."
+                f"Created test orders for payment testing: Breakfast order €{breakfast_cost:.2f}, Drinks order €{drinks_cost:.2f}. Total debt: €{total_cost:.2f}. Employee now has debt in both breakfast and drinks_sweets accounts for comprehensive negative payment testing."
             )
             return True
                 
         except Exception as e:
-            self.log_result("Create Breakfast Orders", False, error=str(e))
+            self.log_result("Create Test Orders", False, error=str(e))
             return False
     
     # ========================================
