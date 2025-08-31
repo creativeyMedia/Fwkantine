@@ -771,7 +771,7 @@ class DailyLunchPriceTest:
         print("=" * 80)
         
         tests_passed = 0
-        total_tests = 9
+        total_tests = 10
         
         # SETUP
         print("\n🔧 SETUP AND AUTHENTICATION")
