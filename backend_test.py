@@ -1072,6 +1072,6 @@ class CorrectedFunctionalityTest:
             return False
 
 if __name__ == "__main__":
-    tester = NegativePaymentAmountsTest()
-    success = tester.run_negative_payment_tests()
+    tester = CorrectedFunctionalityTest()
+    success = tester.run_corrected_functionality_tests()
     sys.exit(0 if success else 1)
