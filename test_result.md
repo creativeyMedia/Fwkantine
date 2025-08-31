@@ -49,12 +49,12 @@
 ##
 backend:
   - task: "Feature 3 - Backend Support for Negative Payment Amounts"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -65,6 +65,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ BUG 1 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (9/9 tests passed): ✅ 1) Admin Authentication - Successfully authenticated as admin for Department 2 (admin2 password) for critical bug fixes testing. ✅ 2) Daily Summary Calculations Accurate - Total amount: €59.20, Individual amounts sum: €59.20, Difference: €0.00. Found 1 sponsored employees (€0.00). Daily summary correctly handles sponsored meals and prevents double-counting. ✅ 3) Breakfast Sponsoring Calculation - Breakfast already sponsored today (expected in production). Analyzing existing sponsored data to verify breakfast sponsoring calculation is correct. The system properly prevents duplicate sponsoring. ✅ 4) Individual Employee Calculations - Sponsored employees show €0.00 balance indicating proper breakfast sponsoring where only rolls+eggs are sponsored and coffee+lunch costs remain with employee. ✅ 5) Mathematical Verification - Sponsoring calculations mathematically correct with no double counting detected. CRITICAL VERIFICATION: The breakfast-history endpoint now correctly calculates sponsored breakfast costs. Only rolls + eggs are sponsored for breakfast sponsoring, coffee and lunch remain in employee's balance. Individual employee calculation logic properly handles sponsored meals. The admin dashboard daily summaries calculation fix is FULLY FUNCTIONAL."
+        - working: true
+          agent: "testing"
+          comment: "🎉 FEATURE 3 - NEGATIVE PAYMENT AMOUNTS TESTING COMPLETED SUCCESSFULLY! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Admin Authentication - Successfully authenticated as admin for Department 2 (admin2 password) for negative payment amounts testing. ✅ 2) Test Employee Creation - Created test employee 'PaymentTest_111626' in Department 2 for comprehensive payment testing scenarios. ✅ 3) Test Orders Creation - Created breakfast order (€3.00) and drinks order (€4.00) to generate employee debt for testing negative payments. ✅ 4) CRITICAL: Negative Breakfast Payment - Withdrawal of €10.00 processed successfully, balance correctly reduced from €-3.00 to €-13.00. Negative amounts properly accepted without validation errors. ✅ 5) CRITICAL: Negative Drinks Payment - Withdrawal of €15.50 processed successfully, balance correctly reduced from €-4.00 to €-19.50. Both payment types support negative amounts. ✅ 6) Positive Payment Verification - Deposit of €25.00 processed successfully, confirming existing positive payment functionality remains intact. ✅ 7) Payment Logging Verification - Payment logs include correct balance_before and balance_after tracking for audit trail. CRITICAL VERIFICATION: POST /api/department-admin/flexible-payment/{employee_id} endpoint fully supports negative payment amounts for withdrawals. Both 'breakfast' and 'drinks_sweets' payment types work correctly with negative amounts. Balance calculations are mathematically correct, payment logging includes proper audit trail, and existing functionality remains intact. The backend now properly supports negative payment amounts as requested in the review."
 
   - task: "Bug 2 - Department-specific Egg/Coffee Prices"
     implemented: true
