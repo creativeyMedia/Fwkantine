@@ -103,7 +103,19 @@ backend:
           comment: "✅ BUG 4 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Lunch Sponsoring Calculation - Successfully sponsored 7x Mittagessen lunch items for €14.90. Verification: sponsored employee retains breakfast+coffee costs (~€4.50), only lunch was sponsored. Sponsor pays for sponsored lunch items. Department-specific pricing correctly applied. ✅ 2) Individual Employee Balance Calculations - Updated individual employee calculation logic in breakfast-history endpoint properly handles sponsored meals. Calculates remaining cost correctly for both breakfast and lunch sponsoring. ✅ 3) Breakfast Sponsoring Balance Logic - For breakfast sponsoring: only rolls+eggs are sponsored, coffee+lunch costs remain with employee. Sponsored employees show correct remaining balances. ✅ 4) Lunch Sponsoring Balance Logic - For lunch sponsoring: only lunch costs are sponsored, breakfast+coffee costs remain with employee. Mathematical verification passed. ✅ 5) Sponsored Employee Refunds - Sponsored employees get proper refunds (balance adjustments) for sponsored meal components only. ✅ 6) Sponsor Additional Costs - Sponsor pays correct additional costs for sponsored employees without double-charging. ✅ 7) Balance Conservation - Total balance conservation maintained (sponsor pays more, sponsored pays less, total debt unchanged). CRITICAL VERIFICATION: Individual employee calculation logic in breakfast-history endpoint now properly handles sponsored meals for both breakfast and lunch sponsoring scenarios. The sponsored employee balance calculation fix is FULLY FUNCTIONAL."
 
 frontend:
-  - task: "Bug 3 - Auto-update Prices After Ausgeben"
+  - task: "Feature 1 - Mobile Reload Behavior with LocalStorage Persistence"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Added localStorage persistence to AuthProvider to remember last department across browser sessions. Added isInitializing state with loading screen. Added pull-to-refresh prevention with touch event handlers and CSS overscroll-behavior. Users will now stay in their last department after page refresh instead of returning to homepage."
+
+  - task: "Feature 2 - Fix Sponsored Meals Display in Breakfast Overview"
     implemented: true
     working: true
     file: "frontend/src/App.js"
