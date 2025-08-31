@@ -528,43 +528,19 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                       link = paypalSettings.combined_link;
                     }
                     
-                    console.log('PayPal Debug - Drinks:', {
-                      enabled: paypalSettings.enabled,
-                      drinks_enabled: paypalSettings.drinks_enabled,
-                      use_separate_links: paypalSettings.use_separate_links,
-                      drinks_link: paypalSettings.drinks_link,
-                      combined_link: paypalSettings.combined_link,
-                      final_link: link,
-                      balance: employeeProfile.drinks_sweets_total
-                    });
-                    
                     if (link && link.trim()) {
                       return (
-                        <>
-                          {/* Debug Info - Remove in production */}
-                          <div className="text-xs text-gray-500 mb-1">
-                            Debug: Link = "{link}"
-                          </div>
-                          <a
-                            href={normalizeUrl(link)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                            onClick={(e) => {
-                              console.log('PayPal button clicked:', normalizeUrl(link));
-                              // Let the default behavior handle the link opening
-                            }}
-                          >
-                            💳 Bezahlen mit PayPal
-                          </a>
-                        </>
+                        <a
+                          href={normalizeUrl(link)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                        >
+                          💳 Bezahlen mit PayPal
+                        </a>
                       );
                     }
-                    return (
-                      <div className="text-xs text-red-500">
-                        Debug: No valid link found. Link = "{link}"
-                      </div>
-                    );
+                    return null;
                   })()}
                 </div>
               )}
