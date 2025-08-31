@@ -5851,19 +5851,23 @@ const PayPalSettings = ({ currentDepartment }) => {
             </button>
           </div>
           
-          {paypalSettings.enabled && (
+          {paypalSettings.enabled && (paypalSettings.breakfast_enabled || paypalSettings.drinks_enabled) && (
             <div className="p-4 bg-white border border-blue-300 rounded">
               <div className="font-medium mb-2">Konfigurierte Links:</div>
               {paypalSettings.use_separate_links ? (
                 <div className="space-y-2">
-                  <div>
-                    <span className="text-sm font-medium text-blue-700">Frühstück: </span>
-                    <span className="text-sm text-gray-600">{paypalSettings.breakfast_link || 'Nicht konfiguriert'}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-green-700">Getränke: </span>
-                    <span className="text-sm text-gray-600">{paypalSettings.drinks_link || 'Nicht konfiguriert'}</span>
-                  </div>
+                  {paypalSettings.breakfast_enabled && (
+                    <div>
+                      <span className="text-sm font-medium text-blue-700">Frühstück: </span>
+                      <span className="text-sm text-gray-600">{paypalSettings.breakfast_link || 'Nicht konfiguriert'}</span>
+                    </div>
+                  )}
+                  {paypalSettings.drinks_enabled && (
+                    <div>
+                      <span className="text-sm font-medium text-green-700">Getränke: </span>
+                      <span className="text-sm text-gray-600">{paypalSettings.drinks_link || 'Nicht konfiguriert'}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
