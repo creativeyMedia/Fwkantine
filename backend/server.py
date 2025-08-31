@@ -3002,9 +3002,10 @@ async def sponsor_meal(meal_data: dict):
                 "total_price": f"{total_others_cost:.2f} €"
             }]
             
-            await db.orders.update_one(
-                {"id": sponsor_order["id"]},
-                {"$set": {
+            # Store sponsor order update for later (after all calculations are complete)
+            sponsor_order_updates = {
+                "id": sponsor_order["id"],
+                "updates": {
                     "is_sponsor_order": True,
                     "is_sponsored": True,  # Mark sponsor as sponsored too
                     "sponsored_message": sponsor_message,  # Add sponsor message
@@ -3015,8 +3016,8 @@ async def sponsor_meal(meal_data: dict):
                     "readable_items": sponsor_readable_items,
                     # WICHTIG: total_price muss die gesponserten Kosten enthalten für korrekte Anzeige
                     "total_price": sponsor_order.get("total_price", 0) + sponsor_additional_cost,
-                }}
-            )
+                }
+            }
         
         # 2. Mark other orders as sponsored and update balances
         for calc in order_calculations:
