@@ -499,27 +499,30 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
               }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
               
               {/* PayPal Button for Drinks */}
-              {paypalSettings.enabled && employeeProfile.drinks_sweets_total < 0 && (
+              {paypalSettings.enabled && paypalSettings.drinks_enabled && employeeProfile.drinks_sweets_total < 0 && (
                 <div className="mt-3">
-                  {paypalSettings.use_separate_links && paypalSettings.drinks_link ? (
-                    <a
-                      href={paypalSettings.drinks_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                    >
-                      💳 Bezahlen mit PayPal
-                    </a>
-                  ) : !paypalSettings.use_separate_links && paypalSettings.combined_link ? (
-                    <a
-                      href={paypalSettings.combined_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                    >
-                      💳 Bezahlen mit PayPal
-                    </a>
-                  ) : null}
+                  {(() => {
+                    let link = '';
+                    if (paypalSettings.use_separate_links) {
+                      link = paypalSettings.drinks_link;
+                    } else {
+                      link = paypalSettings.combined_link;
+                    }
+                    
+                    if (link) {
+                      return (
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                        >
+                          💳 Bezahlen mit PayPal
+                        </a>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>
