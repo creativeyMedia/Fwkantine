@@ -2978,10 +2978,7 @@ async def sponsor_meal(meal_data: dict):
         if sponsor_calculation:
             sponsor_order = sponsor_calculation["order"]
             
-            # Create detailed breakdown for sponsor
-            sponsored_count = len(order_calculations)
-            others_count = sponsored_count - 1  # Exclude sponsor from "others" count
-            meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
+            # Use the already calculated counts
             
             # Create detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter - 20€"
             total_others_cost = total_sponsored_cost - sponsor_contributed_amount
