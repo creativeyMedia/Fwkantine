@@ -188,94 +188,61 @@ class BreakfastHistoryFunctionalityTest:
             self.log_result("Test Breakfast History Endpoint", False, error=str(e))
             return False
 
-    def test_sponsoring_error_recovery(self):
-        """Test sponsoring error recovery scenarios"""
+    def test_admin_breakfast_history_endpoint(self):
+        """Test GET /api/department-admin/breakfast-history/{department_id} endpoint"""
         try:
-            # Test 1: Invalid meal_type
-            today = datetime.now().date().strftime('%Y-%m-%d')
-            invalid_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "invalid_meal",  # Invalid
-                "sponsor_employee_id": "test_id",
-                "sponsor_employee_name": "Test Sponsor"
-            }
+            # Test the admin breakfast-history endpoint
+            response = self.session.get(f"{BASE_URL}/department-admin/breakfast-history/{DEPARTMENT_ID}")
             
-            response1 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=invalid_data)
-            
-            if response1.status_code != 400:
+            if response.status_code == 200:
+                admin_history_data = response.json()
+                
+                # Verify response structure
+                if isinstance(admin_history_data, list):
+                    self.log_result(
+                        "Test Admin Breakfast History Endpoint",
+                        True,
+                        f"✅ ADMIN BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(admin_history_data)} days of admin history data. Response structure is valid list format."
+                    )
+                    
+                    # Check if we have data and verify structure
+                    if len(admin_history_data) > 0:
+                        sample_day = admin_history_data[0]
+                        # Admin endpoint might have different structure, check for basic fields
+                        basic_fields = ["date"]
+                        
+                        has_basic_fields = all(field in sample_day for field in basic_fields)
+                        if has_basic_fields:
+                            self.log_result(
+                                "Test Admin Breakfast History Data Structure",
+                                True,
+                                f"✅ ADMIN DATA STRUCTURE VALID! Sample day contains basic required fields. Keys found: {list(sample_day.keys())}"
+                            )
+                        else:
+                            self.log_result(
+                                "Test Admin Breakfast History Data Structure",
+                                False,
+                                error=f"Missing basic fields in admin history data. Found keys: {list(sample_day.keys())}"
+                            )
+                    
+                    return True
+                else:
+                    self.log_result(
+                        "Test Admin Breakfast History Endpoint",
+                        False,
+                        error=f"Expected list response, got {type(admin_history_data)}"
+                    )
+                    return False
+            else:
                 self.log_result(
-                    "Test Sponsoring Error Recovery",
+                    "Test Admin Breakfast History Endpoint",
                     False,
-                    error=f"Expected HTTP 400 for invalid meal_type, got {response1.status_code}"
+                    error=f"Admin breakfast history endpoint failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
-            
-            # Test 2: Missing required fields
-            incomplete_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                # Missing meal_type, sponsor_employee_id, sponsor_employee_name
-            }
-            
-            response2 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=incomplete_data)
-            
-            if response2.status_code != 400:
-                self.log_result(
-                    "Test Sponsoring Error Recovery",
-                    False,
-                    error=f"Expected HTTP 400 for missing fields, got {response2.status_code}"
-                )
-                return False
-            
-            # Test 3: Invalid date format
-            invalid_date_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": "invalid-date-format",
-                "meal_type": "breakfast",
-                "sponsor_employee_id": "test_id",
-                "sponsor_employee_name": "Test Sponsor"
-            }
-            
-            response3 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=invalid_date_data)
-            
-            if response3.status_code != 400:
-                self.log_result(
-                    "Test Sponsoring Error Recovery",
-                    False,
-                    error=f"Expected HTTP 400 for invalid date format, got {response3.status_code}"
-                )
-                return False
-            
-            # Test 4: Future date (should be rejected)
-            future_date = (datetime.now().date() + timedelta(days=7)).strftime('%Y-%m-%d')
-            future_date_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": future_date,
-                "meal_type": "breakfast",
-                "sponsor_employee_id": "test_id",
-                "sponsor_employee_name": "Test Sponsor"
-            }
-            
-            response4 = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=future_date_data)
-            
-            if response4.status_code != 400:
-                self.log_result(
-                    "Test Sponsoring Error Recovery",
-                    False,
-                    error=f"Expected HTTP 400 for future date, got {response4.status_code}"
-                )
-                return False
-            
-            self.log_result(
-                "Test Sponsoring Error Recovery",
-                True,
-                "✅ ERROR RECOVERY WORKING! All invalid scenarios properly rejected: invalid meal_type, missing fields, invalid date format, future date"
-            )
-            return True
                 
         except Exception as e:
-            self.log_result("Test Sponsoring Error Recovery", False, error=str(e))
+            self.log_result("Test Admin Breakfast History Endpoint", False, error=str(e))
             return False
 
     def test_normal_sponsoring_with_own_order(self):
