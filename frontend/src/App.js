@@ -5827,7 +5827,9 @@ const PayPalSettings = ({ currentDepartment }) => {
 
   const fetchPayPalSettings = async () => {
     try {
-      const response = await axios.get(`${API}/api/department-paypal-settings/${currentDepartment.department_id}`);
+      console.log('Fetching PayPal settings from:', `${API}/department-paypal-settings/${currentDepartment.department_id}`);
+      const response = await axios.get(`${API}/department-paypal-settings/${currentDepartment.department_id}`);
+      console.log('PayPal settings response:', response.data);
       setPaypalSettings(response.data);
     } catch (error) {
       console.error('Fehler beim Laden der PayPal-Einstellungen:', error);
