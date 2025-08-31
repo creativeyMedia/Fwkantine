@@ -2153,16 +2153,16 @@ const DepartmentAdminDashboard = () => {
   const { currentDepartment, logout, setAuthState } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
-    // Set auth state to employee mode for this department
-    setAuthState({
-      isAuthenticated: true,
-      currentDepartment: {
-        department_id: currentDepartment.department_id,
-        department_name: currentDepartment.department_name,
-        role: 'employee'
-      },
-      isDepartmentAdmin: false
-    });
+    // Use the loginDepartment function to properly save employee mode in localStorage
+    const departmentData = {
+      department_id: currentDepartment.department_id,
+      department_name: currentDepartment.department_name,
+      role: 'employee'
+    };
+    
+    // Import the loginDepartment function from AuthContext
+    const { loginDepartment } = React.useContext(AuthContext);
+    loginDepartment(departmentData);
   };
 
   useEffect(() => {
