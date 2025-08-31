@@ -422,81 +422,104 @@ class BreakfastHistoryFunctionalityTest:
             response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
-                history_data = response.json()
+                response_data = response.json()
                 
-                if len(history_data) > 0:
-                    # Check the most recent day's data
-                    recent_day = history_data[0]
+                if isinstance(response_data, dict) and "history" in response_data:
+                    history_data = response_data["history"]
                     
-                    # Verify breakfast overview essential fields
-                    overview_fields = ["breakfast_summary", "employee_orders", "total_orders", "total_amount"]
-                    missing_overview_fields = [field for field in overview_fields if field not in recent_day]
-                    
-                    if not missing_overview_fields:
-                        # Check breakfast_summary structure
-                        breakfast_summary = recent_day.get("breakfast_summary", {})
+                    if len(history_data) > 0:
+                        # Check the most recent day's data
+                        recent_day = history_data[0]
                         
-                        # Verify employee_orders structure
-                        employee_orders = recent_day.get("employee_orders", [])
+                        # Verify breakfast overview essential fields
+                        overview_fields = ["breakfast_summary", "employee_orders", "total_orders", "total_amount"]
+                        missing_overview_fields = [field for field in overview_fields if field not in recent_day]
                         
-                        # Check if employee orders have necessary fields for frontend display
-                        if len(employee_orders) > 0:
-                            sample_employee = employee_orders[0]
-                            employee_fields = ["employee_name", "employee_id"]
+                        if not missing_overview_fields:
+                            # Check breakfast_summary structure
+                            breakfast_summary = recent_day.get("breakfast_summary", {})
                             
-                            has_employee_fields = any(field in sample_employee for field in employee_fields)
+                            # Verify employee_orders structure (it's a dict, not a list)
+                            employee_orders = recent_day.get("employee_orders", {})
                             
-                            if has_employee_fields:
-                                self.log_result(
-                                    "Test Breakfast Overview Data Correctness",
-                                    True,
-                                    f"✅ BREAKFAST OVERVIEW DATA CORRECT! Recent day has {len(employee_orders)} employee orders with proper structure. Total amount: €{recent_day.get('total_amount', 0):.2f}, Total orders: {recent_day.get('total_orders', 0)}"
-                                )
+                            # Check if employee orders have necessary fields for frontend display
+                            if len(employee_orders) > 0:
+                                # Get first employee order to check structure
+                                sample_employee_name = list(employee_orders.keys())[0]
+                                sample_employee = employee_orders[sample_employee_name]
                                 
-                                # Check for sponsored employee data specifically
-                                sponsored_employees = [emp for emp in employee_orders if any(key in emp for key in ["is_sponsored", "sponsored_by"])]
-                                if sponsored_employees:
+                                # Check for essential fields
+                                employee_fields = ["total_amount", "white_halves", "seeded_halves"]
+                                has_employee_fields = any(field in sample_employee for field in employee_fields)
+                                
+                                if has_employee_fields:
                                     self.log_result(
-                                        "Test Sponsored Employee Data in Overview",
+                                        "Test Breakfast Overview Data Correctness",
                                         True,
-                                        f"✅ SPONSORED EMPLOYEES IN OVERVIEW! Found {len(sponsored_employees)} sponsored employees with proper sponsoring data preserved"
+                                        f"✅ BREAKFAST OVERVIEW DATA CORRECT! Recent day ({recent_day.get('date')}) has {len(employee_orders)} employee orders with proper structure. Total amount: €{recent_day.get('total_amount', 0):.2f}, Total orders: {recent_day.get('total_orders', 0)}"
                                     )
+                                    
+                                    # Check for sponsored employee data specifically (employees with €0.00 but items)
+                                    sponsored_employees = []
+                                    for emp_name, emp_data in employee_orders.items():
+                                        if emp_data.get("total_amount", 0) == 0 and (
+                                            emp_data.get("white_halves", 0) > 0 or 
+                                            emp_data.get("seeded_halves", 0) > 0 or 
+                                            emp_data.get("boiled_eggs", 0) > 0 or 
+                                            emp_data.get("has_lunch", False) or 
+                                            emp_data.get("has_coffee", False)
+                                        ):
+                                            sponsored_employees.append(emp_name)
+                                    
+                                    if sponsored_employees:
+                                        self.log_result(
+                                            "Test Sponsored Employee Data in Overview",
+                                            True,
+                                            f"✅ SPONSORED EMPLOYEES IN OVERVIEW! Found {len(sponsored_employees)} sponsored employees (€0.00 with items): {sponsored_employees[:3]}"
+                                        )
+                                    else:
+                                        self.log_result(
+                                            "Test Sponsored Employee Data in Overview",
+                                            True,
+                                            "✅ NO SPONSORED EMPLOYEES IN RECENT DATA (Expected if no recent sponsoring). Structure supports sponsored employee display"
+                                        )
+                                    
+                                    return True
                                 else:
                                     self.log_result(
-                                        "Test Sponsored Employee Data in Overview",
-                                        True,
-                                        "✅ NO SPONSORED EMPLOYEES IN RECENT DATA (Expected if no recent sponsoring). Structure supports sponsored employee display"
+                                        "Test Breakfast Overview Data Correctness",
+                                        False,
+                                        error=f"Employee orders missing essential fields. Sample employee keys: {list(sample_employee.keys())}"
                                     )
-                                
-                                return True
+                                    return False
                             else:
                                 self.log_result(
                                     "Test Breakfast Overview Data Correctness",
-                                    False,
-                                    error=f"Employee orders missing essential fields. Sample employee keys: {list(sample_employee.keys())}"
+                                    True,
+                                    "✅ NO EMPLOYEE ORDERS IN RECENT DATA (Expected if no recent orders). Data structure is correct for breakfast overview display"
                                 )
-                                return False
+                                return True
                         else:
                             self.log_result(
                                 "Test Breakfast Overview Data Correctness",
-                                True,
-                                "✅ NO EMPLOYEE ORDERS IN RECENT DATA (Expected if no recent orders). Data structure is correct for breakfast overview display"
+                                False,
+                                error=f"Missing essential breakfast overview fields: {missing_overview_fields}"
                             )
-                            return True
+                            return False
                     else:
                         self.log_result(
                             "Test Breakfast Overview Data Correctness",
-                            False,
-                            error=f"Missing essential breakfast overview fields: {missing_overview_fields}"
+                            True,
+                            "✅ NO RECENT HISTORY DATA (Expected in fresh system). Endpoint structure is correct for breakfast overview"
                         )
-                        return False
+                        return True
                 else:
                     self.log_result(
                         "Test Breakfast Overview Data Correctness",
-                        True,
-                        "✅ NO RECENT HISTORY DATA (Expected in fresh system). Endpoint structure is correct for breakfast overview"
+                        False,
+                        error="Invalid response structure for breakfast overview verification"
                     )
-                    return True
+                    return False
             else:
                 self.log_result(
                     "Test Breakfast Overview Data Correctness",
