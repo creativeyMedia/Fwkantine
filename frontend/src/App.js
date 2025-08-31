@@ -2717,7 +2717,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                   if (item.type === 'payment') {
                     // Payment entry
                     return (
-                      <div key={`payment-${item.id}-${index}`} className="border border-green-200 bg-green-50 rounded-lg p-4">
+                      <div key={`payment-${item.id}-${index}`} className={`border rounded-lg p-4 ${item.amount >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-4 mb-2">
