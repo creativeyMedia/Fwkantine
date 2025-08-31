@@ -1,31 +1,34 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR CORRECTED FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR PAYPAL SETTINGS FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the corrected functionality for the 4 implemented features as per review request:
+Test the newly implemented PayPal settings functionality as per review request:
 
-1. **Test flexible payment with negative amounts and corrected notes**:
-   - Verify negative payment amounts create proper notes ("Auszahlung: X.XX €" instead of "Einzahlung: -X.XX €")
-   - Test both breakfast and drinks_sweets payment types
-   - Verify payment logs show correct amount signs and descriptions
+1. **Test PayPal Settings API Endpoints**:
+   - Test GET /api/department-paypal-settings/{department_id} - should return default settings if none exist
+   - Test PUT /api/department-paypal-settings/{department_id} - should save and update PayPal settings
+   - Verify validation works (separate links require both breakfast_link and drinks_link, combined requires combined_link)
+   - Test both modes: use_separate_links=true and use_separate_links=false
 
-2. **Test sponsoring payment log creation**:
-   - Verify that when an employee sponsors a meal, it creates a payment log entry for the sponsor
-   - Check that the payment log has action="sponsoring" and negative amount
-   - Verify the notes describe the sponsoring action properly
-   - Ensure the balance_before and balance_after are correctly tracked
+2. **Test PayPal Settings Validation**:
+   - Test enabled=true with use_separate_links=true but missing links (should fail)
+   - Test enabled=true with use_separate_links=false but missing combined_link (should fail)
+   - Test enabled=false (should work without links)
+   - Test valid configurations (should work)
 
-3. **Test existing flexible payment functionality still works**:
-   - Test positive payment amounts (normal deposits) 
-   - Verify all payment functionality remains intact
+3. **Test Data Persistence**:
+   - Create PayPal settings for Department 2
+   - Verify settings are correctly saved and can be retrieved
+   - Update settings and verify changes persist
+   - Test different departments have separate settings
 
-4. **Verify data integrity**:
-   - Check that sponsored meals create proper audit trails
-   - Verify balance calculations are mathematically correct
-   - Test that payment logs can be retrieved correctly
+4. **Test Department-Specific Configuration**:
+   - Configure different settings for different departments
+   - Verify each department maintains its own PayPal configuration
+   - Test that changes to one department don't affect others
 
-Use Department "2. Wachabteilung" for testing as specified in review request.
+Use Department "2. Wachabteilung" (fw4abteilung2) for testing as specified in review request.
 """
 
 import requests
