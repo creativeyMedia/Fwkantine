@@ -5892,7 +5892,7 @@ const AdminSettingsTab = ({ currentDepartment }) => {
         {/* Abteilungs-Information - moved to bottom */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-6">
           <h4 className="text-md font-semibold mb-4 text-gray-700">ℹ️ Abteilungs-Information</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <span className="font-medium">Abteilung:</span>
               <span className="ml-2">{currentDepartment.department_name}</span>
@@ -5904,6 +5904,23 @@ const AdminSettingsTab = ({ currentDepartment }) => {
             <div>
               <span className="font-medium">App-Version:</span>
               <span className="ml-2 text-xs text-blue-600 font-semibold">1.1.2</span>
+            </div>
+          </div>
+          
+          {/* Backup Information */}
+          <div className="border-t border-gray-300 pt-4">
+            <h5 className="text-sm font-semibold mb-2 text-gray-700">🔒 Datenbank & Support</h5>
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>
+                <span className="font-medium">Backup:</span>
+                <span className="ml-2">Täglich um 02:00 Uhr, Speicherung 14 Tage</span>
+              </div>
+              <div>
+                <span className="font-medium">Support bei Datenverlust:</span>
+                <a href="mailto:kantine@creativey.media" className="ml-2 text-blue-600 hover:text-blue-800 underline">
+                  kantine@creativey.media
+                </a>
+              </div>
             </div>
           </div>
         </div>
