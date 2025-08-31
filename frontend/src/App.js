@@ -283,7 +283,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const fetchPayPalSettings = async () => {
     try {
       if (currentDepartment?.department_id) {
-        const response = await axios.get(`${API}/department-paypal-settings/${currentDepartment.department_id}`);
+        const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api` || 'http://localhost:8001/api';
+        console.log('Fetching PayPal settings from:', `${API_URL}/department-paypal-settings/${currentDepartment.department_id}`);
+        const response = await axios.get(`${API_URL}/department-paypal-settings/${currentDepartment.department_id}`);
+        console.log('PayPal settings response:', response.data);
         setPaypalSettings(response.data);
       }
     } catch (error) {
