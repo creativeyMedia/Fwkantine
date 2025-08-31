@@ -420,51 +420,83 @@ class NegativePaymentAmountsTest:
             self.log_result("Test Positive Payment Still Works", False, error=str(e))
             return False
     
-    def verify_sponsor_balance_calculation(self):
-        """Verify that sponsor pays for both meals correctly"""
+    def verify_payment_logging(self):
+        """Verify that payment logs include correct balance_before and balance_after values"""
         try:
-            if not self.initial_balances or not self.final_balances:
+            if not self.test_employee:
+                return False
+            
+            # Get initial balance for reference
+            initial_balance = self.get_employee_balance(self.test_employee['id'])
+            if not initial_balance:
+                return False
+            
+            initial_breakfast_balance = initial_balance['breakfast_balance']
+            
+            # Make a test payment to generate a log entry
+            test_amount = -5.00  # Negative payment
+            payment_data = {
+                "payment_type": "breakfast",
+                "amount": test_amount,
+                "notes": "Test payment for logging verification"
+            }
+            
+            response = self.session.post(
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                json=payment_data
+            )
+            
+            if response.status_code != 200:
                 self.log_result(
-                    "Verify Sponsor Balance Calculation",
+                    "Verify Payment Logging",
                     False,
-                    error="Missing balance data. Execute sponsoring first."
+                    error=f"Test payment failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
             
-            # Get balance changes
-            initial_sponsor_balance = self.initial_balances['sponsor']['breakfast_balance']
-            final_sponsor_balance = self.final_balances['sponsor']['breakfast_balance']
-            sponsor_balance_change = final_sponsor_balance - initial_sponsor_balance
+            # Get final balance
+            final_balance = self.get_employee_balance(self.test_employee['id'])
+            final_breakfast_balance = final_balance['breakfast_balance']
             
-            initial_sponsored_balance = self.initial_balances['sponsored']['breakfast_balance']
+            # Check if payment response includes balance tracking
+            payment_result = response.json()
+            has_balance_tracking = (
+                'balance_before' in payment_result and 
+                'balance_after' in payment_result
+            )
             
-            # Calculate expected sponsor cost
-            sponsor_own_cost = abs(initial_sponsor_balance)
-            sponsored_cost = abs(initial_sponsored_balance)
-            expected_total_sponsor_cost = sponsor_own_cost + sponsored_cost
-            expected_final_sponsor_balance = -(expected_total_sponsor_cost)  # Negative because it's debt
-            
-            # Verify sponsor pays for both meals
-            actual_sponsor_cost = abs(final_sponsor_balance)
-            cost_difference = abs(actual_sponsor_cost - expected_total_sponsor_cost)
-            
-            if cost_difference < 0.10:  # Allow small rounding differences
-                self.log_result(
-                    "Verify Sponsor Balance Calculation",
-                    True,
-                    f"✅ SPONSOR BALANCE CALCULATION CORRECT! Sponsor pays for both meals: Own cost €{sponsor_own_cost:.2f} + Sponsored cost €{sponsored_cost:.2f} = Total €{expected_total_sponsor_cost:.2f}. Initial sponsor balance €{initial_sponsor_balance:.2f} → Final €{final_sponsor_balance:.2f} (change: €{sponsor_balance_change:.2f}). Actual total cost: €{actual_sponsor_cost:.2f}, Expected: €{expected_total_sponsor_cost:.2f}, Difference: €{cost_difference:.2f}"
-                )
-                return True
+            if has_balance_tracking:
+                balance_before = payment_result['balance_before']
+                balance_after = payment_result['balance_after']
+                
+                # Verify the logged balances match our expectations
+                before_diff = abs(balance_before - initial_breakfast_balance)
+                after_diff = abs(balance_after - final_breakfast_balance)
+                
+                if before_diff < 0.01 and after_diff < 0.01:
+                    self.log_result(
+                        "Verify Payment Logging",
+                        True,
+                        f"✅ PAYMENT LOGGING VERIFIED! Payment logs include correct balance tracking: balance_before: €{balance_before:.2f} (expected: €{initial_breakfast_balance:.2f}), balance_after: €{balance_after:.2f} (expected: €{final_breakfast_balance:.2f}). Payment amount: €{test_amount:.2f}. Balance change: €{balance_after - balance_before:.2f}. Audit trail properly maintained for negative payments."
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Verify Payment Logging",
+                        False,
+                        error=f"Payment logging values incorrect. Expected before: €{initial_breakfast_balance:.2f}, logged: €{balance_before:.2f} (diff: €{before_diff:.2f}). Expected after: €{final_breakfast_balance:.2f}, logged: €{balance_after:.2f} (diff: €{after_diff:.2f})"
+                    )
+                    return False
             else:
                 self.log_result(
-                    "Verify Sponsor Balance Calculation",
+                    "Verify Payment Logging",
                     False,
-                    error=f"❌ SPONSOR BALANCE CALCULATION INCORRECT! Expected sponsor to pay €{expected_total_sponsor_cost:.2f} (own €{sponsor_own_cost:.2f} + sponsored €{sponsored_cost:.2f}), but actual cost is €{actual_sponsor_cost:.2f}. Difference: €{cost_difference:.2f}. Balance change: €{sponsor_balance_change:.2f}"
+                    error="Payment response missing balance_before and/or balance_after fields for audit trail"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Sponsor Balance Calculation", False, error=str(e))
+            self.log_result("Verify Payment Logging", False, error=str(e))
             return False
     
     def verify_mathematical_correctness(self):
