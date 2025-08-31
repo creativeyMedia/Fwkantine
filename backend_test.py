@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR PAYPAL SETTINGS FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR DAILY LUNCH PRICE RESET FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the PayPal settings functionality with detailed debugging as per review request:
+Test the new daily lunch price reset functionality as per review request:
 
-1. **Test PayPal Settings API with exact URLs**:
-   - Test GET /api/department-paypal-settings/fw4abteilung2 
-   - Create a complete PayPal configuration for Department 2 with realistic links
-   - Test both separate and combined link modes
-   - Verify the response contains all expected fields
+1. **Test new lunch price behavior**:
+   - Test GET /api/daily-lunch-price/{department_id}/{date} for a new date (should return 0.0)
+   - Test creating breakfast orders with lunch on a new day (should use 0.0 price)
+   - Test updating orders with lunch when no daily price is set (should use 0.0)
 
-2. **Create realistic test data**:
-   - Configure PayPal settings with enabled=true, breakfast_enabled=true, drinks_enabled=true
-   - Set use_separate_links=false and combined_link="https://paypal.me/testfeuerwehr"
-   - Verify the settings save correctly and can be retrieved
+2. **Test lunch price setting**:
+   - Set a lunch price for today using PUT /api/daily-lunch-settings/{department_id}/{date}
+   - Verify the price is saved correctly
+   - Test that orders created after setting the price use the correct price
 
-3. **Test alternative configuration**:
-   - Update to use_separate_links=true 
-   - Set breakfast_link="https://paypal.me/testfeuerwehr/fruehstueck" and drinks_link="https://paypal.me/testfeuerwehr/getraenke"
-   - Verify both configurations work
+3. **Test backward compatibility**:
+   - Verify existing orders with lunch prices are not affected
+   - Test that previously set daily lunch prices still work correctly
+   - Ensure no existing functionality is broken
 
-4. **Debug API response format**:
-   - Verify the response format matches exactly what the frontend expects
-   - Check if all boolean and string fields are present
-   - Test that the API returns valid data that would work in the frontend
+4. **Test edge cases**:
+   - Test behavior with date transitions (new day at midnight Berlin time)
+   - Verify that price setting affects orders retroactively for that day
+   - Test that different departments maintain separate daily prices
 
-Use Department ID "fw4abteilung2" and create complete, working PayPal configurations for testing.
+Use Department ID "fw4abteilung2" and test with realistic dates like today and tomorrow.
+Focus on verifying that new days default to 0.0 lunch price instead of falling back to global settings.
 """
 
 import requests
