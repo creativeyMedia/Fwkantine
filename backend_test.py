@@ -594,6 +594,6 @@ class BreakfastHistoryFunctionalityTest:
         return feature_working
 
 if __name__ == "__main__":
-    tester = SponsoringFunctionalityTest()
-    success = tester.run_sponsoring_tests()
+    tester = BreakfastHistoryFunctionalityTest()
+    success = tester.run_breakfast_history_tests()
     sys.exit(0 if success else 1)
