@@ -209,16 +209,16 @@ class PayPalSettingsTest:
     # ========================================
     
     def test_get_default_paypal_settings(self):
-        """Test GET endpoint returns default settings if none exist"""
+        """Test GET /api/department-paypal-settings/fw4abteilung2 endpoint returns default settings"""
         try:
             response = self.session.get(f"{BASE_URL}/department-paypal-settings/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
                 settings = response.json()
                 
-                # Verify default settings structure
-                expected_fields = ['id', 'department_id', 'use_separate_links', 'combined_link', 
-                                 'breakfast_link', 'drinks_link', 'enabled']
+                # Verify all expected fields are present
+                expected_fields = ['id', 'department_id', 'enabled', 'breakfast_enabled', 'drinks_enabled', 
+                                 'use_separate_links', 'combined_link', 'breakfast_link', 'drinks_link']
                 
                 missing_fields = [field for field in expected_fields if field not in settings]
                 
@@ -226,12 +226,16 @@ class PayPalSettingsTest:
                     # Verify default values
                     if (settings['department_id'] == DEPARTMENT_ID and
                         settings['enabled'] == False and
+                        settings['breakfast_enabled'] == False and
+                        settings['drinks_enabled'] == False and
                         settings['use_separate_links'] == False):
+                        
+                        self.paypal_settings = settings  # Store for later tests
                         
                         self.log_result(
                             "Test GET Default PayPal Settings",
                             True,
-                            f"✅ DEFAULT SETTINGS RETURNED! Department: {settings['department_id']}, Enabled: {settings['enabled']}, Use Separate Links: {settings['use_separate_links']}"
+                            f"✅ DEFAULT SETTINGS RETURNED! Department: {settings['department_id']}, All fields present: {list(settings.keys())}"
                         )
                         return True
                     else:
@@ -245,7 +249,7 @@ class PayPalSettingsTest:
                     self.log_result(
                         "Test GET Default PayPal Settings",
                         False,
-                        error=f"Missing fields in response: {missing_fields}"
+                        error=f"Missing fields in response: {missing_fields}. Got: {list(settings.keys())}"
                     )
                     return False
             else:
