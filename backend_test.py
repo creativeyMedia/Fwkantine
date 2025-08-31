@@ -451,7 +451,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 1: Negative price (should be rejected)
             response1 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       json=-0.50)
+                                       params={"price": -0.50})
             if response1.status_code == 400:
                 edge_case_results.append("Negative eggs price rejected ✓")
             else:
@@ -459,7 +459,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 2: Negative coffee price (should be rejected)
             response2 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       json=-1.00)
+                                       params={"price": -1.00})
             if response2.status_code == 400:
                 edge_case_results.append("Negative coffee price rejected ✓")
             else:
@@ -467,7 +467,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 3: Zero price (should be allowed)
             response3 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       json=0.0)
+                                       params={"price": 0.0})
             if response3.status_code == 200:
                 edge_case_results.append("Zero eggs price allowed ✓")
             else:
@@ -475,7 +475,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 4: Zero coffee price (should be allowed)
             response4 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       json=0.0)
+                                       params={"price": 0.0})
             if response4.status_code == 200:
                 edge_case_results.append("Zero coffee price allowed ✓")
             else:
@@ -483,7 +483,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 5: Decimal price (should be allowed)
             response5 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       json=0.75)
+                                       params={"price": 0.75})
             if response5.status_code == 200:
                 edge_case_results.append("Decimal eggs price (0.75) allowed ✓")
             else:
@@ -491,7 +491,7 @@ class DepartmentPricingFunctionalityTest:
             
             # Test 6: Decimal coffee price (should be allowed)
             response6 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       json=2.25)
+                                       params={"price": 2.25})
             if response6.status_code == 200:
                 edge_case_results.append("Decimal coffee price (2.25) allowed ✓")
             else:
