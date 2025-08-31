@@ -294,57 +294,62 @@ class SponsorStatusFunctionalityTest:
             self.log_result(f"Sponsor {meal_type.title()} Meal", False, error=str(e))
             return False, None
 
-    def test_get_updated_prices(self, expected_egg_price, expected_coffee_price):
-        """Test that GET endpoints return updated prices"""
+    def test_sponsor_status_after_breakfast_sponsoring(self, test_date, expected_sponsor_name, expected_sponsor_id):
+        """Test sponsor status after breakfast sponsoring"""
         try:
-            # Test getting updated boiled eggs price
-            response1 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
-            response2 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            response = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/{DEPARTMENT_ID}/{test_date}")
             
-            success = True
-            details = []
-            
-            if response1.status_code == 200:
-                data1 = response1.json()
-                actual_egg_price = data1.get("boiled_eggs_price", 0)
-                if abs(actual_egg_price - expected_egg_price) < 0.01:
-                    details.append(f"Eggs: €{actual_egg_price:.2f} ✓")
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                breakfast_sponsored = response_data.get("breakfast_sponsored")
+                lunch_sponsored = response_data.get("lunch_sponsored")
+                
+                # Verify breakfast_sponsored is not null and has correct data
+                if breakfast_sponsored is not None:
+                    sponsor_name = breakfast_sponsored.get("sponsored_by")
+                    sponsor_id = breakfast_sponsored.get("sponsored_by_id")
+                    
+                    if sponsor_name == expected_sponsor_name and sponsor_id == expected_sponsor_id:
+                        # Verify lunch_sponsored is still null
+                        if lunch_sponsored is None:
+                            self.log_result(
+                                "Test Sponsor Status After Breakfast Sponsoring",
+                                True,
+                                f"✅ BREAKFAST SPONSORING STATUS SUCCESS! Breakfast sponsored by: {sponsor_name} (ID: {sponsor_id}), Lunch sponsored: {lunch_sponsored}. Correct sponsor information displayed."
+                            )
+                            return True
+                        else:
+                            self.log_result(
+                                "Test Sponsor Status After Breakfast Sponsoring",
+                                False,
+                                error=f"Expected lunch_sponsored to be null, got: {lunch_sponsored}"
+                            )
+                            return False
+                    else:
+                        self.log_result(
+                            "Test Sponsor Status After Breakfast Sponsoring",
+                            False,
+                            error=f"Sponsor mismatch. Expected: {expected_sponsor_name} (ID: {expected_sponsor_id}), Got: {sponsor_name} (ID: {sponsor_id})"
+                        )
+                        return False
                 else:
-                    details.append(f"Eggs: Expected €{expected_egg_price:.2f}, got €{actual_egg_price:.2f} ✗")
-                    success = False
-            else:
-                details.append(f"Eggs GET failed: HTTP {response1.status_code}")
-                success = False
-            
-            if response2.status_code == 200:
-                data2 = response2.json()
-                actual_coffee_price = data2.get("coffee_price", 0)
-                if abs(actual_coffee_price - expected_coffee_price) < 0.01:
-                    details.append(f"Coffee: €{actual_coffee_price:.2f} ✓")
-                else:
-                    details.append(f"Coffee: Expected €{expected_coffee_price:.2f}, got €{actual_coffee_price:.2f} ✗")
-                    success = False
-            else:
-                details.append(f"Coffee GET failed: HTTP {response2.status_code}")
-                success = False
-            
-            if success:
-                self.log_result(
-                    "Test GET Updated Prices",
-                    True,
-                    f"✅ GET UPDATED PRICES SUCCESS! {', '.join(details)}. Updated prices correctly returned by GET endpoints."
-                )
+                    self.log_result(
+                        "Test Sponsor Status After Breakfast Sponsoring",
+                        False,
+                        error=f"Expected breakfast_sponsored to contain sponsor data, got: {breakfast_sponsored}"
+                    )
+                    return False
             else:
                 self.log_result(
-                    "Test GET Updated Prices",
+                    "Test Sponsor Status After Breakfast Sponsoring",
                     False,
-                    error=f"Price verification failed: {', '.join(details)}"
+                    error=f"GET sponsor status failed: HTTP {response.status_code}: {response.text}"
                 )
-            
-            return success
+                return False
                 
         except Exception as e:
-            self.log_result("Test GET Updated Prices", False, error=str(e))
+            self.log_result("Test Sponsor Status After Breakfast Sponsoring", False, error=str(e))
             return False
 
     def test_department_separation(self):
