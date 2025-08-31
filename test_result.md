@@ -195,7 +195,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix 5 critical bugs: 1) Wrong calculations in Admin Dashboard daily summaries after sponsoring (coffee+lunch incorrectly excluded), 2) Egg/coffee prices are global instead of per department, 3) Prices not auto-updating after 'Ausgeben' without reload, 4) Wrong balance calculation for sponsored employees after lunch sponsoring, 5) UI colors (positive green not blue) and label change to 'Frühstück/Mittag Saldo'."
+user_problem_statement: "Implement 4 new features: 1) Reload behavior for mobile devices - persist last department in localStorage and prevent pull-to-refresh, 2) Fix sponsoring display bug in employee dashboard breakfast overview where sponsored meals disappear, 3) Extend payment functionality to allow negative amounts (withdrawals) with updated button text 'Ein-/Auszahlung', 4) Add app version 1.1.2 display in admin dashboard department information."
 
 backend:
   - task: "Master Password Login Function Diagnosis"
