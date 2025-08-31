@@ -228,7 +228,7 @@ class NegativePaymentAmountsTest:
             return False
     
     # ========================================
-    # CRITICAL BUG FIX VERIFICATION
+    # NEGATIVE PAYMENT AMOUNTS TESTING
     # ========================================
     
     def execute_breakfast_sponsoring(self):
