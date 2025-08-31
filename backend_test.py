@@ -499,44 +499,109 @@ class NegativePaymentAmountsTest:
             self.log_result("Verify Payment Logging", False, error=str(e))
             return False
     
-    def verify_mathematical_correctness(self):
-        """Verify that the overall balance calculations are mathematically correct"""
+    def test_authentication_endpoints(self):
+        """Test that authentication endpoints work correctly"""
         try:
-            if not self.initial_balances or not self.final_balances:
+            # Test department login
+            dept_response = self.session.post(f"{BASE_URL}/login/department", json={
+                "department_name": DEPARTMENT_NAME,
+                "password": DEPARTMENT_PASSWORD
+            })
+            
+            dept_auth_success = dept_response.status_code == 200
+            
+            # Test department admin login (already tested in setup, but verify again)
+            admin_response = self.session.post(f"{BASE_URL}/login/department-admin", json={
+                "department_name": DEPARTMENT_NAME,
+                "admin_password": ADMIN_PASSWORD
+            })
+            
+            admin_auth_success = admin_response.status_code == 200
+            
+            if dept_auth_success and admin_auth_success:
                 self.log_result(
-                    "Verify Mathematical Correctness",
-                    False,
-                    error="Missing balance data. Execute sponsoring first."
-                )
-                return False
-            
-            # Calculate total balance changes
-            initial_total = (self.initial_balances['sponsor']['breakfast_balance'] + 
-                           self.initial_balances['sponsored']['breakfast_balance'])
-            final_total = (self.final_balances['sponsor']['breakfast_balance'] + 
-                         self.final_balances['sponsored']['breakfast_balance'])
-            
-            total_balance_change = final_total - initial_total
-            
-            # In correct sponsoring, total balance should remain the same
-            # (sponsor pays more, sponsored pays less, but total debt unchanged)
-            if abs(total_balance_change) < 0.01:  # Allow small rounding differences
-                self.log_result(
-                    "Verify Mathematical Correctness",
+                    "Test Authentication Endpoints",
                     True,
-                    f"✅ MATHEMATICAL CORRECTNESS VERIFIED! Total balance conservation: Initial total €{initial_total:.2f} → Final total €{final_total:.2f} (change: €{total_balance_change:.2f}). The sponsoring system correctly redistributes costs without changing total debt. Sponsor: €{self.initial_balances['sponsor']['breakfast_balance']:.2f} → €{self.final_balances['sponsor']['breakfast_balance']:.2f}, Sponsored: €{self.initial_balances['sponsored']['breakfast_balance']:.2f} → €{self.final_balances['sponsored']['breakfast_balance']:.2f}"
+                    f"✅ AUTHENTICATION ENDPOINTS WORKING! Department login: HTTP {dept_response.status_code}, Admin login: HTTP {admin_response.status_code}. Both authentication methods functional for {DEPARTMENT_NAME}. Existing authentication functionality remains intact."
                 )
                 return True
             else:
                 self.log_result(
-                    "Verify Mathematical Correctness",
+                    "Test Authentication Endpoints",
                     False,
-                    error=f"❌ MATHEMATICAL ERROR DETECTED! Total balance changed by €{total_balance_change:.2f} (Initial: €{initial_total:.2f}, Final: €{final_total:.2f}). Sponsoring should redistribute costs without changing total debt. This indicates a calculation error in the sponsoring logic."
+                    error=f"Authentication endpoints failed. Department login: HTTP {dept_response.status_code}, Admin login: HTTP {admin_response.status_code}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Mathematical Correctness", False, error=str(e))
+            self.log_result("Test Authentication Endpoints", False, error=str(e))
+            return False
+    
+    def test_department_settings_endpoints(self):
+        """Test that department settings endpoints are functional"""
+        try:
+            # Test getting department settings
+            settings_response = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}")
+            
+            if settings_response.status_code != 200:
+                self.log_result(
+                    "Test Department Settings Endpoints",
+                    False,
+                    error=f"Failed to get department settings: HTTP {settings_response.status_code}: {settings_response.text}"
+                )
+                return False
+            
+            settings = settings_response.json()
+            
+            # Test updating boiled eggs price
+            original_eggs_price = settings.get('boiled_eggs_price', 0.50)
+            new_eggs_price = original_eggs_price + 0.10
+            
+            eggs_update_response = self.session.put(
+                f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price",
+                params={"price": new_eggs_price}
+            )
+            
+            eggs_update_success = eggs_update_response.status_code == 200
+            
+            # Test updating coffee price
+            original_coffee_price = settings.get('coffee_price', 1.50)
+            new_coffee_price = original_coffee_price + 0.20
+            
+            coffee_update_response = self.session.put(
+                f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price",
+                params={"price": new_coffee_price}
+            )
+            
+            coffee_update_success = coffee_update_response.status_code == 200
+            
+            # Restore original prices
+            self.session.put(
+                f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price",
+                params={"price": original_eggs_price}
+            )
+            self.session.put(
+                f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price",
+                params={"price": original_coffee_price}
+            )
+            
+            if eggs_update_success and coffee_update_success:
+                self.log_result(
+                    "Test Department Settings Endpoints",
+                    True,
+                    f"✅ DEPARTMENT SETTINGS ENDPOINTS WORKING! Successfully retrieved settings and updated prices: Eggs €{original_eggs_price:.2f} → €{new_eggs_price:.2f}, Coffee €{original_coffee_price:.2f} → €{new_coffee_price:.2f}. Prices restored to original values. Department-specific pricing functionality intact."
+                )
+                return True
+            else:
+                self.log_result(
+                    "Test Department Settings Endpoints",
+                    False,
+                    error=f"Department settings update failed. Eggs update: HTTP {eggs_update_response.status_code}, Coffee update: HTTP {coffee_update_response.status_code}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Department Settings Endpoints", False, error=str(e))
             return False
     
     def investigate_sponsoring_discrepancy(self):
