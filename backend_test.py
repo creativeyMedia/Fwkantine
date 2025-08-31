@@ -1,33 +1,39 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR DEPARTMENT-SPECIFIC EGG AND COFFEE PRICES
+COMPREHENSIVE BACKEND TESTING FOR SPONSOR STATUS FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the fixed egg and coffee price functionality in admin dashboard:
+Test the new sponsor status check functionality:
 
-1. **Test GET endpoints for department-specific prices**:
-   - Test GET /api/department-settings/fw4abteilung2/boiled-eggs-price
-   - Test GET /api/department-settings/fw4abteilung2/coffee-price  
-   - Verify both endpoints return proper JSON with prices
-   - Check default values (0.50 for eggs, 1.50 for coffee) if no settings exist
+1. **Test sponsor status endpoint for clean date**:
+   - Test GET /api/department-admin/sponsor-status/fw4abteilung2/{today's date}
+   - Verify it returns proper structure with breakfast_sponsored: null and lunch_sponsored: null
+   - Check that the response format matches frontend expectations
 
-2. **Test PUT endpoints for updating prices**:
-   - Test PUT /api/department-settings/fw4abteilung2/boiled-eggs-price with price=0.60
-   - Test PUT /api/department-settings/fw4abteilung2/coffee-price with price=2.00
-   - Verify updates are saved correctly
-   - Test that updated prices are returned by GET endpoints
+2. **Test sponsor status after breakfast sponsoring**:
+   - Create employees and breakfast orders for today
+   - Sponsor breakfast meals using one employee
+   - Test sponsor status endpoint again
+   - Verify breakfast_sponsored shows correct sponsor name and ID
+   - Verify lunch_sponsored remains null
 
-3. **Test department separation**:
-   - Set different prices for different departments
-   - Verify each department maintains its own prices
-   - Test that updates to one department don't affect others
+3. **Test sponsor status after lunch sponsoring**:
+   - Use same employees with lunch orders
+   - Sponsor lunch meals using another employee  
+   - Test sponsor status endpoint
+   - Verify lunch_sponsored shows correct sponsor name and ID
+   - Verify breakfast_sponsored remains from previous test
 
-4. **Test edge cases**:
-   - Test negative prices (should be rejected)
-   - Test zero prices (should be allowed)
-   - Test decimal prices (e.g., 0.75)
+4. **Test error handling**:
+   - Test with invalid date format
+   - Test with non-existent department
+   - Verify appropriate error messages are returned
 
-Use Department "fw4abteilung2" for testing and verify the complete CRUD functionality for department-specific egg and coffee prices.
+5. **Test timezone handling**:
+   - Verify the endpoint correctly handles Berlin timezone for date boundaries
+   - Test with dates at day boundaries (23:59, 00:01)
+
+Use Department "fw4abteilung2" and today's date for testing.
 """
 
 import requests
