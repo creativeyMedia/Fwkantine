@@ -261,52 +261,38 @@ class SponsorStatusFunctionalityTest:
             self.log_result(f"Create Breakfast Order{lunch_text}", False, error=str(e))
             return None
 
-    def test_put_coffee_price(self, new_price):
-        """Test PUT /api/department-settings/{department_id}/coffee-price"""
+    def sponsor_meal(self, sponsor_employee_id, sponsor_employee_name, meal_type, test_date):
+        """Sponsor a meal (breakfast or lunch)"""
         try:
-            # Test updating coffee price - price is passed as query parameter
-            response = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                      params={"price": new_price})
+            sponsor_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": test_date,
+                "meal_type": meal_type,
+                "sponsor_employee_id": sponsor_employee_id,
+                "sponsor_employee_name": sponsor_employee_name
+            }
+            
+            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
             
             if response.status_code == 200:
-                response_data = response.json()
-                
-                # Verify response structure
-                if isinstance(response_data, dict) and "price" in response_data:
-                    updated_price = response_data["price"]
-                    
-                    if abs(updated_price - new_price) < 0.01:  # Allow for floating point precision
-                        self.log_result(
-                            "Test PUT Coffee Price",
-                            True,
-                            f"✅ PUT COFFEE PRICE SUCCESS! Updated price from previous to €{updated_price:.2f}. Update saved correctly."
-                        )
-                        return True
-                    else:
-                        self.log_result(
-                            "Test PUT Coffee Price",
-                            False,
-                            error=f"Price mismatch: sent {new_price}, got {updated_price}"
-                        )
-                        return False
-                else:
-                    self.log_result(
-                        "Test PUT Coffee Price",
-                        False,
-                        error=f"Invalid response structure. Expected dict with 'price' key, got: {response_data}"
-                    )
-                    return False
+                result = response.json()
+                self.log_result(
+                    f"Sponsor {meal_type.title()} Meal",
+                    True,
+                    f"✅ {meal_type.upper()} SPONSORING SUCCESS! Sponsor: {sponsor_employee_name}, Affected employees: {result.get('affected_employees', 0)}, Total cost: €{result.get('total_cost', 0):.2f}"
+                )
+                return True, result
             else:
                 self.log_result(
-                    "Test PUT Coffee Price",
+                    f"Sponsor {meal_type.title()} Meal",
                     False,
-                    error=f"PUT coffee price failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Sponsoring failed: HTTP {response.status_code}: {response.text}"
                 )
-                return False
+                return False, None
                 
         except Exception as e:
-            self.log_result("Test PUT Coffee Price", False, error=str(e))
-            return False
+            self.log_result(f"Sponsor {meal_type.title()} Meal", False, error=str(e))
+            return False, None
 
     def test_get_updated_prices(self, expected_egg_price, expected_coffee_price):
         """Test that GET endpoints return updated prices"""
