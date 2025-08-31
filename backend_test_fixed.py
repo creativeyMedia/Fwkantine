@@ -243,8 +243,10 @@ class CorrectedFunctionalityTest:
                 final_balance = self.get_employee_balance(self.test_employee['id'])
                 final_breakfast_balance = final_balance['breakfast_balance']
                 
-                # Check balance calculation
-                expected_balance = initial_breakfast_balance - negative_amount
+                # Check balance calculation - CORRECTED LOGIC
+                # new_balance = current_balance + payment_data.amount
+                # For negative amount: balance decreases (more debt)
+                expected_balance = initial_breakfast_balance + negative_amount
                 balance_difference = abs(final_breakfast_balance - expected_balance)
                 
                 if balance_difference < 0.01:
