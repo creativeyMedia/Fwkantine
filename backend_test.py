@@ -352,72 +352,65 @@ class SponsorStatusFunctionalityTest:
             self.log_result("Test Sponsor Status After Breakfast Sponsoring", False, error=str(e))
             return False
 
-    def test_department_separation(self):
-        """Test department separation - different departments maintain separate prices"""
+    def test_sponsor_status_after_lunch_sponsoring(self, test_date, expected_breakfast_sponsor, expected_lunch_sponsor):
+        """Test sponsor status after lunch sponsoring"""
         try:
-            # Test with a different department (fw4abteilung3)
-            other_department = "fw4abteilung3"
+            response = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/{DEPARTMENT_ID}/{test_date}")
             
-            # Set different prices for the other department
-            test_egg_price = 0.75
-            test_coffee_price = 1.75
-            
-            # Update prices for other department
-            response1 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/boiled-eggs-price", 
-                                       params={"price": test_egg_price})
-            response2 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/coffee-price", 
-                                       params={"price": test_coffee_price})
-            
-            if response1.status_code == 200 and response2.status_code == 200:
-                # Now check that our original department still has its prices
-                response3 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
-                response4 = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            if response.status_code == 200:
+                response_data = response.json()
                 
-                # And check that the other department has the new prices
-                response5 = self.session.get(f"{BASE_URL}/department-settings/{other_department}/boiled-eggs-price")
-                response6 = self.session.get(f"{BASE_URL}/department-settings/{other_department}/coffee-price")
+                breakfast_sponsored = response_data.get("breakfast_sponsored")
+                lunch_sponsored = response_data.get("lunch_sponsored")
                 
-                if all(r.status_code == 200 for r in [response3, response4, response5, response6]):
-                    original_egg = response3.json().get("boiled_eggs_price", 0)
-                    original_coffee = response4.json().get("coffee_price", 0)
-                    other_egg = response5.json().get("boiled_eggs_price", 0)
-                    other_coffee = response6.json().get("coffee_price", 0)
-                    
-                    # Verify separation
-                    if (abs(other_egg - test_egg_price) < 0.01 and 
-                        abs(other_coffee - test_coffee_price) < 0.01 and
-                        (abs(original_egg - other_egg) > 0.01 or abs(original_coffee - other_coffee) > 0.01)):
-                        
-                        self.log_result(
-                            "Test Department Separation",
-                            True,
-                            f"✅ DEPARTMENT SEPARATION SUCCESS! {DEPARTMENT_ID}: Eggs €{original_egg:.2f}, Coffee €{original_coffee:.2f} | {other_department}: Eggs €{other_egg:.2f}, Coffee €{other_coffee:.2f}. Each department maintains separate prices."
-                        )
-                        return True
-                    else:
-                        self.log_result(
-                            "Test Department Separation",
-                            False,
-                            error=f"Department separation failed. {DEPARTMENT_ID}: Eggs €{original_egg:.2f}, Coffee €{original_coffee:.2f} | {other_department}: Eggs €{other_egg:.2f}, Coffee €{other_coffee:.2f}"
-                        )
-                        return False
-                else:
+                # Verify both breakfast and lunch are sponsored
+                breakfast_valid = False
+                lunch_valid = False
+                
+                if breakfast_sponsored is not None:
+                    breakfast_sponsor_name = breakfast_sponsored.get("sponsored_by")
+                    breakfast_sponsor_id = breakfast_sponsored.get("sponsored_by_id")
+                    if (breakfast_sponsor_name == expected_breakfast_sponsor["name"] and 
+                        breakfast_sponsor_id == expected_breakfast_sponsor["id"]):
+                        breakfast_valid = True
+                
+                if lunch_sponsored is not None:
+                    lunch_sponsor_name = lunch_sponsored.get("sponsored_by")
+                    lunch_sponsor_id = lunch_sponsored.get("sponsored_by_id")
+                    if (lunch_sponsor_name == expected_lunch_sponsor["name"] and 
+                        lunch_sponsor_id == expected_lunch_sponsor["id"]):
+                        lunch_valid = True
+                
+                if breakfast_valid and lunch_valid:
                     self.log_result(
-                        "Test Department Separation",
+                        "Test Sponsor Status After Lunch Sponsoring",
+                        True,
+                        f"✅ LUNCH SPONSORING STATUS SUCCESS! Breakfast sponsored by: {breakfast_sponsor_name}, Lunch sponsored by: {lunch_sponsor_name}. Both meal types correctly tracked."
+                    )
+                    return True
+                else:
+                    error_details = []
+                    if not breakfast_valid:
+                        error_details.append(f"Breakfast sponsor mismatch: expected {expected_breakfast_sponsor}, got {breakfast_sponsored}")
+                    if not lunch_valid:
+                        error_details.append(f"Lunch sponsor mismatch: expected {expected_lunch_sponsor}, got {lunch_sponsored}")
+                    
+                    self.log_result(
+                        "Test Sponsor Status After Lunch Sponsoring",
                         False,
-                        error="Failed to retrieve prices for department separation test"
+                        error="; ".join(error_details)
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Department Separation",
+                    "Test Sponsor Status After Lunch Sponsoring",
                     False,
-                    error=f"Failed to set prices for other department: Eggs HTTP {response1.status_code}, Coffee HTTP {response2.status_code}"
+                    error=f"GET sponsor status failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Department Separation", False, error=str(e))
+            self.log_result("Test Sponsor Status After Lunch Sponsoring", False, error=str(e))
             return False
 
     def test_edge_cases(self):
