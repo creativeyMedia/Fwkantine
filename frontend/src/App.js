@@ -4276,14 +4276,16 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                 {dailySummary && dailySummary.employee_orders && Object.keys(dailySummary.employee_orders).length > 0 ? (
                   (() => {
                     try {
-                      // Filter employees who have any breakfast bookings
+                      // Filter employees who have any breakfast bookings (including sponsored meals)
                       const employeesWithBookings = Object.entries(dailySummary.employee_orders).filter(([employeeName, employeeData]) => {
                         if (!employeeData) return false;
                         const hasRolls = (employeeData.white_halves || 0) > 0 || (employeeData.seeded_halves || 0) > 0;
                         const hasEggs = (employeeData.boiled_eggs || 0) > 0;
                         const hasToppings = employeeData.toppings && Object.keys(employeeData.toppings).length > 0;
                         const hasLunch = employeeData.has_lunch;
-                        return hasRolls || hasEggs || hasToppings || hasLunch;
+                        const isSponsored = employeeData.is_sponsored;
+                        // Include sponsored employees even if their individual counts are 0
+                        return hasRolls || hasEggs || hasToppings || hasLunch || isSponsored;
                       });
                       
                       if (employeesWithBookings.length === 0) {
