@@ -1,46 +1,39 @@
 #!/usr/bin/env python3
 """
-FINAL SPONSORING BUG FIX VERIFICATION - CLEAN DATABASE
+FEATURE 3 - NEGATIVE PAYMENT AMOUNTS SUPPORT TESTING
 
-**CRITICAL BUG FIX APPLIED:**
-- **Line 2842**: Sponsored employees now get CREDITED (`+sponsored_amount`) instead of debited (`-sponsored_amount`)
-- **Clean Database**: All orders, payments, and balances reset to 0.00
+**TESTING FOCUS:**
+Test the newly implemented Feature 3 - Backend Support for Negative Payment Amounts
 
-**CLEAN TEST SCENARIO:**
+**TEST SCENARIOS:**
 
-1. **Create 2 Fresh Employees** in Department "1. Wachabteilung":
-   - Employee A (sponsor) - starts with 0.00 balance
-   - Employee B (sponsored) - starts with 0.00 balance
+1. **Negative Payment Amounts Support**:
+   - Test POST /api/department-admin/flexible-payment/{employee_id} endpoint
+   - Verify it accepts negative amounts for withdrawals (e.g., amount: -10.00)
+   - Check that negative amounts correctly reduce the employee balance
+   - Test both payment types: "breakfast" and "drinks_sweets"
+   - Verify payment logging includes correct balance_before and balance_after values
+   - Ensure negative payments don't cause validation errors
 
-2. **Create Simple Orders**:
-   - Employee A: Simple breakfast order (e.g., Helles Brötchen €2.10)
-   - Employee B: Simple breakfast order (e.g., Körnerbrötchen €2.10)
-   - Both should have -€2.10 balance after ordering
+2. **Verify Existing Functionality Still Works**:
+   - Test flexible payment with positive amounts (normal deposits)
+   - Test authentication endpoints work correctly
+   - Test department settings endpoints are functional
 
-3. **Execute Sponsoring**:
-   - Employee A sponsors breakfast for Employee B
-   - Expected after fix:
-     - Employee A: -€2.10 (own) -€2.10 (sponsored) = -€4.20 total
-     - Employee B: -€2.10 +€2.10 (refund) = €0.00 (fully sponsored)
-
-4. **Critical Verifications**:
-   - Employee B balance = €0.00 (user's main concern: "false saldo")
-   - Employee A pays for both meals
-   - Orders marked `is_sponsored=true` correctly
-   - Both Helles and Körner treated equally
+3. **Test Data Integrity**:
+   - Ensure balance calculations are mathematically correct for negative payments
+   - Verify payment logs are properly recorded with negative amounts
+   - Check that employees can have negative balances after withdrawals
 
 **EXPECTED SUCCESS CRITERIA:**
-- ✅ Sponsored employee gets FULL REFUND (balance = 0.00)
-- ✅ Mathematics: Sponsor balance = own_cost + sponsored_cost  
-- ✅ No more "false saldo" issue reported by user
-- ✅ Equal treatment of all breakfast item types
-- ✅ Clean, verifiable test results with fresh data
+- ✅ Negative payment amounts accepted without validation errors
+- ✅ Employee balances correctly reduced by negative payment amounts
+- ✅ Payment logs include proper balance_before and balance_after tracking
+- ✅ Both breakfast and drinks_sweets payment types support negative amounts
+- ✅ Existing positive payment functionality remains intact
+- ✅ Authentication and department settings endpoints functional
 
-**USER'S ORIGINAL PROBLEM:**
-"sollte sich der saldo ändern, wenn ein frühstück ausgegeben wurde, da man ja das frühstück dann nicht mehr selbst bezahlt"
-→ This should now be FIXED with the corrected balance calculation
-
-Use Department "1. Wachabteilung" with the clean database for accurate testing.
+Use Department "2. Wachabteilung" for testing as specified in review request.
 """
 
 import requests
