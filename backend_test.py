@@ -44,7 +44,7 @@ DEPARTMENT_ID = "fw4abteilung2"
 ADMIN_PASSWORD = "admin2"
 DEPARTMENT_PASSWORD = "password2"
 
-class CorrectedFunctionalityTest:
+class PayPalSettingsTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
