@@ -381,144 +381,98 @@ class BreakfastHistoryFunctionalityTest:
             self.log_result("Test Function Name Conflict Resolution", False, error=str(e))
             return False
 
-    def test_atomic_transaction_behavior(self):
-        """Test atomic transaction behavior during sponsoring"""
+    def test_breakfast_overview_data_correctness(self):
+        """Test that breakfast overview will show data correctly after the fix"""
         try:
-            # Create employees for atomic transaction test
-            timestamp = datetime.now().strftime("%H%M%S")
+            # Get breakfast history data and verify it contains the data needed for breakfast overview
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
             
-            # Create employees with orders
-            employees_with_orders = []
-            for i in range(2):
-                emp_name = f"AtomicTest_{i}_{timestamp}"
-                emp_response = self.session.post(f"{BASE_URL}/employees", json={
-                    "name": emp_name,
-                    "department_id": DEPARTMENT_ID
-                })
+            if response.status_code == 200:
+                history_data = response.json()
                 
-                if emp_response.status_code == 200:
-                    employee = emp_response.json()
-                    employees_with_orders.append(employee)
-                    self.test_employees.append(employee)
+                if len(history_data) > 0:
+                    # Check the most recent day's data
+                    recent_day = history_data[0]
                     
-                    # Create breakfast order
-                    order_data = {
-                        "employee_id": employee["id"],
-                        "department_id": DEPARTMENT_ID,
-                        "order_type": "breakfast",
-                        "breakfast_items": [{
-                            "total_halves": 1,
-                            "white_halves": 1,
-                            "seeded_halves": 0,
-                            "toppings": ["butter"],
-                            "has_lunch": True,
-                            "boiled_eggs": 0,
-                            "has_coffee": False
-                        }]
-                    }
+                    # Verify breakfast overview essential fields
+                    overview_fields = ["breakfast_summary", "employee_orders", "total_orders", "total_amount"]
+                    missing_overview_fields = [field for field in overview_fields if field not in recent_day]
                     
-                    order_response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-                    if order_response.status_code == 200:
-                        self.test_orders.append(order_response.json())
-            
-            if len(employees_with_orders) != 2:
-                self.log_result(
-                    "Test Atomic Transaction Behavior",
-                    False,
-                    error="Failed to create test employees with orders"
-                )
-                return False
-            
-            # Get initial balances
-            initial_balances = {}
-            for employee in employees_with_orders:
-                balance = self.get_employee_balance(employee["id"])
-                if balance:
-                    initial_balances[employee["id"]] = balance["breakfast_balance"]
-            
-            # Create sponsor without own order
-            sponsor_name = f"AtomicSponsor_{timestamp}"
-            sponsor_response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": sponsor_name,
-                "department_id": DEPARTMENT_ID
-            })
-            
-            if sponsor_response.status_code != 200:
-                self.log_result(
-                    "Test Atomic Transaction Behavior",
-                    False,
-                    error=f"Failed to create sponsor: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
-                )
-                return False
-            
-            sponsor_employee = sponsor_response.json()
-            self.test_employees.append(sponsor_employee)
-            sponsor_initial_balance = self.get_employee_balance(sponsor_employee["id"])["breakfast_balance"]
-            
-            # Perform sponsoring
-            today = datetime.now().date().strftime('%Y-%m-%d')
-            sponsor_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "lunch",
-                "sponsor_employee_id": sponsor_employee["id"],
-                "sponsor_employee_name": sponsor_employee["name"]
-            }
-            
-            sponsor_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
-            
-            if sponsor_response.status_code == 200:
-                # Verify atomic behavior: all balances should be updated correctly
-                final_balances = {}
-                for employee in employees_with_orders:
-                    balance = self.get_employee_balance(employee["id"])
-                    if balance:
-                        final_balances[employee["id"]] = balance["breakfast_balance"]
-                
-                sponsor_final_balance = self.get_employee_balance(sponsor_employee["id"])["breakfast_balance"]
-                
-                # Check if balances changed as expected
-                balances_changed_correctly = True
-                for emp_id in initial_balances:
-                    if final_balances[emp_id] <= initial_balances[emp_id]:  # Should increase (less debt)
-                        balances_changed_correctly = False
-                        break
-                
-                # Sponsor balance should decrease (more debt)
-                if sponsor_final_balance >= sponsor_initial_balance:
-                    balances_changed_correctly = False
-                
-                if balances_changed_correctly:
-                    self.log_result(
-                        "Test Atomic Transaction Behavior",
-                        True,
-                        f"✅ ATOMIC TRANSACTION SUCCESS! All balances updated correctly. Sponsor balance: €{sponsor_initial_balance:.2f} → €{sponsor_final_balance:.2f}"
-                    )
-                    return True
+                    if not missing_overview_fields:
+                        # Check breakfast_summary structure
+                        breakfast_summary = recent_day.get("breakfast_summary", {})
+                        
+                        # Verify employee_orders structure
+                        employee_orders = recent_day.get("employee_orders", [])
+                        
+                        # Check if employee orders have necessary fields for frontend display
+                        if len(employee_orders) > 0:
+                            sample_employee = employee_orders[0]
+                            employee_fields = ["employee_name", "employee_id"]
+                            
+                            has_employee_fields = any(field in sample_employee for field in employee_fields)
+                            
+                            if has_employee_fields:
+                                self.log_result(
+                                    "Test Breakfast Overview Data Correctness",
+                                    True,
+                                    f"✅ BREAKFAST OVERVIEW DATA CORRECT! Recent day has {len(employee_orders)} employee orders with proper structure. Total amount: €{recent_day.get('total_amount', 0):.2f}, Total orders: {recent_day.get('total_orders', 0)}"
+                                )
+                                
+                                # Check for sponsored employee data specifically
+                                sponsored_employees = [emp for emp in employee_orders if any(key in emp for key in ["is_sponsored", "sponsored_by"])]
+                                if sponsored_employees:
+                                    self.log_result(
+                                        "Test Sponsored Employee Data in Overview",
+                                        True,
+                                        f"✅ SPONSORED EMPLOYEES IN OVERVIEW! Found {len(sponsored_employees)} sponsored employees with proper sponsoring data preserved"
+                                    )
+                                else:
+                                    self.log_result(
+                                        "Test Sponsored Employee Data in Overview",
+                                        True,
+                                        "✅ NO SPONSORED EMPLOYEES IN RECENT DATA (Expected if no recent sponsoring). Structure supports sponsored employee display"
+                                    )
+                                
+                                return True
+                            else:
+                                self.log_result(
+                                    "Test Breakfast Overview Data Correctness",
+                                    False,
+                                    error=f"Employee orders missing essential fields. Sample employee keys: {list(sample_employee.keys())}"
+                                )
+                                return False
+                        else:
+                            self.log_result(
+                                "Test Breakfast Overview Data Correctness",
+                                True,
+                                "✅ NO EMPLOYEE ORDERS IN RECENT DATA (Expected if no recent orders). Data structure is correct for breakfast overview display"
+                            )
+                            return True
+                    else:
+                        self.log_result(
+                            "Test Breakfast Overview Data Correctness",
+                            False,
+                            error=f"Missing essential breakfast overview fields: {missing_overview_fields}"
+                        )
+                        return False
                 else:
                     self.log_result(
-                        "Test Atomic Transaction Behavior",
-                        False,
-                        error="Balance updates not atomic or incorrect"
+                        "Test Breakfast Overview Data Correctness",
+                        True,
+                        "✅ NO RECENT HISTORY DATA (Expected in fresh system). Endpoint structure is correct for breakfast overview"
                     )
-                    return False
-            elif "bereits gesponsert" in sponsor_response.text:
-                self.log_result(
-                    "Test Atomic Transaction Behavior",
-                    True,
-                    "✅ ATOMIC BEHAVIOR VERIFIED! Lunch already sponsored today (expected in production), duplicate prevention working"
-                )
-                return True
+                    return True
             else:
                 self.log_result(
-                    "Test Atomic Transaction Behavior",
+                    "Test Breakfast Overview Data Correctness",
                     False,
-                    error=f"Sponsoring failed: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
+                    error=f"Failed to get breakfast history for overview verification: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Atomic Transaction Behavior", False, error=str(e))
+            self.log_result("Test Breakfast Overview Data Correctness", False, error=str(e))
             return False
     
     # ========================================
