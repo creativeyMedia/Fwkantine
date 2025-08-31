@@ -5921,40 +5921,53 @@ const PayPalSettings = ({ currentDepartment }) => {
                   </label>
                 )}
                 
-                {paypalSettings.use_separate_links ? (
-                  <div className="space-y-3">
+                {(paypalSettings.breakfast_enabled || paypalSettings.drinks_enabled) && (
+                  paypalSettings.use_separate_links ? (
+                    <div className="space-y-3">
+                      {paypalSettings.breakfast_enabled && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Frühstück PayPal-Link</label>
+                          <input
+                            type="url"
+                            value={paypalSettings.breakfast_link}
+                            onChange={(e) => setPaypalSettings(prev => ({ ...prev, breakfast_link: e.target.value }))}
+                            placeholder="https://paypal.me/username"
+                            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      )}
+                      {paypalSettings.drinks_enabled && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Getränke PayPal-Link</label>
+                          <input
+                            type="url"
+                            value={paypalSettings.drinks_link}
+                            onChange={(e) => setPaypalSettings(prev => ({ ...prev, drinks_link: e.target.value }))}
+                            placeholder="https://paypal.me/username"
+                            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
                     <div>
-                      <label className="block text-sm font-medium mb-1">Frühstück PayPal-Link</label>
+                      <label className="block text-sm font-medium mb-1">
+                        Gemeinsamer PayPal-Link 
+                        {paypalSettings.breakfast_enabled && paypalSettings.drinks_enabled 
+                          ? ' (für Frühstück + Getränke)'
+                          : paypalSettings.breakfast_enabled 
+                            ? ' (für Frühstück)'
+                            : ' (für Getränke)'}
+                      </label>
                       <input
                         type="url"
-                        value={paypalSettings.breakfast_link}
-                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, breakfast_link: e.target.value }))}
+                        value={paypalSettings.combined_link}
+                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, combined_link: e.target.value }))}
                         placeholder="https://paypal.me/username"
                         className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Getränke PayPal-Link</label>
-                      <input
-                        type="url"
-                        value={paypalSettings.drinks_link}
-                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, drinks_link: e.target.value }))}
-                        placeholder="https://paypal.me/username"
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Gemeinsamer PayPal-Link</label>
-                    <input
-                      type="url"
-                      value={paypalSettings.combined_link}
-                      onChange={(e) => setPaypalSettings(prev => ({ ...prev, combined_link: e.target.value }))}
-                      placeholder="https://paypal.me/username"
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                  )
                 )}
               </>
             )}
