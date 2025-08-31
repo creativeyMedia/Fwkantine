@@ -42,14 +42,14 @@ import sys
 from datetime import datetime, date, timedelta
 import uuid
 
-# Configuration - Use Department 1 as specified in review request
+# Configuration - Use Department 2 for negative payment testing
 BASE_URL = "https://meal-tracker-49.preview.emergentagent.com/api"
-DEPARTMENT_NAME = "1. Wachabteilung"
-DEPARTMENT_ID = "fw4abteilung1"
-ADMIN_PASSWORD = "admin1"
-DEPARTMENT_PASSWORD = "password1"
+DEPARTMENT_NAME = "2. Wachabteilung"
+DEPARTMENT_ID = "fw4abteilung2"
+ADMIN_PASSWORD = "admin2"
+DEPARTMENT_PASSWORD = "password2"
 
-class CriticalSponsoringBugFixTest:
+class NegativePaymentAmountsTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
