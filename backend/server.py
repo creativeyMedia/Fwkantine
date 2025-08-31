@@ -1446,9 +1446,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                 if daily_lunch_price_doc:
                                     lunch_cost += daily_lunch_price_doc["lunch_price"]
                                 else:
-                                    # Fall back to global lunch settings
-                                    lunch_settings = await db.lunch_settings.find_one()
-                                    lunch_cost += lunch_settings.get("price", 4.0) if lunch_settings else 4.0
+                                    # NEW: Default to 0.0 for new days - admin must set price manually each day
+                                    lunch_cost += 0.0
                         total_amount += max(0, breakfast_cost - lunch_cost)
                     # If it's neither breakfast nor lunch sponsoring, use full cost
                     else:
