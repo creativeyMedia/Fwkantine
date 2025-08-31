@@ -5811,11 +5811,24 @@ const PayPalSettings = ({ currentDepartment }) => {
                 </span>
               </div>
               {paypalSettings.enabled && (
-                <div className="text-sm text-gray-600 mt-1">
-                  Modus: <span className="font-medium">
-                    {paypalSettings.use_separate_links ? 'Getrennte Links (Frühstück + Getränke)' : 'Gemeinsamer Link'}
-                  </span>
-                </div>
+                <>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Buttons: <span className="font-medium">
+                      {paypalSettings.breakfast_enabled && paypalSettings.drinks_enabled 
+                        ? 'Frühstück + Getränke' 
+                        : paypalSettings.breakfast_enabled 
+                          ? 'Nur Frühstück' 
+                          : paypalSettings.drinks_enabled 
+                            ? 'Nur Getränke' 
+                            : 'Keine aktiviert'}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Modus: <span className="font-medium">
+                      {paypalSettings.use_separate_links ? 'Getrennte Links' : 'Gemeinsamer Link'}
+                    </span>
+                  </div>
+                </>
               )}
             </div>
             <button
