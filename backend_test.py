@@ -211,44 +211,133 @@ class SponsoringFunctionalityTest:
             return False
     
     # ========================================
-    # DAILY LUNCH PRICE TESTS
+    # SPONSORING FUNCTIONALITY TESTS
     # ========================================
     
-    def test_new_date_returns_zero_price(self):
-        """Test GET /api/daily-lunch-price/{department_id}/{date} for a new date returns 0.0"""
+    def test_sponsoring_with_no_own_order(self):
+        """Test sponsoring with sponsor who has no own order"""
         try:
-            # Test with tomorrow's date (should not exist yet)
-            tomorrow = (datetime.now().date() + timedelta(days=1)).strftime('%Y-%m-%d')
+            # Create sponsor employee (no order)
+            timestamp = datetime.now().strftime("%H%M%S")
+            sponsor_name = f"SponsorNoOrder_{timestamp}"
             
-            response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{tomorrow}")
+            sponsor_response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": sponsor_name,
+                "department_id": DEPARTMENT_ID
+            })
             
-            if response.status_code == 200:
-                price_data = response.json()
+            if sponsor_response.status_code != 200:
+                self.log_result(
+                    "Test Sponsoring With No Own Order",
+                    False,
+                    error=f"Failed to create sponsor: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
+                )
+                return False
+            
+            sponsor_employee = sponsor_response.json()
+            self.test_employees.append(sponsor_employee)
+            
+            # Create other employees with orders
+            other_employees = []
+            for i in range(3):
+                emp_name = f"Employee_{i}_{timestamp}"
+                emp_response = self.session.post(f"{BASE_URL}/employees", json={
+                    "name": emp_name,
+                    "department_id": DEPARTMENT_ID
+                })
                 
-                if 'lunch_price' in price_data and price_data['lunch_price'] == 0.0:
-                    self.log_result(
-                        "Test New Date Returns Zero Price",
-                        True,
-                        f"✅ NEW DATE DEFAULT PRICE CORRECT! Date: {tomorrow}, Price: €{price_data['lunch_price']:.2f} (expected 0.0)"
-                    )
-                    return True
+                if emp_response.status_code == 200:
+                    employee = emp_response.json()
+                    other_employees.append(employee)
+                    self.test_employees.append(employee)
+                    
+                    # Create breakfast order for each employee
+                    order_data = {
+                        "employee_id": employee["id"],
+                        "department_id": DEPARTMENT_ID,
+                        "order_type": "breakfast",
+                        "breakfast_items": [{
+                            "total_halves": 2,
+                            "white_halves": 2,
+                            "seeded_halves": 0,
+                            "toppings": ["butter", "kaese"],
+                            "has_lunch": True,
+                            "boiled_eggs": 1,
+                            "has_coffee": False
+                        }]
+                    }
+                    
+                    order_response = self.session.post(f"{BASE_URL}/orders", json=order_data)
+                    if order_response.status_code == 200:
+                        self.test_orders.append(order_response.json())
+            
+            if len(other_employees) != 3:
+                self.log_result(
+                    "Test Sponsoring With No Own Order",
+                    False,
+                    error="Failed to create all test employees with orders"
+                )
+                return False
+            
+            # Test lunch sponsoring by sponsor with no own order
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            sponsor_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "lunch",
+                "sponsor_employee_id": sponsor_employee["id"],
+                "sponsor_employee_name": sponsor_employee["name"]
+            }
+            
+            sponsor_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
+            
+            if sponsor_response.status_code == 200:
+                result = sponsor_response.json()
+                
+                # Verify response structure
+                expected_fields = ["message", "sponsored_items", "total_cost", "affected_employees", "sponsor", "sponsor_additional_cost"]
+                missing_fields = [field for field in expected_fields if field not in result]
+                
+                if not missing_fields:
+                    # Verify others_count calculation
+                    affected_employees = result.get("affected_employees", 0)
+                    sponsor_additional_cost = result.get("sponsor_additional_cost", 0)
+                    
+                    # Since sponsor has no own order, others_count should equal affected_employees
+                    # and sponsor_additional_cost should equal total_cost
+                    total_cost = result.get("total_cost", 0)
+                    
+                    if affected_employees == 3 and abs(sponsor_additional_cost - total_cost) < 0.01:
+                        self.log_result(
+                            "Test Sponsoring With No Own Order",
+                            True,
+                            f"✅ SPONSOR WITH NO OWN ORDER SUCCESS! Affected employees: {affected_employees}, Total cost: €{total_cost:.2f}, Sponsor additional cost: €{sponsor_additional_cost:.2f}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Sponsoring With No Own Order",
+                            False,
+                            error=f"Incorrect calculations: affected_employees={affected_employees} (expected 3), sponsor_additional_cost=€{sponsor_additional_cost:.2f}, total_cost=€{total_cost:.2f}"
+                        )
+                        return False
                 else:
                     self.log_result(
-                        "Test New Date Returns Zero Price",
+                        "Test Sponsoring With No Own Order",
                         False,
-                        error=f"Expected lunch_price: 0.0, Got: {price_data.get('lunch_price', 'missing')}"
+                        error=f"Missing response fields: {missing_fields}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test New Date Returns Zero Price",
+                    "Test Sponsoring With No Own Order",
                     False,
-                    error=f"GET request failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Sponsoring failed: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test New Date Returns Zero Price", False, error=str(e))
+            self.log_result("Test Sponsoring With No Own Order", False, error=str(e))
             return False
 
     def test_order_with_lunch_uses_zero_price(self):
