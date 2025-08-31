@@ -82,7 +82,7 @@ class NegativePaymentAmountsTest:
     # ========================================
     
     def authenticate_as_admin(self):
-        """Authenticate as department admin for sponsoring testing"""
+        """Authenticate as department admin for negative payment testing"""
         try:
             response = self.session.post(f"{BASE_URL}/login/department-admin", json={
                 "department_name": DEPARTMENT_NAME,
@@ -94,7 +94,7 @@ class NegativePaymentAmountsTest:
                 self.log_result(
                     "Admin Authentication",
                     True,
-                    f"Successfully authenticated as admin for {DEPARTMENT_NAME} (admin1 password) for critical sponsoring bug fix testing"
+                    f"Successfully authenticated as admin for {DEPARTMENT_NAME} ({ADMIN_PASSWORD} password) for negative payment amounts testing"
                 )
                 return True
             else:
