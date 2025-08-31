@@ -2421,7 +2421,20 @@ const DepartmentAdminDashboard = () => {
         return;
       }
 
+      // Check if meal has already been sponsored
+      const statusResponse = await axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${sponsorDate}`);
+      const sponsorStatus = statusResponse.data;
+      
       const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
+      const alreadySponsored = mealType === 'breakfast' ? sponsorStatus.breakfast_sponsored : sponsorStatus.lunch_sponsored;
+      
+      if (alreadySponsored) {
+        alert(
+          `${mealTypeLabel} für ${sponsorDate} wurde bereits ausgegeben!\n\n` +
+          `Ausgegeben von: ${alreadySponsored.sponsored_by}`
+        );
+        return;
+      }
       
       if (!window.confirm(
         `${mealTypeLabel} für ${sponsorDate} von ${sponsorEmployee.name} übernehmen lassen?\n\n` +
