@@ -263,6 +263,15 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [paypalSettings, setPaypalSettings] = useState({
+    enabled: false,
+    use_separate_links: false,
+    combined_link: '',
+    breakfast_link: '',
+    drinks_link: ''
+  });
+
+  const { currentDepartment } = React.useContext(AuthContext);
 
   useEffect(() => {
     fetchEmployeeProfile();
