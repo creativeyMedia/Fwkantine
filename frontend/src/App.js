@@ -113,6 +113,7 @@ const AuthProvider = ({ children }) => {
       currentDepartment,
       isDepartmentAdmin,
       isMasterAdmin,
+      isInitializing,
       loginDepartment,
       loginDepartmentAdmin,
       logout,
