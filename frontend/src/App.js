@@ -5777,6 +5777,25 @@ const AdminSettingsTab = ({ currentDepartment }) => {
 
         {/* PayPal Settings */}
         <PayPalSettings currentDepartment={currentDepartment} />
+
+        {/* Abteilungs-Information - moved to bottom */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-6">
+          <h4 className="text-md font-semibold mb-4 text-gray-700">ℹ️ Abteilungs-Information</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <span className="font-medium">Abteilung:</span>
+              <span className="ml-2">{currentDepartment.department_name}</span>
+            </div>
+            <div>
+              <span className="font-medium">Abteilungs-ID:</span>
+              <span className="ml-2 text-xs text-gray-600">{currentDepartment.department_id}</span>
+            </div>
+            <div>
+              <span className="font-medium">App-Version:</span>
+              <span className="ml-2 text-xs text-blue-600 font-semibold">1.1.2</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
