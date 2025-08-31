@@ -2160,8 +2160,7 @@ const DepartmentAdminDashboard = () => {
       role: 'employee'
     };
     
-    // Import the loginDepartment function from AuthContext
-    const { loginDepartment } = React.useContext(AuthContext);
+    // Use the already imported loginDepartment function
     loginDepartment(departmentData);
   };
 
