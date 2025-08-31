@@ -2372,7 +2372,8 @@ const DepartmentAdminDashboard = () => {
         }
       );
       
-      setSuccessMessage(`✅ ${response.data.message}\n${response.data.result_description}`);
+      const paymentAction = paymentData.amount >= 0 ? 'Einzahlung' : 'Auszahlung';
+      setSuccessMessage(`✅ ${paymentAction} erfolgreich verbucht!\n${response.data.result_description}`);
       setShowSuccessNotification(true);
       
       // Refresh employee data
