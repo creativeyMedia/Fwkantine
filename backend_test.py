@@ -932,7 +932,7 @@ class DailyLunchPriceTest:
         
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
-        feature_working = tests_passed >= 7  # At least 77% success rate
+        feature_working = tests_passed >= 8  # At least 80% success rate
         
         print(f"\n🎯 DAILY LUNCH PRICE RESET RESULT:")
         if feature_working:
