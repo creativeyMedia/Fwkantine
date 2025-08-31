@@ -46,11 +46,8 @@ class PayPalSettingsTest:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
-        self.test_employees = []
-        self.test_orders = []
         self.admin_auth = None
-        self.test_employee = None
-        self.payment_logs = []
+        self.paypal_settings = None
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
