@@ -2335,7 +2335,7 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
         payment_type=payment_data.payment_type,
         action="payment",
         admin_user=admin_department,
-        notes=payment_data.notes or f"Einzahlung: {payment_data.amount:.2f} €",
+        notes=payment_data.notes or f"{'Auszahlung' if payment_data.amount < 0 else 'Einzahlung'}: {abs(payment_data.amount):.2f} €",
         balance_before=current_balance,
         balance_after=new_balance
     )
