@@ -2812,6 +2812,58 @@ async def delete_breakfast_day(department_id: str, date: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fehler beim Löschen des Frühstücks-Tags: {str(e)}")
 
+@api_router.get("/department-admin/sponsor-status/{department_id}/{date}")
+async def get_sponsor_status(department_id: str, date: str):
+    """Check if meals have already been sponsored for a specific date"""
+    try:
+        # Parse date and create timezone-aware range
+        target_date = datetime.fromisoformat(date).date()
+        berlin_tz = pytz.timezone('Europe/Berlin')
+        start_of_day_berlin = berlin_tz.localize(datetime.combine(target_date, datetime.min.time()))
+        end_of_day_berlin = berlin_tz.localize(datetime.combine(target_date, datetime.max.time()))
+        
+        # Convert to UTC for database query
+        start_of_day_utc = start_of_day_berlin.astimezone(pytz.UTC)
+        end_of_day_utc = end_of_day_berlin.astimezone(pytz.UTC)
+        
+        # Find all orders for this department and date
+        all_orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {"$gte": start_of_day_utc.isoformat(), "$lte": end_of_day_utc.isoformat()},
+            "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
+        }).to_list(1000)
+        
+        # Check sponsoring status for both meal types
+        breakfast_sponsored = None
+        lunch_sponsored = None
+        
+        for order in all_orders:
+            if order.get("is_sponsored") and order.get("sponsored_meal_type") == "breakfast":
+                if not breakfast_sponsored:  # Take the first one we find
+                    breakfast_sponsored = {
+                        "sponsored_by": order.get("sponsored_by_name", "Unbekannt"),
+                        "sponsored_by_id": order.get("sponsored_by_employee_id")
+                    }
+            elif order.get("is_sponsored") and order.get("sponsored_meal_type") == "lunch":
+                if not lunch_sponsored:  # Take the first one we find
+                    lunch_sponsored = {
+                        "sponsored_by": order.get("sponsored_by_name", "Unbekannt"),
+                        "sponsored_by_id": order.get("sponsored_by_employee_id")
+                    }
+        
+        return {
+            "department_id": department_id,
+            "date": date,
+            "breakfast_sponsored": breakfast_sponsored,
+            "lunch_sponsored": lunch_sponsored
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Ungültiges Datumsformat: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Prüfen des Sponsor-Status: {str(e)}")
+
 @api_router.post("/department-admin/sponsor-meal")
 async def sponsor_meal(meal_data: dict):
     """
