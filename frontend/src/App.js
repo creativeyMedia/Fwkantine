@@ -3831,7 +3831,7 @@ const AdminDashboard = () => {
                     value={sponsorDate}
                     onChange={(e) => {
                       setSponsorDate(e.target.value);
-                      fetchSponsorStatus(e.target.value);
+                      // Don't fetch status here since no department is selected yet
                     }}
                     max={new Date().toISOString().split('T')[0]}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
