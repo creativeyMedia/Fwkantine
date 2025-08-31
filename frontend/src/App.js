@@ -3040,7 +3040,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                   setShowPaymentModal(true);
                 }}
                 className="bg-green-600 text-white text-xs py-2 px-2 rounded hover:bg-green-700"
-                title="Getränke/Süßes Einzahlung"
+                title="Getränke/Süßes Ein-/Auszahlung"
               >
                 💰 Getränke
               </button>
