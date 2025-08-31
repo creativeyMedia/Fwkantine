@@ -357,58 +357,67 @@ class NegativePaymentAmountsTest:
             self.log_result("Test Negative Drinks Payment", False, error=str(e))
             return False
     
-    def verify_sponsored_employee_balance_fix(self):
-        """Verify that sponsored employee gets CREDITED (balance increases) - the main bug fix"""
+    def test_positive_payment_still_works(self):
+        """Verify that positive payment amounts (normal deposits) still work correctly"""
         try:
-            if not self.initial_balances or not self.final_balances:
-                self.log_result(
-                    "Verify Sponsored Employee Balance Fix",
-                    False,
-                    error="Missing balance data. Execute sponsoring first."
-                )
+            if not self.test_employee:
                 return False
             
-            # Get balance changes
-            initial_sponsored_balance = self.initial_balances['sponsored']['breakfast_balance']
-            final_sponsored_balance = self.final_balances['sponsored']['breakfast_balance']
-            balance_change = final_sponsored_balance - initial_sponsored_balance
+            # Get initial balance
+            initial_balance = self.get_employee_balance(self.test_employee['id'])
+            if not initial_balance:
+                return False
             
-            # Check if our test employee was affected by sponsoring
-            if abs(balance_change) < 0.01:
-                # No balance change - our test employee was not affected by existing sponsoring
-                # This is expected since breakfast was already sponsored before our test employees were created
-                self.log_result(
-                    "Verify Sponsored Employee Balance Fix",
-                    True,
-                    f"✅ TEST EMPLOYEE NOT AFFECTED BY EXISTING SPONSORING (Expected): Our test employee was created after breakfast sponsoring was already completed today. Initial €{initial_sponsored_balance:.2f} → Final €{final_sponsored_balance:.2f} (no change). This confirms the system correctly prevents duplicate sponsoring. We'll analyze existing sponsored data to verify the bug fix instead."
-                )
-                return True
+            initial_breakfast_balance = initial_balance['breakfast_balance']
             
-            # Calculate expected refund (should be positive - the sponsored amount)
-            sponsored_order_cost = abs(initial_sponsored_balance)  # The order cost (negative balance)
-            expected_refund = sponsored_order_cost  # Should get full refund
+            # Test positive payment (normal deposit)
+            positive_amount = 25.00
+            payment_data = {
+                "payment_type": "breakfast",
+                "amount": positive_amount,
+                "notes": "Test positive payment - normal deposit"
+            }
             
-            # CRITICAL BUG FIX VERIFICATION:
-            # Before fix: sponsored employees got DEBITED (balance decreased further)
-            # After fix: sponsored employees get CREDITED (balance increases toward zero)
+            response = self.session.post(
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                json=payment_data
+            )
             
-            if abs(final_sponsored_balance) < 0.01:  # Should be approximately €0.00
-                self.log_result(
-                    "Verify Sponsored Employee Balance Fix",
-                    True,
-                    f"🎉 CRITICAL BUG FIX VERIFIED! Sponsored employee balance correctly CREDITED: Initial €{initial_sponsored_balance:.2f} → Final €{final_sponsored_balance:.2f} (change: +€{balance_change:.2f}). Expected refund: €{expected_refund:.2f}. Sponsored employee now has €0.00 balance (fully refunded). The bug where sponsored employees got debited instead of credited has been FIXED!"
-                )
-                return True
+            if response.status_code == 200:
+                payment_result = response.json()
+                
+                # Get final balance
+                final_balance = self.get_employee_balance(self.test_employee['id'])
+                final_breakfast_balance = final_balance['breakfast_balance']
+                
+                # Calculate expected balance: initial_balance + positive_amount (reduces debt)
+                expected_balance = initial_breakfast_balance + positive_amount
+                balance_difference = abs(final_breakfast_balance - expected_balance)
+                
+                if balance_difference < 0.01:  # Allow small rounding differences
+                    self.log_result(
+                        "Test Positive Payment Still Works",
+                        True,
+                        f"✅ POSITIVE PAYMENT WORKING! Deposit of €{positive_amount:.2f} processed successfully. Balance: €{initial_breakfast_balance:.2f} → €{final_breakfast_balance:.2f} (change: +€{final_breakfast_balance - initial_breakfast_balance:.2f}). Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}, Difference: €{balance_difference:.2f}. Existing positive payment functionality remains intact."
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Test Positive Payment Still Works",
+                        False,
+                        error=f"Positive payment balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}, Difference: €{balance_difference:.2f}"
+                    )
+                    return False
             else:
                 self.log_result(
-                    "Verify Sponsored Employee Balance Fix",
+                    "Test Positive Payment Still Works",
                     False,
-                    error=f"❌ BUG FIX NOT WORKING! Sponsored employee balance incorrect: Initial €{initial_sponsored_balance:.2f} → Final €{final_sponsored_balance:.2f} (change: €{balance_change:.2f}). Expected: ~€0.00 (fully refunded). The sponsored employee should have been credited with their order cost, but balance is still €{final_sponsored_balance:.2f}."
+                    error=f"Positive payment failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Sponsored Employee Balance Fix", False, error=str(e))
+            self.log_result("Test Positive Payment Still Works", False, error=str(e))
             return False
     
     def verify_sponsor_balance_calculation(self):
