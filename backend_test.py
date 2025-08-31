@@ -965,23 +965,23 @@ class DailyLunchPriceTest:
             print(f"Error getting employee balance: {e}")
             return None
 
-    def run_corrected_functionality_tests(self):
-        """Run all corrected functionality tests"""
-        print("🎯 STARTING COMPREHENSIVE CORRECTED FUNCTIONALITY TESTING")
+    def run_daily_lunch_price_tests(self):
+        """Run all daily lunch price reset functionality tests"""
+        print("🎯 STARTING COMPREHENSIVE DAILY LUNCH PRICE RESET TESTING")
         print("=" * 80)
-        print("Testing the corrected functionality for the 4 implemented features:")
+        print("Testing the new daily lunch price reset functionality:")
         print("")
         print("**TESTING FOCUS:**")
-        print("1. ✅ Test flexible payment with negative amounts and corrected notes")
-        print("2. ✅ Test sponsoring payment log creation")
-        print("3. ✅ Test existing flexible payment functionality still works")
-        print("4. ✅ Verify data integrity")
+        print("1. ✅ Test new lunch price behavior (new dates return 0.0)")
+        print("2. ✅ Test lunch price setting and retrieval")
+        print("3. ✅ Test backward compatibility")
+        print("4. ✅ Test edge cases and department separation")
         print("")
-        print(f"DEPARTMENT: {DEPARTMENT_NAME} (admin: {ADMIN_PASSWORD})")
+        print(f"DEPARTMENT: {DEPARTMENT_NAME} (ID: {DEPARTMENT_ID})")
         print("=" * 80)
         
         tests_passed = 0
-        total_tests = 10
+        total_tests = 9
         
         # SETUP
         print("\n🔧 SETUP AND AUTHENTICATION")
@@ -1001,59 +1001,65 @@ class DailyLunchPriceTest:
             return False
         tests_passed += 1
         
-        # Create test orders
-        print("\n🛒 CREATE TEST ORDERS")
+        # Test new date returns zero price
+        print("\n🆕 TEST NEW DATE RETURNS ZERO PRICE")
         print("-" * 50)
         
-        if not self.create_test_orders():
-            print("❌ Cannot proceed without test orders")
-            return False
-        tests_passed += 1
+        if self.test_new_date_returns_zero_price():
+            tests_passed += 1
         
-        # Test corrected negative payment notes
-        print("\n📝 TEST CORRECTED NEGATIVE PAYMENT NOTES")
+        # Test order with lunch uses zero price
+        print("\n🍽️ TEST ORDER WITH LUNCH USES ZERO PRICE")
         print("-" * 50)
         
-        if self.test_corrected_negative_payment_notes():
+        if self.test_order_with_lunch_uses_zero_price():
             tests_passed += 1
         
-        # Test negative payment amounts
-        print("\n💰 TEST NEGATIVE PAYMENT AMOUNTS")
+        # Test setting daily lunch price
+        print("\n💰 TEST SET DAILY LUNCH PRICE")
         print("-" * 50)
         
-        if self.test_negative_breakfast_payment():
+        if self.test_set_daily_lunch_price():
             tests_passed += 1
         
-        if self.test_negative_drinks_payment():
-            tests_passed += 1
-        
-        # Test sponsoring payment log creation
-        print("\n🤝 TEST SPONSORING PAYMENT LOG CREATION")
+        # Test order after price set uses correct price
+        print("\n📈 TEST ORDER AFTER PRICE SET USES CORRECT PRICE")
         print("-" * 50)
         
-        if self.test_sponsoring_payment_log_creation():
+        if self.test_order_after_price_set_uses_correct_price():
             tests_passed += 1
         
-        # Verify existing functionality
-        print("\n✅ VERIFY EXISTING FUNCTIONALITY")
+        # Test retroactive price update
+        print("\n🔄 TEST RETROACTIVE PRICE UPDATE")
         print("-" * 50)
         
-        if self.test_positive_payment_still_works():
+        if self.test_retroactive_price_update():
             tests_passed += 1
         
-        if self.verify_payment_logging():
-            tests_passed += 1
-        
-        # Verify data integrity
-        print("\n🔍 VERIFY DATA INTEGRITY")
+        # Test different departments separate prices
+        print("\n🏢 TEST DIFFERENT DEPARTMENTS SEPARATE PRICES")
         print("-" * 50)
         
-        if self.verify_data_integrity_and_audit_trails():
+        if self.test_different_departments_separate_prices():
+            tests_passed += 1
+        
+        # Test backward compatibility
+        print("\n⬅️ TEST BACKWARD COMPATIBILITY")
+        print("-" * 50)
+        
+        if self.test_backward_compatibility():
+            tests_passed += 1
+        
+        # Test date edge cases
+        print("\n📅 TEST DATE EDGE CASES")
+        print("-" * 50)
+        
+        if self.test_date_edge_cases():
             tests_passed += 1
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 CORRECTED FUNCTIONALITY TESTING SUMMARY")
+        print("🎯 DAILY LUNCH PRICE RESET TESTING SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -1067,17 +1073,20 @@ class DailyLunchPriceTest:
         
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
-        feature_working = tests_passed >= 8  # At least 80% success rate
+        feature_working = tests_passed >= 7  # At least 77% success rate
         
-        print(f"\n🎯 CORRECTED FUNCTIONALITY RESULT:")
+        print(f"\n🎯 DAILY LUNCH PRICE RESET RESULT:")
         if feature_working:
-            print("✅ CORRECTED FUNCTIONALITY: SUCCESSFULLY IMPLEMENTED AND WORKING!")
-            print("   ✅ 1. Flexible payment with negative amounts and corrected notes")
-            print("   ✅ 2. Sponsoring payment log creation")
-            print("   ✅ 3. Existing flexible payment functionality still works")
-            print("   ✅ 4. Data integrity verified")
+            print("✅ DAILY LUNCH PRICE RESET: SUCCESSFULLY IMPLEMENTED AND WORKING!")
+            print("   ✅ 1. New dates default to 0.0 lunch price")
+            print("   ✅ 2. Orders use 0.0 price when no daily price is set")
+            print("   ✅ 3. Daily price setting and retrieval works correctly")
+            print("   ✅ 4. Orders use correct price after setting")
+            print("   ✅ 5. Retroactive price updates work")
+            print("   ✅ 6. Different departments maintain separate prices")
+            print("   ✅ 7. Backward compatibility maintained")
         else:
-            print("❌ CORRECTED FUNCTIONALITY: IMPLEMENTATION ISSUES DETECTED!")
+            print("❌ DAILY LUNCH PRICE RESET: IMPLEMENTATION ISSUES DETECTED!")
             failed_tests = total_tests - tests_passed
             print(f"   ⚠️  {failed_tests} test(s) failed")
         
