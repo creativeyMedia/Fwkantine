@@ -1099,10 +1099,8 @@ async def get_daily_lunch_price(department_id: str, date: str):
     if daily_price:
         return {"date": date, "lunch_price": daily_price["lunch_price"]}
     else:
-        # Fall back to global lunch settings
-        lunch_settings = await db.lunch_settings.find_one()
-        default_price = lunch_settings["price"] if lunch_settings else 0.0
-        return {"date": date, "lunch_price": default_price}
+        # NEW: Always return 0.0 for new days - admin must set price manually each day
+        return {"date": date, "lunch_price": 0.0}
 
 # Menu routes
 @api_router.get("/menu/breakfast/{department_id}", response_model=List[MenuItemBreakfast])
