@@ -56,9 +56,9 @@ backend:
     priority: "medium"
     needs_retesting: true
     status_history:
-        - working: false
+        - working: "NA"
           agent: "main"
-          comment: "IDENTIFIED BUG: In breakfast-history endpoint (lines 1248-1273), when sponsored_meal_type='breakfast', almost everything is set to 0 except coffee. Should only sponsor rolls+eggs, NOT coffee and lunch. Lunch and coffee should remain in employee's balance."
+          comment: "TASK UPDATED: Changing from bug fix to new feature implementation. Backend already supports flexible payment amounts but need to verify negative amounts are properly handled. Current flexible payment endpoint accepts any amount but may need validation updates for negative values."
         - working: false
           agent: "main"
           comment: "FIXED: Updated breakfast-history endpoint to calculate sponsored breakfast cost correctly. Now only rolls + eggs are sponsored for breakfast sponsoring, coffee and lunch remain with employee. Applied same fix to individual employee calculation logic."
