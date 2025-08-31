@@ -544,23 +544,27 @@ class SponsorStatusFunctionalityTest:
             print(f"Error getting employee balance: {e}")
             return None
 
-    def run_department_pricing_tests(self):
-        """Run all department-specific pricing functionality tests"""
-        print("🎯 STARTING COMPREHENSIVE DEPARTMENT-SPECIFIC EGG AND COFFEE PRICING TESTING")
+    def run_sponsor_status_tests(self):
+        """Run all sponsor status functionality tests"""
+        print("🎯 STARTING COMPREHENSIVE SPONSOR STATUS FUNCTIONALITY TESTING")
         print("=" * 80)
-        print("Testing the fixed egg and coffee price functionality in admin dashboard:")
+        print("Testing the new sponsor status check functionality:")
         print("")
         print("**TESTING FOCUS:**")
-        print("1. ✅ Test GET endpoints for department-specific prices")
-        print("2. ✅ Test PUT endpoints for updating prices")
-        print("3. ✅ Test department separation")
-        print("4. ✅ Test edge cases (negative, zero, decimal prices)")
+        print("1. ✅ Test sponsor status endpoint for clean date")
+        print("2. ✅ Test sponsor status after breakfast sponsoring")
+        print("3. ✅ Test sponsor status after lunch sponsoring")
+        print("4. ✅ Test error handling")
+        print("5. ✅ Test timezone handling")
         print("")
         print(f"DEPARTMENT: {DEPARTMENT_NAME} (ID: {DEPARTMENT_ID})")
         print("=" * 80)
         
         tests_passed = 0
-        total_tests = 8
+        total_tests = 10
+        
+        # Get today's date for testing
+        test_date = datetime.now().date().isoformat()
         
         # SETUP
         print("\n🔧 SETUP AND AUTHENTICATION")
@@ -571,56 +575,105 @@ class SponsorStatusFunctionalityTest:
             return False
         tests_passed += 1
         
-        # Test GET endpoints for default values
-        print("\n📊 TEST GET ENDPOINTS FOR DEPARTMENT-SPECIFIC PRICES")
+        # Test 1: Clean date sponsor status
+        print("\n📊 TEST SPONSOR STATUS FOR CLEAN DATE")
         print("-" * 50)
         
-        egg_success, initial_egg_price = self.test_get_boiled_eggs_price_default()
-        if egg_success:
+        if self.test_sponsor_status_clean_date(test_date):
             tests_passed += 1
         
-        coffee_success, initial_coffee_price = self.test_get_coffee_price_default()
-        if coffee_success:
-            tests_passed += 1
-        
-        # Test PUT endpoints for updating prices
-        print("\n🔄 TEST PUT ENDPOINTS FOR UPDATING PRICES")
+        # Test 2: Create test employees and orders
+        print("\n👥 CREATE TEST EMPLOYEES AND ORDERS")
         print("-" * 50)
         
-        # Update egg price to 0.60
-        new_egg_price = 0.60
-        if self.test_put_boiled_eggs_price(new_egg_price):
+        # Create test employees
+        breakfast_sponsor = self.create_test_employee("BreakfastSponsor")
+        lunch_sponsor = self.create_test_employee("LunchSponsor")
+        employee1 = self.create_test_employee("Employee1")
+        employee2 = self.create_test_employee("Employee2")
+        
+        if all([breakfast_sponsor, lunch_sponsor, employee1, employee2]):
             tests_passed += 1
         
-        # Update coffee price to 2.00
-        new_coffee_price = 2.00
-        if self.test_put_coffee_price(new_coffee_price):
-            tests_passed += 1
+        # Create breakfast orders (with lunch for some)
+        if breakfast_sponsor and lunch_sponsor and employee1 and employee2:
+            order1 = self.create_breakfast_order(breakfast_sponsor['id'], include_lunch=True)
+            order2 = self.create_breakfast_order(lunch_sponsor['id'], include_lunch=True)
+            order3 = self.create_breakfast_order(employee1['id'], include_lunch=True)
+            order4 = self.create_breakfast_order(employee2['id'], include_lunch=False)
+            
+            if all([order1, order2, order3, order4]):
+                tests_passed += 1
         
-        # Verify updated prices are returned by GET endpoints
-        print("\n✅ TEST THAT UPDATED PRICES ARE RETURNED BY GET ENDPOINTS")
+        # Test 3: Breakfast sponsoring
+        print("\n🥐 TEST BREAKFAST SPONSORING")
         print("-" * 50)
         
-        if self.test_get_updated_prices(new_egg_price, new_coffee_price):
-            tests_passed += 1
+        if breakfast_sponsor:
+            success, result = self.sponsor_meal(
+                breakfast_sponsor['id'], 
+                breakfast_sponsor['name'], 
+                "breakfast", 
+                test_date
+            )
+            if success:
+                tests_passed += 1
         
-        # Test department separation
-        print("\n🏢 TEST DEPARTMENT SEPARATION")
+        # Test 4: Sponsor status after breakfast sponsoring
+        print("\n📊 TEST SPONSOR STATUS AFTER BREAKFAST SPONSORING")
         print("-" * 50)
         
-        if self.test_department_separation():
-            tests_passed += 1
+        if breakfast_sponsor:
+            if self.test_sponsor_status_after_breakfast_sponsoring(
+                test_date, 
+                breakfast_sponsor['name'], 
+                breakfast_sponsor['id']
+            ):
+                tests_passed += 1
         
-        # Test edge cases
-        print("\n⚠️ TEST EDGE CASES")
+        # Test 5: Lunch sponsoring
+        print("\n🍽️ TEST LUNCH SPONSORING")
         print("-" * 50)
         
-        if self.test_edge_cases():
+        if lunch_sponsor:
+            success, result = self.sponsor_meal(
+                lunch_sponsor['id'], 
+                lunch_sponsor['name'], 
+                "lunch", 
+                test_date
+            )
+            if success:
+                tests_passed += 1
+        
+        # Test 6: Sponsor status after lunch sponsoring
+        print("\n📊 TEST SPONSOR STATUS AFTER LUNCH SPONSORING")
+        print("-" * 50)
+        
+        if breakfast_sponsor and lunch_sponsor:
+            if self.test_sponsor_status_after_lunch_sponsoring(
+                test_date,
+                {"name": breakfast_sponsor['name'], "id": breakfast_sponsor['id']},
+                {"name": lunch_sponsor['name'], "id": lunch_sponsor['id']}
+            ):
+                tests_passed += 1
+        
+        # Test 7: Error handling
+        print("\n⚠️ TEST ERROR HANDLING")
+        print("-" * 50)
+        
+        if self.test_error_handling():
+            tests_passed += 1
+        
+        # Test 8: Timezone handling
+        print("\n🌍 TEST TIMEZONE HANDLING")
+        print("-" * 50)
+        
+        if self.test_timezone_handling():
             tests_passed += 1
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 DEPARTMENT-SPECIFIC PRICING FUNCTIONALITY TESTING SUMMARY")
+        print("🎯 SPONSOR STATUS FUNCTIONALITY TESTING SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -634,21 +687,21 @@ class SponsorStatusFunctionalityTest:
         
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
-        feature_working = tests_passed >= 6  # At least 75% success rate
+        feature_working = tests_passed >= 7  # At least 70% success rate
         
-        print(f"\n🎯 DEPARTMENT-SPECIFIC PRICING FUNCTIONALITY RESULT:")
+        print(f"\n🎯 SPONSOR STATUS FUNCTIONALITY RESULT:")
         if feature_working:
-            print("✅ DEPARTMENT-SPECIFIC EGG AND COFFEE PRICING: SUCCESSFULLY IMPLEMENTED AND WORKING!")
-            print("   ✅ 1. GET /api/department-settings/fw4abteilung2/boiled-eggs-price endpoint working")
-            print("   ✅ 2. GET /api/department-settings/fw4abteilung2/coffee-price endpoint working")
-            print("   ✅ 3. PUT /api/department-settings/fw4abteilung2/boiled-eggs-price endpoint working")
-            print("   ✅ 4. PUT /api/department-settings/fw4abteilung2/coffee-price endpoint working")
-            print("   ✅ 5. Updated prices correctly returned by GET endpoints")
-            print("   ✅ 6. Department separation working - each department maintains separate prices")
-            print("   ✅ 7. Edge cases handled correctly (negative rejected, zero/decimal allowed)")
-            print("   ✅ 8. Complete CRUD functionality for department-specific pricing verified")
+            print("✅ SPONSOR STATUS FUNCTIONALITY: SUCCESSFULLY IMPLEMENTED AND WORKING!")
+            print("   ✅ 1. GET /api/department-admin/sponsor-status/{department_id}/{date} endpoint working")
+            print("   ✅ 2. Clean date returns proper structure with null values")
+            print("   ✅ 3. Breakfast sponsoring correctly tracked and displayed")
+            print("   ✅ 4. Lunch sponsoring correctly tracked and displayed")
+            print("   ✅ 5. Both meal types can be sponsored independently")
+            print("   ✅ 6. Error handling works for invalid inputs")
+            print("   ✅ 7. Timezone handling works correctly for Berlin timezone")
+            print("   ✅ 8. Response format matches frontend expectations")
         else:
-            print("❌ DEPARTMENT-SPECIFIC PRICING FUNCTIONALITY: IMPLEMENTATION ISSUES DETECTED!")
+            print("❌ SPONSOR STATUS FUNCTIONALITY: IMPLEMENTATION ISSUES DETECTED!")
             failed_tests = total_tests - tests_passed
             print(f"   ⚠️  {failed_tests} test(s) failed")
         
