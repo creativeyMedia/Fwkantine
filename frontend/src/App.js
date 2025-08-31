@@ -5878,22 +5878,48 @@ const PayPalSettings = ({ currentDepartment }) => {
             
             {paypalSettings.enabled && (
               <>
-                <label className="flex items-center mb-4">
-                  <input
-                    type="checkbox"
-                    checked={paypalSettings.use_separate_links}
-                    onChange={(e) => setPaypalSettings(prev => ({ 
-                      ...prev, 
-                      use_separate_links: e.target.checked,
-                      // Clear opposite links when switching modes
-                      combined_link: e.target.checked ? '' : prev.combined_link,
-                      breakfast_link: !e.target.checked ? '' : prev.breakfast_link,
-                      drinks_link: !e.target.checked ? '' : prev.drinks_link
-                    }))}
-                    className="mr-3 h-4 w-4 text-blue-600"
-                  />
-                  <span className="font-medium">Getrennte Links für Frühstück und Getränke</span>
-                </label>
+                <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <div className="font-medium mb-2">Welche Buttons sollen aktiviert werden?</div>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={paypalSettings.breakfast_enabled}
+                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, breakfast_enabled: e.target.checked }))}
+                        className="mr-3 h-4 w-4 text-blue-600"
+                      />
+                      <span>Frühstück/Mittag PayPal-Button</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={paypalSettings.drinks_enabled}
+                        onChange={(e) => setPaypalSettings(prev => ({ ...prev, drinks_enabled: e.target.checked }))}
+                        className="mr-3 h-4 w-4 text-green-600"
+                      />
+                      <span>Getränke/Süßes PayPal-Button</span>
+                    </label>
+                  </div>
+                </div>
+
+                {(paypalSettings.breakfast_enabled || paypalSettings.drinks_enabled) && (
+                  <label className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      checked={paypalSettings.use_separate_links}
+                      onChange={(e) => setPaypalSettings(prev => ({ 
+                        ...prev, 
+                        use_separate_links: e.target.checked,
+                        // Clear opposite links when switching modes
+                        combined_link: e.target.checked ? '' : prev.combined_link,
+                        breakfast_link: !e.target.checked ? '' : prev.breakfast_link,
+                        drinks_link: !e.target.checked ? '' : prev.drinks_link
+                      }))}
+                      className="mr-3 h-4 w-4 text-blue-600"
+                    />
+                    <span className="font-medium">Getrennte Links verwenden (sonst gleicher Link für beide)</span>
+                  </label>
+                )}
                 
                 {paypalSettings.use_separate_links ? (
                   <div className="space-y-3">
