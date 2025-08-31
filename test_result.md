@@ -48,7 +48,7 @@
 ##   run_ui: false
 ##
 backend:
-  - task: "Bug 1 - Admin Dashboard Daily Summaries Calculation Fix"
+  - task: "Feature 3 - Backend Support for Negative Payment Amounts"
     implemented: true
     working: true
     file: "backend/server.py"
