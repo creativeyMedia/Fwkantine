@@ -3026,7 +3026,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                   setShowPaymentModal(true);
                 }}
                 className="bg-blue-600 text-white text-xs py-2 px-2 rounded hover:bg-blue-700"
-                title="Frühstück Einzahlung"
+                title="Frühstück Ein-/Auszahlung"
               >
                 💰 Frühstück
               </button>
