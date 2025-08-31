@@ -5869,21 +5869,26 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4">Zahlung für {employee.name}</h2>
+        <h2 className="text-xl font-bold mb-4">Ein-/Auszahlung für {employee.name}</h2>
         <p className="text-sm text-gray-600 mb-4">Konto: {accountLabel}</p>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Betrag (€)</label>
+            <label className="block text-sm font-medium mb-2">
+              Betrag (€) 
+              <span className="text-xs text-gray-500 block mt-1">
+                Positiv für Einzahlung, negativ für Auszahlung (z.B. -10.00)
+              </span>
+            </label>
             <input
               type="number"
               step="0.01"
-              min="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
               required
               autoFocus
+              placeholder="10.00 oder -10.00"
             />
           </div>
           
@@ -5903,7 +5908,7 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
               type="submit"
               className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
             >
-              Zahlung verbuchen
+              Ein-/Auszahlung verbuchen
             </button>
             <button
               type="button"
