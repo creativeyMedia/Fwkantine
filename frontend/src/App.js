@@ -6082,7 +6082,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+  const API = `${process.env.REACT_APP_BACKEND_URL}/api` || 'http://localhost:8001/api';
 
   useEffect(() => {
     if (currentDepartment) {
