@@ -129,133 +129,63 @@ class BreakfastHistoryFunctionalityTest:
             return True
     
     # ========================================
-    # SPONSORING FUNCTIONALITY TESTS
+    # BREAKFAST-HISTORY FUNCTIONALITY TESTS
     # ========================================
     
-    def test_sponsoring_with_no_own_order(self):
-        """Test sponsoring with sponsor who has no own order"""
+    def test_breakfast_history_endpoint(self):
+        """Test GET /api/orders/breakfast-history/{department_id} endpoint"""
         try:
-            # Create sponsor employee (no order)
-            timestamp = datetime.now().strftime("%H%M%S")
-            sponsor_name = f"SponsorNoOrder_{timestamp}"
+            # Test the breakfast-history endpoint
+            response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
             
-            sponsor_response = self.session.post(f"{BASE_URL}/employees", json={
-                "name": sponsor_name,
-                "department_id": DEPARTMENT_ID
-            })
-            
-            if sponsor_response.status_code != 200:
-                self.log_result(
-                    "Test Sponsoring With No Own Order",
-                    False,
-                    error=f"Failed to create sponsor: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
-                )
-                return False
-            
-            sponsor_employee = sponsor_response.json()
-            self.test_employees.append(sponsor_employee)
-            
-            # Create other employees with orders
-            other_employees = []
-            for i in range(3):
-                emp_name = f"Employee_{i}_{timestamp}"
-                emp_response = self.session.post(f"{BASE_URL}/employees", json={
-                    "name": emp_name,
-                    "department_id": DEPARTMENT_ID
-                })
-                
-                if emp_response.status_code == 200:
-                    employee = emp_response.json()
-                    other_employees.append(employee)
-                    self.test_employees.append(employee)
-                    
-                    # Create breakfast order for each employee
-                    order_data = {
-                        "employee_id": employee["id"],
-                        "department_id": DEPARTMENT_ID,
-                        "order_type": "breakfast",
-                        "breakfast_items": [{
-                            "total_halves": 2,
-                            "white_halves": 2,
-                            "seeded_halves": 0,
-                            "toppings": ["butter", "kaese"],
-                            "has_lunch": True,
-                            "boiled_eggs": 1,
-                            "has_coffee": False
-                        }]
-                    }
-                    
-                    order_response = self.session.post(f"{BASE_URL}/orders", json=order_data)
-                    if order_response.status_code == 200:
-                        self.test_orders.append(order_response.json())
-            
-            if len(other_employees) != 3:
-                self.log_result(
-                    "Test Sponsoring With No Own Order",
-                    False,
-                    error="Failed to create all test employees with orders"
-                )
-                return False
-            
-            # Test lunch sponsoring by sponsor with no own order
-            today = datetime.now().date().strftime('%Y-%m-%d')
-            sponsor_data = {
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "lunch",
-                "sponsor_employee_id": sponsor_employee["id"],
-                "sponsor_employee_name": sponsor_employee["name"]
-            }
-            
-            sponsor_response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsor_data)
-            
-            if sponsor_response.status_code == 200:
-                result = sponsor_response.json()
+            if response.status_code == 200:
+                history_data = response.json()
                 
                 # Verify response structure
-                expected_fields = ["message", "sponsored_items", "total_cost", "affected_employees", "sponsor", "sponsor_additional_cost"]
-                missing_fields = [field for field in expected_fields if field not in result]
-                
-                if not missing_fields:
-                    # Verify others_count calculation
-                    affected_employees = result.get("affected_employees", 0)
-                    sponsor_additional_cost = result.get("sponsor_additional_cost", 0)
+                if isinstance(history_data, list):
+                    self.log_result(
+                        "Test Breakfast History Endpoint",
+                        True,
+                        f"✅ BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(history_data)} days of history data. Response structure is valid list format."
+                    )
                     
-                    # Since sponsor has no own order, others_count should equal affected_employees
-                    # and sponsor_additional_cost should equal total_cost
-                    total_cost = result.get("total_cost", 0)
+                    # Check if we have data and verify structure
+                    if len(history_data) > 0:
+                        sample_day = history_data[0]
+                        expected_fields = ["date", "breakfast_summary", "employee_orders", "total_orders", "total_amount"]
+                        
+                        missing_fields = [field for field in expected_fields if field not in sample_day]
+                        if not missing_fields:
+                            self.log_result(
+                                "Test Breakfast History Data Structure",
+                                True,
+                                f"✅ DATA STRUCTURE VALID! Sample day contains all expected fields: {expected_fields}"
+                            )
+                        else:
+                            self.log_result(
+                                "Test Breakfast History Data Structure",
+                                False,
+                                error=f"Missing fields in history data: {missing_fields}"
+                            )
                     
-                    if affected_employees == 3 and abs(sponsor_additional_cost - total_cost) < 0.01:
-                        self.log_result(
-                            "Test Sponsoring With No Own Order",
-                            True,
-                            f"✅ SPONSOR WITH NO OWN ORDER SUCCESS! Affected employees: {affected_employees}, Total cost: €{total_cost:.2f}, Sponsor additional cost: €{sponsor_additional_cost:.2f}"
-                        )
-                        return True
-                    else:
-                        self.log_result(
-                            "Test Sponsoring With No Own Order",
-                            False,
-                            error=f"Incorrect calculations: affected_employees={affected_employees} (expected 3), sponsor_additional_cost=€{sponsor_additional_cost:.2f}, total_cost=€{total_cost:.2f}"
-                        )
-                        return False
+                    return True
                 else:
                     self.log_result(
-                        "Test Sponsoring With No Own Order",
+                        "Test Breakfast History Endpoint",
                         False,
-                        error=f"Missing response fields: {missing_fields}"
+                        error=f"Expected list response, got {type(history_data)}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Sponsoring With No Own Order",
+                    "Test Breakfast History Endpoint",
                     False,
-                    error=f"Sponsoring failed: HTTP {sponsor_response.status_code}: {sponsor_response.text}"
+                    error=f"Breakfast history endpoint failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Sponsoring With No Own Order", False, error=str(e))
+            self.log_result("Test Breakfast History Endpoint", False, error=str(e))
             return False
 
     def test_sponsoring_error_recovery(self):
