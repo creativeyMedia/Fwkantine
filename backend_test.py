@@ -231,69 +231,130 @@ class NegativePaymentAmountsTest:
     # NEGATIVE PAYMENT AMOUNTS TESTING
     # ========================================
     
-    def execute_breakfast_sponsoring(self):
-        """Execute breakfast sponsoring and verify the bug fix"""
+    def test_negative_breakfast_payment(self):
+        """Test negative payment amounts for breakfast account (withdrawals)"""
         try:
-            if not self.sponsor_employee or not self.sponsored_employee:
+            if not self.test_employee:
                 return False
             
-            # Execute breakfast sponsoring via admin endpoint
-            today = datetime.now().strftime('%Y-%m-%d')
-            sponsoring_data = {
-                "department_id": DEPARTMENT_ID,
-                "meal_type": "breakfast",
-                "sponsor_employee_id": self.sponsor_employee["id"],
-                "sponsor_employee_name": self.sponsor_employee["name"],
-                "date": today
+            # Get initial balance
+            initial_balance = self.get_employee_balance(self.test_employee['id'])
+            if not initial_balance:
+                return False
+            
+            initial_breakfast_balance = initial_balance['breakfast_balance']
+            
+            # Test negative payment (withdrawal)
+            negative_amount = -10.00
+            payment_data = {
+                "payment_type": "breakfast",
+                "amount": negative_amount,
+                "notes": "Test negative payment - withdrawal"
             }
             
-            response = self.session.post(f"{BASE_URL}/department-admin/sponsor-meal", json=sponsoring_data)
+            response = self.session.post(
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                json=payment_data
+            )
             
             if response.status_code == 200:
-                sponsoring_result = response.json()
+                payment_result = response.json()
                 
-                # Store final balances after sponsoring
-                self.final_balances = {
-                    'sponsor': self.get_employee_balance(self.sponsor_employee['id']),
-                    'sponsored': self.get_employee_balance(self.sponsored_employee['id'])
-                }
+                # Get final balance
+                final_balance = self.get_employee_balance(self.test_employee['id'])
+                final_breakfast_balance = final_balance['breakfast_balance']
                 
-                # Extract sponsoring details
-                sponsored_items = sponsoring_result.get('sponsored_items', 0)
-                total_cost = sponsoring_result.get('total_cost', 0)
-                affected_employees = sponsoring_result.get('affected_employees', 0)
-                sponsor_name = sponsoring_result.get('sponsor_name', 'Unknown')
+                # Calculate expected balance: initial_balance - negative_amount (which adds to debt)
+                expected_balance = initial_breakfast_balance - negative_amount
+                balance_difference = abs(final_breakfast_balance - expected_balance)
                 
-                self.log_result(
-                    "Execute Breakfast Sponsoring",
-                    True,
-                    f"Successfully executed breakfast sponsoring: {sponsored_items} items sponsored, €{total_cost:.2f} total cost, {affected_employees} employees affected, sponsor: {sponsor_name}. Final balances: Sponsor €{self.final_balances['sponsor']['breakfast_balance']:.2f}, Sponsored €{self.final_balances['sponsored']['breakfast_balance']:.2f}"
-                )
-                return True
-            elif response.status_code == 400 and "bereits gesponsert" in response.text:
-                # Breakfast already sponsored today - this is expected in production
-                # Get final balances to analyze existing sponsoring
-                self.final_balances = {
-                    'sponsor': self.get_employee_balance(self.sponsor_employee['id']),
-                    'sponsored': self.get_employee_balance(self.sponsored_employee['id'])
-                }
-                
-                self.log_result(
-                    "Execute Breakfast Sponsoring",
-                    True,
-                    f"Breakfast already sponsored today (expected in production). Analyzing existing sponsoring data instead. Current balances: Sponsor €{self.final_balances['sponsor']['breakfast_balance']:.2f}, Sponsored €{self.final_balances['sponsored']['breakfast_balance']:.2f}. Will verify if our test employees were affected by existing sponsoring."
-                )
-                return True
+                if balance_difference < 0.01:  # Allow small rounding differences
+                    self.log_result(
+                        "Test Negative Breakfast Payment",
+                        True,
+                        f"✅ NEGATIVE PAYMENT ACCEPTED! Withdrawal of €{abs(negative_amount):.2f} processed successfully. Balance: €{initial_breakfast_balance:.2f} → €{final_breakfast_balance:.2f} (change: €{final_breakfast_balance - initial_breakfast_balance:.2f}). Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}, Difference: €{balance_difference:.2f}. Negative amounts correctly reduce employee balance (increase debt)."
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Test Negative Breakfast Payment",
+                        False,
+                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}, Difference: €{balance_difference:.2f}"
+                    )
+                    return False
             else:
                 self.log_result(
-                    "Execute Breakfast Sponsoring",
+                    "Test Negative Breakfast Payment",
                     False,
-                    error=f"Sponsoring failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Negative payment failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Execute Breakfast Sponsoring", False, error=str(e))
+            self.log_result("Test Negative Breakfast Payment", False, error=str(e))
+            return False
+    
+    def test_negative_drinks_payment(self):
+        """Test negative payment amounts for drinks_sweets account (withdrawals)"""
+        try:
+            if not self.test_employee:
+                return False
+            
+            # Get initial balance
+            initial_balance = self.get_employee_balance(self.test_employee['id'])
+            if not initial_balance:
+                return False
+            
+            initial_drinks_balance = initial_balance['drinks_sweets_balance']
+            
+            # Test negative payment (withdrawal)
+            negative_amount = -15.50
+            payment_data = {
+                "payment_type": "drinks_sweets",
+                "amount": negative_amount,
+                "notes": "Test negative payment - drinks withdrawal"
+            }
+            
+            response = self.session.post(
+                f"{BASE_URL}/department-admin/flexible-payment/{self.test_employee['id']}", 
+                json=payment_data
+            )
+            
+            if response.status_code == 200:
+                payment_result = response.json()
+                
+                # Get final balance
+                final_balance = self.get_employee_balance(self.test_employee['id'])
+                final_drinks_balance = final_balance['drinks_sweets_balance']
+                
+                # Calculate expected balance: initial_balance - negative_amount (which adds to debt)
+                expected_balance = initial_drinks_balance - negative_amount
+                balance_difference = abs(final_drinks_balance - expected_balance)
+                
+                if balance_difference < 0.01:  # Allow small rounding differences
+                    self.log_result(
+                        "Test Negative Drinks Payment",
+                        True,
+                        f"✅ NEGATIVE DRINKS PAYMENT ACCEPTED! Withdrawal of €{abs(negative_amount):.2f} processed successfully. Balance: €{initial_drinks_balance:.2f} → €{final_drinks_balance:.2f} (change: €{final_drinks_balance - initial_drinks_balance:.2f}). Expected: €{expected_balance:.2f}, Actual: €{final_drinks_balance:.2f}, Difference: €{balance_difference:.2f}. Negative amounts work for both payment types."
+                    )
+                    return True
+                else:
+                    self.log_result(
+                        "Test Negative Drinks Payment",
+                        False,
+                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_drinks_balance:.2f}, Difference: €{balance_difference:.2f}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Negative Drinks Payment",
+                    False,
+                    error=f"Negative drinks payment failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Negative Drinks Payment", False, error=str(e))
             return False
     
     def verify_sponsored_employee_balance_fix(self):
