@@ -587,16 +587,18 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                   } else {
                     // Render Payment (Green styling)
                     return (
-                      <div key={`payment-${item.id || index}`} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div key={`payment-${item.id || index}`} className={`border rounded-lg p-4 ${item.amount >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                              Zahlung
+                            <span className={`inline-block text-xs font-semibold mr-2 px-2.5 py-0.5 rounded ${item.amount >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {item.amount >= 0 ? 'Einzahlung' : 'Auszahlung'}
                             </span>
                             <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-green-600">+{item.amount.toFixed(2)} €</p>
+                            <p className={`font-semibold ${item.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {item.amount >= 0 ? '+' : '-'}{Math.abs(item.amount).toFixed(2)} €
+                            </p>
                           </div>
                         </div>
                         
