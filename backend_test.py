@@ -1,32 +1,36 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR DAILY LUNCH PRICE RESET FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR CORRECTED SPONSORING FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the new daily lunch price reset functionality as per review request:
+Test the corrected sponsoring functionality as per review request:
 
-1. **Test new lunch price behavior**:
-   - Test GET /api/daily-lunch-price/{department_id}/{date} for a new date (should return 0.0)
-   - Test creating breakfast orders with lunch on a new day (should use 0.0 price)
-   - Test updating orders with lunch when no daily price is set (should use 0.0)
+1. **Test sponsoring with sponsor who has no own order**:
+   - Create an employee who has NOT placed any order today
+   - Create other employees who have breakfast/lunch orders
+   - Test that the sponsor (without own order) can successfully sponsor breakfast or lunch for others
+   - Verify the sponsor gets a proper sponsoring order created
+   - Verify others_count is calculated correctly
 
-2. **Test lunch price setting**:
-   - Set a lunch price for today using PUT /api/daily-lunch-settings/{department_id}/{date}
-   - Verify the price is saved correctly
-   - Test that orders created after setting the price use the correct price
+2. **Test sponsoring error recovery**:
+   - Simulate various error scenarios during sponsoring
+   - Verify that if sponsoring fails, no orders are marked as "is_sponsored: true"
+   - Test that failed sponsoring attempts don't prevent future sponsoring attempts
 
-3. **Test backward compatibility**:
-   - Verify existing orders with lunch prices are not affected
-   - Test that previously set daily lunch prices still work correctly
-   - Ensure no existing functionality is broken
+3. **Test normal sponsoring (sponsor with own order)**:
+   - Create a sponsor who has their own breakfast/lunch order
+   - Create other employees with orders
+   - Test successful sponsoring
+   - Verify sponsor order is updated correctly with sponsoring details
+   - Verify all sponsored employees get correct messages
 
-4. **Test edge cases**:
-   - Test behavior with date transitions (new day at midnight Berlin time)
-   - Verify that price setting affects orders retroactively for that day
-   - Test that different departments maintain separate daily prices
+4. **Test "already sponsored" prevention**:
+   - Successfully sponsor a meal for a day
+   - Try to sponsor the same meal type again for the same day
+   - Verify it properly prevents duplicate sponsoring
+   - Verify the error message is correct
 
-Use Department ID "fw4abteilung2" and test with realistic dates like today and tomorrow.
-Focus on verifying that new days default to 0.0 lunch price instead of falling back to global settings.
+Use Department "fw4abteilung2" and create realistic test scenarios. Focus on the others_count bug and the atomic transaction behavior.
 """
 
 import requests
