@@ -5908,13 +5908,16 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
           </div>
           
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Notizen (optional)</label>
+            <label className="block text-sm font-medium mb-2">
+              Notizen {parseFloat(amount) < 0 ? '(erforderlich bei Auszahlungen)' : '(optional)'}
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
               rows="3"
-              placeholder="Zusätzliche Informationen..."
+              placeholder={parseFloat(amount) < 0 ? "Grund für Auszahlung angeben..." : "Zusätzliche Informationen..."}
+              required={parseFloat(amount) < 0}
             />
           </div>
           
