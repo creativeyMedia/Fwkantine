@@ -3128,11 +3128,19 @@ async def sponsor_meal(meal_data: dict):
             
             await db.payment_logs.insert_one(sponsoring_log.dict())
         
-        # 4. Apply sponsor order updates (after all other operations are complete)
+        # 4. Apply all order updates (after all other operations are complete)
+        # Update sponsor order
         if 'sponsor_order_updates' in locals():
             await db.orders.update_one(
                 {"id": sponsor_order_updates["id"]},
                 {"$set": sponsor_order_updates["updates"]}
+            )
+        
+        # Update sponsored orders
+        for order_update in other_order_updates:
+            await db.orders.update_one(
+                {"id": order_update["id"]},
+                {"$set": order_update["updates"]}
             )
         
         # === RÜCKGABE ===
