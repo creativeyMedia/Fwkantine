@@ -3731,7 +3731,7 @@ const AdminDashboard = () => {
       }
 
       // Check if meal has already been sponsored
-      const statusResponse = await axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${sponsorDate}`);
+      const statusResponse = await axios.get(`${API}/department-admin/sponsor-status/${sponsorEmployee.department_id}/${sponsorDate}`);
       const sponsorStatus = statusResponse.data;
       
       const mealTypeLabel = mealType === 'breakfast' ? 'Frühstück' : 'Mittagessen';
