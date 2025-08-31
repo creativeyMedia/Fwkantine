@@ -6353,8 +6353,11 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
 function App() {
   const { currentDepartment, isDepartmentAdmin, isInitializing } = React.useContext(AuthContext);
 
-  // Handle page refresh to maintain current user context instead of going to homepage
+  // Handle page refresh to maintain current user context and scroll to top
   useEffect(() => {
+    // Always scroll to top on page load/refresh
+    window.scrollTo(0, 0);
+
     const handlePageRefresh = () => {
       // The localStorage persistence will automatically restore the user to their last department/admin state
       // No additional action needed - just let the AuthProvider handle initialization
