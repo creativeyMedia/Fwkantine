@@ -5921,6 +5921,38 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
 function App() {
   const { currentDepartment, isDepartmentAdmin, isInitializing } = React.useContext(AuthContext);
 
+  // Prevent pull-to-refresh on mobile devices to avoid unwanted page reloads
+  useEffect(() => {
+    let preventPullToRefresh = false;
+
+    const handleTouchStart = (e) => {
+      // Check if we're at the top of the page and swiping down
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      preventPullToRefresh = (window.pageYOffset === 0 && touch.clientY > 0);
+    };
+
+    const handleTouchMove = (e) => {
+      if (preventPullToRefresh) {
+        // Prevent the pull-to-refresh gesture
+        e.preventDefault();
+      }
+    };
+
+    // Add event listeners with passive: false to allow preventDefault
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    // Add CSS to prevent overscroll behavior on mobile
+    document.body.style.overscrollBehavior = 'none';
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.body.style.overscrollBehavior = '';
+    };
+  }, []);
+
   // Show loading screen while initializing from localStorage
   if (isInitializing) {
     return (
