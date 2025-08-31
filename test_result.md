@@ -133,7 +133,31 @@ frontend:
           agent: "testing"
           comment: "✅ BUG #3 VERIFIED WORKING! Comprehensive testing completed: ✅ 1) Admin Dashboard Access - Successfully authenticated as admin for Department 2 (admin2 password) as specified in review request. ✅ 2) Auto-refresh Implementation Found - Located useEffect in DepartmentAdminDashboard component (lines 2097-2102) that triggers fetchEmployees() when activeTab === 'employees', ensuring employee data refreshes when switching to Mitarbeiter tab. ✅ 3) Tab Navigation Tested - Successfully navigated between Bestellverlauf and Mitarbeiter tabs, confirming the useEffect triggers on tab switches. ✅ 4) Code Verification - The implementation correctly uses useEffect with [activeTab, currentDepartment] dependencies to auto-refresh employee data when switching to the employees tab after sponsoring operations. CRITICAL VERIFICATION: The auto-update functionality is properly implemented and working. When users switch from Bestellverlauf tab (where sponsoring occurs) back to Mitarbeiter tab, the useEffect automatically refreshes employee data without manual page reload, solving the original bug where balances weren't updating after 'Ausgeben' operations."
 
-  - task: "Bug 5 - UI Colors and Label Changes"
+  - task: "Feature 3 - Frontend Negative Payment Support"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Updated FlexiblePaymentModal to accept negative amounts by removing min='0' constraint and adding helpful placeholder text. Updated button texts from 'Einzahlung' to 'Ein-/Auszahlung' throughout admin dashboard. Users can now enter negative values like -10.00 for withdrawals."
+
+  - task: "Feature 4 - App Version Display"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Added app version '1.1.2' display in admin dashboard department information section. Updated grid layout to 3 columns to accommodate version display. Version shows in blue text for visibility."
+
+  - task: "Legacy Bug 5 - UI Colors and Label Changes"
     implemented: true
     working: true
     file: "frontend/src/App.js"
