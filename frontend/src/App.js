@@ -5862,11 +5862,19 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (amount && !isNaN(parseFloat(amount))) {
+    const parsedAmount = parseFloat(amount);
+    
+    if (amount && !isNaN(parsedAmount)) {
+      // Check if this is a withdrawal and notes are required
+      if (parsedAmount < 0 && !notes.trim()) {
+        alert('Bei Auszahlungen ist eine Notiz erforderlich.');
+        return;
+      }
+      
       onPayment({
         employee_id: employee.id,
         payment_type: paymentType,
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         notes: notes.trim()
       });
       onClose();
