@@ -189,53 +189,35 @@ class SponsorStatusFunctionalityTest:
             self.log_result("Test Sponsor Status Clean Date", False, error=str(e))
             return False
 
-    def test_get_coffee_price_default(self):
-        """Test GET /api/department-settings/{department_id}/coffee-price with default values"""
+    def create_test_employee(self, name_suffix):
+        """Create a test employee for sponsoring tests"""
         try:
-            # Test getting coffee price (should return default 1.50 if no settings exist)
-            response = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            employee_name = f"SponsorTest_{name_suffix}_{datetime.now().strftime('%H%M%S')}"
+            response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": employee_name,
+                "department_id": DEPARTMENT_ID
+            })
             
             if response.status_code == 200:
-                response_data = response.json()
-                
-                # Verify response structure
-                if isinstance(response_data, dict) and "coffee_price" in response_data:
-                    price = response_data["coffee_price"]
-                    department_id = response_data.get("department_id")
-                    
-                    # Check if it's the expected default or a valid price
-                    if isinstance(price, (int, float)) and price >= 0:
-                        self.log_result(
-                            "Test GET Coffee Price Default",
-                            True,
-                            f"✅ GET COFFEE PRICE SUCCESS! Department: {department_id}, Price: €{price:.2f}. Response structure valid with proper JSON format."
-                        )
-                        return True, price
-                    else:
-                        self.log_result(
-                            "Test GET Coffee Price Default",
-                            False,
-                            error=f"Invalid price value: {price} (expected non-negative number)"
-                        )
-                        return False, None
-                else:
-                    self.log_result(
-                        "Test GET Coffee Price Default",
-                        False,
-                        error=f"Invalid response structure. Expected dict with 'coffee_price' key, got: {response_data}"
-                    )
-                    return False, None
+                employee = response.json()
+                self.test_employees.append(employee)
+                self.log_result(
+                    f"Create Test Employee {name_suffix}",
+                    True,
+                    f"✅ EMPLOYEE CREATED! Name: {employee_name}, ID: {employee['id']}"
+                )
+                return employee
             else:
                 self.log_result(
-                    "Test GET Coffee Price Default",
+                    f"Create Test Employee {name_suffix}",
                     False,
-                    error=f"GET coffee price failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Employee creation failed: HTTP {response.status_code}: {response.text}"
                 )
-                return False, None
+                return None
                 
         except Exception as e:
-            self.log_result("Test GET Coffee Price Default", False, error=str(e))
-            return False, None
+            self.log_result(f"Create Test Employee {name_suffix}", False, error=str(e))
+            return None
 
     def test_put_boiled_eggs_price(self, new_price):
         """Test PUT /api/department-settings/{department_id}/boiled-eggs-price"""
