@@ -2270,11 +2270,13 @@ const DepartmentAdminDashboard = () => {
     }
   }, [currentDepartment]);
 
-  // Auto-refresh employee data when switching to employees tab
+  // Auto-refresh employee data when switching to employees tab and scroll to top
   useEffect(() => {
     if (activeTab === 'employees' && currentDepartment) {
       fetchEmployees();
     }
+    // Scroll to top when changing tabs
+    window.scrollTo(0, 0);
   }, [activeTab, currentDepartment]);
 
   const fetchEmployees = async () => {
