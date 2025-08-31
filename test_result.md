@@ -237,7 +237,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement 4 new features: 1) Reload behavior for mobile devices - persist last department in localStorage and prevent pull-to-refresh, 2) Fix sponsoring display bug in employee dashboard breakfast overview where sponsored meals disappear, 3) Extend payment functionality to allow negative amounts (withdrawals) with updated button text 'Ein-/Auszahlung', 4) Add app version 1.1.2 display in admin dashboard department information."
+user_problem_statement: "Implement 5 new features: 1) Reload behavior for mobile devices - persist last department in localStorage and prevent pull-to-refresh, 2) Fix sponsoring display bug in employee dashboard breakfast overview where sponsored meals disappear, 3) Extend payment functionality to allow negative amounts (withdrawals) with updated button text 'Ein-/Auszahlung', 4) Add app version 1.1.2 display in admin dashboard department information, 5) Reset daily lunch price to 0€ for new days instead of inheriting previous day's price - admin must manually set price each day."
 
 backend:
   - task: "Master Password Login Function Diagnosis"
