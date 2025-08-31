@@ -117,11 +117,11 @@ frontend:
 
   - task: "Feature 2 - Fix Sponsored Meals Display in Breakfast Overview"
     implemented: true
-    working: true
+    working: "NA"
     file: "frontend/src/App.js"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
