@@ -457,6 +457,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
               {/* PayPal Button for Breakfast */}
               {paypalSettings.enabled && paypalSettings.breakfast_enabled && employeeProfile.breakfast_total < 0 && (
                 <div className="mt-3">
+                  {/* Debug Info - Remove in production */}
+                  <div className="text-xs text-gray-500 mb-1">
+                    Debug: separate={paypalSettings.use_separate_links ? 'true' : 'false'}, 
+                    breakfast_link={paypalSettings.breakfast_link || 'empty'}, 
+                    combined={paypalSettings.combined_link || 'empty'}
+                  </div>
                   {(() => {
                     let link = '';
                     if (paypalSettings.use_separate_links) {
