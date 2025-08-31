@@ -5185,6 +5185,10 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       setLoading(true);
       const response = await axios.get(`${API}/orders/breakfast-history/${currentDepartment.department_id}?days_back=30`);
       setBreakfastHistory(response.data.history || []);
+      // Load sponsor status for all days
+      if (response.data.history && response.data.history.length > 0) {
+        fetchSponsorStatusForDays(response.data.history);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Frühstück-Geschichte:', error);
     } finally {
