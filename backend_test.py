@@ -210,10 +210,10 @@ class PayPalSettingsTest:
             return False
     
     # ========================================
-    # CORRECTED FUNCTIONALITY TESTS
+    # PAYPAL SETTINGS TESTS
     # ========================================
     
-    def test_corrected_negative_payment_notes(self):
+    def test_get_default_paypal_settings(self):
         """Test that negative payments create proper notes"""
         try:
             if not self.test_employee:
