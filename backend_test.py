@@ -1093,6 +1093,6 @@ class DailyLunchPriceTest:
         return feature_working
 
 if __name__ == "__main__":
-    tester = CorrectedFunctionalityTest()
-    success = tester.run_corrected_functionality_tests()
+    tester = DailyLunchPriceTest()
+    success = tester.run_daily_lunch_price_tests()
     sys.exit(0 if success else 1)
