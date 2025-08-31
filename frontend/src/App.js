@@ -3893,28 +3893,43 @@ const AdminDashboard = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Zahler:</label>
-                  <select
-                    value={sponsorEmployeeId}
-                    onChange={(e) => setSponsorEmployeeId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
-                  >
-                    <option value="">Mitarbeiter auswählen...</option>
-                    {allEmployees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.department_name})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  onClick={() => handleSponsorMeal('lunch')}
-                  disabled={!sponsorDate || !sponsorEmployeeId}
-                  className="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Mittagessen ausgeben
-                </button>
+                {sponsorStatus.lunch_sponsored ? (
+                  <div className="bg-orange-100 border border-orange-300 rounded-lg p-4 text-center">
+                    <div className="text-orange-800 mb-4">
+                      <svg className="mx-auto h-16 w-16 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-orange-800 mb-2">Mittagessen wurde bereits ausgegeben</h3>
+                    <p className="text-orange-600 mb-2">Das Mittagessen für {sponsorDate} wurde bereits von einem Administrator ausgegeben.</p>
+                    <p className="text-orange-600 font-medium">Ausgegeben von: {sponsorStatus.lunch_sponsored.sponsored_by}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Zahler:</label>
+                      <select
+                        value={sponsorEmployeeId}
+                        onChange={(e) => setSponsorEmployeeId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500"
+                      >
+                        <option value="">Mitarbeiter auswählen...</option>
+                        {allEmployees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name} ({emp.department_name})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => handleSponsorMeal('lunch')}
+                      disabled={!sponsorDate || !sponsorEmployeeId}
+                      className="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      Mittagessen ausgeben
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
