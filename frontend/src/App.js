@@ -6020,9 +6020,14 @@ const PayPalSettings = ({ currentDepartment }) => {
                             type="url"
                             value={paypalSettings.breakfast_link}
                             onChange={(e) => setPaypalSettings(prev => ({ ...prev, breakfast_link: e.target.value }))}
-                            placeholder="https://paypal.me/username"
+                            placeholder="paypal.me/username (https:// wird automatisch ergänzt)"
                             className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                           />
+                          {paypalSettings.breakfast_link && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Vorschau: <span className="text-blue-600">{normalizeUrl(paypalSettings.breakfast_link)}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {paypalSettings.drinks_enabled && (
