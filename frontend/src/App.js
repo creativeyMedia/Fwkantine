@@ -1090,6 +1090,11 @@ const DepartmentDashboard = () => {
 // Employee Menu Component
 const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) => {
   const [activeCategory, setActiveCategory] = useState('breakfast');
+
+  // Scroll to top when changing categories
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeCategory]);
   const [breakfastMenu, setBreakfastMenu] = useState([]);
   const [toppingsMenu, setToppingsMenu] = useState([]);
   const [drinksMenu, setDrinksMenu] = useState([]);
