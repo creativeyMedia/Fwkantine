@@ -3,32 +3,30 @@
 COMPREHENSIVE BACKEND TESTING FOR PAYPAL SETTINGS FUNCTIONALITY
 
 **TESTING FOCUS:**
-Test the newly implemented PayPal settings functionality as per review request:
+Test the PayPal settings functionality with detailed debugging as per review request:
 
-1. **Test PayPal Settings API Endpoints**:
-   - Test GET /api/department-paypal-settings/{department_id} - should return default settings if none exist
-   - Test PUT /api/department-paypal-settings/{department_id} - should save and update PayPal settings
-   - Verify validation works (separate links require both breakfast_link and drinks_link, combined requires combined_link)
-   - Test both modes: use_separate_links=true and use_separate_links=false
+1. **Test PayPal Settings API with exact URLs**:
+   - Test GET /api/department-paypal-settings/fw4abteilung2 
+   - Create a complete PayPal configuration for Department 2 with realistic links
+   - Test both separate and combined link modes
+   - Verify the response contains all expected fields
 
-2. **Test PayPal Settings Validation**:
-   - Test enabled=true with use_separate_links=true but missing links (should fail)
-   - Test enabled=true with use_separate_links=false but missing combined_link (should fail)
-   - Test enabled=false (should work without links)
-   - Test valid configurations (should work)
+2. **Create realistic test data**:
+   - Configure PayPal settings with enabled=true, breakfast_enabled=true, drinks_enabled=true
+   - Set use_separate_links=false and combined_link="https://paypal.me/testfeuerwehr"
+   - Verify the settings save correctly and can be retrieved
 
-3. **Test Data Persistence**:
-   - Create PayPal settings for Department 2
-   - Verify settings are correctly saved and can be retrieved
-   - Update settings and verify changes persist
-   - Test different departments have separate settings
+3. **Test alternative configuration**:
+   - Update to use_separate_links=true 
+   - Set breakfast_link="https://paypal.me/testfeuerwehr/fruehstueck" and drinks_link="https://paypal.me/testfeuerwehr/getraenke"
+   - Verify both configurations work
 
-4. **Test Department-Specific Configuration**:
-   - Configure different settings for different departments
-   - Verify each department maintains its own PayPal configuration
-   - Test that changes to one department don't affect others
+4. **Debug API response format**:
+   - Verify the response format matches exactly what the frontend expects
+   - Check if all boolean and string fields are present
+   - Test that the API returns valid data that would work in the frontend
 
-Use Department "2. Wachabteilung" (fw4abteilung2) for testing as specified in review request.
+Use Department ID "fw4abteilung2" and create complete, working PayPal configurations for testing.
 """
 
 import requests
