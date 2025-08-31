@@ -56,10 +56,8 @@ class NegativePaymentAmountsTest:
         self.test_employees = []
         self.test_orders = []
         self.admin_auth = None
-        self.sponsor_employee = None
-        self.sponsored_employee = None
-        self.initial_balances = {}
-        self.final_balances = {}
+        self.test_employee = None
+        self.payment_logs = []
         
     def log_result(self, test_name, success, details="", error=""):
         """Log test result"""
