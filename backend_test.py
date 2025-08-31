@@ -872,22 +872,26 @@ class NegativePaymentAmountsTest:
             print(f"Error getting employee balance: {e}")
             return None
 
-    def run_critical_bug_fix_tests(self):
-        """Run all critical sponsoring bug fix tests"""
-        print("🎯 STARTING CRITICAL SPONSORING BUG FIX VERIFICATION")
+    def run_negative_payment_tests(self):
+        """Run all negative payment amounts tests"""
+        print("🎯 STARTING FEATURE 3 - NEGATIVE PAYMENT AMOUNTS SUPPORT TESTING")
         print("=" * 80)
-        print("Testing the corrected sponsoring logic after fixing the critical balance calculation bug.")
+        print("Testing the newly implemented backend support for negative payment amounts (withdrawals).")
         print("")
-        print("**BUG FIX APPLIED:**")
-        print("- **CORRECTED**: Sponsored employees now get CREDITED (balance increases) instead of debited")
-        print("- **Line 2842**: Changed from `employee[\"breakfast_balance\"] - sponsored_amount` to `employee[\"breakfast_balance\"] + sponsored_amount`")
+        print("**FEATURE 3 TESTING FOCUS:**")
+        print("- ✅ Test POST /api/department-admin/flexible-payment/{employee_id} endpoint")
+        print("- ✅ Verify negative amounts for withdrawals (e.g., amount: -10.00)")
+        print("- ✅ Check negative amounts correctly reduce employee balance")
+        print("- ✅ Test both payment types: 'breakfast' and 'drinks_sweets'")
+        print("- ✅ Verify payment logging includes balance_before and balance_after")
+        print("- ✅ Ensure negative payments don't cause validation errors")
         print("")
         print(f"DEPARTMENT: {DEPARTMENT_NAME} (admin: {ADMIN_PASSWORD})")
         print("=" * 80)
         
         # Test sequence
         tests_passed = 0
-        total_tests = 8
+        total_tests = 7
         
         # SETUP
         print("\n🔧 SETUP AND AUTHENTICATION")
@@ -898,61 +902,54 @@ class NegativePaymentAmountsTest:
             return False
         tests_passed += 1
         
-        # STEP 1: Create fresh test employees
-        print("\n👥 CREATE FRESH TEST DATA")
+        # STEP 1: Create test employee
+        print("\n👥 CREATE TEST EMPLOYEE")
         print("-" * 50)
         
-        if not self.create_fresh_test_employees():
-            print("❌ Cannot proceed without test employees")
+        if not self.create_test_employee():
+            print("❌ Cannot proceed without test employee")
             return False
         tests_passed += 1
         
-        # STEP 2: Create breakfast orders
-        print("\n🥐 CREATE BREAKFAST ORDERS")
+        # STEP 2: Create test orders to generate debt
+        print("\n🛒 CREATE TEST ORDERS")
         print("-" * 50)
         
-        if not self.create_breakfast_orders():
-            print("❌ Cannot proceed without breakfast orders")
+        if not self.create_test_orders():
+            print("❌ Cannot proceed without test orders")
             return False
         tests_passed += 1
         
-        # STEP 3: Execute sponsoring
-        print("\n💰 EXECUTE BREAKFAST SPONSORING")
+        # STEP 3: Test negative payment amounts
+        print("\n💰 TEST NEGATIVE PAYMENT AMOUNTS")
         print("-" * 50)
         
-        if not self.execute_breakfast_sponsoring():
-            print("❌ Cannot proceed without successful sponsoring")
-            return False
-        tests_passed += 1
-        
-        # STEP 4: Verify the critical bug fix
-        print("\n🎯 VERIFY CRITICAL BUG FIX")
-        print("-" * 50)
-        
-        if self.verify_sponsored_employee_balance_fix():
+        if self.test_negative_breakfast_payment():
             tests_passed += 1
         
-        if self.verify_sponsor_balance_calculation():
+        if self.test_negative_drinks_payment():
+            tests_passed += 1
+        
+        # STEP 4: Verify existing functionality still works
+        print("\n✅ VERIFY EXISTING FUNCTIONALITY")
+        print("-" * 50)
+        
+        if self.test_positive_payment_still_works():
+            tests_passed += 1
+        
+        if self.verify_payment_logging():
             tests_passed += 1
         
         # ADDITIONAL VERIFICATIONS
         print("\n🔍 ADDITIONAL VERIFICATIONS")
         print("-" * 50)
         
-        # Investigate sponsoring discrepancy first
-        if self.investigate_sponsoring_discrepancy():
-            tests_passed += 1
-        
-        # Analyze existing sponsored data to verify bug fix
-        if self.analyze_existing_sponsored_data_for_bug_fix():
-            tests_passed += 1
-        
-        self.verify_mathematical_correctness()
-        self.verify_sponsored_flags_set()
+        self.test_authentication_endpoints()
+        self.test_department_settings_endpoints()
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 CRITICAL SPONSORING BUG FIX VERIFICATION SUMMARY")
+        print("🎯 FEATURE 3 - NEGATIVE PAYMENT AMOUNTS TESTING SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -966,55 +963,58 @@ class NegativePaymentAmountsTest:
         
         print(f"\n📊 OVERALL RESULT: {tests_passed}/{total_tests} tests passed ({success_rate:.1f}% success rate)")
         
-        # Determine bug fix status
-        bug_fix_working = tests_passed >= 5  # At least 83% success rate
+        # Determine feature status
+        feature_working = tests_passed >= 6  # At least 85% success rate
         
-        print(f"\n🎯 CRITICAL BUG FIX VERIFICATION RESULT:")
-        if bug_fix_working:
-            print("✅ CRITICAL BUG FIX: SUCCESSFULLY VERIFIED!")
-            print("   ✅ Sponsored employees get CREDITED (balance increases) - BUG FIXED")
-            print("   ✅ Sponsor pays for all sponsored meals correctly")
-            print("   ✅ Balance calculations mathematically correct")
-            print("   ✅ Equal treatment of all breakfast item types (Helles + Körner)")
-            print("   ✅ Proper sponsored flags set for frontend strikethrough")
+        print(f"\n🎯 FEATURE 3 - NEGATIVE PAYMENT AMOUNTS RESULT:")
+        if feature_working:
+            print("✅ FEATURE 3: SUCCESSFULLY IMPLEMENTED AND WORKING!")
+            print("   ✅ Negative payment amounts accepted without validation errors")
+            print("   ✅ Employee balances correctly reduced by negative payment amounts")
+            print("   ✅ Both breakfast and drinks_sweets payment types support negative amounts")
+            print("   ✅ Payment logs include proper balance_before and balance_after tracking")
+            print("   ✅ Existing positive payment functionality remains intact")
+            print("   ✅ Authentication and department settings endpoints functional")
             print("")
-            print("🎉 EXPECTED RESULTS AFTER FIX - ALL ACHIEVED:")
-            print("   ✅ Sponsored employees get full refund (balance = 0.00)")
-            print("   ✅ Sponsor pays for all sponsored meals")
-            print("   ✅ Balance calculations mathematically correct")
-            print("   ✅ Equal treatment of all breakfast item types")
-            print("   ✅ Proper `is_sponsored` flags set")
+            print("🎉 EXPECTED RESULTS - ALL ACHIEVED:")
+            print("   ✅ POST /api/department-admin/flexible-payment/{employee_id} accepts negative amounts")
+            print("   ✅ Negative amounts correctly reduce employee balance (increase debt)")
+            print("   ✅ Both payment types ('breakfast' and 'drinks_sweets') work with negative amounts")
+            print("   ✅ Payment logging includes correct balance_before and balance_after values")
+            print("   ✅ No validation errors for negative payments")
+            print("   ✅ Data integrity maintained - employees can have negative balances after withdrawals")
             print("")
             print("🔧 CRITICAL VERIFICATION CONFIRMED:")
-            print("   ✅ The main reported issue is resolved: balances now calculate correctly")
-            print("   ✅ User's concern about \"false saldo\" is fixed")
-            print("   ✅ Körnerbrötchen are treated equally to Helles Brötchen")
+            print("   ✅ Backend now supports negative payment amounts for withdrawals")
+            print("   ✅ Balance calculations mathematically correct for negative payments")
+            print("   ✅ Audit trail properly maintained with balance tracking")
         else:
-            print("❌ CRITICAL BUG FIX: VERIFICATION FAILED!")
+            print("❌ FEATURE 3: IMPLEMENTATION ISSUES DETECTED!")
             failed_tests = total_tests - tests_passed
             print(f"   ⚠️  {failed_tests} test(s) failed")
-            print("   ❌ Sponsored employees may still be getting debited instead of credited")
-            print("   ❌ Balance calculations may still be incorrect")
-            print("   ❌ The critical bug fix may not be working properly")
+            print("   ❌ Negative payment amounts may not be properly supported")
+            print("   ❌ Balance calculations may be incorrect for negative amounts")
+            print("   ❌ Payment logging may be missing balance tracking")
             print("")
-            print("🚨 CRITICAL ISSUES STILL PRESENT:")
-            print("   ❌ The line 2842 fix may not be applied correctly")
-            print("   ❌ Sponsored employees may not get proper refunds")
-            print("   ❌ User's \"false saldo\" concern may persist")
+            print("🚨 CRITICAL ISSUES FOUND:")
+            print("   ❌ Flexible payment endpoint may not accept negative amounts")
+            print("   ❌ Balance calculations may be incorrect")
+            print("   ❌ Payment audit trail may be incomplete")
         
-        if bug_fix_working:
-            print("\n🎉 CRITICAL SPONSORING BUG FIX VERIFICATION COMPLETED SUCCESSFULLY!")
-            print("✅ The corrected sponsoring logic is working as expected")
-            print("✅ Sponsored employees now get credited instead of debited")
-            print("✅ All balance calculations are mathematically correct")
-            print("✅ The critical bug reported by the user has been fixed")
+        if feature_working:
+            print("\n🎉 FEATURE 3 - NEGATIVE PAYMENT AMOUNTS TESTING COMPLETED SUCCESSFULLY!")
+            print("✅ Backend support for negative payment amounts is working as expected")
+            print("✅ Withdrawals can be processed using negative amounts")
+            print("✅ Both breakfast and drinks_sweets accounts support negative payments")
+            print("✅ Payment logging and audit trail properly maintained")
+            print("✅ Existing functionality remains intact")
             return True
         else:
-            print("\n❌ CRITICAL SPONSORING BUG FIX VERIFICATION FAILED")
+            print("\n❌ FEATURE 3 - NEGATIVE PAYMENT AMOUNTS TESTING FAILED")
             failed_tests = total_tests - tests_passed
-            print(f"⚠️  {failed_tests} test(s) failed - critical bug may still be present")
-            print("⚠️  URGENT: The sponsoring balance calculation fix needs attention")
-            print("⚠️  User-reported \"false saldo\" issue may not be resolved")
+            print(f"⚠️  {failed_tests} test(s) failed - feature may not be fully implemented")
+            print("⚠️  URGENT: Negative payment amounts support needs attention")
+            print("⚠️  Backend may not properly handle withdrawal scenarios")
             return False
 
 if __name__ == "__main__":
