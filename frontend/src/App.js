@@ -5234,6 +5234,17 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       // Refresh breakfast history to show updated data
       await fetchBreakfastHistory();
       
+      // Also refresh sponsor status for this specific date
+      try {
+        const statusResponse = await axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${date}`);
+        setDailySponsorStatus(prev => ({
+          ...prev,
+          [date]: statusResponse.data
+        }));
+      } catch (statusError) {
+        console.error('Fehler beim Aktualisieren des Sponsor-Status:', statusError);
+      }
+      
     } catch (error) {
       console.error('Fehler beim Ausgeben der Mahlzeit:', error);
       
