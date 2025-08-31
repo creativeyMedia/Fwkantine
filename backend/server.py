@@ -1612,12 +1612,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 "date": date_str
             })
             
+            # NEW: Always use 0.0 if no price set for this day - admin must set price manually each day
             daily_lunch_price = daily_price["lunch_price"] if daily_price else 0.0
-            
-            # If no daily price set, fall back to global lunch settings
-            if daily_lunch_price == 0.0:
-                lunch_settings = await db.lunch_settings.find_one()
-                daily_lunch_price = lunch_settings["price"] if lunch_settings else 0.0
             
             history.append({
                 "date": current_date.isoformat(),
