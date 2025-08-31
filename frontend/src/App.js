@@ -5173,6 +5173,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     date: '',
   });
   const [departmentEmployees, setDepartmentEmployees] = useState([]);
+  const [dailySponsorStatus, setDailySponsorStatus] = useState({});
 
   useEffect(() => {
     fetchBreakfastHistory();
