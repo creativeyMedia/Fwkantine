@@ -5838,12 +5838,14 @@ const PayPalSettings = ({ currentDepartment }) => {
 
   const saveSettings = async () => {
     try {
-      await axios.put(`${API}/api/department-paypal-settings/${currentDepartment.department_id}`, paypalSettings);
+      console.log('Saving PayPal settings:', paypalSettings);
+      await axios.put(`${API}/department-paypal-settings/${currentDepartment.department_id}`, paypalSettings);
       setSuccessMessage('✅ PayPal-Einstellungen erfolgreich gespeichert!');
       setShowSuccessNotification(true);
       setIsEditing(false);
       fetchPayPalSettings(); // Refresh data
     } catch (error) {
+      console.error('Fehler beim Speichern der PayPal-Einstellungen:', error);
       setSuccessMessage('❌ Fehler beim Speichern: ' + (error.response?.data?.detail || error.message));
       setShowSuccessNotification(true);
     }
