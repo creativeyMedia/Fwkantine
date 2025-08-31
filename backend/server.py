@@ -3002,17 +3002,34 @@ async def sponsor_meal(meal_data: dict):
                     {"$set": {"breakfast_balance": new_balance}}
                 )
         
-        # 3. Update sponsor balance
+        # 3. Update sponsor balance and create payment log
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
             # Sponsor zahlt zusätzlich nur für die anderen, nicht für sich selbst (das ist schon in der Bestellung)
             # CORRECTED: Sponsor OWES more money (balance decreases)
-            new_sponsor_balance = sponsor_employee["breakfast_balance"] - sponsor_additional_cost
+            old_sponsor_balance = sponsor_employee["breakfast_balance"]
+            new_sponsor_balance = old_sponsor_balance - sponsor_additional_cost
             new_sponsor_balance = round(new_sponsor_balance, 2)
             await db.employees.update_one(
                 {"id": sponsor_employee_id},
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
             )
+            
+            # Create payment log entry for the sponsoring transaction
+            meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
+            sponsoring_log = PaymentLog(
+                employee_id=sponsor_employee_id,
+                department_id=department_id,
+                amount=-sponsor_additional_cost,  # Negative because it's a charge (like a withdrawal)
+                payment_type="breakfast",  # Sponsoring affects breakfast balance
+                action="sponsoring",
+                admin_user=f"Auto-Sponsoring {meal_name}",
+                notes=f"Sponsoring {meal_name} für {others_count} Mitarbeiter im Wert von {sponsor_additional_cost:.2f} €",
+                balance_before=old_sponsor_balance,
+                balance_after=new_sponsor_balance
+            )
+            
+            await db.payment_logs.insert_one(sponsoring_log.dict())
         
         # === RÜCKGABE ===
         sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
