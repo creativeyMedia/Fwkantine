@@ -388,9 +388,9 @@ class DepartmentPricingFunctionalityTest:
             
             # Update prices for other department
             response1 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/boiled-eggs-price", 
-                                       json=test_egg_price)
+                                       params={"price": test_egg_price})
             response2 = self.session.put(f"{BASE_URL}/department-settings/{other_department}/coffee-price", 
-                                       json=test_coffee_price)
+                                       params={"price": test_coffee_price})
             
             if response1.status_code == 200 and response2.status_code == 200:
                 # Now check that our original department still has its prices
