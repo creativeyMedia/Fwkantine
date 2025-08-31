@@ -843,6 +843,16 @@ async def get_department_settings(department_id: str):
     clean_settings = {k: v for k, v in dept_settings.items() if k != '_id'}
     return clean_settings
 
+@api_router.get("/department-settings/{department_id}/boiled-eggs-price")
+async def get_department_boiled_eggs_price(department_id: str):
+    """Get boiled eggs price for a specific department"""
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        return {"department_id": department_id, "boiled_eggs_price": dept_settings["boiled_eggs_price"]}
+    else:
+        # Return default price if no department-specific settings exist
+        return {"department_id": department_id, "boiled_eggs_price": 0.50}
+
 @api_router.put("/department-settings/{department_id}/boiled-eggs-price")
 async def update_department_boiled_eggs_price(department_id: str, price: float):
     """Update boiled eggs price for a specific department"""
