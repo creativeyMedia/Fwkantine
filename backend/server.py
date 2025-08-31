@@ -898,12 +898,20 @@ async def update_department_paypal_settings(department_id: str, settings: PayPal
     """Update PayPal settings for a specific department"""
     # Validation
     if settings.enabled:
+        # Check if at least one button is enabled
+        if not settings.breakfast_enabled and not settings.drinks_enabled:
+            raise HTTPException(status_code=400, detail="Mindestens ein PayPal-Button muss aktiviert werden wenn PayPal aktiviert ist")
+        
         if settings.use_separate_links:
-            if not settings.breakfast_link or not settings.drinks_link:
-                raise HTTPException(status_code=400, detail="Bei getrennten Links müssen sowohl Frühstück- als auch Getränke-Link angegeben werden")
+            # Separate links mode - check individual links
+            if settings.breakfast_enabled and not settings.breakfast_link:
+                raise HTTPException(status_code=400, detail="Frühstück-Link ist erforderlich wenn Frühstück-Button aktiviert ist")
+            if settings.drinks_enabled and not settings.drinks_link:
+                raise HTTPException(status_code=400, detail="Getränke-Link ist erforderlich wenn Getränke-Button aktiviert ist")
         else:
+            # Combined link mode - one link for all enabled buttons
             if not settings.combined_link:
-                raise HTTPException(status_code=400, detail="Bei kombiniertem Link muss der gemeinsame Link angegeben werden")
+                raise HTTPException(status_code=400, detail="Gemeinsamer Link ist erforderlich wenn aktivierte Buttons den gleichen Link verwenden sollen")
     
     # Set department_id to ensure consistency
     settings.department_id = department_id
