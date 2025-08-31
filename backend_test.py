@@ -232,9 +232,9 @@ class DepartmentPricingFunctionalityTest:
     def test_put_boiled_eggs_price(self, new_price):
         """Test PUT /api/department-settings/{department_id}/boiled-eggs-price"""
         try:
-            # Test updating boiled eggs price
+            # Test updating boiled eggs price - price is passed as query parameter
             response = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                      json=new_price)
+                                      params={"price": new_price})
             
             if response.status_code == 200:
                 response_data = response.json()
@@ -279,9 +279,9 @@ class DepartmentPricingFunctionalityTest:
     def test_put_coffee_price(self, new_price):
         """Test PUT /api/department-settings/{department_id}/coffee-price"""
         try:
-            # Test updating coffee price
+            # Test updating coffee price - price is passed as query parameter
             response = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                      json=new_price)
+                                      params={"price": new_price})
             
             if response.status_code == 200:
                 response_data = response.json()
