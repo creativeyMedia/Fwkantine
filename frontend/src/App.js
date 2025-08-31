@@ -6142,8 +6142,8 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
     try {
       const price = parseFloat(editPrice);
       const endpoint = editingItem === 'eggs' 
-        ? `${API}/api/department-settings/${currentDepartment.department_id}/boiled-eggs-price`
-        : `${API}/api/department-settings/${currentDepartment.department_id}/coffee-price`;
+        ? `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`
+        : `${API}/department-settings/${currentDepartment.department_id}/coffee-price`;
       
       await axios.put(endpoint, null, { params: { price } });
       await fetchLunchSettings();
