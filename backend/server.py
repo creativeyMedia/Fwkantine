@@ -1239,8 +1239,8 @@ async def create_order(order_data: OrderCreate):
         if daily_price:
             lunch_price = daily_price["lunch_price"]
         else:
-            # Fall back to global lunch settings
-            lunch_price = lunch_settings["price"] if lunch_settings and lunch_settings["enabled"] else 0.0
+            # NEW: Default to 0.0 for new days - admin must set price manually each day
+            lunch_price = 0.0
         
         # Get department-specific prices
         department_prices = await get_department_prices(order_data.department_id)
