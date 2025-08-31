@@ -942,6 +942,19 @@ const DepartmentDashboard = () => {
     }
   };
 
+  const fetchSponsorStatus = async (date) => {
+    try {
+      const response = await axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${date}`);
+      setSponsorStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Sponsor-Status:', error);
+      setSponsorStatus({
+        breakfast_sponsored: null,
+        lunch_sponsored: null
+      });
+    }
+  };
+
   const handleEmployeeClick = (employee, event) => {
     // This function opens employee profile/history
     setSelectedEmployeeForProfile(employee);
