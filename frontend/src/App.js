@@ -5664,6 +5664,9 @@ const AdminSettingsTab = ({ currentDepartment }) => {
             </ul>
           </div>
         </div>
+
+        {/* PayPal Settings */}
+        <PayPalSettings currentDepartment={currentDepartment} />
       </div>
     </div>
   );
