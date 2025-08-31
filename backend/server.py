@@ -3019,7 +3019,9 @@ async def sponsor_meal(meal_data: dict):
                 }
             }
         
-        # 2. Mark other orders as sponsored and update balances
+        # 2. Update employee balances and store order updates for later
+        other_order_updates = []
+        
         for calc in order_calculations:
             if calc["employee_id"] == sponsor_employee_id:
                 continue  # Skip sponsor
@@ -3027,21 +3029,6 @@ async def sponsor_meal(meal_data: dict):
             order = calc["order"]
             employee_id = calc["employee_id"]
             sponsored_amount = calc["sponsored_amount"]
-            
-            # Mark order as sponsored
-            sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
-            
-            await db.orders.update_one(
-                {"id": order["id"]},
-                {"$set": {
-                    "is_sponsored": True,
-                    "sponsored_by_employee_id": sponsor_employee_id,
-                    "sponsored_by_name": sponsor_employee_name,
-                    "sponsored_meal_type": meal_type,
-                    "sponsored_message": sponsored_message,
-                    "sponsored_date": datetime.now(timezone.utc).isoformat()
-                }}
-            )
             
             # CORRECTED: Refund sponsored amount to employee balance (INCREASE balance = less debt)
             employee = await db.employees.find_one({"id": employee_id})
@@ -3053,6 +3040,21 @@ async def sponsor_meal(meal_data: dict):
                     {"id": employee_id},
                     {"$set": {"breakfast_balance": new_balance}}
                 )
+            
+            # Store order update for later
+            sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
+            
+            other_order_updates.append({
+                "id": order["id"],
+                "updates": {
+                    "is_sponsored": True,
+                    "sponsored_by_employee_id": sponsor_employee_id,
+                    "sponsored_by_name": sponsor_employee_name,
+                    "sponsored_meal_type": meal_type,
+                    "sponsored_message": sponsored_message,
+                    "sponsored_date": datetime.now(timezone.utc).isoformat()
+                }
+            })
         
         # 2. Create sponsor order if they don't have one (sponsor without own order scenario)
         if not sponsor_calculation and sponsor_additional_cost > 0:
