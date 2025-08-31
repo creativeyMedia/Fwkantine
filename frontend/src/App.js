@@ -6121,13 +6121,6 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
       });
     }
   };
-        const response = await axios.get(`${API}/api/lunch-settings`);
-        setLunchSettings(response.data);
-      } catch (fallbackError) {
-        console.error('Fehler beim Laden der globalen Lunch-Einstellungen:', fallbackError);
-      }
-    }
-  };
 
   const startEdit = (item, currentPrice) => {
     setEditingItem(item);
