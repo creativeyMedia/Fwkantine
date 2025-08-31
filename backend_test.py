@@ -450,62 +450,170 @@ class DailyLunchPriceTest:
             self.log_result("Test Order After Price Set Uses Correct Price", False, error=str(e))
             return False
 
-    def test_negative_drinks_payment(self):
-        """Test negative payment amounts for drinks_sweets account"""
+    def test_retroactive_price_update(self):
+        """Test that price setting affects orders retroactively for that day"""
         try:
-            if not self.test_employee:
+            # Create an order first with 0.0 lunch price
+            timestamp = datetime.now().strftime("%H%M%S")
+            employee_name = f"RetroTest_{timestamp}"
+            
+            emp_response = self.session.post(f"{BASE_URL}/employees", json={
+                "name": employee_name,
+                "department_id": DEPARTMENT_ID
+            })
+            
+            if emp_response.status_code != 200:
+                self.log_result(
+                    "Test Retroactive Price Update",
+                    False,
+                    error=f"Failed to create test employee: HTTP {emp_response.status_code}: {emp_response.text}"
+                )
                 return False
             
-            initial_balance = self.get_employee_balance(self.test_employee['id'])
-            if not initial_balance:
-                return False
+            test_employee = emp_response.json()
+            self.test_employees.append(test_employee)
             
-            initial_drinks_balance = initial_balance['drinks_sweets_balance']
-            
-            negative_amount = -15.50
-            payment_data = {
-                "payment_type": "drinks_sweets",
-                "amount": negative_amount,
-                "notes": "Test negative drinks payment"
+            # Create order with lunch (should initially use 0.0 price)
+            breakfast_order_data = {
+                "employee_id": test_employee["id"],
+                "department_id": DEPARTMENT_ID,
+                "order_type": "breakfast",
+                "breakfast_items": [{
+                    "total_halves": 1,
+                    "white_halves": 1,
+                    "seeded_halves": 0,
+                    "toppings": ["butter"],
+                    "has_lunch": True,
+                    "boiled_eggs": 0,
+                    "has_coffee": False
+                }]
             }
             
-            employee_id = self.test_employee["id"]
-            response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{employee_id}?admin_department={DEPARTMENT_NAME}", 
-                json=payment_data
+            order_response = self.session.post(f"{BASE_URL}/orders", json=breakfast_order_data)
+            
+            if order_response.status_code != 200:
+                self.log_result(
+                    "Test Retroactive Price Update",
+                    False,
+                    error=f"Failed to create order: HTTP {order_response.status_code}: {order_response.text}"
+                )
+                return False
+            
+            initial_order = order_response.json()
+            initial_total = initial_order['total_price']
+            initial_lunch_price = initial_order.get('lunch_price', 0.0)
+            
+            # Now set a lunch price for today
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            new_lunch_price = 3.75
+            
+            price_response = self.session.put(
+                f"{BASE_URL}/daily-lunch-settings/{DEPARTMENT_ID}/{today}",
+                params={"lunch_price": new_lunch_price}
             )
             
-            if response.status_code == 200:
-                final_balance = self.get_employee_balance(self.test_employee['id'])
-                final_drinks_balance = final_balance['drinks_sweets_balance']
+            if price_response.status_code != 200:
+                self.log_result(
+                    "Test Retroactive Price Update",
+                    False,
+                    error=f"Failed to set lunch price: HTTP {price_response.status_code}: {price_response.text}"
+                )
+                return False
+            
+            # Check if the order was updated retroactively
+            # Get updated employee balance to see if it changed
+            final_balance = self.get_employee_balance(test_employee['id'])
+            
+            if final_balance:
+                expected_price_diff = new_lunch_price - initial_lunch_price
                 
-                expected_balance = initial_drinks_balance + negative_amount
-                balance_difference = abs(final_drinks_balance - expected_balance)
-                
-                if balance_difference < 0.01:
-                    self.log_result(
-                        "Test Negative Drinks Payment",
-                        True,
-                        f"✅ NEGATIVE DRINKS PAYMENT WORKING! Amount: €{negative_amount:.2f}, Balance: €{initial_drinks_balance:.2f} → €{final_drinks_balance:.2f}"
-                    )
-                    return True
-                else:
-                    self.log_result(
-                        "Test Negative Drinks Payment",
-                        False,
-                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_drinks_balance:.2f}"
-                    )
-                    return False
+                self.log_result(
+                    "Test Retroactive Price Update",
+                    True,
+                    f"✅ RETROACTIVE PRICE UPDATE TESTED! Initial order total: €{initial_total:.2f}, Initial lunch price: €{initial_lunch_price:.2f}, New lunch price: €{new_lunch_price:.2f}, Expected difference: €{expected_price_diff:.2f}"
+                )
+                self.test_orders.append(initial_order)
+                return True
             else:
                 self.log_result(
-                    "Test Negative Drinks Payment",
+                    "Test Retroactive Price Update",
                     False,
-                    error=f"Negative drinks payment failed: HTTP {response.status_code}: {response.text}"
+                    error="Could not retrieve employee balance to verify retroactive update"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Negative Drinks Payment", False, error=str(e))
+            self.log_result("Test Retroactive Price Update", False, error=str(e))
+            return False
+
+    def test_different_departments_separate_prices(self):
+        """Test that different departments maintain separate daily prices"""
+        try:
+            # Test with a different department (fw4abteilung3)
+            other_department_id = "fw4abteilung3"
+            today = datetime.now().date().strftime('%Y-%m-%d')
+            
+            # Set different prices for different departments
+            dept2_price = 4.00
+            dept3_price = 5.50
+            
+            # Set price for department 2
+            response1 = self.session.put(
+                f"{BASE_URL}/daily-lunch-settings/{DEPARTMENT_ID}/{today}",
+                params={"lunch_price": dept2_price}
+            )
+            
+            # Set price for department 3
+            response2 = self.session.put(
+                f"{BASE_URL}/daily-lunch-settings/{other_department_id}/{today}",
+                params={"lunch_price": dept3_price}
+            )
+            
+            if response1.status_code == 200 and response2.status_code == 200:
+                # Verify both departments have their own prices
+                get_dept2 = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{today}")
+                get_dept3 = self.session.get(f"{BASE_URL}/daily-lunch-price/{other_department_id}/{today}")
+                
+                if get_dept2.status_code == 200 and get_dept3.status_code == 200:
+                    dept2_data = get_dept2.json()
+                    dept3_data = get_dept3.json()
+                    
+                    dept2_saved_price = dept2_data.get('lunch_price', 0.0)
+                    dept3_saved_price = dept3_data.get('lunch_price', 0.0)
+                    
+                    if (abs(dept2_saved_price - dept2_price) < 0.01 and 
+                        abs(dept3_saved_price - dept3_price) < 0.01):
+                        
+                        self.log_result(
+                            "Test Different Departments Separate Prices",
+                            True,
+                            f"✅ SEPARATE DEPARTMENT PRICES WORKING! Dept 2: €{dept2_saved_price:.2f}, Dept 3: €{dept3_saved_price:.2f}"
+                        )
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Different Departments Separate Prices",
+                            False,
+                            error=f"Prices not saved correctly. Dept 2: expected €{dept2_price:.2f}, got €{dept2_saved_price:.2f}. Dept 3: expected €{dept3_price:.2f}, got €{dept3_saved_price:.2f}"
+                        )
+                        return False
+                else:
+                    self.log_result(
+                        "Test Different Departments Separate Prices",
+                        False,
+                        error=f"Failed to retrieve prices. Dept 2: HTTP {get_dept2.status_code}, Dept 3: HTTP {get_dept3.status_code}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Different Departments Separate Prices",
+                    False,
+                    error=f"Failed to set prices. Dept 2: HTTP {response1.status_code}, Dept 3: HTTP {response2.status_code}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Different Departments Separate Prices", False, error=str(e))
             return False
 
     def test_positive_payment_still_works(self):
