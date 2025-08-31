@@ -616,62 +616,79 @@ class DailyLunchPriceTest:
             self.log_result("Test Different Departments Separate Prices", False, error=str(e))
             return False
 
-    def test_positive_payment_still_works(self):
-        """Verify that positive payment amounts still work correctly"""
+    def test_backward_compatibility(self):
+        """Test that existing functionality is not broken"""
         try:
-            if not self.test_employee:
-                return False
-            
-            initial_balance = self.get_employee_balance(self.test_employee['id'])
-            if not initial_balance:
-                return False
-            
-            initial_breakfast_balance = initial_balance['breakfast_balance']
-            
-            positive_amount = 25.00
-            payment_data = {
-                "payment_type": "breakfast",
-                "amount": positive_amount,
-                "notes": "Test positive payment"
-            }
-            
-            employee_id = self.test_employee["id"]
-            response = self.session.post(
-                f"{BASE_URL}/department-admin/flexible-payment/{employee_id}?admin_department={DEPARTMENT_NAME}", 
-                json=payment_data
-            )
+            # Test that we can still get lunch settings (global fallback)
+            response = self.session.get(f"{BASE_URL}/lunch-settings")
             
             if response.status_code == 200:
-                final_balance = self.get_employee_balance(self.test_employee['id'])
-                final_breakfast_balance = final_balance['breakfast_balance']
+                settings = response.json()
                 
-                expected_balance = initial_breakfast_balance + positive_amount
-                balance_difference = abs(final_breakfast_balance - expected_balance)
-                
-                if balance_difference < 0.01:
+                # Verify basic fields exist
+                if 'price' in settings and 'enabled' in settings:
                     self.log_result(
-                        "Test Positive Payment Still Works",
+                        "Test Backward Compatibility",
                         True,
-                        f"✅ POSITIVE PAYMENT WORKING! Amount: €{positive_amount:.2f}, Balance: €{initial_breakfast_balance:.2f} → €{final_breakfast_balance:.2f}"
+                        f"✅ BACKWARD COMPATIBILITY VERIFIED! Global lunch settings accessible: price=€{settings.get('price', 0):.2f}, enabled={settings.get('enabled', False)}"
                     )
                     return True
                 else:
                     self.log_result(
-                        "Test Positive Payment Still Works",
+                        "Test Backward Compatibility",
                         False,
-                        error=f"Balance calculation incorrect. Expected: €{expected_balance:.2f}, Actual: €{final_breakfast_balance:.2f}"
+                        error=f"Missing expected fields in lunch settings: {list(settings.keys())}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test Positive Payment Still Works",
+                    "Test Backward Compatibility",
                     False,
-                    error=f"Positive payment failed: HTTP {response.status_code}: {response.text}"
+                    error=f"Failed to get lunch settings: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Positive Payment Still Works", False, error=str(e))
+            self.log_result("Test Backward Compatibility", False, error=str(e))
+            return False
+
+    def test_date_edge_cases(self):
+        """Test behavior with date transitions and edge cases"""
+        try:
+            # Test with various date formats and edge cases
+            test_dates = [
+                datetime.now().date().strftime('%Y-%m-%d'),  # Today
+                (datetime.now().date() + timedelta(days=1)).strftime('%Y-%m-%d'),  # Tomorrow
+                (datetime.now().date() - timedelta(days=1)).strftime('%Y-%m-%d'),  # Yesterday
+            ]
+            
+            success_count = 0
+            
+            for test_date in test_dates:
+                response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{test_date}")
+                
+                if response.status_code == 200:
+                    price_data = response.json()
+                    if 'lunch_price' in price_data and 'date' in price_data:
+                        success_count += 1
+            
+            if success_count == len(test_dates):
+                self.log_result(
+                    "Test Date Edge Cases",
+                    True,
+                    f"✅ DATE EDGE CASES WORKING! Successfully tested {success_count}/{len(test_dates)} dates: {test_dates}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Test Date Edge Cases",
+                    False,
+                    error=f"Only {success_count}/{len(test_dates)} date tests passed"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Date Edge Cases", False, error=str(e))
             return False
 
     def test_sponsoring_payment_log_creation(self):
