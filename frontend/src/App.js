@@ -1451,7 +1451,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                {category === 'breakfast' && 'Frühstück'}
+                {category === 'breakfast' && 'Frühstück/Mittag'}
                 {category === 'drinks' && 'Getränke'}
                 {category === 'sweets' && 'Süßes'}
               </button>
