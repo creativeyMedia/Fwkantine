@@ -413,80 +413,58 @@ class SponsorStatusFunctionalityTest:
             self.log_result("Test Sponsor Status After Lunch Sponsoring", False, error=str(e))
             return False
 
-    def test_edge_cases(self):
-        """Test edge cases: negative prices, zero prices, decimal prices"""
+    def test_error_handling(self):
+        """Test error handling for sponsor status endpoint"""
         try:
-            edge_case_results = []
+            error_test_results = []
             
-            # Test 1: Negative price (should be rejected)
-            response1 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       params={"price": -0.50})
+            # Test 1: Invalid date format
+            response1 = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/{DEPARTMENT_ID}/invalid-date")
             if response1.status_code == 400:
-                edge_case_results.append("Negative eggs price rejected ✓")
+                error_test_results.append("Invalid date format rejected ✓")
             else:
-                edge_case_results.append(f"Negative eggs price not rejected (HTTP {response1.status_code}) ✗")
+                error_test_results.append(f"Invalid date format not rejected (HTTP {response1.status_code}) ✗")
             
-            # Test 2: Negative coffee price (should be rejected)
-            response2 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       params={"price": -1.00})
-            if response2.status_code == 400:
-                edge_case_results.append("Negative coffee price rejected ✓")
+            # Test 2: Non-existent department
+            response2 = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/nonexistent_dept/2025-01-01")
+            if response2.status_code in [400, 404]:
+                error_test_results.append("Non-existent department handled ✓")
             else:
-                edge_case_results.append(f"Negative coffee price not rejected (HTTP {response2.status_code}) ✗")
+                error_test_results.append(f"Non-existent department not handled (HTTP {response2.status_code}) ✗")
             
-            # Test 3: Zero price (should be allowed)
-            response3 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       params={"price": 0.0})
+            # Test 3: Future date (should still work but return null values)
+            future_date = (datetime.now().date() + timedelta(days=30)).isoformat()
+            response3 = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/{DEPARTMENT_ID}/{future_date}")
             if response3.status_code == 200:
-                edge_case_results.append("Zero eggs price allowed ✓")
+                data = response3.json()
+                if data.get("breakfast_sponsored") is None and data.get("lunch_sponsored") is None:
+                    error_test_results.append("Future date returns null values ✓")
+                else:
+                    error_test_results.append("Future date doesn't return null values ✗")
             else:
-                edge_case_results.append(f"Zero eggs price rejected (HTTP {response3.status_code}) ✗")
-            
-            # Test 4: Zero coffee price (should be allowed)
-            response4 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       params={"price": 0.0})
-            if response4.status_code == 200:
-                edge_case_results.append("Zero coffee price allowed ✓")
-            else:
-                edge_case_results.append(f"Zero coffee price rejected (HTTP {response4.status_code}) ✗")
-            
-            # Test 5: Decimal price (should be allowed)
-            response5 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price", 
-                                       params={"price": 0.75})
-            if response5.status_code == 200:
-                edge_case_results.append("Decimal eggs price (0.75) allowed ✓")
-            else:
-                edge_case_results.append(f"Decimal eggs price rejected (HTTP {response5.status_code}) ✗")
-            
-            # Test 6: Decimal coffee price (should be allowed)
-            response6 = self.session.put(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                       params={"price": 2.25})
-            if response6.status_code == 200:
-                edge_case_results.append("Decimal coffee price (2.25) allowed ✓")
-            else:
-                edge_case_results.append(f"Decimal coffee price rejected (HTTP {response6.status_code}) ✗")
+                error_test_results.append(f"Future date request failed (HTTP {response3.status_code}) ✗")
             
             # Count successes
-            successful_tests = sum(1 for result in edge_case_results if "✓" in result)
-            total_tests = len(edge_case_results)
+            successful_tests = sum(1 for result in error_test_results if "✓" in result)
+            total_tests = len(error_test_results)
             
-            if successful_tests >= 4:  # At least 4/6 edge cases should work correctly
+            if successful_tests >= 2:  # At least 2/3 error cases should work correctly
                 self.log_result(
-                    "Test Edge Cases",
+                    "Test Error Handling",
                     True,
-                    f"✅ EDGE CASES SUCCESS! {successful_tests}/{total_tests} tests passed: {', '.join(edge_case_results)}"
+                    f"✅ ERROR HANDLING SUCCESS! {successful_tests}/{total_tests} tests passed: {', '.join(error_test_results)}"
                 )
                 return True
             else:
                 self.log_result(
-                    "Test Edge Cases",
+                    "Test Error Handling",
                     False,
-                    error=f"Edge cases failed: {successful_tests}/{total_tests} tests passed: {', '.join(edge_case_results)}"
+                    error=f"Error handling failed: {successful_tests}/{total_tests} tests passed: {', '.join(error_test_results)}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test Edge Cases", False, error=str(e))
+            self.log_result("Test Error Handling", False, error=str(e))
             return False
     
     # ========================================
