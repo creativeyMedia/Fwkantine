@@ -773,6 +773,6 @@ class NegativePaymentAmountsTest:
             return False
 
 if __name__ == "__main__":
-    tester = CriticalSponsoringBugFixTest()
-    success = tester.run_critical_bug_fix_tests()
+    tester = NegativePaymentAmountsTest()
+    success = tester.run_negative_payment_tests()
     sys.exit(0 if success else 1)
