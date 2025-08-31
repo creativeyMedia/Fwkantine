@@ -2669,9 +2669,8 @@ async def update_order(order_id: str, order_update: dict):
                     if daily_price:
                         lunch_price = daily_price["lunch_price"]
                     else:
-                        # Fall back to global lunch settings
-                        lunch_settings = await db.lunch_settings.find_one({}) or {"price": 0.0}
-                        lunch_price = lunch_settings["price"]
+                        # NEW: Default to 0.0 for new days - admin must set price manually each day
+                        lunch_price = 0.0
                     
                     # Lunch price should be added once per order, not multiplied by roll halves
                     total_price += lunch_price
