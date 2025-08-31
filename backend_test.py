@@ -340,7 +340,7 @@ class SponsoringFunctionalityTest:
             self.log_result("Test Sponsoring With No Own Order", False, error=str(e))
             return False
 
-    def test_order_with_lunch_uses_zero_price(self):
+    def test_sponsoring_error_recovery(self):
         """Test creating breakfast orders with lunch on a new day uses 0.0 price"""
         try:
             if not self.test_employee:
