@@ -5254,6 +5254,29 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     }
   };
 
+  const fetchSponsorStatusForDays = async (days) => {
+    try {
+      const statusPromises = days.map(day => 
+        axios.get(`${API}/department-admin/sponsor-status/${currentDepartment.department_id}/${day.date}`)
+          .then(response => ({ date: day.date, status: response.data }))
+          .catch(error => {
+            console.error(`Fehler beim Laden des Sponsor-Status für ${day.date}:`, error);
+            return { date: day.date, status: { breakfast_sponsored: null, lunch_sponsored: null } };
+          })
+      );
+      
+      const statusResults = await Promise.all(statusPromises);
+      const statusMap = {};
+      statusResults.forEach(result => {
+        statusMap[result.date] = result.status;
+      });
+      
+      setDailySponsorStatus(statusMap);
+    } catch (error) {
+      console.error('Fehler beim Laden der Sponsor-Stati:', error);
+    }
+  };
+
   const deleteBreakfastDay = async (date) => {
     if (window.confirm(`Alle Frühstücks-Bestellungen für ${formatDate(date)} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und wird die Mitarbeiter-Salden entsprechend anpassen.`)) {
       try {
