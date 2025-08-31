@@ -496,18 +496,18 @@ class BreakfastHistoryFunctionalityTest:
             print(f"Error getting employee balance: {e}")
             return None
 
-    def run_sponsoring_tests(self):
-        """Run all corrected sponsoring functionality tests"""
-        print("🎯 STARTING COMPREHENSIVE CORRECTED SPONSORING FUNCTIONALITY TESTING")
+    def run_breakfast_history_tests(self):
+        """Run all breakfast-history functionality tests"""
+        print("🎯 STARTING COMPREHENSIVE BREAKFAST-HISTORY FUNCTIONALITY TESTING")
         print("=" * 80)
-        print("Testing the corrected sponsoring functionality:")
+        print("Testing the corrected breakfast-history functionality after fixing duplicate function name bug:")
         print("")
         print("**TESTING FOCUS:**")
-        print("1. ✅ Test sponsoring with sponsor who has no own order")
-        print("2. ✅ Test sponsoring error recovery")
-        print("3. ✅ Test normal sponsoring (sponsor with own order)")
-        print("4. ✅ Test 'already sponsored' prevention")
-        print("5. ✅ Test atomic transaction behavior")
+        print("1. ✅ Test breakfast-history endpoint")
+        print("2. ✅ Test admin breakfast-history endpoint")
+        print("3. ✅ Test sponsored meal display in history")
+        print("4. ✅ Test function name conflict resolution")
+        print("5. ✅ Test breakfast overview data correctness")
         print("")
         print(f"DEPARTMENT: {DEPARTMENT_NAME} (ID: {DEPARTMENT_ID})")
         print("=" * 80)
@@ -524,51 +524,44 @@ class BreakfastHistoryFunctionalityTest:
             return False
         tests_passed += 1
         
-        # Cleanup test data
-        print("\n🧹 CLEANUP TEST DATA")
+        # Test breakfast-history endpoint
+        print("\n📊 TEST BREAKFAST-HISTORY ENDPOINT")
         print("-" * 50)
         
-        if self.cleanup_test_data():
+        if self.test_breakfast_history_endpoint():
             tests_passed += 1
         
-        # Test sponsoring with no own order
-        print("\n🎯 TEST SPONSORING WITH NO OWN ORDER")
+        # Test admin breakfast-history endpoint
+        print("\n👨‍💼 TEST ADMIN BREAKFAST-HISTORY ENDPOINT")
         print("-" * 50)
         
-        if self.test_sponsoring_with_no_own_order():
+        if self.test_admin_breakfast_history_endpoint():
             tests_passed += 1
         
-        # Test sponsoring error recovery
-        print("\n🛡️ TEST SPONSORING ERROR RECOVERY")
+        # Test sponsored meal display in history
+        print("\n🎁 TEST SPONSORED MEAL DISPLAY IN HISTORY")
         print("-" * 50)
         
-        if self.test_sponsoring_error_recovery():
+        if self.test_sponsored_meal_display_in_history():
             tests_passed += 1
         
-        # Test normal sponsoring with own order
-        print("\n👥 TEST NORMAL SPONSORING WITH OWN ORDER")
+        # Test function name conflict resolution
+        print("\n🔧 TEST FUNCTION NAME CONFLICT RESOLUTION")
         print("-" * 50)
         
-        if self.test_normal_sponsoring_with_own_order():
+        if self.test_function_name_conflict_resolution():
             tests_passed += 1
         
-        # Test already sponsored prevention
-        print("\n🚫 TEST ALREADY SPONSORED PREVENTION")
+        # Test breakfast overview data correctness
+        print("\n🍳 TEST BREAKFAST OVERVIEW DATA CORRECTNESS")
         print("-" * 50)
         
-        if self.test_already_sponsored_prevention():
-            tests_passed += 1
-        
-        # Test atomic transaction behavior
-        print("\n⚛️ TEST ATOMIC TRANSACTION BEHAVIOR")
-        print("-" * 50)
-        
-        if self.test_atomic_transaction_behavior():
+        if self.test_breakfast_overview_data_correctness():
             tests_passed += 1
         
         # Print summary
         print("\n" + "=" * 80)
-        print("🎯 CORRECTED SPONSORING FUNCTIONALITY TESTING SUMMARY")
+        print("🎯 BREAKFAST-HISTORY FUNCTIONALITY TESTING SUMMARY")
         print("=" * 80)
         
         success_rate = (tests_passed / total_tests) * 100
@@ -584,17 +577,17 @@ class BreakfastHistoryFunctionalityTest:
         
         feature_working = tests_passed >= 5  # At least 83% success rate
         
-        print(f"\n🎯 CORRECTED SPONSORING FUNCTIONALITY RESULT:")
+        print(f"\n🎯 BREAKFAST-HISTORY FUNCTIONALITY RESULT:")
         if feature_working:
-            print("✅ CORRECTED SPONSORING FUNCTIONALITY: SUCCESSFULLY IMPLEMENTED AND WORKING!")
-            print("   ✅ 1. Sponsor with no own order creates proper sponsoring order")
-            print("   ✅ 2. Others_count calculated correctly in all scenarios")
-            print("   ✅ 3. Error recovery prevents partial sponsoring states")
-            print("   ✅ 4. Normal sponsoring with own order works correctly")
-            print("   ✅ 5. Duplicate sponsoring prevention working")
-            print("   ✅ 6. Atomic transaction behavior verified")
+            print("✅ BREAKFAST-HISTORY FUNCTIONALITY: SUCCESSFULLY IMPLEMENTED AND WORKING!")
+            print("   ✅ 1. GET /api/orders/breakfast-history/{department_id} endpoint working")
+            print("   ✅ 2. GET /api/department-admin/breakfast-history/{department_id} endpoint working")
+            print("   ✅ 3. Sponsored meals display correctly in history")
+            print("   ✅ 4. Function name conflicts resolved - both endpoints accessible")
+            print("   ✅ 5. Breakfast overview data structure correct for frontend")
+            print("   ✅ 6. Duplicate function name bug fixed")
         else:
-            print("❌ CORRECTED SPONSORING FUNCTIONALITY: IMPLEMENTATION ISSUES DETECTED!")
+            print("❌ BREAKFAST-HISTORY FUNCTIONALITY: IMPLEMENTATION ISSUES DETECTED!")
             failed_tests = total_tests - tests_passed
             print(f"   ⚠️  {failed_tests} test(s) failed")
         
