@@ -207,63 +207,102 @@ class DailyLunchPriceTest:
             return False
     
     # ========================================
-    # PAYPAL SETTINGS TESTS
+    # DAILY LUNCH PRICE TESTS
     # ========================================
     
-    def test_get_default_paypal_settings(self):
-        """Test GET /api/department-paypal-settings/fw4abteilung2 endpoint returns default settings"""
+    def test_new_date_returns_zero_price(self):
+        """Test GET /api/daily-lunch-price/{department_id}/{date} for a new date returns 0.0"""
         try:
-            response = self.session.get(f"{BASE_URL}/department-paypal-settings/{DEPARTMENT_ID}")
+            # Test with tomorrow's date (should not exist yet)
+            tomorrow = (datetime.now().date() + timedelta(days=1)).strftime('%Y-%m-%d')
+            
+            response = self.session.get(f"{BASE_URL}/daily-lunch-price/{DEPARTMENT_ID}/{tomorrow}")
             
             if response.status_code == 200:
-                settings = response.json()
+                price_data = response.json()
                 
-                # Verify all expected fields are present
-                expected_fields = ['id', 'department_id', 'enabled', 'breakfast_enabled', 'drinks_enabled', 
-                                 'use_separate_links', 'combined_link', 'breakfast_link', 'drinks_link']
-                
-                missing_fields = [field for field in expected_fields if field not in settings]
-                
-                if not missing_fields:
-                    # Verify default values
-                    if (settings['department_id'] == DEPARTMENT_ID and
-                        settings['enabled'] == False and
-                        settings['breakfast_enabled'] == False and
-                        settings['drinks_enabled'] == False and
-                        settings['use_separate_links'] == False):
-                        
-                        self.paypal_settings = settings  # Store for later tests
-                        
-                        self.log_result(
-                            "Test GET Default PayPal Settings",
-                            True,
-                            f"✅ DEFAULT SETTINGS RETURNED! Department: {settings['department_id']}, All fields present: {list(settings.keys())}"
-                        )
-                        return True
-                    else:
-                        self.log_result(
-                            "Test GET Default PayPal Settings",
-                            False,
-                            error=f"Default values incorrect. Settings: {settings}"
-                        )
-                        return False
+                if 'lunch_price' in price_data and price_data['lunch_price'] == 0.0:
+                    self.log_result(
+                        "Test New Date Returns Zero Price",
+                        True,
+                        f"✅ NEW DATE DEFAULT PRICE CORRECT! Date: {tomorrow}, Price: €{price_data['lunch_price']:.2f} (expected 0.0)"
+                    )
+                    return True
                 else:
                     self.log_result(
-                        "Test GET Default PayPal Settings",
+                        "Test New Date Returns Zero Price",
                         False,
-                        error=f"Missing fields in response: {missing_fields}. Got: {list(settings.keys())}"
+                        error=f"Expected lunch_price: 0.0, Got: {price_data.get('lunch_price', 'missing')}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Test GET Default PayPal Settings",
+                    "Test New Date Returns Zero Price",
                     False,
                     error=f"GET request failed: HTTP {response.status_code}: {response.text}"
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Test GET Default PayPal Settings", False, error=str(e))
+            self.log_result("Test New Date Returns Zero Price", False, error=str(e))
+            return False
+
+    def test_order_with_lunch_uses_zero_price(self):
+        """Test creating breakfast orders with lunch on a new day uses 0.0 price"""
+        try:
+            if not self.test_employee:
+                return False
+            
+            # Create breakfast order with lunch (should use 0.0 price for lunch)
+            breakfast_order_data = {
+                "employee_id": self.test_employee["id"],
+                "department_id": DEPARTMENT_ID,
+                "order_type": "breakfast",
+                "breakfast_items": [{
+                    "total_halves": 2,
+                    "white_halves": 2,
+                    "seeded_halves": 0,
+                    "toppings": ["butter", "kaese"],
+                    "has_lunch": True,  # This should use 0.0 price
+                    "boiled_eggs": 0,
+                    "has_coffee": False
+                }]
+            }
+            
+            response = self.session.post(f"{BASE_URL}/orders", json=breakfast_order_data)
+            
+            if response.status_code == 200:
+                order = response.json()
+                
+                # Check if lunch_price is 0.0 or None (indicating no price set)
+                lunch_price = order.get('lunch_price', 0.0)
+                has_lunch = order.get('has_lunch', False)
+                
+                if has_lunch and lunch_price == 0.0:
+                    self.log_result(
+                        "Test Order With Lunch Uses Zero Price",
+                        True,
+                        f"✅ ORDER WITH LUNCH USES ZERO PRICE! Order ID: {order['id']}, Lunch Price: €{lunch_price:.2f}, Total: €{order['total_price']:.2f}"
+                    )
+                    self.test_orders.append(order)
+                    return True
+                else:
+                    self.log_result(
+                        "Test Order With Lunch Uses Zero Price",
+                        False,
+                        error=f"Expected lunch_price: 0.0, Got: {lunch_price}. Has lunch: {has_lunch}"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Test Order With Lunch Uses Zero Price",
+                    False,
+                    error=f"Order creation failed: HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Test Order With Lunch Uses Zero Price", False, error=str(e))
             return False
 
     def test_negative_breakfast_payment(self):
