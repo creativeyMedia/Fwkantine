@@ -5919,7 +5919,19 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
 
 // Main App Component
 function App() {
-  const { currentDepartment, isDepartmentAdmin } = React.useContext(AuthContext);
+  const { currentDepartment, isDepartmentAdmin, isInitializing } = React.useContext(AuthContext);
+
+  // Show loading screen while initializing from localStorage
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Lade Anwendung...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isDepartmentAdmin) {
     return <DepartmentAdminDashboard />;
