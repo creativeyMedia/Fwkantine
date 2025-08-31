@@ -136,56 +136,58 @@ class SponsorStatusFunctionalityTest:
             return True
     
     # ========================================
-    # DEPARTMENT-SPECIFIC PRICING FUNCTIONALITY TESTS
+    # SPONSOR STATUS FUNCTIONALITY TESTS
     # ========================================
     
-    def test_get_boiled_eggs_price_default(self):
-        """Test GET /api/department-settings/{department_id}/boiled-eggs-price with default values"""
+    def test_sponsor_status_clean_date(self, test_date):
+        """Test sponsor status endpoint for clean date (no sponsoring yet)"""
         try:
-            # Test getting boiled eggs price (should return default 0.50 if no settings exist)
-            response = self.session.get(f"{BASE_URL}/department-settings/{DEPARTMENT_ID}/boiled-eggs-price")
+            response = self.session.get(f"{BASE_URL}/department-admin/sponsor-status/{DEPARTMENT_ID}/{test_date}")
             
             if response.status_code == 200:
                 response_data = response.json()
                 
                 # Verify response structure
-                if isinstance(response_data, dict) and "boiled_eggs_price" in response_data:
-                    price = response_data["boiled_eggs_price"]
-                    department_id = response_data.get("department_id")
+                expected_keys = ["department_id", "date", "breakfast_sponsored", "lunch_sponsored"]
+                if all(key in response_data for key in expected_keys):
+                    department_id = response_data["department_id"]
+                    date = response_data["date"]
+                    breakfast_sponsored = response_data["breakfast_sponsored"]
+                    lunch_sponsored = response_data["lunch_sponsored"]
                     
-                    # Check if it's the expected default or a valid price
-                    if isinstance(price, (int, float)) and price >= 0:
+                    # For clean date, both should be null
+                    if breakfast_sponsored is None and lunch_sponsored is None:
                         self.log_result(
-                            "Test GET Boiled Eggs Price Default",
+                            "Test Sponsor Status Clean Date",
                             True,
-                            f"✅ GET BOILED EGGS PRICE SUCCESS! Department: {department_id}, Price: €{price:.2f}. Response structure valid with proper JSON format."
+                            f"✅ SPONSOR STATUS CLEAN DATE SUCCESS! Department: {department_id}, Date: {date}, Breakfast: {breakfast_sponsored}, Lunch: {lunch_sponsored}. Proper structure with null values for clean date."
                         )
-                        return True, price
+                        return True
                     else:
                         self.log_result(
-                            "Test GET Boiled Eggs Price Default",
+                            "Test Sponsor Status Clean Date",
                             False,
-                            error=f"Invalid price value: {price} (expected non-negative number)"
+                            error=f"Expected null values for clean date, got breakfast_sponsored: {breakfast_sponsored}, lunch_sponsored: {lunch_sponsored}"
                         )
-                        return False, None
+                        return False
                 else:
                     self.log_result(
-                        "Test GET Boiled Eggs Price Default",
+                        "Test Sponsor Status Clean Date",
                         False,
-                        error=f"Invalid response structure. Expected dict with 'boiled_eggs_price' key, got: {response_data}"
+                        error=f"Invalid response structure. Expected keys {expected_keys}, got: {list(response_data.keys())}"
                     )
-                    return False, None
+                    return False
             else:
                 self.log_result(
-                    "Test GET Boiled Eggs Price Default",
+                    "Test Sponsor Status Clean Date",
                     False,
-                    error=f"GET boiled eggs price failed: HTTP {response.status_code}: {response.text}"
+                    error=f"GET sponsor status failed: HTTP {response.status_code}: {response.text}"
                 )
-                return False, None
+                return False
                 
         except Exception as e:
-            self.log_result("Test GET Boiled Eggs Price Default", False, error=str(e))
-            return False, None
+            self.log_result("Test Sponsor Status Clean Date", False, error=str(e))
+            return False
 
     def test_get_coffee_price_default(self):
         """Test GET /api/department-settings/{department_id}/coffee-price with default values"""
