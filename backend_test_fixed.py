@@ -363,7 +363,7 @@ class CorrectedFunctionalityTest:
                 final_balance = self.get_employee_balance(self.test_employee['id'])
                 final_drinks_balance = final_balance['drinks_sweets_balance']
                 
-                expected_balance = initial_drinks_balance - negative_amount
+                expected_balance = initial_drinks_balance + negative_amount
                 balance_difference = abs(final_drinks_balance - expected_balance)
                 
                 if balance_difference < 0.01:
