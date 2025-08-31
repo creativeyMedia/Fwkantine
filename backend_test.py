@@ -139,41 +139,51 @@ class BreakfastHistoryFunctionalityTest:
             response = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
-                history_data = response.json()
+                response_data = response.json()
                 
-                # Verify response structure
-                if isinstance(history_data, list):
-                    self.log_result(
-                        "Test Breakfast History Endpoint",
-                        True,
-                        f"✅ BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(history_data)} days of history data. Response structure is valid list format."
-                    )
+                # Verify response structure - should be dict with "history" key
+                if isinstance(response_data, dict) and "history" in response_data:
+                    history_data = response_data["history"]
                     
-                    # Check if we have data and verify structure
-                    if len(history_data) > 0:
-                        sample_day = history_data[0]
-                        expected_fields = ["date", "breakfast_summary", "employee_orders", "total_orders", "total_amount"]
+                    if isinstance(history_data, list):
+                        self.log_result(
+                            "Test Breakfast History Endpoint",
+                            True,
+                            f"✅ BREAKFAST HISTORY ENDPOINT SUCCESS! Retrieved {len(history_data)} days of history data. Response structure is valid dict with 'history' key containing list."
+                        )
                         
-                        missing_fields = [field for field in expected_fields if field not in sample_day]
-                        if not missing_fields:
-                            self.log_result(
-                                "Test Breakfast History Data Structure",
-                                True,
-                                f"✅ DATA STRUCTURE VALID! Sample day contains all expected fields: {expected_fields}"
-                            )
-                        else:
-                            self.log_result(
-                                "Test Breakfast History Data Structure",
-                                False,
-                                error=f"Missing fields in history data: {missing_fields}"
-                            )
-                    
-                    return True
+                        # Check if we have data and verify structure
+                        if len(history_data) > 0:
+                            sample_day = history_data[0]
+                            expected_fields = ["date", "breakfast_summary", "employee_orders", "total_orders", "total_amount"]
+                            
+                            missing_fields = [field for field in expected_fields if field not in sample_day]
+                            if not missing_fields:
+                                self.log_result(
+                                    "Test Breakfast History Data Structure",
+                                    True,
+                                    f"✅ DATA STRUCTURE VALID! Sample day contains all expected fields: {expected_fields}. Total amount: €{sample_day.get('total_amount', 0):.2f}, Total orders: {sample_day.get('total_orders', 0)}"
+                                )
+                            else:
+                                self.log_result(
+                                    "Test Breakfast History Data Structure",
+                                    False,
+                                    error=f"Missing fields in history data: {missing_fields}"
+                                )
+                        
+                        return True
+                    else:
+                        self.log_result(
+                            "Test Breakfast History Endpoint",
+                            False,
+                            error=f"Expected 'history' to be a list, got {type(history_data)}"
+                        )
+                        return False
                 else:
                     self.log_result(
                         "Test Breakfast History Endpoint",
                         False,
-                        error=f"Expected list response, got {type(history_data)}"
+                        error=f"Expected dict with 'history' key, got {type(response_data)} with keys: {list(response_data.keys()) if isinstance(response_data, dict) else 'N/A'}"
                     )
                     return False
             else:
