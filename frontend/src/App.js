@@ -3649,6 +3649,17 @@ const AdminDashboard = () => {
     fetchLunchSettings();
   }, []);
 
+  // Fetch sponsor status when date changes and we have employees
+  useEffect(() => {
+    if (allEmployees.length > 0 && sponsorDate) {
+      // Use the first employee's department for sponsor status
+      const firstEmployee = allEmployees[0];
+      if (firstEmployee && firstEmployee.department_id) {
+        fetchSponsorStatus(sponsorDate, firstEmployee.department_id);
+      }
+    }
+  }, [sponsorDate, allEmployees]);
+
   const fetchAllEmployees = async () => {
     try {
       // Fetch employees from all departments
