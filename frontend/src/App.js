@@ -2245,6 +2245,10 @@ const DepartmentAdminDashboard = () => {
   // Sponsoring state
   const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
   const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
+  const [sponsorStatus, setSponsorStatus] = useState({
+    breakfast_sponsored: null,
+    lunch_sponsored: null
+  });
   
   // NEW: Flexible Payment Modal State  
   const [showPaymentModal, setShowPaymentModal] = useState(false);
