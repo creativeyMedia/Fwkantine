@@ -1705,7 +1705,7 @@ async def get_daily_summary(department_id: str):
                 # The overview shows ORIGINAL orders for shopping purposes
                 # Balances and payments are handled separately
                 
-                # Update employee totals only for visible items
+                # Update employee totals - ALWAYS show original orders for shopping purposes
                 if show_breakfast:
                     employee_orders[employee_name]["white_halves"] += white_halves
                     employee_orders[employee_name]["seeded_halves"] += seeded_halves
