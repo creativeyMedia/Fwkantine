@@ -570,12 +570,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             Debug: Link = "{link}"
                           </div>
                           <a
-                            href={link.trim()}
+                            href={normalizeUrl(link)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
                             onClick={(e) => {
-                              console.log('PayPal button clicked:', link.trim());
+                              console.log('PayPal button clicked:', normalizeUrl(link));
                               // Let the default behavior handle the link opening
                             }}
                           >
