@@ -5405,28 +5405,18 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800">Gesamt Tage</h4>
-              <p className="text-2xl font-bold text-blue-600">{breakfastHistory.length}</p>
-            </div>
+          {/* Summary Statistics with Separated Revenue */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800">Gesamt Bestellungen</h4>
+              <h4 className="font-semibold text-green-800">Gesamt Umsatz Frühstück</h4>
               <p className="text-2xl font-bold text-green-600">
-                {breakfastHistory.reduce((sum, day) => sum + day.total_orders, 0)}
+                {separatedRevenue.breakfast_revenue?.toFixed(2) || '0.00'} €
               </p>
             </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h4 className="font-semibold text-purple-800">Gesamt Umsatz</h4>
-              <p className="text-2xl font-bold text-purple-600">
-                {breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0).toFixed(2)} €
-              </p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h4 className="font-semibold text-orange-800">Ø pro Tag</h4>
-              <p className="text-2xl font-bold text-orange-600">
-                {(breakfastHistory.reduce((sum, day) => sum + day.total_amount, 0) / breakfastHistory.length).toFixed(2)} €
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800">Gesamt Umsatz Mittagessen</h4>
+              <p className="text-2xl font-bold text-blue-600">
+                {separatedRevenue.lunch_revenue?.toFixed(2) || '0.00'} €
               </p>
             </div>
           </div>
