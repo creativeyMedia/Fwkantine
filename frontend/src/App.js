@@ -2524,9 +2524,8 @@ const DepartmentAdminDashboard = () => {
         `Zahler: ${result.sponsor}`
       );
 
-      // Refresh ALL data after sponsoring - employees, statistics, and sponsor status
+      // Refresh ALL data after sponsoring - employees only (sponsor status updates automatically)
       await fetchEmployees();
-      await fetchSponsorStatus();
       
       // Reset form
       setSponsorEmployeeId('');
