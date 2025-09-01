@@ -18,7 +18,7 @@ from datetime import datetime, date, timedelta
 import uuid
 
 # Configuration - Use Department 3 for fresh testing
-BASE_URL = "https://meal-tracker-49.preview.emergentagent.com/api"
+BASE_URL = "https://canteen-fire.preview.emergentagent.com/api"
 DEPARTMENT_NAME = "3. Wachabteilung"
 DEPARTMENT_ID = "fw4abteilung3"
 ADMIN_PASSWORD = "admin3"

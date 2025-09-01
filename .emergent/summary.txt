@@ -1,63 +1,80 @@
 <analysis>
-The AI engineer's trajectory showcases an iterative, problem-solving approach to a complex canteen management system. Initial efforts focused on fixing critical backend logic for meal sponsoring, ensuring correct balance adjustments, and implementing department-specific pricing for items like eggs and coffee. This required extensive modifications to  for new models and API endpoints, and numerous frontend updates in  to correctly fetch and display these dynamic prices. The process involved deep debugging of React state management, API pathing (e.g., resolving double  prefixes), and UI rendering conditions. Concurrently, several UI/UX issues were addressed, including consistent saldo color coding, label changes, and replacing native browser alerts with custom success/error modals. A significant challenge arose with order cancellation logic, where cancelled orders were incorrectly affected by price changes and prevented new bookings. The latest work involved creating a landing page, which immediately presented a CSS loading issue due to incorrect MIME type serving, indicating a server configuration problem. The engineer consistently communicated with the user, seeking clarifications and confirming fixes through testing.
+The trajectory details an iterative development process by the AI engineer focusing on a canteen management system. The engineer began by taking on a new set of user requirements covering mobile reload behavior, a sponsoring display bug, flexible payments (deposit/withdrawal), and app version display. This involved significant modifications to  and  to correctly handle state, API calls, and data persistence. Subsequent phases addressed new feature requests like PayPal integration (including backend models and frontend UI with URL normalization) and a daily lunch price reset. Throughout, the process was heavily bug-driven, with the engineer diagnosing and fixing issues such as React hook errors, backend API conflicts, incorrect data filtering in the frontend, and logic flaws in the sponsoring mechanism. The work culminated in a robust Doppel-Sponsoring-Schutz and comprehensive UI/UX refinements, with all features deemed production-ready, awaiting a user fork for further instructions.
 </analysis>
+
 <product_requirements>
-The application is a canteen management system for German fire department employees, designed to streamline meal, drink, and sweets ordering.
-**Key functional requirements and implemented features:**
-1.  **Master Password:** A universal password for developer/admin access to all dashboards.
-2.  **Order Cancellation Documentation:** Soft cancellation of orders, marked as Storniert, visible in chronological history for audit.
-3.  **Flexible Payment System:** Replaces mark as paid with free-text input. Implements separate  and  saldo accounts, allowing positive/negative balances. Gesamtschulden removed, chronological history for all transactions.
-4.  **Payment Protection:** Timestamp-based deletion lock to prevent order deletion after payment, with admin override.
-5.  **UI/UX Refinements:** Correct Brötchen dropdown, standardized date formats, updated breakfast legend, pagination in admin dashboard, unified price adjustment UI, chronological history with  signs, and consistent saldo color coding (green for positive, red for negative).
-6.  **Sponsoring Logic Correction:** Correctly credits sponsored employees' balances (setting to 0€) and debits the sponsor's balance for the full amount, ensuring all meal types are handled consistently.
-7.  **Department-specific Pricing:** Each Wachabteilung (department) can set its own prices for items like eggs and coffee, independent of other departments.
-8.  **Automatic UI Updates:** Prices and balances in the Admin Dashboard and employee views should refresh automatically after changes like sponsoring or price adjustments.
-9.  **Custom Modals for Feedback:** Replace standard browser  for price updates and payments with custom success/error notification modals.
-10. **Landing Page:** A modern, responsive one-page promotional website with features, screenshots, and an email contact form.
+The application is a canteen management system for German fire department employees, streamlining meal, drink, and sweets ordering. Key functional requirements and implemented features include:
+
+1.  **Core Functionality**: Master Password, Order Cancellation Documentation, Flexible Payment System (with separate accounts and chronological history), Payment Protection, and UI/UX Refinements (e.g., consistent saldo colors, pagination, custom modals).
+2.  **Sponsoring Logic Correction**: Correctly credits sponsored employees and debits sponsors for all meal types, ensuring visibility of sponsored meals in the overview (not disappearing).
+3.  **Department-specific Pricing**: Ability for each department to set its own prices for items like eggs and coffee.
+4.  **Automatic UI Updates**: Prices and balances refresh automatically after changes.
+5.  **Custom Modals**: Replace  with custom success/error notifications.
+6.  **Landing Page**: A modern, responsive promotional website (creation initiated, but CSS loading issue pending).
+7.  **Mobile Reload Behavior**: Application should remember the last department/dashboard and not reset to the global start screen upon reload.
+8.  **Ein-/Auszahlung Extension**: Allow negative amounts for withdrawals in the admin dashboard, with corresponding display changes.
+9.  **App Version Display**: Show App-Version 1.1.2 in the Admin Dashboard under department information.
+10. **PayPal Integration**: Add Pay with PayPal buttons to the employee dashboard, configurable by admins with separate or combined links for breakfast/drinks, including URL normalization.
+11. **Daily Lunch Price Reset**: Initialize the daily lunch price to 0€ at the start of a new day, without affecting previous days.
+12. **UI/UX Refinements**: Körnerbrötchen crossed out on sponsoring, move Abteilungs-Information below PayPal settings, change Frühstück tab to Frühstück/Mittag, and auto-scroll to top on page/tab change.
+13. **Sponsoring Robustness**: Support for sponsors without own orders, prevent already sponsored message on failed attempts.
+14. **Database & Support Info**: Add daily backup details and support contact email to Abteilungs-Information.
+15. **Double Sponsoring Prevention**: Block Ausgeben buttons in the UI if a meal (breakfast/lunch) has already been sponsored for the day, showing who sponsored it.
 </product_requirements>
+
 <key_technical_concepts>
--   **Full-stack Architecture:** React (frontend), FastAPI (backend), MongoDB (database).
--   **Environment Variables:** Strict usage (, , ).
--   **API Routing:**  prefix for backend endpoints, handled by Apache2.
--   **Multi-Tenant Architecture:** Department-specific data management.
--   **Frontend State Management:** ,  for UI logic.
--   **Deployment:** yarn run v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. for React,  for services, Apache2 for serving.
+-   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
+-   **Environment Variables**: , , .
+-   **API Routing**:  prefix for backend, handled by Kubernetes ingress.
+-   **Frontend State Management**: , ,  for global state and persistence (localStorage).
+-   **Backend Data Models**: Pydantic models for FastAPI, MongoDB collections.
+-   **URL Normalization**: Frontend logic to ensure  prefix for external links.
 </key_technical_concepts>
+
 <code_architecture>
 
 
 -   ****:
-    -   **Importance**: Core API logic, database interactions, and business rules.
-    -   **Changes**:
-        *   **Sponsoring Logic**: Corrected logic for meal sponsoring (employees credited, sponsor debited correctly).
-        *   **Department-Specific Prices**: Implemented  model and new API endpoints (, ) to manage department-level prices.
-        *   **Lunch Price Adjustment**: Fixed a critical bug where price changes for lunch incorrectly calculated balance adjustments; reversed the  sign for correct debit/credit.
-        *   **Cancellation Logic**: Modified order creation and lunch price adjustment queries to explicitly exclude cancelled orders () to prevent data inconsistencies.
+    -   **Importance**: Core API logic, database interactions, business rules.
+    -   **Changes Summary**:
+        *   **Department-Specific Prices**: Added GET endpoints for  and  to fetch department-specific prices.
+        *   **Sponsoring Logic**: Corrected  variable definition to handle sponsors without personal orders. Modified  to create  entries and ensure  flags are updated atomically at the end of successful sponsorship.
+        *   **Flexible Payments**: Adjusted  creation for negative amounts to correctly display Auszahlung.
+        *   **Daily Lunch Price**: Modified  and order processing logic to default to 0€ if no specific price is set for the day.
+        *   **API Conflict Resolution**: Renamed  (admin version) to  to resolve a function name conflict.
+        *   **Sponsor Status API**: Added new endpoint  to retrieve sponsoring status.
+        *   **PayPal Settings**: Introduced  model and CRUD API endpoints () to manage department-specific PayPal links and activation flags.
+        *   **Breakfast History Logic**: Corrected logic in  to ensure  is  for sponsored meals for purchasing visibility.
 -   ****:
     -   **Importance**: Main React application, handles UI, state, and API calls.
-    -   **Changes**:
-        *   **UI/UX**: Standardized negative saldo colors to red, positive to green. Changed Frühstück Saldo to Frühstück/Mittag Saldo. Removed Gesamt Schulden and Gesamt Bestellungen from admin employee views.
-        *   **Auto-Update**: Added  in  to refetch employee data when the 'employees' tab is activated, ensuring balances update.
-        *   **Department-Specific Prices**:
-            *   Updated  in  and  to fetch prices from department-specific endpoints.
-            *   Fixed multiple issues with : removed default parameters, removed / fallbacks, introduced a loading state, and corrected a critical  variable definition to prevent double  prefixes in URLs.
-        *   **Custom Modals**: Integrated  modals to replace browser  for price updates (Ei/Kaffee, Brötchen, Toppings, Getränke, Süßigkeiten) and flexible payments across , , and . Adjusted auto-close to 1 second.
-        *   **Cancellation Logic**: Filtered out cancelled orders from  and  functions to ensure forms are not pre-filled with cancelled data and new orders can be placed.
+    -   **Changes Summary**:
+        *   **Reload Behavior**: Implemented  to persist department/dashboard selection on reload. Removed overscroll-behavior.
+        *   **Sponsoring Display**: Modified  to include sponsored employees even if they have no other items. Ensured Körnerbrötchen are crossed out like other rolls.
+        *   **Flexible Payments UI**: Updated  to allow negative inputs and changed button text to Ein-/Auszahlung. Changed display of payment type in history (💰 Einzahlung / 💸 Auszahlung) with color coding.
+        *   **App Version**: Added App-Version 1.1.2 to department info and moved info block.
+        *   **PayPal Integration**: Created  for admin configuration (links, enable/disable per account, combined/separate links). Added  utility. Integrated PayPal buttons into  with conditional rendering and live URL preview. Corrected API usage for  constant.
+        *   **Daily Lunch Price UI**: Updated  to display Nicht gesetzt when lunch price is 0€ or not set.
+        *   **Tab Renaming**: Changed Frühstück tab to Frühstück/Mittag in the order mask.
+        *   **Auto-Scroll**: Added  on page/tab changes for better UX.
+        *   **Sponsoring UI Blocking**: Implemented logic in , , and  to fetch sponsor status and block sponsoring dropdowns/buttons with an orange warning if a meal is already sponsored, showing the sponsor's name.
+        *   **Department Info**: Extended  with Backup and Support details.
+        *   **Bug Fix**: Corrected React Hook error in  by using  outside the function body.
 -   ****:
-    -   **Importance**: New directory for the promotional one-page landing site.
-    -   **Files**: , , , . These were created but CSS loading issue is currently pending.
+    -   **Importance**: New directory for a promotional one-page landing site.
+    -   **Files**: , , , .
+    -   **Changes**: Initial creation, but a CSS loading issue ( MIME type error) was pending from before this trajectory.
 </code_architecture>
+
 <pending_tasks>
--   **Landing Page CSS Loading:** The  for the newly created landing page is not loading due to a MIME type error, indicating a server configuration or file path issue.
+-   **Landing Page CSS Loading**: The  for the newly created landing page is not loading due to a MIME type error, indicating a server configuration or file path issue. This task was pending before the current development cycle and was not addressed within this trajectory.
 </pending_tasks>
+
 <current_work>
-Immediately before this summary request, the AI engineer was working on integrating a newly created one-page landing page (consisting of , , ,  in ) into the main GitHub repository. The user then reported that the CSS for this landing page was not loading.
+Immediately before this summary request, the AI engineer successfully implemented and verified the Doppel-Sponsoring-Schutz feature across all relevant administration dashboards. This feature prevents accidental double-sponsoring of meals by dynamically checking the sponsoring status for a given date and meal type. If a meal (breakfast or lunch) has already been sponsored, the UI elements (dropdowns, buttons) for sponsoring that specific meal are blocked, and an informative message is displayed, including the name of the employee who already sponsored it. This was implemented in the , , and the .
 
-Upon investigation (Chat 706-712), the console logs showed a critical error:
-
-This error indicates that the web server (likely Apache, given previous configurations) is serving the  file with an incorrect MIME type (as  instead of ). This usually happens when the server cannot find the specified CSS file at the requested URL or is misconfigured to handle  files. The AI engineer has identified this as the current blocking issue.
+The backend was extended with a new API endpoint () to provide this status. The frontend now fetches this status dynamically and uses conditional rendering to update the UI accordingly. After resolving an issue where the  buttons were not initially blocked, the feature is now fully functional and provides immediate visual feedback to the administrator. The user has acknowledged that the application is in a gut funktionierende verson mti noch kleinen bug und anpassungen and plans to fork the repository before giving new instructions. All features requested within this trajectory have been implemented and validated by the AI engineer through backend testing.
 </current_work>
+
 <optional_next_step>
-Waiting for new prompts
+Wait for the user to perform the fork and provide new instructions for any remaining bugs or future enhancements.
 </optional_next_step>
