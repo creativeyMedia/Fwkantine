@@ -1685,61 +1685,71 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     if order.get("is_sponsored") and not order.get("is_sponsor_order"):
                         # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
                         # BUT KEEP THE EMPLOYEE IN THE STATISTICS FOR SHOPPING LIST!
-                        if order.get("sponsored_meal_type") == "breakfast":
-                            # For breakfast sponsoring: only rolls + eggs are sponsored, coffee + lunch remain
+                        
+                        sponsored_meal_types = order.get("sponsored_meal_type", "")
+                        if sponsored_meal_types:
+                            # Handle comma-separated meal types (e.g., "breakfast,lunch")
+                            sponsored_types_list = sponsored_meal_types.split(",")
                             order_total_cost = order.get("total_price", 0)
-                            # Calculate the sponsored breakfast cost (rolls + eggs) 
-                            sponsored_breakfast_cost = 0
-                            for item in order.get("breakfast_items", []):
-                                # Calculate actual breakfast items cost (rolls + eggs)
-                                white_halves = item.get("white_halves", 0)
-                                seeded_halves = item.get("seeded_halves", 0)
-                                boiled_eggs = item.get("boiled_eggs", 0)
-                                
-                                # Get menu prices (use defaults if not found)
-                                white_roll_price = 0.50  # Default
-                                seeded_roll_price = 0.60  # Default
-                                
-                                # Try to get actual department prices
-                                try:
-                                    white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                                    if white_menu:
-                                        white_roll_price = white_menu.get("price", 0.50)
-                                    
-                                    seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                                    if seeded_menu:
-                                        seeded_roll_price = seeded_menu.get("price", 0.60)
-                                except:
-                                    pass  # Use defaults
-                                
-                                # Calculate sponsored breakfast cost
-                                sponsored_breakfast_cost += (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price)
-                                
-                                # Add eggs cost
-                                if boiled_eggs > 0:
-                                    department_prices = await get_department_prices(department_id)
-                                    eggs_price = department_prices["boiled_eggs_price"]
-                                    sponsored_breakfast_cost += boiled_eggs * eggs_price
+                            remaining_cost = order_total_cost
                             
-                            # Employee pays: total_cost - sponsored_breakfast_cost
-                            order_amount = max(0, order_total_cost - sponsored_breakfast_cost)
-                        elif order.get("sponsored_meal_type") == "lunch":
-                            # Breakfast costs remain for lunch sponsoring
+                            # Subtract breakfast cost if sponsored
+                            if "breakfast" in sponsored_types_list:
+                                sponsored_breakfast_cost = 0
+                                for item in order.get("breakfast_items", []):
+                                    # Calculate actual breakfast items cost (rolls + eggs)
+                                    white_halves = item.get("white_halves", 0)
+                                    seeded_halves = item.get("seeded_halves", 0)
+                                    boiled_eggs = item.get("boiled_eggs", 0)
+                                    
+                                    # Get menu prices (use defaults if not found)
+                                    white_roll_price = 0.50  # Default
+                                    seeded_roll_price = 0.60  # Default
+                                    
+                                    # Try to get actual department prices
+                                    try:
+                                        white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                                        if white_menu:
+                                            white_roll_price = white_menu.get("price", 0.50)
+                                        
+                                        seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                                        if seeded_menu:
+                                            seeded_roll_price = seeded_menu.get("price", 0.60)
+                                    except:
+                                        pass  # Use defaults
+                                    
+                                    # Calculate sponsored breakfast cost
+                                    sponsored_breakfast_cost += (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price)
+                                    
+                                    # Add eggs cost
+                                    if boiled_eggs > 0:
+                                        department_prices = await get_department_prices(department_id)
+                                        eggs_price = department_prices["boiled_eggs_price"]
+                                        sponsored_breakfast_cost += boiled_eggs * eggs_price
+                                
+                                remaining_cost -= sponsored_breakfast_cost
+                            
+                            # Subtract lunch cost if sponsored
+                            if "lunch" in sponsored_types_list:
+                                for item in order.get("breakfast_items", []):
+                                    if item.get("has_lunch", False):
+                                        # Get daily lunch price
+                                        daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                                            "department_id": department_id,
+                                            "date": current_date.isoformat()
+                                        })
+                                        if daily_lunch_price_doc:
+                                            remaining_cost -= daily_lunch_price_doc["lunch_price"]
+                                        else:
+                                            # NEW: Default to 0.0 for new days - admin must set price manually each day
+                                            remaining_cost -= 0.0
+                                        break
+                            
+                            # Employee pays only the remaining cost (e.g., coffee)
+                            order_amount = max(0, remaining_cost)
+                        else:
+                            # No sponsored meal types - shouldn't happen but handle gracefully
                             order_amount = order.get("total_price", 0)
-                            # Subtract lunch cost
-                            for item in order.get("breakfast_items", []):
-                                if item.get("has_lunch", False):
-                                    # Get daily lunch price
-                                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                                        "department_id": department_id,
-                                        "date": current_date.isoformat()
-                                    })
-                                    if daily_lunch_price_doc:
-                                        order_amount -= daily_lunch_price_doc["lunch_price"]
-                                    else:
-                                        # NEW: Default to 0.0 for new days - admin must set price manually each day
-                                        order_amount -= 0.0
-                                    break
                         # Round to avoid floating point errors
                         order_amount = round(order_amount, 2)
                     elif order.get("is_sponsor_order"):
