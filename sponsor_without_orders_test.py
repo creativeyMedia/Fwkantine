@@ -489,10 +489,10 @@ class SponsorWithoutOrdersTest:
             (sponsor_results["sponsor_has_zero_counts"], "Sponsor has zero counts (no own orders)"),
             (sponsor_results["sponsor_has_zero_amount"], "Sponsor has zero total amount"),
             (sponsor_results["sponsor_has_sponsored_breakfast"], "Sponsor shows sponsored_breakfast info"),
-            (sponsored_results["sponsored_employees_found"] >= 3, f"Sponsored employees found: {sponsored_results['sponsored_employees_found']}"),
-            (sponsored_results["employees_with_sponsored_breakfast"] >= 3, f"Employees with sponsored breakfast: {sponsored_results['employees_with_sponsored_breakfast']}"),
-            (sponsor_results_after.get("sponsor_has_sponsored_lunch", False), "Sponsor shows sponsored_lunch info after combined sponsoring"),
-            (sponsored_results_after.get("employees_with_sponsored_lunch", 0) >= 3, f"Employees with sponsored lunch: {sponsored_results_after.get('employees_with_sponsored_lunch', 0)}")
+            (sponsored_results["sponsored_employees_found"] >= 3, f"Employees with comprehensive orders: {sponsored_results['sponsored_employees_found']}"),
+            (sponsored_results["employees_with_sponsored_fields"] >= 3, f"Employees with sponsored fields: {sponsored_results['employees_with_sponsored_fields']}"),
+            (sponsored_results["employees_with_reduced_cost"] >= 3, f"Employees with reduced cost: {sponsored_results['employees_with_reduced_cost']}"),
+            (sponsor_results_after.get("sponsor_has_sponsored_lunch", False), "Sponsor shows sponsored_lunch info after combined sponsoring")
         ]
         
         passed_tests = sum(1 for test, _ in success_criteria if test)
