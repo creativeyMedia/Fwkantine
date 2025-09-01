@@ -86,8 +86,8 @@ class BreakfastDayDeletionTest:
             print(f"❌ Error creating employee '{name}': {e}")
             return None
     
-    def create_breakfast_order_for_date(self, employee_id: str, employee_name: str, target_date: str) -> str:
-        """Create a breakfast order for a specific date by manipulating timestamp"""
+    def create_breakfast_order(self, employee_id: str, employee_name: str) -> str:
+        """Create a breakfast order for today"""
         try:
             # Create a basic breakfast order
             order_data = {
@@ -111,18 +111,7 @@ class BreakfastDayDeletionTest:
                 order = response.json()
                 order_id = order["id"]
                 
-                # Now manually update the timestamp to the target date
-                # This simulates orders created on different days
-                target_datetime = f"{target_date}T08:00:00.000Z"
-                
-                # Update order timestamp directly in database (simulation)
-                print(f"✅ Created breakfast order for {employee_name} on {target_date}: {order_id} (€{order['total_price']:.2f})")
-                
-                if target_date == YESTERDAY_DATE:
-                    self.yesterday_orders.append(order_id)
-                else:
-                    self.today_orders.append(order_id)
-                    
+                print(f"✅ Created breakfast order for {employee_name}: {order_id} (€{order['total_price']:.2f})")
                 return order_id
             else:
                 print(f"❌ Failed to create breakfast order for {employee_name}: {response.status_code} - {response.text}")
