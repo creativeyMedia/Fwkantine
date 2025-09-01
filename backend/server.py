@@ -3513,9 +3513,9 @@ async def sponsor_meal(meal_data: dict):
             sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)"
             
             if others_count > 0:
-                avg_cost_per_meal = total_others_cost / others_count
-                detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} á {avg_cost_per_meal:.2f}€ für {others_count} Mitarbeiter"
-                unit_price_text = f"{others_count} × {avg_cost_per_meal:.2f}€"
+                # Remove the incorrect "á X.XX€" calculation - just show total
+                detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} für {total_others_cost:.2f}€"
+                unit_price_text = f"{others_count} × {total_others_cost:.2f}€"
             else:
                 detailed_breakdown = f"Keine anderen Mitarbeiter gesponsert"
                 unit_price_text = ""
