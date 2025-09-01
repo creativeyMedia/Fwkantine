@@ -5710,6 +5710,24 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                 <div className="pt-1 border-t">
                                   <strong>Total: {employeeData.total_amount.toFixed(2)} €</strong>
                                 </div>
+                                
+                                {/* Sponsoring Information */}
+                                {(employeeData.sponsored_breakfast || employeeData.sponsored_lunch) && (
+                                  <div className="pt-2 border-t border-green-200 bg-green-50 rounded p-2 mt-2">
+                                    <div className="text-green-700 font-medium text-xs mb-1">🎁 Sponsoring:</div>
+                                    {employeeData.sponsored_breakfast && (
+                                      <div className="text-green-600 text-xs">
+                                        Hat {employeeData.sponsored_breakfast.count}x Frühstück ausgegeben für {employeeData.sponsored_breakfast.amount.toFixed(2)} €
+                                      </div>
+                                    )}
+                                    {employeeData.sponsored_lunch && (
+                                      <div className="text-green-600 text-xs">
+                                        Hat {employeeData.sponsored_lunch.count}x Mittagessen ausgegeben für {employeeData.sponsored_lunch.amount.toFixed(2)} €
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
                                 {Object.keys(employeeData.toppings).length > 0 && (
                                   <div className="pt-1 text-xs">
                                     Beläge: {Object.entries(employeeData.toppings).map(([topping, count]) => {
