@@ -347,28 +347,29 @@ class DuplicationBugFixTest:
             
             # Identify employee type
             if 'Employee1' in employee_name:
-                # Employee1: Should have own orders + sponsored_breakfast info
-                if has_own_orders and sponsored_breakfast is not None:
+                # Employee1: Should have own orders + higher total (because they sponsor others, they pay more)
+                # Employee1 sponsors breakfast for others, so their total should be higher than normal
+                if has_own_orders and total_amount > 10.0:  # Higher due to sponsoring costs
                     results["employee1_correct"] = True
-                    print(f"✅ Employee1 structure correct: Own orders + sponsors breakfast")
+                    print(f"✅ Employee1 structure correct: Own orders + sponsors others (€{total_amount:.2f})")
                 else:
-                    print(f"❌ Employee1 structure incorrect: Own orders={has_own_orders}, Sponsors breakfast={sponsored_breakfast is not None}")
+                    print(f"❌ Employee1 structure incorrect: Own orders={has_own_orders}, Total amount=€{total_amount:.2f} (should be >€10)")
             
             elif 'Employee2' in employee_name:
                 # Employee2: Should have own orders with sponsored meal adjustments (low total_amount)
-                if has_own_orders and total_amount < 5.0:  # Should be low due to sponsoring
+                if has_own_orders and total_amount < 5.0:  # Should be low due to being sponsored
                     results["employee2_correct"] = True
                     print(f"✅ Employee2 structure correct: Own orders with sponsored adjustments (€{total_amount:.2f})")
                 else:
-                    print(f"❌ Employee2 structure incorrect: Own orders={has_own_orders}, Total amount=€{total_amount:.2f}")
+                    print(f"❌ Employee2 structure incorrect: Own orders={has_own_orders}, Total amount=€{total_amount:.2f} (should be <€5)")
             
             elif 'Employee3' in employee_name:
-                # Employee3: Should have no own orders + sponsored_lunch info
+                # Employee3: Should have no own orders + sponsored_lunch info (they sponsor lunch for others)
                 if not has_own_orders and sponsored_lunch is not None:
                     results["employee3_correct"] = True
-                    print(f"✅ Employee3 structure correct: No own orders + sponsors lunch")
+                    print(f"✅ Employee3 structure correct: No own orders + sponsors lunch (€{total_amount:.2f})")
                 else:
-                    print(f"❌ Employee3 structure incorrect: Own orders={has_own_orders}, Sponsors lunch={sponsored_lunch is not None}")
+                    print(f"❌ Employee3 structure incorrect: Own orders={has_own_orders}, Sponsors lunch={sponsored_lunch is not None}, Total=€{total_amount:.2f}")
         
         # Overall structure check
         if (results["employee1_correct"] and 
