@@ -52,13 +52,16 @@ backend:
     implemented: true
     working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "IMPLEMENTED: Fixed sponsoring logic to prevent double-counting when both breakfast and lunch are sponsored. Added checks for already_sponsored_breakfast and already_sponsored_lunch to ensure sponsored amounts are only calculated once. Updated order update logic to handle combined meal types with comma separation. The fix ensures that when both meals are sponsored, only coffee (non-sponsored item) remains to be paid by the employee."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL SPONSORING LOGIC ISSUE DETECTED: Comprehensive testing revealed that the double sponsoring logic fix is not working correctly. Test scenario: Employee with breakfast+lunch+coffee order (€8.25 total). After breakfast sponsoring (€6.75 for 3 employees) and lunch sponsoring (€15.00 for 3 employees), the employee's balance changed by €7.25 instead of expected ~€-2.00 (coffee only). Final balance: €-1.00, Initial: €-8.25. This indicates that more than just coffee cost remains unpaid, suggesting the sponsoring logic still has calculation errors. The sponsoring endpoints work (breakfast and lunch sponsoring both successful), but the balance calculations for double-sponsored employees are incorrect."
 
   - task: "Backend Support for Separated Revenue Calculation"
     implemented: true
