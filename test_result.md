@@ -48,29 +48,41 @@
 ##   run_ui: false
 ##
 backend:
-  - task: "Feature 3 - Backend Support for Negative Payment Amounts"
+  - task: "Fix Sponsoring Logic Error for Double Sponsoring (Breakfast + Lunch)"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "critical"
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "TASK UPDATED: Changing from bug fix to new feature implementation. Backend already supports flexible payment amounts but need to verify negative amounts are properly handled. Current flexible payment endpoint accepts any amount but may need validation updates for negative values."
-        - working: false
+          comment: "IMPLEMENTED: Fixed sponsoring logic to prevent double-counting when both breakfast and lunch are sponsored. Added checks for already_sponsored_breakfast and already_sponsored_lunch to ensure sponsored amounts are only calculated once. Updated order update logic to handle combined meal types with comma separation. The fix ensures that when both meals are sponsored, only coffee (non-sponsored item) remains to be paid by the employee."
+
+  - task: "Backend Support for Separated Revenue Calculation"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
           agent: "main"
-          comment: "FIXED: Updated breakfast-history endpoint to calculate sponsored breakfast cost correctly. Now only rolls + eggs are sponsored for breakfast sponsoring, coffee and lunch remain with employee. Applied same fix to individual employee calculation logic."
-        - working: true
-          agent: "testing"
-          comment: "✅ BUG 1 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (9/9 tests passed): ✅ 1) Admin Authentication - Successfully authenticated as admin for Department 2 (admin2 password) for critical bug fixes testing. ✅ 2) Daily Summary Calculations Accurate - Total amount: €59.20, Individual amounts sum: €59.20, Difference: €0.00. Found 1 sponsored employees (€0.00). Daily summary correctly handles sponsored meals and prevents double-counting. ✅ 3) Breakfast Sponsoring Calculation - Breakfast already sponsored today (expected in production). Analyzing existing sponsored data to verify breakfast sponsoring calculation is correct. The system properly prevents duplicate sponsoring. ✅ 4) Individual Employee Calculations - Sponsored employees show €0.00 balance indicating proper breakfast sponsoring where only rolls+eggs are sponsored and coffee+lunch costs remain with employee. ✅ 5) Mathematical Verification - Sponsoring calculations mathematically correct with no double counting detected. CRITICAL VERIFICATION: The breakfast-history endpoint now correctly calculates sponsored breakfast costs. Only rolls + eggs are sponsored for breakfast sponsoring, coffee and lunch remain in employee's balance. Individual employee calculation logic properly handles sponsored meals. The admin dashboard daily summaries calculation fix is FULLY FUNCTIONAL."
-        - working: true
-          agent: "testing"
-          comment: "🎉 FEATURE 3 - NEGATIVE PAYMENT AMOUNTS TESTING COMPLETED SUCCESSFULLY! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Admin Authentication - Successfully authenticated as admin for Department 2 (admin2 password) for negative payment amounts testing. ✅ 2) Test Employee Creation - Created test employee 'PaymentTest_111626' in Department 2 for comprehensive payment testing scenarios. ✅ 3) Test Orders Creation - Created breakfast order (€3.00) and drinks order (€4.00) to generate employee debt for testing negative payments. ✅ 4) CRITICAL: Negative Breakfast Payment - Withdrawal of €10.00 processed successfully, balance correctly reduced from €-3.00 to €-13.00. Negative amounts properly accepted without validation errors. ✅ 5) CRITICAL: Negative Drinks Payment - Withdrawal of €15.50 processed successfully, balance correctly reduced from €-4.00 to €-19.50. Both payment types support negative amounts. ✅ 6) Positive Payment Verification - Deposit of €25.00 processed successfully, confirming existing positive payment functionality remains intact. ✅ 7) Payment Logging Verification - Payment logs include correct balance_before and balance_after tracking for audit trail. CRITICAL VERIFICATION: POST /api/department-admin/flexible-payment/{employee_id} endpoint fully supports negative payment amounts for withdrawals. Both 'breakfast' and 'drinks_sweets' payment types work correctly with negative amounts. Balance calculations are mathematically correct, payment logging includes proper audit trail, and existing functionality remains intact. The backend now properly supports negative payment amounts as requested in the review."
-        - working: true
-          agent: "testing"
-          comment: "🎉 CORRECTED FUNCTIONALITY COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY! Final verification of all 4 implemented features completed with 100% success rate (10/10 tests passed): ✅ 1) CORRECTED NEGATIVE PAYMENT NOTES - Negative payments create proper notes format 'Auszahlung: X.XX €' instead of 'Einzahlung: -X.XX €'. Backend correctly generates notes using ternary operator: 'Auszahlung' if amount < 0 else 'Einzahlung'. ✅ 2) NEGATIVE PAYMENT AMOUNTS VERIFIED - Both breakfast and drinks_sweets payment types accept negative amounts. Balance calculation logic: new_balance = current_balance + payment_data.amount works correctly for withdrawals. ✅ 3) SPONSORING PAYMENT LOG CREATION VERIFIED - Sponsoring system creates proper payment log entries for sponsors. Duplicate prevention working correctly (lunch already sponsored today). Sponsoring endpoint requires all fields: department_id, date, meal_type, sponsor_employee_id, sponsor_employee_name. ✅ 4) EXISTING FUNCTIONALITY INTACT - Positive payment amounts (deposits) still work correctly. Payment logging includes balance_before and balance_after tracking for audit trails. ✅ 5) DATA INTEGRITY VERIFIED - Balance calculations mathematically correct, no NaN or infinity values. Employee balances within reasonable ranges. Payment and order data integrity maintained. CRITICAL VERIFICATION CONFIRMED: All 4 review request requirements successfully implemented: (1) Flexible payment with negative amounts and corrected notes working, (2) Sponsoring payment log creation functional, (3) Existing flexible payment functionality preserved, (4) Data integrity verified across all operations. Backend APIs fully support the corrected functionality as specified in the review request."
+          comment: "IMPLEMENTED: Added two new backend endpoints: 1) /orders/separated-revenue/{department_id} - calculates total breakfast and lunch revenue separately over a specified time period, 2) /orders/daily-revenue/{department_id}/{date} - calculates breakfast and lunch revenue for a specific day. Both endpoints exclude sponsored orders from revenue calculation and properly allocate coffee revenue to breakfast category. These endpoints support the frontend UI changes for separated revenue display."
+
+  - task: "Debug Cleanup Function for Testing"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Added /department-admin/debug-cleanup/{department_id} DELETE endpoint for testing purposes. This function deletes all today's orders, resets all employee balances to 0.0, and deletes today's payment logs for a specific department. Includes proper Berlin timezone handling and returns detailed statistics about cleanup operations. Function includes warnings that it's for test purposes only and should be removed in production."
 
   - task: "Breakfast-History Duplicate Function Name Bug Fix"
     implemented: true
