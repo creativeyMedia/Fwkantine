@@ -3189,8 +3189,17 @@ async def sponsor_meal(meal_data: dict):
             "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
         }).to_list(1000)
         
-        # Check if already sponsored
-        already_sponsored = any(order.get("is_sponsored") and order.get("sponsored_meal_type") == meal_type for order in all_orders)
+        # Check if already sponsored (handle comma-separated meal types)
+        already_sponsored = False
+        for order in all_orders:
+            if order.get("is_sponsored"):
+                sponsored_meal_types = order.get("sponsored_meal_type", "")
+                if sponsored_meal_types:
+                    sponsored_types_list = sponsored_meal_types.split(",")
+                    if meal_type in sponsored_types_list:
+                        already_sponsored = True
+                        break
+        
         if already_sponsored:
             raise HTTPException(status_code=400, detail=f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} für {date_str} wurde bereits gesponsert.")
         
