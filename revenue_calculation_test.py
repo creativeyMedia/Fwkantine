@@ -389,7 +389,7 @@ class RevenueCalculationTest:
         
         # Step 8: CRITICAL TEST - Sponsor Breakfast Meals
         print(f"\n8️⃣ 🚨 CRITICAL TEST: Sponsor Breakfast Meals")
-        breakfast_sponsor_result = self.sponsor_breakfast_meals(employee4)  # RevenueSponsor sponsors breakfast
+        breakfast_sponsor_result = self.sponsor_breakfast_meals(employee4, "RevenueSponsor")  # RevenueSponsor sponsors breakfast
         
         if not breakfast_sponsor_result:
             print("❌ CRITICAL FAILURE: Cannot sponsor breakfast meals")
@@ -397,7 +397,7 @@ class RevenueCalculationTest:
         
         # Step 9: CRITICAL TEST - Sponsor Lunch Meals  
         print(f"\n9️⃣ 🚨 CRITICAL TEST: Sponsor Lunch Meals")
-        lunch_sponsor_result = self.sponsor_lunch_meals(employee4)  # RevenueSponsor sponsors lunch
+        lunch_sponsor_result = self.sponsor_lunch_meals(employee4, "RevenueSponsor")  # RevenueSponsor sponsors lunch
         
         if not lunch_sponsor_result:
             print("❌ CRITICAL FAILURE: Cannot sponsor lunch meals")
