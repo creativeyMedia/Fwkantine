@@ -273,7 +273,15 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement 5 new features: 1) Reload behavior for mobile devices - persist last department in localStorage and prevent pull-to-refresh, 2) Fix sponsoring display bug in employee dashboard breakfast overview where sponsored meals disappear, 3) Extend payment functionality to allow negative amounts (withdrawals) with updated button text 'Ein-/Auszahlung', 4) Add app version 1.1.2 display in admin dashboard department information, 5) Reset daily lunch price to 0€ for new days instead of inheriting previous day's price - admin must manually set price each day."
+user_problem_statement: "Implement the following improvements to the canteen management system:
+
+1. UI Changes:
+   1.1 Rebuild revenue display in admin dashboard: Replace 'Gesamt Umsatz' + 'Ø pro Tag' with 'Gesamt Umsatz Frühstück' + 'Gesamt Umsatz Mittagessen'. Also update daily statistics under 'Tägliche Übersichten' to show breakfast/lunch revenue instead of total/average.
+   1.2 Button consistency in modals: Ensure 'Abbrechen' is always on the left and 'Bestätigen/Anmelden' is always on the right across all modals.
+
+2. Fix sponsoring logic error: When an employee sponsors both breakfast AND lunch, incorrect balance calculations occur. Only coffee should remain unpaid at the end, but currently breakfast + coffee remains when both are sponsored.
+
+3. Add debug/test function: Add a temporary function in admin dashboard to delete all sponsoring and orders for testing purposes (to be removed in production)."
 
 backend:
   - task: "Master Password Login Function Diagnosis"
