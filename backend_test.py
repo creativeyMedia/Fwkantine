@@ -318,92 +318,140 @@ class CanteenManagementSystemTest:
             self.log_result(f"Sponsor {meal_type.title()} Meal", False, error=str(e))
             return False, None
 
-    def test_double_sponsoring_logic(self):
-        """Test the critical double sponsoring logic fix"""
+    def test_critical_sponsoring_logic_fix(self):
+        """Test the EXACT scenario from review request: Create employee with breakfast+lunch+coffee (~€9-10), sponsor breakfast first, then lunch, verify only coffee cost remains"""
         try:
             test_date = datetime.now().date().isoformat()
             
-            # Create test employees
-            employee1 = self.create_test_employee("DoubleSponsoring")
-            breakfast_sponsor = self.create_test_employee("BreakfastSponsor")
+            print("🎯 CRITICAL SPONSORING LOGIC TEST - EXACT REVIEW REQUEST SCENARIO")
+            print("Creating 1 test employee with breakfast AND lunch order (total ~€9-10)")
+            print("Employee should have: rolls, eggs, coffee, and lunch")
+            print("Testing breakfast sponsoring first, then lunch sponsoring")
+            print("Expected result: Only coffee cost (~€2.00) should remain")
+            print()
+            
+            # Step 1: Create test employee with both breakfast AND lunch order
+            test_employee = self.create_test_employee("CriticalTest")
+            breakfast_sponsor = self.create_test_employee("BreakfastSponsor") 
             lunch_sponsor = self.create_test_employee("LunchSponsor")
             
-            if not all([employee1, breakfast_sponsor, lunch_sponsor]):
+            if not all([test_employee, breakfast_sponsor, lunch_sponsor]):
                 return False
             
-            # Create orders with both breakfast and lunch
-            order1 = self.create_breakfast_lunch_order(employee1['id'], include_lunch=True, include_coffee=True)
-            order_sponsor_b = self.create_breakfast_lunch_order(breakfast_sponsor['id'], include_lunch=True, include_coffee=True)
-            order_sponsor_l = self.create_breakfast_lunch_order(lunch_sponsor['id'], include_lunch=True, include_coffee=True)
+            # Create comprehensive order: rolls + eggs + coffee + lunch (should be ~€9-10)
+            order_data = {
+                "employee_id": test_employee['id'],
+                "department_id": DEPARTMENT_ID,
+                "order_type": "breakfast",
+                "breakfast_items": [{
+                    "total_halves": 4,  # 2 full rolls
+                    "white_halves": 2,
+                    "seeded_halves": 2,
+                    "toppings": ["butter", "kaese", "schinken", "salami"],  # 4 toppings for 4 halves
+                    "has_lunch": True,   # Include lunch
+                    "boiled_eggs": 2,    # 2 eggs
+                    "has_coffee": True   # Include coffee
+                }]
+            }
             
-            if not all([order1, order_sponsor_b, order_sponsor_l]):
+            response = self.session.post(f"{BASE_URL}/orders", json=order_data)
+            if response.status_code != 200:
+                self.log_result("Create Comprehensive Order", False, error=f"Order creation failed: {response.text}")
                 return False
             
-            # Get initial balance
-            initial_balance = self.get_employee_balance(employee1['id'])
+            order = response.json()
+            total_order_cost = order['total_price']
+            
+            print(f"✅ Created comprehensive order: €{total_order_cost:.2f} (rolls + eggs + coffee + lunch)")
+            
+            # Create sponsor orders so they can sponsor
+            sponsor_order_b = self.create_breakfast_lunch_order(breakfast_sponsor['id'], include_lunch=True, include_coffee=True)
+            sponsor_order_l = self.create_breakfast_lunch_order(lunch_sponsor['id'], include_lunch=True, include_coffee=True)
+            
+            if not all([sponsor_order_b, sponsor_order_l]):
+                return False
+            
+            # Get initial balance (should be negative = debt)
+            initial_balance = self.get_employee_balance(test_employee['id'])
             if not initial_balance:
                 return False
             
             initial_breakfast_balance = initial_balance['breakfast_balance']
+            print(f"Initial employee balance: €{initial_breakfast_balance:.2f} (debt from order)")
             
-            # Step 1: Sponsor breakfast first
-            success_b, result_b = self.sponsor_meal(
+            # Step 2: Test breakfast sponsoring first
+            print("\n🥐 STEP 1: Sponsoring breakfast portion (rolls + eggs)")
+            success_breakfast, result_breakfast = self.sponsor_meal(
                 breakfast_sponsor['id'], 
                 breakfast_sponsor['name'], 
                 "breakfast", 
                 test_date
             )
             
-            if not success_b:
+            if not success_breakfast:
                 return False
             
             # Check balance after breakfast sponsoring
-            balance_after_breakfast = self.get_employee_balance(employee1['id'])
+            balance_after_breakfast = self.get_employee_balance(test_employee['id'])
             if not balance_after_breakfast:
                 return False
             
-            # Step 2: Sponsor lunch
-            success_l, result_l = self.sponsor_meal(
+            balance_after_breakfast_val = balance_after_breakfast['breakfast_balance']
+            breakfast_sponsored_amount = balance_after_breakfast_val - initial_breakfast_balance
+            print(f"After breakfast sponsoring: €{balance_after_breakfast_val:.2f} (sponsored amount: €{breakfast_sponsored_amount:.2f})")
+            
+            # Step 3: Test lunch sponsoring second  
+            print("\n🍽️ STEP 2: Sponsoring lunch portion")
+            success_lunch, result_lunch = self.sponsor_meal(
                 lunch_sponsor['id'], 
                 lunch_sponsor['name'], 
                 "lunch", 
                 test_date
             )
             
-            if not success_l:
+            if not success_lunch:
                 return False
             
             # Check final balance after both sponsorings
-            final_balance = self.get_employee_balance(employee1['id'])
+            final_balance = self.get_employee_balance(test_employee['id'])
             if not final_balance:
                 return False
             
             final_breakfast_balance = final_balance['breakfast_balance']
+            lunch_sponsored_amount = final_breakfast_balance - balance_after_breakfast_val
+            total_sponsored = breakfast_sponsored_amount + lunch_sponsored_amount
             
-            # CRITICAL TEST: After both breakfast and lunch are sponsored, 
-            # only coffee should remain unpaid
-            # Expected: initial_balance - coffee_price (approximately -1.50 to -2.00)
-            expected_remaining_cost = -2.0  # Approximate coffee cost
-            balance_difference = final_breakfast_balance - initial_breakfast_balance
+            print(f"After lunch sponsoring: €{final_breakfast_balance:.2f} (lunch sponsored amount: €{lunch_sponsored_amount:.2f})")
+            print(f"Total sponsored: €{total_sponsored:.2f}")
             
-            # The balance should be close to just the coffee cost
-            if abs(balance_difference - expected_remaining_cost) <= 1.0:  # Allow 1€ tolerance
+            # Step 4: CRITICAL VERIFICATION - Only coffee cost should remain
+            remaining_debt = abs(final_breakfast_balance)  # Convert to positive for easier reading
+            expected_coffee_cost = 2.0  # Approximate coffee cost
+            
+            print(f"\n🔍 CRITICAL VERIFICATION:")
+            print(f"Original order cost: €{total_order_cost:.2f}")
+            print(f"Total sponsored: €{total_sponsored:.2f}")
+            print(f"Remaining debt: €{remaining_debt:.2f}")
+            print(f"Expected coffee cost: ~€{expected_coffee_cost:.2f}")
+            
+            # Test passes if remaining debt is close to coffee cost (within €0.50 tolerance)
+            if abs(remaining_debt - expected_coffee_cost) <= 0.50:
                 self.log_result(
-                    "Double Sponsoring Logic Fix",
+                    "CRITICAL Sponsoring Logic Fix",
                     True,
-                    f"✅ DOUBLE SPONSORING LOGIC VERIFIED! Employee {employee1['name']}: Initial balance: €{initial_breakfast_balance:.2f}, After breakfast sponsoring: €{balance_after_breakfast['breakfast_balance']:.2f}, After lunch sponsoring: €{final_breakfast_balance:.2f}. Balance change: €{balance_difference:.2f} (expected ~€{expected_remaining_cost:.2f} for coffee only). CRITICAL FIX WORKING: Only coffee remains unpaid when both breakfast and lunch are sponsored!"
+                    f"✅ CRITICAL SPONSORING LOGIC VERIFIED SUCCESSFULLY! Employee {test_employee['name']}: Original order €{total_order_cost:.2f}, Total sponsored €{total_sponsored:.2f}, Remaining debt €{remaining_debt:.2f} ≈ coffee cost €{expected_coffee_cost:.2f}. EXPECTED RESULT ACHIEVED: When both breakfast and lunch are sponsored, only coffee cost (~€2.00) remains as expected!"
                 )
                 return True
             else:
                 self.log_result(
-                    "Double Sponsoring Logic Fix",
+                    "CRITICAL Sponsoring Logic Fix",
                     False,
-                    error=f"Double sponsoring logic failed! Employee {employee1['name']}: Balance change €{balance_difference:.2f}, expected ~€{expected_remaining_cost:.2f}. Initial: €{initial_breakfast_balance:.2f}, Final: €{final_breakfast_balance:.2f}. More than coffee cost remains unpaid - sponsoring logic has issues."
+                    error=f"❌ CRITICAL SPONSORING LOGIC ISSUE DETECTED: Employee {test_employee['name']} has remaining debt €{remaining_debt:.2f}, expected ~€{expected_coffee_cost:.2f} (coffee only). Difference: €{abs(remaining_debt - expected_coffee_cost):.2f}. Original order €{total_order_cost:.2f}, sponsored €{total_sponsored:.2f}. The sponsoring logic is NOT working correctly - more than coffee cost remains unpaid."
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Double Sponsoring Logic Fix", False, error=str(e))
+            self.log_result("CRITICAL Sponsoring Logic Fix", False, error=str(e))
             return False
 
     # ========================================
