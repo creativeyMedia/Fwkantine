@@ -2968,6 +2968,10 @@ async def sponsor_meal(meal_data: dict):
             coffee_cost = 0.0
             lunch_cost = 0.0
             
+            # Check if this order was already partially sponsored
+            already_sponsored_breakfast = order.get("is_sponsored") and order.get("sponsored_meal_type") == "breakfast"
+            already_sponsored_lunch = order.get("is_sponsored") and order.get("sponsored_meal_type") == "lunch"
+            
             for item in order.get("breakfast_items", []):
                 # Rolls
                 white_halves = item.get("white_halves", 0)
@@ -2982,21 +2986,29 @@ async def sponsor_meal(meal_data: dict):
                 if item.get("has_coffee", False):
                     coffee_cost += coffee_price
                 
-                # Lunch
+                # Lunch - calculate from daily lunch price instead of remainder
                 if item.get("has_lunch", False):
-                    lunch_cost = order_total - breakfast_cost - coffee_cost
-                    lunch_cost = max(0, lunch_cost)  # Ensure non-negative
+                    # Get the actual lunch price for this order (not calculated remainder)
+                    lunch_price_for_order = order.get("lunch_price", 0)
+                    if lunch_price_for_order > 0:
+                        lunch_cost = lunch_price_for_order
+                    else:
+                        # Fallback to calculation if lunch_price not stored
+                        lunch_cost = order_total - breakfast_cost - coffee_cost
+                        lunch_cost = max(0, lunch_cost)  # Ensure non-negative
             
             # Round to avoid floating point errors
             breakfast_cost = round(breakfast_cost, 2)
             coffee_cost = round(coffee_cost, 2)
             lunch_cost = round(lunch_cost, 2)
             
-            # Calculate sponsored amount for this order
-            if meal_type == "breakfast":
+            # Calculate sponsored amount for this order - only if not already sponsored
+            sponsored_amount = 0.0
+            if meal_type == "breakfast" and not already_sponsored_breakfast:
                 sponsored_amount = breakfast_cost  # Only breakfast items (rolls + eggs)
-            else:  # lunch
+            elif meal_type == "lunch" and not already_sponsored_lunch:
                 sponsored_amount = lunch_cost  # Only lunch
+            # If already sponsored, skip this order (sponsored_amount remains 0)
             
             order_calculations.append({
                 "order": order,
