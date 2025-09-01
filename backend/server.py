@@ -1438,7 +1438,7 @@ async def get_daily_revenue(department_id: str, date: str):
                 continue
             
             for item in order.get("breakfast_items", []):
-                # Calculate breakfast revenue (rolls + eggs + coffee)
+                # Calculate breakfast revenue (rolls + eggs ONLY - coffee excluded from statistics)
                 white_halves = item.get("white_halves", 0)
                 seeded_halves = item.get("seeded_halves", 0)
                 boiled_eggs = item.get("boiled_eggs", 0)
@@ -1446,9 +1446,8 @@ async def get_daily_revenue(department_id: str, date: str):
                 breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
                 breakfast_revenue += breakfast_item_cost
                 
-                # Coffee revenue goes to breakfast
-                if item.get("has_coffee", False):
-                    breakfast_revenue += coffee_price
+                # Coffee is excluded from revenue statistics (but remains in employee balance)
+                # Coffee is neither sponsored nor counted in statistics
                 
                 # Calculate lunch revenue
                 if item.get("has_lunch", False):
