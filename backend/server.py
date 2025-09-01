@@ -3124,14 +3124,24 @@ async def sponsor_meal(meal_data: dict):
             # Store order update for later
             sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
             
+            # Check if order already has sponsoring information
+            existing_sponsored_meal_type = order.get("sponsored_meal_type", "")
+            if existing_sponsored_meal_type and existing_sponsored_meal_type != meal_type:
+                # Order already sponsored for different meal type - add to existing sponsoring
+                combined_meal_type = f"{existing_sponsored_meal_type},{meal_type}"
+                combined_message = f"{order.get('sponsored_message', '')} Zusätzlich: {sponsored_message}"
+            else:
+                combined_meal_type = meal_type
+                combined_message = sponsored_message
+            
             other_order_updates.append({
                 "id": order["id"],
                 "updates": {
                     "is_sponsored": True,
                     "sponsored_by_employee_id": sponsor_employee_id,
                     "sponsored_by_name": sponsor_employee_name,
-                    "sponsored_meal_type": meal_type,
-                    "sponsored_message": sponsored_message,
+                    "sponsored_meal_type": combined_meal_type,
+                    "sponsored_message": combined_message,
                     "sponsored_date": datetime.now(timezone.utc).isoformat()
                 }
             })
