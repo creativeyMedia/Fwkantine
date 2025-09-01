@@ -2919,14 +2919,19 @@ async def sponsor_meal(meal_data: dict):
         if already_sponsored:
             raise HTTPException(status_code=400, detail=f"{'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} für {date_str} wurde bereits gesponsert.")
         
-        # Filter relevant orders
+        # Filter relevant orders and exclude already sponsored ones
         relevant_orders = []
         for order in all_orders:
+            # Check if this order was already sponsored for the current meal type
+            already_sponsored = order.get("is_sponsored") and order.get("sponsored_meal_type") == meal_type
+            if already_sponsored:
+                continue  # Skip already sponsored orders
+                
             if meal_type == "breakfast":
-                # All breakfast orders are relevant
+                # All breakfast orders are relevant (if not already sponsored)
                 relevant_orders.append(order)
             else:  # lunch
-                # Only orders with lunch are relevant
+                # Only orders with lunch are relevant (if not already sponsored)
                 has_lunch = any(item.get("has_lunch", False) for item in order.get("breakfast_items", []))
                 if has_lunch:
                     relevant_orders.append(order)
