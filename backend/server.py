@@ -1938,12 +1938,16 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "count": breakfast_sponsored_count,
                             "amount": round(breakfast_sponsored_amount, 2)
                         }
+                        # Add sponsored breakfast amount to sponsor's total_amount
+                        employee_orders[employee_name]["total_amount"] += breakfast_sponsored_amount
                     
                     if lunch_sponsored_count > 0:
                         lunch_sponsored_info = {
                             "count": lunch_sponsored_count,
                             "amount": round(lunch_sponsored_amount, 2)
                         }
+                        # Add sponsored lunch amount to sponsor's total_amount
+                        employee_orders[employee_name]["total_amount"] += lunch_sponsored_amount
                 
                 # Add sponsoring info to employee data
                 employee_orders[employee_name]["sponsored_breakfast"] = breakfast_sponsored_info
