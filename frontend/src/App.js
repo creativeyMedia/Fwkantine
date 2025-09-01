@@ -2608,6 +2608,10 @@ const DepartmentAdminDashboard = () => {
           {activeTab === 'settings' && (
             <AdminSettingsTab currentDepartment={currentDepartment} />
           )}
+
+          {activeTab === 'debug' && (
+            <DebugTab currentDepartment={currentDepartment} />
+          )}
         </div>
 
         {/* New Employee Modal */}
