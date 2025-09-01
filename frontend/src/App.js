@@ -5668,12 +5668,16 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                               <span className="font-medium">{day.total_orders}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Gesamtumsatz:</span>
-                              <span className="font-medium">{day.total_amount.toFixed(2)} €</span>
+                              <span>Umsatz Frühstück:</span>
+                              <span className="font-medium">
+                                {dailyRevenues[day.date]?.breakfast_revenue?.toFixed(2) || '0.00'} €
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Ø pro Bestellung:</span>
-                              <span className="font-medium">{(day.total_amount / day.total_orders).toFixed(2)} €</span>
+                              <span>Umsatz Mittagessen:</span>
+                              <span className="font-medium">
+                                {dailyRevenues[day.date]?.lunch_revenue?.toFixed(2) || '0.00'} €
+                              </span>
                             </div>
                           </div>
                         </div>
