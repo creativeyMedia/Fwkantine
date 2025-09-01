@@ -136,9 +136,9 @@ backend:
           comment: "✅ BUG 4 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Lunch Sponsoring Calculation - Successfully sponsored 7x Mittagessen lunch items for €14.90. Verification: sponsored employee retains breakfast+coffee costs (~€4.50), only lunch was sponsored. Sponsor pays for sponsored lunch items. Department-specific pricing correctly applied. ✅ 2) Individual Employee Balance Calculations - Updated individual employee calculation logic in breakfast-history endpoint properly handles sponsored meals. Calculates remaining cost correctly for both breakfast and lunch sponsoring. ✅ 3) Breakfast Sponsoring Balance Logic - For breakfast sponsoring: only rolls+eggs are sponsored, coffee+lunch costs remain with employee. Sponsored employees show correct remaining balances. ✅ 4) Lunch Sponsoring Balance Logic - For lunch sponsoring: only lunch costs are sponsored, breakfast+coffee costs remain with employee. Mathematical verification passed. ✅ 5) Sponsored Employee Refunds - Sponsored employees get proper refunds (balance adjustments) for sponsored meal components only. ✅ 6) Sponsor Additional Costs - Sponsor pays correct additional costs for sponsored employees without double-charging. ✅ 7) Balance Conservation - Total balance conservation maintained (sponsor pays more, sponsored pays less, total debt unchanged). CRITICAL VERIFICATION: Individual employee calculation logic in breakfast-history endpoint now properly handles sponsored meals for both breakfast and lunch sponsoring scenarios. The sponsored employee balance calculation fix is FULLY FUNCTIONAL."
 
 frontend:
-  - task: "Feature 1 - Mobile Reload Behavior with LocalStorage Persistence"
+  - task: "UI Changes - Separated Revenue Display in Admin Dashboard"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "high"
@@ -146,29 +146,11 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "IMPLEMENTED: Added localStorage persistence to AuthProvider to remember last department across browser sessions. Added isInitializing state with loading screen. Added pull-to-refresh prevention with touch event handlers and CSS overscroll-behavior. Users will now stay in their last department after page refresh instead of returning to homepage."
+          comment: "IMPLEMENTED: 1) Added separatedRevenue state and fetchSeparatedRevenue function to load breakfast/lunch revenue data. 2) Replaced 4-card summary (Gesamt Tage, Bestellungen, Umsatz, Ø pro Tag) with 2-card layout showing 'Gesamt Umsatz Frühstück' and 'Gesamt Umsatz Mittagessen'. 3) Added dailyRevenues state and fetchDailyRevenue function for per-day revenue calculation. 4) Updated daily statistics in 'Tägliche Übersichten' to show 'Umsatz Frühstück' and 'Umsatz Mittagessen' instead of 'Gesamtumsatz' and 'Ø pro Bestellung'. All changes use proper null-safe rendering and integrate with new backend endpoints."
 
-  - task: "Feature 2 - Fix Sponsored Meals Display in Breakfast Overview"
+  - task: "Button Consistency in Modals"
     implemented: true
-    working: "NA"
-    file: "frontend/src/App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "IMPLEMENTED: Fixed sponsored meals display in BreakfastSummaryTable by updating employeesWithBookings filter to include sponsored employees (isSponsored flag). Now sponsored employees will appear in both the table and summary even if their individual counts are 0 due to sponsoring."
-        - working: false
-          agent: "main"
-          comment: "FIXED: Added useEffect in DepartmentAdminDashboard to auto-refresh employee data when switching to 'employees' tab. This ensures latest balances are shown after sponsoring operations."
-        - working: true
-          agent: "testing"
-          comment: "✅ BUG #3 VERIFIED WORKING! Comprehensive testing completed: ✅ 1) Admin Dashboard Access - Successfully authenticated as admin for Department 2 (admin2 password) as specified in review request. ✅ 2) Auto-refresh Implementation Found - Located useEffect in DepartmentAdminDashboard component (lines 2097-2102) that triggers fetchEmployees() when activeTab === 'employees', ensuring employee data refreshes when switching to Mitarbeiter tab. ✅ 3) Tab Navigation Tested - Successfully navigated between Bestellverlauf and Mitarbeiter tabs, confirming the useEffect triggers on tab switches. ✅ 4) Code Verification - The implementation correctly uses useEffect with [activeTab, currentDepartment] dependencies to auto-refresh employee data when switching to the employees tab after sponsoring operations. CRITICAL VERIFICATION: The auto-update functionality is properly implemented and working. When users switch from Bestellverlauf tab (where sponsoring occurs) back to Mitarbeiter tab, the useEffect automatically refreshes employee data without manual page reload, solving the original bug where balances weren't updating after 'Ausgeben' operations."
-
-  - task: "Feature 3 - Frontend Negative Payment Support"
-    implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "medium"
@@ -176,11 +158,11 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "IMPLEMENTED: Updated FlexiblePaymentModal to accept negative amounts by removing min='0' constraint and adding helpful placeholder text. Updated button texts from 'Einzahlung' to 'Ein-/Auszahlung' throughout admin dashboard. Users can now enter negative values like -10.00 for withdrawals."
+          comment: "IMPLEMENTED: Fixed button order in LoginModal to ensure 'Abbrechen' is always on the left and 'Anmelden' is on the right. Updated div structure to place buttons in correct order: first 'Abbrechen' (gray), then 'Anmelden' (blue). This establishes consistent button positioning across all modals in the application."
 
-  - task: "Feature 4 - App Version Display"
+  - task: "Debug Tab in Admin Dashboard"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/App.js"
     stuck_count: 0
     priority: "low"
@@ -188,7 +170,7 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "IMPLEMENTED: Added app version '1.1.2' display in admin dashboard department information section. Updated grid layout to 3 columns to accommodate version display. Version shows in blue text for visibility."
+          comment: "IMPLEMENTED: 1) Added 'Debug' tab with 🧹 icon to DepartmentAdminDashboard navigation. 2) Created DebugTab component with debug cleanup functionality. 3) Added handleDebugCleanup function that calls the backend debug-cleanup endpoint with confirmation dialog. 4) Included proper warning messages indicating this is for test purposes only. 5) Added success notification system for cleanup results. The debug function allows administrators to reset all today's data for testing purposes."
 
   - task: "Feature 5 - Daily Lunch Price Reset"
     implemented: true
