@@ -5442,8 +5442,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
       setUpdatingLunchPrice(date);
       await axios.put(`${API}/daily-lunch-settings/${currentDepartment.department_id}/${date}?lunch_price=${newPrice}`);
       
-      // Refresh the history to show updated prices
+      // Refresh ALL data after lunch price change
       await fetchBreakfastHistory();
+      await fetchSeparatedRevenue();
       
       // Clear editing state
       setEditingLunchPrice(null);
