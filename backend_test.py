@@ -121,29 +121,30 @@ class BreakfastDayDeletionTest:
             print(f"❌ Error creating breakfast order for {employee_name}: {e}")
             return None
     
-    def get_breakfast_orders_for_date(self, date: str) -> List[Dict]:
-        """Get all breakfast orders for a specific date"""
+    def get_current_date_orders(self) -> List[Dict]:
+        """Get all breakfast orders for today"""
         try:
-            # Use breakfast history endpoint to get orders for a specific date
+            # Use breakfast history endpoint to get today's orders
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
                 history_data = response.json()
                 
-                # Look for the specific date in history
+                # Look for today's date in history
                 if isinstance(history_data, dict) and "history" in history_data:
-                    for day_data in history_data["history"]:
-                        if day_data.get("date") == date:
-                            return day_data.get("employee_orders", [])
+                    # Get the most recent day (should be today)
+                    if history_data["history"]:
+                        today_data = history_data["history"][0]  # Most recent day
+                        return today_data.get("employee_orders", [])
                 
-                print(f"📊 No breakfast orders found for date {date}")
+                print(f"📊 No breakfast orders found for today")
                 return []
             else:
-                print(f"❌ Failed to get breakfast orders for {date}: {response.status_code} - {response.text}")
+                print(f"❌ Failed to get today's breakfast orders: {response.status_code} - {response.text}")
                 return []
                 
         except Exception as e:
-            print(f"❌ Error getting breakfast orders for {date}: {e}")
+            print(f"❌ Error getting today's breakfast orders: {e}")
             return []
     
     def delete_breakfast_day(self, date: str) -> Dict:
