@@ -5334,8 +5334,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
         `Zahler: ${result.sponsor}`
       );
 
-      // Refresh breakfast history to show updated data
+      // Refresh ALL data after sponsoring - history, statistics, and sponsor status
       await fetchBreakfastHistory();
+      await fetchSeparatedRevenue();
       
       // Also refresh sponsor status for this specific date
       try {
