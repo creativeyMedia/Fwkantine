@@ -327,8 +327,16 @@ class CanteenManagementSystemTest:
             print("Creating 1 test employee with breakfast AND lunch order (total ~€9-10)")
             print("Employee should have: rolls, eggs, coffee, and lunch")
             print("Testing breakfast sponsoring first, then lunch sponsoring")
-            print("Expected result: Only coffee cost (~€2.00) should remain")
+            print("Expected result: Only coffee cost (~€1.00) should remain")
             print()
+            
+            # Get current pricing to calculate exact expectations
+            # White roll: €0.75, Seeded roll: €1.00, Eggs: €0.50, Coffee: €1.00, Lunch: €5.00
+            white_roll_price = 0.75
+            seeded_roll_price = 1.00
+            egg_price = 0.50
+            coffee_price = 1.00
+            lunch_price = 5.00
             
             # Step 1: Create test employee with both breakfast AND lunch order
             test_employee = self.create_test_employee("CriticalTest")
@@ -338,19 +346,20 @@ class CanteenManagementSystemTest:
             if not all([test_employee, breakfast_sponsor, lunch_sponsor]):
                 return False
             
-            # Create comprehensive order: rolls + eggs + coffee + lunch (should be ~€9-10)
+            # Create comprehensive order: rolls + eggs + coffee + lunch
+            # Expected: 2 white (€1.50) + 2 seeded (€2.00) + 2 eggs (€1.00) + coffee (€1.00) + lunch (€5.00) = €10.50
             order_data = {
                 "employee_id": test_employee['id'],
                 "department_id": DEPARTMENT_ID,
                 "order_type": "breakfast",
                 "breakfast_items": [{
                     "total_halves": 4,  # 2 full rolls
-                    "white_halves": 2,
-                    "seeded_halves": 2,
+                    "white_halves": 2,  # 2 white halves = €1.50
+                    "seeded_halves": 2, # 2 seeded halves = €2.00
                     "toppings": ["butter", "kaese", "schinken", "salami"],  # 4 toppings for 4 halves
-                    "has_lunch": True,   # Include lunch
-                    "boiled_eggs": 2,    # 2 eggs
-                    "has_coffee": True   # Include coffee
+                    "has_lunch": True,   # Include lunch = €5.00
+                    "boiled_eggs": 2,    # 2 eggs = €1.00
+                    "has_coffee": True   # Include coffee = €1.00
                 }]
             }
             
@@ -362,7 +371,14 @@ class CanteenManagementSystemTest:
             order = response.json()
             total_order_cost = order['total_price']
             
-            print(f"✅ Created comprehensive order: €{total_order_cost:.2f} (rolls + eggs + coffee + lunch)")
+            # Calculate expected breakdown
+            expected_breakfast_cost = (2 * white_roll_price) + (2 * seeded_roll_price) + (2 * egg_price)  # €1.50 + €2.00 + €1.00 = €4.50
+            expected_coffee_cost = coffee_price  # €1.00
+            expected_lunch_cost = lunch_price    # €5.00
+            expected_total = expected_breakfast_cost + expected_coffee_cost + expected_lunch_cost  # €10.50
+            
+            print(f"✅ Created comprehensive order: €{total_order_cost:.2f}")
+            print(f"   Expected breakdown: Breakfast €{expected_breakfast_cost:.2f} + Coffee €{expected_coffee_cost:.2f} + Lunch €{expected_lunch_cost:.2f} = €{expected_total:.2f}")
             
             # Create sponsor orders so they can sponsor
             sponsor_order_b = self.create_breakfast_lunch_order(breakfast_sponsor['id'], include_lunch=True, include_coffee=True)
@@ -379,8 +395,8 @@ class CanteenManagementSystemTest:
             initial_breakfast_balance = initial_balance['breakfast_balance']
             print(f"Initial employee balance: €{initial_breakfast_balance:.2f} (debt from order)")
             
-            # Step 2: Test breakfast sponsoring first
-            print("\n🥐 STEP 1: Sponsoring breakfast portion (rolls + eggs)")
+            # Step 2: Test breakfast sponsoring first (should sponsor rolls + eggs = €4.50)
+            print(f"\n🥐 STEP 1: Sponsoring breakfast portion (rolls + eggs = €{expected_breakfast_cost:.2f})")
             success_breakfast, result_breakfast = self.sponsor_meal(
                 breakfast_sponsor['id'], 
                 breakfast_sponsor['name'], 
@@ -399,9 +415,10 @@ class CanteenManagementSystemTest:
             balance_after_breakfast_val = balance_after_breakfast['breakfast_balance']
             breakfast_sponsored_amount = balance_after_breakfast_val - initial_breakfast_balance
             print(f"After breakfast sponsoring: €{balance_after_breakfast_val:.2f} (sponsored amount: €{breakfast_sponsored_amount:.2f})")
+            print(f"   Expected after breakfast sponsoring: €{initial_breakfast_balance + expected_breakfast_cost:.2f} (should have coffee + lunch remaining)")
             
-            # Step 3: Test lunch sponsoring second  
-            print("\n🍽️ STEP 2: Sponsoring lunch portion")
+            # Step 3: Test lunch sponsoring second (should sponsor lunch = €5.00)
+            print(f"\n🍽️ STEP 2: Sponsoring lunch portion (lunch = €{expected_lunch_cost:.2f})")
             success_lunch, result_lunch = self.sponsor_meal(
                 lunch_sponsor['id'], 
                 lunch_sponsor['name'], 
@@ -426,27 +443,27 @@ class CanteenManagementSystemTest:
             
             # Step 4: CRITICAL VERIFICATION - Only coffee cost should remain
             remaining_debt = abs(final_breakfast_balance)  # Convert to positive for easier reading
-            expected_coffee_cost = 2.0  # Approximate coffee cost
+            expected_remaining = expected_coffee_cost  # Only coffee should remain = €1.00
             
             print(f"\n🔍 CRITICAL VERIFICATION:")
             print(f"Original order cost: €{total_order_cost:.2f}")
             print(f"Total sponsored: €{total_sponsored:.2f}")
             print(f"Remaining debt: €{remaining_debt:.2f}")
-            print(f"Expected coffee cost: ~€{expected_coffee_cost:.2f}")
+            print(f"Expected remaining (coffee only): €{expected_remaining:.2f}")
             
-            # Test passes if remaining debt is close to coffee cost (within €0.50 tolerance)
-            if abs(remaining_debt - expected_coffee_cost) <= 0.50:
+            # Test passes if remaining debt equals coffee cost (within €0.10 tolerance)
+            if abs(remaining_debt - expected_remaining) <= 0.10:
                 self.log_result(
                     "CRITICAL Sponsoring Logic Fix",
                     True,
-                    f"✅ CRITICAL SPONSORING LOGIC VERIFIED SUCCESSFULLY! Employee {test_employee['name']}: Original order €{total_order_cost:.2f}, Total sponsored €{total_sponsored:.2f}, Remaining debt €{remaining_debt:.2f} ≈ coffee cost €{expected_coffee_cost:.2f}. EXPECTED RESULT ACHIEVED: When both breakfast and lunch are sponsored, only coffee cost (~€2.00) remains as expected!"
+                    f"✅ CRITICAL SPONSORING LOGIC VERIFIED SUCCESSFULLY! Employee {test_employee['name']}: Original order €{total_order_cost:.2f}, Total sponsored €{total_sponsored:.2f}, Remaining debt €{remaining_debt:.2f} = coffee cost €{expected_remaining:.2f}. EXPECTED RESULT ACHIEVED: When both breakfast and lunch are sponsored, only coffee cost (€{expected_remaining:.2f}) remains as expected!"
                 )
                 return True
             else:
                 self.log_result(
                     "CRITICAL Sponsoring Logic Fix",
                     False,
-                    error=f"❌ CRITICAL SPONSORING LOGIC ISSUE DETECTED: Employee {test_employee['name']} has remaining debt €{remaining_debt:.2f}, expected ~€{expected_coffee_cost:.2f} (coffee only). Difference: €{abs(remaining_debt - expected_coffee_cost):.2f}. Original order €{total_order_cost:.2f}, sponsored €{total_sponsored:.2f}. The sponsoring logic is NOT working correctly - more than coffee cost remains unpaid."
+                    error=f"❌ CRITICAL SPONSORING LOGIC ISSUE DETECTED: Employee {test_employee['name']} has remaining debt €{remaining_debt:.2f}, expected €{expected_remaining:.2f} (coffee only). Difference: €{abs(remaining_debt - expected_remaining):.2f}. Original order €{total_order_cost:.2f}, sponsored €{total_sponsored:.2f}. The sponsoring logic is NOT working correctly - the remaining amount does not match expected coffee cost."
                 )
                 return False
                 
