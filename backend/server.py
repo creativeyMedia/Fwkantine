@@ -1519,11 +1519,10 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
             
             for order in orders:
-                # Skip sponsored orders for revenue calculation (sponsoring doesn't create revenue)
-                if order.get("is_sponsored") and not order.get("is_sponsor_order"):
-                    continue
-                    
-                # Skip pure sponsor orders (they're not actual food orders)
+                # IMPORTANT: Sponsored orders should COUNT toward revenue!
+                # Sponsoring is just cost redistribution, total revenue stays the same
+                
+                # Skip ONLY pure sponsor orders (they're not actual food orders)
                 if order.get("is_sponsor_order") and not order.get("breakfast_items"):
                     continue
                 
