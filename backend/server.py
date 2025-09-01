@@ -1374,15 +1374,14 @@ async def create_order(order_data: OrderCreate):
     
     return order
 
-@api_router.get("/orders/breakfast-history-separated/{department_id}")
-async def get_breakfast_history_separated(department_id: str, days_back: int = 30):
-    """Get historical breakfast summaries for a department with separated breakfast/lunch revenue"""
+@api_router.get("/orders/separated-revenue/{department_id}")
+async def get_separated_revenue(department_id: str, days_back: int = 30):
+    """Get separated breakfast and lunch revenue for a department"""
     
     # Get date range (Berlin timezone)
     end_date = get_berlin_date()
     start_date = end_date - timedelta(days=days_back)
     
-    history = []
     current_date = start_date
     total_breakfast_revenue = 0.0
     total_lunch_revenue = 0.0
@@ -1442,7 +1441,7 @@ async def get_breakfast_history_separated(department_id: str, days_back: int = 3
                     continue
                 
                 for item in order.get("breakfast_items", []):
-                    # Calculate breakfast revenue (rolls + eggs)
+                    # Calculate breakfast revenue (rolls + eggs + coffee)
                     white_halves = item.get("white_halves", 0)
                     seeded_halves = item.get("seeded_halves", 0)
                     boiled_eggs = item.get("boiled_eggs", 0)
@@ -1450,37 +1449,29 @@ async def get_breakfast_history_separated(department_id: str, days_back: int = 3
                     breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
                     daily_breakfast_revenue += breakfast_item_cost
                     
+                    # Coffee revenue goes to breakfast
+                    if item.get("has_coffee", False):
+                        daily_breakfast_revenue += coffee_price
+                    
                     # Calculate lunch revenue
                     if item.get("has_lunch", False):
                         daily_lunch_revenue += daily_lunch_price
-                    
-                    # Coffee revenue goes to breakfast (not counted separately)
-                    if item.get("has_coffee", False):
-                        daily_breakfast_revenue += coffee_price
             
             total_breakfast_revenue += daily_breakfast_revenue
             total_lunch_revenue += daily_lunch_revenue
-            
-            # Store detailed daily data
-            history.append({
-                "date": current_date.isoformat(),
-                "breakfast_revenue": round(daily_breakfast_revenue, 2),
-                "lunch_revenue": round(daily_lunch_revenue, 2),
-                "total_orders": len(orders)
-            })
         
         current_date += timedelta(days=1)
     
     return {
-        "history": history,
-        "summary": {
-            "total_breakfast_revenue": round(total_breakfast_revenue, 2),
-            "total_lunch_revenue": round(total_lunch_revenue, 2),
-            "total_revenue": round(total_breakfast_revenue + total_lunch_revenue, 2),
-            "days_included": len(history)
-        }
+        "breakfast_revenue": round(total_breakfast_revenue, 2),
+        "lunch_revenue": round(total_lunch_revenue, 2),
+        "total_revenue": round(total_breakfast_revenue + total_lunch_revenue, 2),
+        "days_back": days_back
     }
 
+
+@api_router.get("/orders/breakfast-history/{department_id}")
+async def get_breakfast_history(department_id: str, days_back: int = 30):
     """Get historical breakfast summaries for a department"""
     
     # Get date range (Berlin timezone)
