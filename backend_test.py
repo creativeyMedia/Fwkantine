@@ -1,39 +1,39 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING FOR SPONSOR STATUS FUNCTIONALITY
+COMPREHENSIVE BACKEND TESTING FOR CANTEEN MANAGEMENT SYSTEM IMPROVEMENTS
 
 **TESTING FOCUS:**
-Test the new sponsor status check functionality:
+Test the newly implemented backend changes for the canteen management system improvements:
 
-1. **Test sponsor status endpoint for clean date**:
-   - Test GET /api/department-admin/sponsor-status/fw4abteilung2/{today's date}
-   - Verify it returns proper structure with breakfast_sponsored: null and lunch_sponsored: null
-   - Check that the response format matches frontend expectations
+CRITICAL TESTS NEEDED:
 
-2. **Test sponsor status after breakfast sponsoring**:
-   - Create employees and breakfast orders for today
-   - Sponsor breakfast meals using one employee
-   - Test sponsor status endpoint again
-   - Verify breakfast_sponsored shows correct sponsor name and ID
-   - Verify lunch_sponsored remains null
+1. **Sponsoring Logic Fix Testing:**
+   - Test scenario where an employee has both breakfast and lunch orders
+   - Test sponsoring breakfast first, then lunch for same employee
+   - Verify that when both are sponsored, only coffee remains unpaid
+   - Test with different employees sponsoring breakfast vs lunch
+   - Verify balance calculations are correct and no double-counting occurs
 
-3. **Test sponsor status after lunch sponsoring**:
-   - Use same employees with lunch orders
-   - Sponsor lunch meals using another employee  
-   - Test sponsor status endpoint
-   - Verify lunch_sponsored shows correct sponsor name and ID
-   - Verify breakfast_sponsored remains from previous test
+2. **Separated Revenue Endpoints Testing:**
+   - Test GET /api/orders/separated-revenue/{department_id}?days_back=30
+   - Verify it returns correct breakfast_revenue and lunch_revenue
+   - Test with sponsored orders to ensure they don't count toward revenue
+   - Test coffee allocation to breakfast category
+   
+   - Test GET /api/orders/daily-revenue/{department_id}/{date}
+   - Verify daily breakfast and lunch revenue calculation
+   - Test with specific dates and different meal configurations
 
-4. **Test error handling**:
-   - Test with invalid date format
-   - Test with non-existent department
-   - Verify appropriate error messages are returned
+3. **Debug Cleanup Function Testing:**
+   - Test DELETE /api/department-admin/debug-cleanup/{department_id}
+   - Verify it deletes today's orders for the department
+   - Verify it resets employee balances to 0.0
+   - Verify it deletes today's payment logs
+   - Test return statistics are accurate
 
-5. **Test timezone handling**:
-   - Verify the endpoint correctly handles Berlin timezone for date boundaries
-   - Test with dates at day boundaries (23:59, 00:01)
+AUTHENTICATION: Use existing department credentials (admin2/password2 for Department 2)
 
-Use Department "fw4abteilung2" and today's date for testing.
+IMPORTANT: Focus on the sponsoring logic fix - this is the most critical change that needs thorough testing to ensure the balance calculations work correctly when both breakfast and lunch are sponsored.
 """
 
 import requests
