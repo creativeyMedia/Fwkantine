@@ -5182,6 +5182,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   useEffect(() => {
     fetchBreakfastHistory();
     fetchDepartmentEmployees();
+    fetchSeparatedRevenue();
   }, [currentDepartment]);
 
   const fetchBreakfastHistory = async () => {
