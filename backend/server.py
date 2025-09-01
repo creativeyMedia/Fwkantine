@@ -1954,7 +1954,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "amount": round(breakfast_sponsored_amount, 2)
                         }
                         # Add sponsored breakfast amount to sponsor's total_amount
-                        employee_orders[employee_name]["total_amount"] += breakfast_sponsored_amount
+                        employee_orders[employee_key]["total_amount"] += breakfast_sponsored_amount
                     
                     if lunch_sponsored_count > 0:
                         lunch_sponsored_info = {
@@ -1962,14 +1962,14 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "amount": round(lunch_sponsored_amount, 2)
                         }
                         # Add sponsored lunch amount to sponsor's total_amount
-                        employee_orders[employee_name]["total_amount"] += lunch_sponsored_amount
+                        employee_orders[employee_key]["total_amount"] += lunch_sponsored_amount
                 
                 # Add sponsoring info to employee data
-                employee_orders[employee_name]["sponsored_breakfast"] = breakfast_sponsored_info
-                employee_orders[employee_name]["sponsored_lunch"] = lunch_sponsored_info
+                employee_orders[employee_key]["sponsored_breakfast"] = breakfast_sponsored_info
+                employee_orders[employee_key]["sponsored_lunch"] = lunch_sponsored_info
                 
                 # Round total_amount to avoid floating point errors
-                employee_orders[employee_name]["total_amount"] = round(employee_orders[employee_name]["total_amount"], 2)
+                employee_orders[employee_key]["total_amount"] = round(employee_orders[employee_key]["total_amount"], 2)
             
             history.append({
                 "date": current_date.isoformat(),
