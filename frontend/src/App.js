@@ -6,32 +6,37 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
-// Calculate displayed price after sponsoring
+// Calculate displayed price after sponsoring using actual item prices
 const calculateDisplayPrice = (item) => {
   if (!item.is_sponsored || item.is_sponsor_order) {
     return item.total_price; // Original price for non-sponsored or sponsor orders
   }
   
-  // For sponsored orders, calculate remaining cost (coffee, etc.)
+  // For sponsored orders, calculate remaining cost using actual readable_items
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
   
-  // Calculate what was sponsored and subtract from total
-  if (item.breakfast_items && item.breakfast_items.length > 0) {
-    const breakfastItem = item.breakfast_items[0];
-    
-    // Subtract breakfast cost if sponsored
-    if (sponsoredTypes.includes('breakfast')) {
-      // Calculate breakfast cost (rolls + eggs) - rough estimation
-      const rollsHalves = (breakfastItem.white_halves || 0) + (breakfastItem.seeded_halves || 0);
-      const estimatedRollsCost = rollsHalves * 0.55; // Average roll price
-      const estimatedEggsCost = (breakfastItem.boiled_eggs || 0) * 0.50; // Estimated egg price
-      remainingCost -= (estimatedRollsCost + estimatedEggsCost);
-    }
-    
-    // Subtract lunch cost if sponsored  
-    if (sponsoredTypes.includes('lunch') && breakfastItem.has_lunch) {
-      remainingCost -= 5.0; // Estimated lunch price
+  // Calculate what was sponsored using actual item prices from readable_items
+  if (item.readable_items && item.readable_items.length > 0) {
+    for (const readableItem of item.readable_items) {
+      const description = readableItem.description || '';
+      const itemPrice = readableItem.price || 0;
+      
+      // Subtract breakfast items if sponsored (rolls and eggs, but NOT coffee)
+      if (sponsoredTypes.includes('breakfast')) {
+        if ((description.includes('Brötchen') || 
+             description.includes('Helle') || 
+             description.includes('Körner') || 
+             description.includes('Ei')) &&
+            !description.includes('Kaffee')) {
+          remainingCost -= itemPrice;
+        }
+      }
+      
+      // Subtract lunch cost if sponsored
+      if (sponsoredTypes.includes('lunch') && description.includes('Mittagessen')) {
+        remainingCost -= itemPrice;
+      }
     }
   }
   
