@@ -3385,41 +3385,43 @@ async def sponsor_meal(meal_data: dict):
             employee_id = calc["employee_id"]
             sponsored_amount = calc["sponsored_amount"]
             
-            # CORRECTED: Refund sponsored amount to employee balance (INCREASE balance = less debt)
-            employee = await db.employees.find_one({"id": employee_id})
-            if employee:
-                # Sponsored employee gets credited (balance increases = less debt or more credit)
-                new_balance = employee["breakfast_balance"] + sponsored_amount
-                new_balance = round(new_balance, 2)
-                await db.employees.update_one(
-                    {"id": employee_id},
-                    {"$set": {"breakfast_balance": new_balance}}
-                )
-            
-            # Store order update for later
-            sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
-            
-            # Check if order already has sponsoring information
-            existing_sponsored_meal_type = order.get("sponsored_meal_type", "")
-            if existing_sponsored_meal_type and existing_sponsored_meal_type != meal_type:
-                # Order already sponsored for different meal type - add to existing sponsoring
-                combined_meal_type = f"{existing_sponsored_meal_type},{meal_type}"
-                combined_message = f"{order.get('sponsored_message', '')} Zusätzlich: {sponsored_message}"
-            else:
-                combined_meal_type = meal_type
-                combined_message = sponsored_message
-            
-            other_order_updates.append({
-                "id": order["id"],
-                "updates": {
-                    "is_sponsored": True,
-                    "sponsored_by_employee_id": sponsor_employee_id,
-                    "sponsored_by_name": sponsor_employee_name,
-                    "sponsored_meal_type": combined_meal_type,
-                    "sponsored_message": combined_message,
-                    "sponsored_date": datetime.now(timezone.utc).isoformat()
-                }
-            })
+            # Only process if sponsored_amount > 0 (meaning this meal type wasn't already sponsored)
+            if sponsored_amount > 0:
+                # CORRECTED: Refund sponsored amount to employee balance (INCREASE balance = less debt)
+                employee = await db.employees.find_one({"id": employee_id})
+                if employee:
+                    # Sponsored employee gets credited (balance increases = less debt or more credit)
+                    new_balance = employee["breakfast_balance"] + sponsored_amount
+                    new_balance = round(new_balance, 2)
+                    await db.employees.update_one(
+                        {"id": employee_id},
+                        {"$set": {"breakfast_balance": new_balance}}
+                    )
+                
+                # Store order update for later
+                sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
+                
+                # Check if order already has sponsoring information
+                existing_sponsored_meal_type = order.get("sponsored_meal_type", "")
+                if existing_sponsored_meal_type and existing_sponsored_meal_type != meal_type:
+                    # Order already sponsored for different meal type - add to existing sponsoring
+                    combined_meal_type = f"{existing_sponsored_meal_type},{meal_type}"
+                    combined_message = f"{order.get('sponsored_message', '')} Zusätzlich: {sponsored_message}"
+                else:
+                    combined_meal_type = meal_type
+                    combined_message = sponsored_message
+                
+                other_order_updates.append({
+                    "id": order["id"],
+                    "updates": {
+                        "is_sponsored": True,
+                        "sponsored_by_employee_id": sponsor_employee_id,
+                        "sponsored_by_name": sponsor_employee_name,
+                        "sponsored_meal_type": combined_meal_type,
+                        "sponsored_message": combined_message,
+                        "sponsored_date": datetime.now(timezone.utc).isoformat()
+                    }
+                })
         
         # 2. Create sponsor order if they don't have one (sponsor without own order scenario)
         if not sponsor_calculation and sponsor_additional_cost > 0:
