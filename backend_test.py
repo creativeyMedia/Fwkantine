@@ -43,7 +43,22 @@ class SponsoringDisplayTest:
         self.sponsor_employee_id = None
         self.sponsored_employees = []
         
-    def get_berlin_date(self):
+    def cleanup_test_data(self) -> bool:
+        """Clean up test data to create fresh scenario"""
+        try:
+            response = self.session.delete(f"{API_BASE}/department-admin/debug-cleanup/{DEPARTMENT_ID}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Successfully cleaned up test data: {result}")
+                return True
+            else:
+                print(f"⚠️ Cleanup failed (continuing anyway): {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"⚠️ Cleanup error (continuing anyway): {e}")
+            return False
         """Get current date in Berlin timezone"""
         return datetime.now(BERLIN_TZ).date().strftime('%Y-%m-%d')
         
