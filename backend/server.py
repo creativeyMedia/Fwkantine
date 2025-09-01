@@ -2946,18 +2946,19 @@ async def delete_breakfast_day(department_id: str, date: str):
     print(f"🚨 KRITISCHE OPERATION: Lösche alle Frühstücksbestellungen für {date} in {department_id}")
     
     try:
-        # Validate date format
+        # Validate date format and use Berlin timezone like other functions
         parsed_date = datetime.fromisoformat(date).date()
-        start_of_day = datetime.combine(parsed_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-        end_of_day = datetime.combine(parsed_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        
+        # CRITICAL FIX: Use Berlin timezone day bounds like all other functions
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(parsed_date)
         
         # Find all breakfast orders for this department and date
         breakfast_orders = await db.orders.find({
             "department_id": department_id,
             "order_type": "breakfast",
             "timestamp": {
-                "$gte": start_of_day.isoformat(),
-                "$lte": end_of_day.isoformat()
+                "$gte": start_of_day_utc.isoformat(),
+                "$lte": end_of_day_utc.isoformat()
             }
         }).to_list(1000)
         
