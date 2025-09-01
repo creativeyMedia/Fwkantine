@@ -5161,6 +5161,10 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [editingLunchPrice, setEditingLunchPrice] = useState(null); // date being edited
   const [lunchPriceInput, setLunchPriceInput] = useState(''); // temporary input value
   const [updatingLunchPrice, setUpdatingLunchPrice] = useState(null); // date being updated
+  const [separatedRevenue, setSeparatedRevenue] = useState({
+    breakfast_revenue: 0,
+    lunch_revenue: 0
+  });
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
