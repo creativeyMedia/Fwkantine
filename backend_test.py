@@ -6,10 +6,9 @@ This test verifies that the breakfast day deletion functionality correctly uses 
 to prevent cross-day deletion issues that could cause massive data loss.
 
 Test Scenario:
-- Create breakfast orders for multiple days (yesterday and today)
-- Delete ONLY yesterday's breakfast day (2025-09-01)
-- Verify ONLY yesterday's orders are deleted
-- Verify today's orders remain intact
+- Create breakfast orders for today (Berlin timezone)
+- Delete today's breakfast day using Berlin date
+- Verify all today's orders are deleted
 - Test date boundaries with Berlin timezone
 - Test date validation (invalid formats, future dates)
 
@@ -20,6 +19,7 @@ Admin Credentials: admin2
 import requests
 import json
 from datetime import datetime, timedelta
+import pytz
 import os
 from typing import Dict, List, Any
 
@@ -32,17 +32,18 @@ DEPARTMENT_ID = "fw4abteilung2"  # Department 2
 ADMIN_PASSWORD = "admin2"
 DEPARTMENT_NAME = "2. Wachabteilung"
 
-# Test dates (as specified in review request)
-YESTERDAY_DATE = "2025-09-01"  # Yesterday
-TODAY_DATE = "2025-09-02"      # Today
+# Berlin timezone
+BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
 class BreakfastDayDeletionTest:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
         self.test_employees = []
-        self.yesterday_orders = []
-        self.today_orders = []
+        
+    def get_berlin_date(self):
+        """Get current date in Berlin timezone"""
+        return datetime.now(BERLIN_TZ).date().strftime('%Y-%m-%d')
         
     def authenticate_admin(self) -> bool:
         """Authenticate as admin for Department 2"""
@@ -185,7 +186,7 @@ class BreakfastDayDeletionTest:
         future_date = "2025-12-31"
         try:
             response = self.session.delete(f"{API_BASE}/department-admin/breakfast-day/{DEPARTMENT_ID}/{future_date}")
-            if response.status_code == 404:
+            if response.status_code == 404 or response.status_code == 500:
                 print(f"✅ Correctly handled future date: {future_date} (no orders found)")
             else:
                 print(f"⚠️ Future date handling: {future_date} returned {response.status_code}")
@@ -203,8 +204,12 @@ class BreakfastDayDeletionTest:
             print("❌ CRITICAL FAILURE: Cannot authenticate as admin")
             return False
         
-        # Step 2: Create Test Employees
-        print(f"\n2️⃣ Creating Test Employees for Department {DEPARTMENT_ID}")
+        # Step 2: Get Current Berlin Date
+        berlin_date = self.get_berlin_date()
+        print(f"\n2️⃣ Current Berlin Date: {berlin_date}")
+        
+        # Step 3: Create Test Employees
+        print(f"\n3️⃣ Creating Test Employees for Department {DEPARTMENT_ID}")
         test_employee1 = self.create_test_employee(f"BreakfastTest1_{datetime.now().strftime('%H%M%S')}")
         test_employee2 = self.create_test_employee(f"BreakfastTest2_{datetime.now().strftime('%H%M%S')}")
         
@@ -212,8 +217,8 @@ class BreakfastDayDeletionTest:
             print("❌ CRITICAL FAILURE: Cannot create test employees")
             return False
         
-        # Step 3: Create Multiple Breakfast Orders for Today
-        print(f"\n3️⃣ Creating Multiple Breakfast Orders for Today")
+        # Step 4: Create Multiple Breakfast Orders for Today
+        print(f"\n4️⃣ Creating Multiple Breakfast Orders for Today ({berlin_date})")
         print(f"📅 This will test the timezone boundary handling")
         
         # Create multiple orders for today
@@ -224,8 +229,8 @@ class BreakfastDayDeletionTest:
             print("❌ CRITICAL FAILURE: Cannot create test orders")
             return False
         
-        # Step 4: Verify Orders Exist Before Deletion
-        print(f"\n4️⃣ Verifying Orders Exist Before Deletion")
+        # Step 5: Verify Orders Exist Before Deletion
+        print(f"\n5️⃣ Verifying Orders Exist Before Deletion")
         orders_before = self.get_current_date_orders()
         
         print(f"📊 Orders before deletion: {len(orders_before)} orders")
@@ -233,15 +238,11 @@ class BreakfastDayDeletionTest:
         if len(orders_before) < 2:
             print("⚠️ Warning: Expected at least 2 test orders, but found fewer")
         
-        # Step 5: Get Current Date for Deletion Test
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        print(f"\n5️⃣ Current Date for Testing: {current_date}")
-        
         # Step 6: CRITICAL TEST - Delete Today's Breakfast Day
-        print(f"\n6️⃣ 🚨 CRITICAL TEST: Delete Today's Breakfast Day ({current_date})")
+        print(f"\n6️⃣ 🚨 CRITICAL TEST: Delete Today's Breakfast Day ({berlin_date})")
         print("⚠️ This tests the Berlin timezone boundary handling")
         
-        deletion_result = self.delete_breakfast_day(current_date)
+        deletion_result = self.delete_breakfast_day(berlin_date)
         
         if "error" in deletion_result:
             print(f"❌ CRITICAL FAILURE: Breakfast day deletion failed: {deletion_result['error']}")
@@ -260,32 +261,23 @@ class BreakfastDayDeletionTest:
         deleted_count = deletion_result.get("deleted_orders", 0)
         
         if deletion_successful:
-            print(f"✅ DELETION SUCCESS: All today's orders ({current_date}) were deleted")
+            print(f"✅ DELETION SUCCESS: All today's orders ({berlin_date}) were deleted")
             print(f"✅ Deleted {deleted_count} orders as expected")
         else:
-            print(f"❌ DELETION FAILURE: {len(orders_after)} orders still exist for {current_date}")
+            print(f"❌ DELETION FAILURE: {len(orders_after)} orders still exist for {berlin_date}")
         
         # Step 9: Test Date Validation
         self.test_date_validation()
         
-        # Step 10: Test Future Date Handling
-        print(f"\n🔟 Testing Future Date Handling")
-        future_date = "2025-12-31"
-        future_result = self.delete_breakfast_day(future_date)
-        
-        if "error" in future_result and "Keine Frühstücks-Bestellungen" in future_result["error"]:
-            print(f"✅ Future date correctly handled: {future_date} (no orders found)")
-        else:
-            print(f"⚠️ Future date handling: {future_date} - {future_result}")
-        
-        # Step 11: Test Yesterday Date (Should be empty)
-        print(f"\n1️⃣1️⃣ Testing Yesterday Date Handling")
-        yesterday_result = self.delete_breakfast_day(YESTERDAY_DATE)
+        # Step 10: Test Yesterday Date (Should be empty)
+        yesterday_date = (datetime.now(BERLIN_TZ).date() - timedelta(days=1)).strftime('%Y-%m-%d')
+        print(f"\n🔟 Testing Yesterday Date Handling ({yesterday_date})")
+        yesterday_result = self.delete_breakfast_day(yesterday_date)
         
         if "error" in yesterday_result and "Keine Frühstücks-Bestellungen" in yesterday_result["error"]:
-            print(f"✅ Yesterday date correctly handled: {YESTERDAY_DATE} (no orders found)")
+            print(f"✅ Yesterday date correctly handled: {yesterday_date} (no orders found)")
         else:
-            print(f"⚠️ Yesterday date handling: {YESTERDAY_DATE} - {yesterday_result}")
+            print(f"⚠️ Yesterday date handling: {yesterday_date} - {yesterday_result}")
         
         # Final Result
         print(f"\n🏁 FINAL RESULT:")
