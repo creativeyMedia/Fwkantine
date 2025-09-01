@@ -1842,16 +1842,21 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 }
             }).to_list(1000)
             
-            # Get unique sponsor names
-            sponsor_names = set()
+            # Get unique sponsor IDs and names
+            sponsor_data = {}
             for order in all_sponsors:
+                sponsor_id = order.get("sponsored_by_employee_id", "")
                 sponsor_name = order.get("sponsored_by_name", "")
-                if sponsor_name:
-                    sponsor_names.add(sponsor_name)
+                if sponsor_id and sponsor_name:
+                    sponsor_data[sponsor_id] = sponsor_name
             
             # Add sponsors to employee_orders if they're not already there
-            for sponsor_name in sponsor_names:
-                if sponsor_name not in employee_orders:
+            # Check by comparing with existing employee names (not IDs since employee_orders uses names as keys)
+            existing_employee_names = set(employee_orders.keys())
+            
+            for sponsor_id, sponsor_name in sponsor_data.items():
+                if sponsor_name not in existing_employee_names:
+                    # This sponsor has no own orders, add them
                     employee_orders[sponsor_name] = {
                         "white_halves": 0,
                         "seeded_halves": 0,
