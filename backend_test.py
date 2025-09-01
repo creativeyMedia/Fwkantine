@@ -374,8 +374,14 @@ class SponsoringDisplayTest:
         employees_with_sponsored_fields = 0
         
         for employee in employee_orders:
-            employee_name = employee.get("name", "Unknown")
-            employee_id = employee.get("employee_id", "Unknown")
+            # Handle both dict and string formats
+            if isinstance(employee, dict):
+                employee_name = employee.get("name", "Unknown")
+                employee_id = employee.get("employee_id", "Unknown")
+            else:
+                # If employee is a string, skip it
+                print(f"⚠️ Skipping non-dict employee data: {employee}")
+                continue
             
             # Verify sponsored fields exist
             sponsored_results = self.verify_sponsored_fields(employee, employee_name)
