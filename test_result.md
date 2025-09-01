@@ -65,15 +65,18 @@ backend:
 
   - task: "Backend Support for Separated Revenue Calculation"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "IMPLEMENTED: Added two new backend endpoints: 1) /orders/separated-revenue/{department_id} - calculates total breakfast and lunch revenue separately over a specified time period, 2) /orders/daily-revenue/{department_id}/{date} - calculates breakfast and lunch revenue for a specific day. Both endpoints exclude sponsored orders from revenue calculation and properly allocate coffee revenue to breakfast category. These endpoints support the frontend UI changes for separated revenue display."
+        - working: true
+          agent: "testing"
+          comment: "✅ SEPARATED REVENUE ENDPOINTS VERIFIED SUCCESSFULLY! Comprehensive testing completed with 100% success rate (3/3 tests passed): ✅ 1) GET /api/orders/separated-revenue/{department_id}?days_back=30 - Returns correct structure with breakfast_revenue: €6.50, lunch_revenue: €10.00, total_revenue: €16.50, days_back: 30. Endpoint properly separates breakfast and lunch revenue calculations. ✅ 2) GET /api/orders/daily-revenue/{department_id}/{date} - Returns correct daily breakdown with date: 2025-09-01, breakfast_revenue: €6.50, lunch_revenue: €10.00, total_orders: 3. Date matching and data types verified. ✅ 3) Parameter Testing - Successfully tested with different days_back parameter (7 days), confirming parameter handling works correctly. CRITICAL VERIFICATION: Both separated revenue endpoints are FULLY FUNCTIONAL and provide accurate breakfast/lunch revenue separation as required for the frontend UI improvements."
 
   - task: "Debug Cleanup Function for Testing"
     implemented: true
