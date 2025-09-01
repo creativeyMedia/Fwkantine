@@ -368,7 +368,7 @@ class SponsoringDisplayTest:
         
         # Get today's data (should be first in list)
         today_data = history[0]
-        employee_orders = today_data.get("employee_orders", [])
+        employee_orders = today_data.get("employee_orders", {})
         
         if not employee_orders:
             print(f"❌ CRITICAL FAILURE: No employee orders found in today's data")
@@ -383,18 +383,9 @@ class SponsoringDisplayTest:
         sponsored_lunch_count = 0
         employees_with_sponsored_fields = 0
         
-        for employee in employee_orders:
-            # Handle both dict and string formats
-            if isinstance(employee, dict):
-                employee_name = employee.get("name", "Unknown")
-                employee_id = employee.get("employee_id", "Unknown")
-            else:
-                # If employee is a string, skip it
-                print(f"⚠️ Skipping non-dict employee data: {employee}")
-                continue
-            
+        for employee_name, employee_data in employee_orders.items():
             # Verify sponsored fields exist
-            sponsored_results = self.verify_sponsored_fields(employee, employee_name)
+            sponsored_results = self.verify_sponsored_fields(employee_data, employee_name)
             
             if sponsored_results["valid_structure"]:
                 employees_with_sponsored_fields += 1
@@ -425,14 +416,9 @@ class SponsoringDisplayTest:
             "not_sponsored": 0
         }
         
-        for employee in employee_orders:
-            # Handle both dict and string formats
-            if not isinstance(employee, dict):
-                print(f"⚠️ Skipping non-dict employee data: {employee}")
-                continue
-                
-            breakfast_sponsored = employee.get("sponsored_breakfast") is not None
-            lunch_sponsored = employee.get("sponsored_lunch") is not None
+        for employee_name, employee_data in employee_orders.items():
+            breakfast_sponsored = employee_data.get("sponsored_breakfast") is not None
+            lunch_sponsored = employee_data.get("sponsored_lunch") is not None
             
             if breakfast_sponsored and lunch_sponsored:
                 scenarios_found["both_sponsored"] += 1
@@ -457,18 +443,11 @@ class SponsoringDisplayTest:
         calculation_tests_passed = 0
         total_calculation_tests = 0
         
-        for employee in employee_orders:
-            # Handle both dict and string formats
-            if not isinstance(employee, dict):
-                print(f"⚠️ Skipping non-dict employee data: {employee}")
-                continue
-                
-            employee_name = employee.get("name", "Unknown")
-            
+        for employee_name, employee_data in employee_orders.items():
             # Test breakfast calculation
-            if employee.get("sponsored_breakfast"):
+            if employee_data.get("sponsored_breakfast"):
                 total_calculation_tests += 1
-                breakfast_data = employee["sponsored_breakfast"]
+                breakfast_data = employee_data["sponsored_breakfast"]
                 if isinstance(breakfast_data, dict) and "amount" in breakfast_data:
                     amount = breakfast_data["amount"]
                     # Breakfast should exclude coffee, include rolls + eggs
@@ -479,9 +458,9 @@ class SponsoringDisplayTest:
                         print(f"❌ {employee_name} breakfast calculation: €{amount:.2f} (should be > 0)")
             
             # Test lunch calculation
-            if employee.get("sponsored_lunch"):
+            if employee_data.get("sponsored_lunch"):
                 total_calculation_tests += 1
-                lunch_data = employee["sponsored_lunch"]
+                lunch_data = employee_data["sponsored_lunch"]
                 if isinstance(lunch_data, dict) and "amount" in lunch_data:
                     amount = lunch_data["amount"]
                     # Lunch should be lunch price × count
