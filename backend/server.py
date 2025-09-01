@@ -1374,8 +1374,113 @@ async def create_order(order_data: OrderCreate):
     
     return order
 
-@api_router.get("/orders/breakfast-history/{department_id}")
-async def get_breakfast_history(department_id: str, days_back: int = 30):
+@api_router.get("/orders/breakfast-history-separated/{department_id}")
+async def get_breakfast_history_separated(department_id: str, days_back: int = 30):
+    """Get historical breakfast summaries for a department with separated breakfast/lunch revenue"""
+    
+    # Get date range (Berlin timezone)
+    end_date = get_berlin_date()
+    start_date = end_date - timedelta(days=days_back)
+    
+    history = []
+    current_date = start_date
+    total_breakfast_revenue = 0.0
+    total_lunch_revenue = 0.0
+    
+    while current_date <= end_date:
+        # Get orders for this specific date using Berlin timezone boundaries
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(current_date)
+        
+        orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {
+                "$gte": start_of_day_utc.isoformat(),
+                "$lte": end_of_day_utc.isoformat()
+            },
+            "$or": [
+                {"is_cancelled": {"$exists": False}},  # Legacy orders without is_cancelled field
+                {"is_cancelled": False}                # Explicitly not cancelled
+            ]
+        }).to_list(1000)
+        
+        if orders:  # Only include dates with orders
+            daily_breakfast_revenue = 0.0
+            daily_lunch_revenue = 0.0
+            
+            # Get department prices
+            try:
+                white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                white_roll_price = white_menu.get("price", 0.50) if white_menu else 0.50
+                
+                seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                seeded_roll_price = seeded_menu.get("price", 0.60) if seeded_menu else 0.60
+                
+                department_prices = await get_department_prices(department_id)
+                eggs_price = department_prices["boiled_eggs_price"]
+                coffee_price = department_prices["coffee_price"]
+            except:
+                white_roll_price = 0.50
+                seeded_roll_price = 0.60
+                eggs_price = 0.50
+                coffee_price = 1.50
+            
+            # Get daily lunch price
+            daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                "department_id": department_id,
+                "date": current_date.isoformat()
+            })
+            daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
+            
+            for order in orders:
+                # Skip sponsored orders for revenue calculation (sponsoring doesn't create revenue)
+                if order.get("is_sponsored") and not order.get("is_sponsor_order"):
+                    continue
+                    
+                # Skip pure sponsor orders (they're not actual food orders)
+                if order.get("is_sponsor_order") and not order.get("breakfast_items"):
+                    continue
+                
+                for item in order.get("breakfast_items", []):
+                    # Calculate breakfast revenue (rolls + eggs)
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                    boiled_eggs = item.get("boiled_eggs", 0)
+                    
+                    breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
+                    daily_breakfast_revenue += breakfast_item_cost
+                    
+                    # Calculate lunch revenue
+                    if item.get("has_lunch", False):
+                        daily_lunch_revenue += daily_lunch_price
+                    
+                    # Coffee revenue goes to breakfast (not counted separately)
+                    if item.get("has_coffee", False):
+                        daily_breakfast_revenue += coffee_price
+            
+            total_breakfast_revenue += daily_breakfast_revenue
+            total_lunch_revenue += daily_lunch_revenue
+            
+            # Store detailed daily data
+            history.append({
+                "date": current_date.isoformat(),
+                "breakfast_revenue": round(daily_breakfast_revenue, 2),
+                "lunch_revenue": round(daily_lunch_revenue, 2),
+                "total_orders": len(orders)
+            })
+        
+        current_date += timedelta(days=1)
+    
+    return {
+        "history": history,
+        "summary": {
+            "total_breakfast_revenue": round(total_breakfast_revenue, 2),
+            "total_lunch_revenue": round(total_lunch_revenue, 2),
+            "total_revenue": round(total_breakfast_revenue + total_lunch_revenue, 2),
+            "days_included": len(history)
+        }
+    }
+
     """Get historical breakfast summaries for a department"""
     
     # Get date range (Berlin timezone)
