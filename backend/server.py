@@ -3198,9 +3198,12 @@ async def sponsor_meal(meal_data: dict):
         relevant_orders = []
         for order in all_orders:
             # Check if this order was already sponsored for the current meal type
-            already_sponsored = order.get("is_sponsored") and order.get("sponsored_meal_type") == meal_type
-            if already_sponsored:
-                continue  # Skip already sponsored orders
+            sponsored_meal_types = order.get("sponsored_meal_type", "")
+            if sponsored_meal_types:
+                # Handle comma-separated meal types (for orders sponsored for multiple meal types)
+                already_sponsored_meal_types = sponsored_meal_types.split(",")
+                if meal_type in already_sponsored_meal_types:
+                    continue  # Skip already sponsored orders for this meal type
                 
             if meal_type == "breakfast":
                 # All breakfast orders are relevant (if not already sponsored)
