@@ -2858,6 +2858,54 @@ async def debug_cleanup_department_data(department_id: str):
 async def get_sponsor_status(department_id: str, date: str):
     """Check if meals have already been sponsored for a specific date"""
     try:
+        # Validate date format
+        try:
+            parsed_date = datetime.fromisoformat(date).date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD.")
+        
+        # Get Berlin timezone day boundaries
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(parsed_date)
+        
+        # Get all breakfast orders for that day
+        all_orders = await db.orders.find({
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "timestamp": {"$gte": start_of_day_utc.isoformat(), "$lte": end_of_day_utc.isoformat()},
+            "$or": [{"is_cancelled": {"$exists": False}}, {"is_cancelled": False}]
+        }).to_list(1000)
+        
+        # Check sponsoring status for both meal types
+        breakfast_sponsored = None
+        lunch_sponsored = None
+        
+        for order in all_orders:
+            if order.get("is_sponsored") and order.get("sponsored_meal_type") == "breakfast":
+                breakfast_sponsored = {
+                    "sponsor_name": order.get("sponsored_by_name", "Unbekannt"),
+                    "sponsor_id": order.get("sponsored_by_employee_id", "")
+                }
+            elif order.get("is_sponsored") and order.get("sponsored_meal_type") == "lunch":
+                lunch_sponsored = {
+                    "sponsor_name": order.get("sponsored_by_name", "Unbekannt"),
+                    "sponsor_id": order.get("sponsored_by_employee_id", "")
+                }
+        
+        return {
+            "department_id": department_id,
+            "date": date,
+            "breakfast_sponsored": breakfast_sponsored,
+            "lunch_sponsored": lunch_sponsored
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen des Sponsor-Status: {str(e)}")
+
+async def get_sponsor_status(department_id: str, date: str):
+    """Check if meals have already been sponsored for a specific date"""
+    try:
         # Parse date and create timezone-aware range
         target_date = datetime.fromisoformat(date).date()
         berlin_tz = pytz.timezone('Europe/Berlin')
