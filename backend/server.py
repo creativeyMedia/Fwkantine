@@ -2812,6 +2812,48 @@ async def delete_breakfast_day(department_id: str, date: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fehler beim Löschen des Frühstücks-Tags: {str(e)}")
 
+@api_router.delete("/department-admin/debug-cleanup/{department_id}")
+async def debug_cleanup_department_data(department_id: str):
+    """
+    DEBUG/TEST FUNCTION - Löscht alle Orders und Sponsoring-Daten für eine Abteilung
+    ⚠️ NUR FÜR TEST-ZWECKE - ENTFERNEN IN PRODUCTION!
+    """
+    try:
+        # Get today's date in Berlin timezone
+        today = get_berlin_date()
+        start_of_day_utc, end_of_day_utc = get_berlin_day_bounds(today)
+        
+        # Delete all today's orders for this department
+        delete_orders_result = await db.orders.delete_many({
+            "department_id": department_id,
+            "timestamp": {"$gte": start_of_day_utc.isoformat(), "$lte": end_of_day_utc.isoformat()}
+        })
+        
+        # Reset all employee balances for this department  
+        reset_balances_result = await db.employees.update_many(
+            {"department_id": department_id},
+            {"$set": {"breakfast_balance": 0.0, "drinks_sweets_balance": 0.0}}
+        )
+        
+        # Delete today's payment logs for this department
+        delete_logs_result = await db.payment_logs.delete_many({
+            "department_id": department_id,
+            "timestamp": {"$gte": start_of_day_utc, "$lte": end_of_day_utc}
+        })
+        
+        return {
+            "message": "🧹 Debug-Cleanup erfolgreich durchgeführt",
+            "deleted_orders": delete_orders_result.deleted_count,
+            "reset_employees": reset_balances_result.modified_count,
+            "deleted_payment_logs": delete_logs_result.deleted_count,
+            "date": today.strftime('%Y-%m-%d'),
+            "warning": "⚠️ Nur für Test-Zwecke - in Production entfernen!"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Debug-Cleanup: {str(e)}")
+
+
 @api_router.get("/department-admin/sponsor-status/{department_id}/{date}")
 async def get_sponsor_status(department_id: str, date: str):
     """Check if meals have already been sponsored for a specific date"""
