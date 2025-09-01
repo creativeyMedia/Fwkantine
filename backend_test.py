@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-SPONSORING DISPLAY FUNCTIONALITY IN DAILY OVERVIEW TESTING
+🚨 CRITICAL BUG FIX VERIFICATION: Combined Sponsoring Bug Fixes Testing
 
-This test verifies the new sponsoring display functionality in daily overview
-that shows sponsored_breakfast and sponsored_lunch information for each employee.
+This test verifies the two critical bug fixes for combined sponsoring:
+1. Bug 1: Frontend Total Display - sponsored employees should show correct remaining cost (only coffee ~€1-2), NOT €0.00
+2. Bug 2: Frontend Strikethrough Logic - when sponsored_meal_type = "breakfast,lunch", both breakfast items AND lunch should be struck through
 
-Test Scenario:
-- Create multiple employees with breakfast orders (rolls, eggs, coffee, lunch)
-- Create one employee who will act as sponsor
-- Test sponsoring functionality for breakfast and lunch
-- Verify daily overview API includes sponsored_breakfast and sponsored_lunch fields
-- Test different sponsoring scenarios and verify calculations
+Test Scenario (EXACT from review request):
+1. Create multiple employees with breakfast orders including rolls, eggs, coffee, and lunch (total €8-10 per employee)
+2. Test combined sponsoring (breakfast + lunch) for the same employees - should result in "breakfast,lunch" sponsored_meal_type
+3. Verify sponsored employees show correct remaining cost (only coffee ~€1-2), NOT €0.00
+4. Verify breakfast-history API structure supports proper strikethrough logic
+5. Test no regressions for single sponsoring and normal orders
 
 Department: fw4abteilung2 (Department 2)
 Admin Credentials: admin2
