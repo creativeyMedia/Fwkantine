@@ -1828,6 +1828,44 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             
             # Add sponsoring information for each employee
             for employee_name, employee_data in employee_orders.items():
+                # Initialize sponsoring info
+                employee_data["sponsored_breakfast"] = None
+                employee_data["sponsored_lunch"] = None
+            
+            # CRITICAL: Also find sponsors who didn't make their own orders but sponsored others
+            all_sponsors = await db.orders.find({
+                "department_id": department_id,
+                "sponsored_by_employee_id": {"$exists": True},
+                "timestamp": {
+                    "$gte": start_of_day_utc.isoformat(),
+                    "$lte": end_of_day_utc.isoformat()
+                }
+            }).to_list(1000)
+            
+            # Get unique sponsor names
+            sponsor_names = set()
+            for order in all_sponsors:
+                sponsor_name = order.get("sponsored_by_name", "")
+                if sponsor_name:
+                    sponsor_names.add(sponsor_name)
+            
+            # Add sponsors to employee_orders if they're not already there
+            for sponsor_name in sponsor_names:
+                if sponsor_name not in employee_orders:
+                    employee_orders[sponsor_name] = {
+                        "white_halves": 0,
+                        "seeded_halves": 0,
+                        "boiled_eggs": 0,
+                        "has_coffee": False,
+                        "has_lunch": False,
+                        "total_amount": 0.0,
+                        "toppings": {},
+                        "sponsored_breakfast": None,
+                        "sponsored_lunch": None
+                    }
+            
+            # Now calculate sponsoring information for ALL employees (including sponsors-only)
+            for employee_name in employee_orders.keys():
                 # Check if this employee sponsored any meals today
                 breakfast_sponsored_info = None
                 lunch_sponsored_info = None
