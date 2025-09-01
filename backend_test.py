@@ -607,11 +607,11 @@ class CanteenManagementSystemTest:
         if self.test_debug_cleanup_function():
             tests_passed += 1
         
-        # Test 2: Double Sponsoring Logic Fix (CRITICAL)
-        print("\n🎯 TEST DOUBLE SPONSORING LOGIC FIX (CRITICAL)")
+        # Test 2: Critical Sponsoring Logic Fix (EXACT REVIEW REQUEST SCENARIO)
+        print("\n🎯 TEST CRITICAL SPONSORING LOGIC FIX (EXACT REVIEW REQUEST SCENARIO)")
         print("-" * 50)
         
-        if self.test_double_sponsoring_logic():
+        if self.test_critical_sponsoring_logic_fix():
             tests_passed += 1
         
         # Test 3: Separated Revenue Endpoint
