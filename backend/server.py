@@ -1946,8 +1946,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         }
                 
                 # Add sponsoring info to employee data
-                employee_data["sponsored_breakfast"] = breakfast_sponsored_info
-                employee_data["sponsored_lunch"] = lunch_sponsored_info
+                employee_orders[employee_name]["sponsored_breakfast"] = breakfast_sponsored_info
+                employee_orders[employee_name]["sponsored_lunch"] = lunch_sponsored_info
             
             history.append({
                 "date": current_date.isoformat(),
