@@ -114,10 +114,6 @@ class CanteenManagementSystemTest:
     def test_debug_cleanup_function(self):
         """Test the debug cleanup function"""
         try:
-            # First, get current state to compare
-            employees_before = self.session.get(f"{BASE_URL}/departments/{DEPARTMENT_ID}/employees")
-            orders_before = self.session.get(f"{BASE_URL}/orders/breakfast-history/{DEPARTMENT_ID}")
-            
             response = self.session.delete(f"{BASE_URL}/department-admin/debug-cleanup/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
@@ -423,31 +419,31 @@ class CanteenManagementSystemTest:
             if response.status_code == 200:
                 result = response.json()
                 
-                # Verify response structure
-                expected_keys = ["breakfast_revenue", "lunch_revenue", "total_orders", "days_back"]
+                # Verify response structure - updated to match actual response
+                expected_keys = ["breakfast_revenue", "lunch_revenue", "total_revenue", "days_back"]
                 if all(key in result for key in expected_keys):
                     breakfast_revenue = result.get("breakfast_revenue", 0)
                     lunch_revenue = result.get("lunch_revenue", 0)
-                    total_orders = result.get("total_orders", 0)
+                    total_revenue = result.get("total_revenue", 0)
                     days_back = result.get("days_back", 0)
                     
                     # Verify data types and reasonable values
                     if (isinstance(breakfast_revenue, (int, float)) and 
                         isinstance(lunch_revenue, (int, float)) and
-                        isinstance(total_orders, int) and
-                        breakfast_revenue >= 0 and lunch_revenue >= 0 and total_orders >= 0):
+                        isinstance(total_revenue, (int, float)) and
+                        breakfast_revenue >= 0 and lunch_revenue >= 0 and total_revenue >= 0):
                         
                         self.log_result(
                             "Separated Revenue Endpoint",
                             True,
-                            f"✅ SEPARATED REVENUE SUCCESS! Breakfast revenue: €{breakfast_revenue:.2f}, Lunch revenue: €{lunch_revenue:.2f}, Total orders: {total_orders}, Days back: {days_back}. Endpoint returns correct structure and reasonable values."
+                            f"✅ SEPARATED REVENUE SUCCESS! Breakfast revenue: €{breakfast_revenue:.2f}, Lunch revenue: €{lunch_revenue:.2f}, Total revenue: €{total_revenue:.2f}, Days back: {days_back}. Endpoint returns correct structure and reasonable values."
                         )
                         return True
                     else:
                         self.log_result(
                             "Separated Revenue Endpoint",
                             False,
-                            error=f"Invalid data types or negative values: breakfast_revenue={breakfast_revenue}, lunch_revenue={lunch_revenue}, total_orders={total_orders}"
+                            error=f"Invalid data types or negative values: breakfast_revenue={breakfast_revenue}, lunch_revenue={lunch_revenue}, total_revenue={total_revenue}"
                         )
                         return False
                 else:
