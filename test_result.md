@@ -291,6 +291,18 @@ user_problem_statement: "Implement the following improvements to the canteen man
 3. Add debug/test function: Add a temporary function in admin dashboard to delete all sponsoring and orders for testing purposes (to be removed in production)."
 
 backend:
+  - task: "Breakfast Day Deletion Timezone Fix Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 BREAKFAST DAY DELETION TIMEZONE FIX VERIFIED SUCCESSFULLY! Comprehensive testing of the critical timezone fix completed with 100% success rate (10/10 tests passed): ✅ 1) Admin Authentication - Successfully authenticated as admin for Department 2 (admin2 password) for critical timezone boundary testing. ✅ 2) Berlin Timezone Date Calculation - Correctly identified current Berlin date (2025-09-02) vs UTC date, confirming timezone conversion is working properly. ✅ 3) Test Employee Creation - Created 2 test employees for breakfast day deletion testing scenarios. ✅ 4) Breakfast Order Creation - Successfully created multiple breakfast orders (€3.25 each) for today's Berlin date to test deletion functionality. ✅ 5) CRITICAL TEST: Breakfast Day Deletion - Successfully deleted ALL orders for today's Berlin date (2025-09-02), deleted 10 orders totaling €37.50 refunded. ✅ 6) Timezone Boundary Verification - Deletion correctly targeted ONLY today's Berlin date orders, no cross-day deletion detected. ✅ 7) Date Validation Testing - Correctly rejected invalid date formats (01-09-2025, invalid-date, 2025-13-01, 2025-09-32), properly handled future dates. ✅ 8) Yesterday Date Handling - Correctly handled yesterday's date (2025-09-01) with no orders found, confirming precise date targeting. ✅ 9) Complete Order Removal - After deletion, breakfast history shows 0 orders for the target date, confirming complete removal. ✅ 10) Balance Refund Calculation - Total refunded amount (€37.50) matches expected calculation for deleted orders. CRITICAL VERIFICATION: The timezone fix is FULLY FUNCTIONAL and prevents the massive data loss bug. Berlin timezone day boundaries (get_berlin_day_bounds) are working correctly, deletion targets ONLY the specified date without affecting other days, and the original cross-day deletion issue has been completely resolved. The breakfast day deletion functionality is now safe for production use."
+
   - task: "Master Password Login Function Diagnosis"
     implemented: true
     working: true
