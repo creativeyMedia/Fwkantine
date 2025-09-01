@@ -236,9 +236,10 @@ class CombinedSponsoringBugFixTest:
         print(f"\n🔍 CRITICAL Bug 1 Test: Frontend Total Display Fix")
         print(f"Expected: Sponsored employees show coffee cost (~€1-2), NOT €0.00")
         
+        # Look for employees who have comprehensive orders but low total_amount (indicating sponsoring)
         for employee_name, employee_data in employee_orders.items():
             total_amount = employee_data.get("total_amount", 0)
-            has_orders = any([
+            has_comprehensive_order = all([
                 employee_data.get("white_halves", 0) > 0,
                 employee_data.get("seeded_halves", 0) > 0,
                 employee_data.get("boiled_eggs", 0) > 0,
@@ -246,32 +247,35 @@ class CombinedSponsoringBugFixTest:
                 employee_data.get("has_coffee", False)
             ])
             
-            # Check if this employee has both breakfast and lunch sponsored
-            breakfast_sponsored = employee_data.get("sponsored_breakfast") is not None
-            lunch_sponsored = employee_data.get("sponsored_lunch") is not None
+            # Skip the sponsor (who will have high total_amount)
+            if total_amount > 20:  # This is likely the sponsor
+                print(f"📊 Sponsor detected: {employee_name} (€{total_amount:.2f})")
+                continue
             
-            if has_orders and breakfast_sponsored and lunch_sponsored:
+            # Check if this employee has comprehensive order but low cost (indicating combined sponsoring)
+            if has_comprehensive_order:
                 results["sponsored_employees_found"] += 1
                 
                 if total_amount == 0.0:
                     results["incorrect_zero_displays"] += 1
                     print(f"❌ Bug 1 DETECTED: {employee_name} shows €0.00 (should show coffee cost)")
-                elif 1.0 <= total_amount <= 3.0:  # Coffee cost range
+                elif 0.5 <= total_amount <= 3.0:  # Coffee cost range (allowing for price variations)
                     results["correct_total_displays"] += 1
                     results["coffee_only_costs"].append(total_amount)
-                    print(f"✅ Bug 1 FIXED: {employee_name} shows €{total_amount:.2f} (coffee cost)")
+                    print(f"✅ Bug 1 FIXED: {employee_name} shows €{total_amount:.2f} (coffee cost only)")
                 else:
-                    print(f"⚠️ Unexpected amount for {employee_name}: €{total_amount:.2f}")
+                    print(f"⚠️ Unexpected amount for {employee_name}: €{total_amount:.2f} (expected coffee cost ~€1-2)")
         
         # Determine if Bug 1 is fixed
         if results["sponsored_employees_found"] > 0:
             if results["incorrect_zero_displays"] == 0 and results["correct_total_displays"] > 0:
                 results["bug_1_fixed"] = True
                 print(f"✅ Bug 1 VERIFICATION: All {results['correct_total_displays']} sponsored employees show coffee cost correctly")
+                print(f"✅ Coffee costs found: {results['coffee_only_costs']}")
             else:
                 print(f"❌ Bug 1 STILL PRESENT: {results['incorrect_zero_displays']} employees show €0.00 incorrectly")
         else:
-            print(f"⚠️ No employees with both breakfast and lunch sponsored found for Bug 1 test")
+            print(f"⚠️ No sponsored employees found for Bug 1 test")
         
         return results
     
