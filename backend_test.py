@@ -288,6 +288,10 @@ class SponsoringDisplayTest:
             print("❌ CRITICAL FAILURE: Cannot authenticate as admin")
             return False
         
+        # Step 1.5: Try to cleanup existing data for fresh test
+        print("\n1️⃣.5 Attempting to Clean Up Existing Data")
+        self.cleanup_test_data()
+        
         # Step 2: Create Test Scenario
         print(f"\n2️⃣ Creating Test Scenario for Department {DEPARTMENT_ID}")
         
