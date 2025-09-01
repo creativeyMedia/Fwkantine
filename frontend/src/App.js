@@ -5201,6 +5201,19 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     }
   };
 
+  const fetchSeparatedRevenue = async () => {
+    try {
+      const response = await axios.get(`${API}/orders/separated-revenue/${currentDepartment.department_id}?days_back=30`);
+      setSeparatedRevenue(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der getrennten Umsätze:', error);
+      setSeparatedRevenue({
+        breakfast_revenue: 0,
+        lunch_revenue: 0
+      });
+    }
+  };
+
   const handleSponsorMeal = async (selectedEmployee, mealType, date) => {
     try {
       // Check if meal has already been sponsored
