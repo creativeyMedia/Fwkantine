@@ -5215,6 +5215,43 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     }
   };
 
+  const fetchDailyRevenue = async (date) => {
+    try {
+      const response = await axios.get(`${API}/orders/daily-revenue/${currentDepartment.department_id}/${date}`);
+      setDailyRevenues(prev => ({
+        ...prev,
+        [date]: response.data
+      }));
+      return response.data;
+    } catch (error) {
+      console.error(`Fehler beim Laden der Tagesumsätze für ${date}:`, error);
+      return {
+        breakfast_revenue: 0,
+        lunch_revenue: 0,
+        total_revenue: 0,
+        total_orders: 0
+      };
+    }
+  };
+
+  // Load daily revenues for visible days
+  useEffect(() => {
+    const fetchDailyRevenues = async () => {
+      if (breakfastHistory.length > 0) {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentPageDays = breakfastHistory.slice(startIndex, endIndex);
+        
+        // Fetch revenue data for all days on current page
+        await Promise.all(
+          currentPageDays.map(day => fetchDailyRevenue(day.date))
+        );
+      }
+    };
+    
+    fetchDailyRevenues();
+  }, [breakfastHistory, currentPage, currentDepartment]);
+
   const handleSponsorMeal = async (selectedEmployee, mealType, date) => {
     try {
       // Check if meal has already been sponsored
