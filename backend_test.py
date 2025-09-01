@@ -1,20 +1,36 @@
 #!/usr/bin/env python3
 """
-🚨 CRITICAL BUG FIX VERIFICATION: Combined Sponsoring Bug Fixes Testing
+🚨 CRITICAL FRONTEND DISPLAY BUG FIX TEST: Test both frontend display fixes
 
-This test verifies the two critical bug fixes for combined sponsoring:
-1. Bug 1: Frontend Total Display - sponsored employees should show correct remaining cost (only coffee ~€1-2), NOT €0.00
-2. Bug 2: Frontend Strikethrough Logic - when sponsored_meal_type = "breakfast,lunch", both breakfast items AND lunch should be struck through
+This test verifies the two critical frontend display bug fixes:
 
-Test Scenario (EXACT from review request):
-1. Create multiple employees with breakfast orders including rolls, eggs, coffee, and lunch (total €8-10 per employee)
-2. Test combined sponsoring (breakfast + lunch) for the same employees - should result in "breakfast,lunch" sponsored_meal_type
-3. Verify sponsored employees show correct remaining cost (only coffee ~€1-2), NOT €0.00
-4. Verify breakfast-history API structure supports proper strikethrough logic
-5. Test no regressions for single sponsoring and normal orders
+1. **Bug 1 - Chronological History Display Fix:**
+   - Create employee with breakfast order (rolls, eggs, coffee, lunch) ~€8-10
+   - Sponsor the breakfast and lunch for this employee
+   - Check employee individual profile chronological history
+   - CRITICAL: Individual order entry should show remaining cost (~€1-2 for coffee) NOT original cost (~€8-10)
 
-Department: fw4abteilung2 (Department 2)
-Admin Credentials: admin2
+2. **Bug 2 - Sponsor Total Display Fix:**
+   - Create sponsor employee with NO own orders
+   - Have sponsor sponsor meals for other employees
+   - Check daily overview (breakfast-history endpoint)
+   - CRITICAL: Sponsor's total_amount should show sponsored costs (positive amount) NOT €0.00
+
+3. **Test Combined Scenario:**
+   - Sponsor both breakfast AND lunch using same sponsor
+   - Verify both sponsored amounts are added to sponsor's total_amount
+   - Verify sponsored employee shows only coffee cost in chronological history
+
+4. **Test No Regressions:**
+   - Test normal orders (no sponsoring) still show correct amounts
+   - Test single sponsoring still works correctly
+
+EXPECTED RESULTS:
+- Bug 1: Chronological history shows -€1.00 (coffee only) for sponsored employee, NOT -€8.00 (original)
+- Bug 2: Sponsor without orders shows positive total (e.g., +€28.50) representing sponsoring costs
+- Combined: Both fixes work together correctly
+
+Use Department 2 (fw4abteilung2) with admin2 credentials.
 """
 
 import requests
