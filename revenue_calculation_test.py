@@ -186,13 +186,16 @@ class RevenueCalculationTest:
             print(f"❌ Error getting daily revenue for {date}: {e}")
             return {}
     
-    def sponsor_breakfast_meals(self, sponsor_employee_id: str) -> Dict:
+    def sponsor_breakfast_meals(self, sponsor_employee_id: str, sponsor_employee_name: str) -> Dict:
         """Sponsor breakfast meals for all employees with breakfast orders"""
         try:
+            today = self.get_berlin_date()
             response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
                 "department_id": DEPARTMENT_ID,
+                "date": today,
                 "meal_type": "breakfast",
-                "sponsor_employee_id": sponsor_employee_id
+                "sponsor_employee_id": sponsor_employee_id,
+                "sponsor_employee_name": sponsor_employee_name
             })
             
             if response.status_code == 200:
@@ -207,13 +210,16 @@ class RevenueCalculationTest:
             print(f"❌ Error sponsoring breakfast meals: {e}")
             return {}
     
-    def sponsor_lunch_meals(self, sponsor_employee_id: str) -> Dict:
+    def sponsor_lunch_meals(self, sponsor_employee_id: str, sponsor_employee_name: str) -> Dict:
         """Sponsor lunch meals for all employees with lunch orders"""
         try:
+            today = self.get_berlin_date()
             response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
                 "department_id": DEPARTMENT_ID,
+                "date": today,
                 "meal_type": "lunch",
-                "sponsor_employee_id": sponsor_employee_id
+                "sponsor_employee_id": sponsor_employee_id,
+                "sponsor_employee_name": sponsor_employee_name
             })
             
             if response.status_code == 200:
