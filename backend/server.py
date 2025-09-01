@@ -3650,21 +3650,7 @@ async def sponsor_meal(meal_data: dict):
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
             )
             
-            # Create payment log entry for the sponsoring transaction
-            meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
-            sponsoring_log = PaymentLog(
-                employee_id=sponsor_employee_id,
-                department_id=department_id,
-                amount=-sponsor_additional_cost,  # Negative because it's a charge (like a withdrawal)
-                payment_type="breakfast",  # Sponsoring affects breakfast balance
-                action="sponsoring",
-                admin_user=f"Auto-Sponsoring {meal_name}",
-                notes=f"Sponsoring {meal_name} für {others_count} Mitarbeiter im Wert von {sponsor_additional_cost:.2f} €",
-                balance_before=old_sponsor_balance,
-                balance_after=new_sponsor_balance
-            )
-            
-            await db.payment_logs.insert_one(sponsoring_log.dict())
+            # NOTE: No PaymentLog needed for sponsoring - the sponsor order serves as the record
         
         # 4. Apply all order updates (after all other operations are complete)
         # Update sponsor order
