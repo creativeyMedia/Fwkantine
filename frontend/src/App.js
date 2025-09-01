@@ -620,17 +620,27 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             {item.readable_items.map((orderItem, idx) => {
                               // Check if this item should be struck through (sponsored)
                               const isSponsored = item.is_sponsored && !item.is_sponsor_order;
-                              const isSponsoredItem = isSponsored && (
-                                // For lunch sponsoring: only strikethrough lunch items
-                                (item.sponsored_meal_type === 'lunch' && orderItem.description.includes('Mittagessen')) ||
-                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee or lunch
-                                (item.sponsored_meal_type === 'breakfast' && 
-                                  (orderItem.description.includes('Brötchen') || 
-                                   orderItem.description.includes('Helle') || 
-                                   orderItem.description.includes('Körner') || 
-                                   orderItem.description.includes('Ei')) &&
-                                  !orderItem.description.includes('Kaffee') && !orderItem.description.includes('Mittagessen'))
-                              );
+                              let isSponsoredItem = false;
+                              
+                              if (isSponsored && item.sponsored_meal_type) {
+                                // Handle comma-separated meal types (e.g., "breakfast,lunch")
+                                const sponsoredTypes = item.sponsored_meal_type.split(',');
+                                
+                                // For lunch sponsoring: strikethrough lunch items
+                                if (sponsoredTypes.includes('lunch') && orderItem.description.includes('Mittagessen')) {
+                                  isSponsoredItem = true;
+                                }
+                                
+                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee
+                                if (sponsoredTypes.includes('breakfast') && 
+                                    (orderItem.description.includes('Brötchen') || 
+                                     orderItem.description.includes('Helle') || 
+                                     orderItem.description.includes('Körner') || 
+                                     orderItem.description.includes('Ei')) &&
+                                    !orderItem.description.includes('Kaffee')) {
+                                  isSponsoredItem = true;
+                                }
+                              }
                               
                               return (
                                 <div key={idx} className="text-sm flex justify-between items-start">
