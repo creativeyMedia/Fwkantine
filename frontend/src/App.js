@@ -679,6 +679,24 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                 }
                               }
                               
+                              // Additional check: analyze sponsored_message for clues (fallback)
+                              if (isSponsored && !isSponsoredItem && item.sponsored_message) {
+                                const message = item.sponsored_message.toLowerCase();
+                                // Check if message mentions specific sponsoring
+                                if (message.includes('mittagessen') && message.includes('ausgegeben') && 
+                                    orderItem.description.includes('Mittagessen')) {
+                                  isSponsoredItem = true;
+                                }
+                                if (message.includes('frühstück') && message.includes('ausgegeben') && 
+                                    (orderItem.description.includes('Brötchen') || 
+                                     orderItem.description.includes('Helle') || 
+                                     orderItem.description.includes('Körner') || 
+                                     orderItem.description.includes('Ei')) &&
+                                    !orderItem.description.includes('Kaffee')) {
+                                  isSponsoredItem = true;
+                                }
+                              }
+                              
                               return (
                                 <div key={idx} className="text-sm flex justify-between items-start">
                                   <div className="flex-1">
