@@ -397,6 +397,31 @@ class SponsoringDisplayTest:
         
         print(f"✅ Found {len(employee_orders)} employees in today's overview")
         
+        # Step 7.5: Analyze the actual sponsored behavior
+        print(f"\n7️⃣.5 Analyzing Actual Sponsored Behavior")
+        
+        sponsored_employees_found = 0
+        sponsor_employees_found = 0
+        
+        for employee_name, employee_data in employee_orders.items():
+            total_amount = employee_data.get("total_amount", 0)
+            has_orders = any([
+                employee_data.get("white_halves", 0) > 0,
+                employee_data.get("seeded_halves", 0) > 0,
+                employee_data.get("boiled_eggs", 0) > 0,
+                employee_data.get("has_lunch", False),
+                employee_data.get("has_coffee", False)
+            ])
+            
+            if has_orders and total_amount == 0:
+                sponsored_employees_found += 1
+                print(f"📊 Found sponsored employee: {employee_name} (€0.00 with orders)")
+            elif total_amount > 20:  # Likely sponsor (paid for others)
+                sponsor_employees_found += 1
+                print(f"📊 Found sponsor employee: {employee_name} (€{total_amount:.2f})")
+        
+        print(f"📊 Analysis: {sponsored_employees_found} sponsored employees, {sponsor_employees_found} sponsor employees")
+        
         # Step 8: Verify Sponsored Fields for Each Employee
         print(f"\n8️⃣ Verifying Sponsored Fields for Each Employee")
         
