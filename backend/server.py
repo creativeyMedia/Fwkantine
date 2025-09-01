@@ -3252,8 +3252,15 @@ async def sponsor_meal(meal_data: dict):
             lunch_cost = 0.0
             
             # Check if this order was already partially sponsored
-            already_sponsored_breakfast = order.get("is_sponsored") and order.get("sponsored_meal_type") == "breakfast"
-            already_sponsored_lunch = order.get("is_sponsored") and order.get("sponsored_meal_type") == "lunch"
+            sponsored_meal_types = order.get("sponsored_meal_type", "")
+            already_sponsored_breakfast = False
+            already_sponsored_lunch = False
+            
+            if sponsored_meal_types:
+                # Handle comma-separated meal types
+                sponsored_types_list = sponsored_meal_types.split(",")
+                already_sponsored_breakfast = "breakfast" in sponsored_types_list
+                already_sponsored_lunch = "lunch" in sponsored_types_list
             
             for item in order.get("breakfast_items", []):
                 # Rolls
