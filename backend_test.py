@@ -234,7 +234,6 @@ class BreakfastDayDeletionTest:
             print("⚠️ Warning: Expected at least 2 test orders, but found fewer")
         
         # Step 5: Get Current Date for Deletion Test
-        from datetime import datetime
         current_date = datetime.now().strftime('%Y-%m-%d')
         print(f"\n5️⃣ Current Date for Testing: {current_date}")
         
