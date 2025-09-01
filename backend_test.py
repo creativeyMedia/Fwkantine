@@ -59,6 +59,8 @@ class SponsoringDisplayTest:
         except Exception as e:
             print(f"⚠️ Cleanup error (continuing anyway): {e}")
             return False
+    
+    def get_berlin_date(self):
         """Get current date in Berlin timezone"""
         return datetime.now(BERLIN_TZ).date().strftime('%Y-%m-%d')
         
