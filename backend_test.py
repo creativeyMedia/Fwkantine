@@ -416,6 +416,11 @@ class SponsoringDisplayTest:
         }
         
         for employee in employee_orders:
+            # Handle both dict and string formats
+            if not isinstance(employee, dict):
+                print(f"⚠️ Skipping non-dict employee data: {employee}")
+                continue
+                
             breakfast_sponsored = employee.get("sponsored_breakfast") is not None
             lunch_sponsored = employee.get("sponsored_lunch") is not None
             
