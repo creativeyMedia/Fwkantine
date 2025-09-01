@@ -292,50 +292,64 @@ class SponsorWithoutOrdersTest:
     def verify_sponsored_employees_display(self, employee_orders: Dict, sponsor_name: str) -> Dict:
         """
         Verify that sponsored employees show proper sponsored_breakfast/sponsored_lunch fields
+        Note: Sponsored employees should have these fields as null (they are being sponsored, not sponsoring)
         """
         results = {
             "sponsored_employees_found": 0,
-            "employees_with_sponsored_breakfast": 0,
-            "employees_with_sponsored_lunch": 0,
+            "employees_with_sponsored_fields": 0,
+            "employees_with_reduced_cost": 0,
             "sponsored_employee_details": []
         }
         
         print(f"\n🔍 TEST: Sponsored Employees Display")
-        print(f"Expected: Sponsored employees show sponsored_breakfast/sponsored_lunch fields")
+        print(f"Expected: Sponsored employees have sponsored fields (null) and reduced costs")
         
         for employee_name, employee_data in employee_orders.items():
             # Skip the sponsor
             if employee_name == sponsor_name:
                 continue
             
-            sponsored_breakfast = employee_data.get("sponsored_breakfast")
-            sponsored_lunch = employee_data.get("sponsored_lunch")
+            # Check if employee has the sponsored fields (even if null)
+            has_sponsored_breakfast_field = "sponsored_breakfast" in employee_data
+            has_sponsored_lunch_field = "sponsored_lunch" in employee_data
+            total_amount = employee_data.get("total_amount", 0)
             
-            if sponsored_breakfast or sponsored_lunch:
+            # Check if employee has comprehensive order but low cost (indicating they were sponsored)
+            has_comprehensive_order = all([
+                employee_data.get("white_halves", 0) > 0,
+                employee_data.get("seeded_halves", 0) > 0,
+                employee_data.get("boiled_eggs", 0) > 0,
+                employee_data.get("has_lunch", False),
+                employee_data.get("has_coffee", False)
+            ])
+            
+            if has_comprehensive_order:
                 results["sponsored_employees_found"] += 1
                 
                 employee_detail = {
                     "name": employee_name,
-                    "sponsored_breakfast": sponsored_breakfast,
-                    "sponsored_lunch": sponsored_lunch,
-                    "total_amount": employee_data.get("total_amount", 0)
+                    "sponsored_breakfast": employee_data.get("sponsored_breakfast"),
+                    "sponsored_lunch": employee_data.get("sponsored_lunch"),
+                    "total_amount": total_amount,
+                    "has_sponsored_fields": has_sponsored_breakfast_field and has_sponsored_lunch_field
                 }
                 results["sponsored_employee_details"].append(employee_detail)
                 
-                if sponsored_breakfast:
-                    results["employees_with_sponsored_breakfast"] += 1
-                    print(f"✅ {employee_name} has sponsored_breakfast: {sponsored_breakfast}")
+                if has_sponsored_breakfast_field and has_sponsored_lunch_field:
+                    results["employees_with_sponsored_fields"] += 1
+                    print(f"✅ {employee_name} has sponsored fields (breakfast: {employee_data.get('sponsored_breakfast')}, lunch: {employee_data.get('sponsored_lunch')})")
                 
-                if sponsored_lunch:
-                    results["employees_with_sponsored_lunch"] += 1
-                    print(f"✅ {employee_name} has sponsored_lunch: {sponsored_lunch}")
-                
-                print(f"   Total amount: €{employee_data.get('total_amount', 0):.2f}")
+                # Check if cost is reduced (should be only coffee cost ~€1-2 for fully sponsored)
+                if 0.5 <= total_amount <= 3.0:
+                    results["employees_with_reduced_cost"] += 1
+                    print(f"✅ {employee_name} has reduced cost: €{total_amount:.2f} (coffee only)")
+                else:
+                    print(f"⚠️ {employee_name} unexpected cost: €{total_amount:.2f}")
         
         print(f"\n📊 Sponsored employees summary:")
-        print(f"   - Total sponsored employees: {results['sponsored_employees_found']}")
-        print(f"   - With sponsored breakfast: {results['employees_with_sponsored_breakfast']}")
-        print(f"   - With sponsored lunch: {results['employees_with_sponsored_lunch']}")
+        print(f"   - Total employees with comprehensive orders: {results['sponsored_employees_found']}")
+        print(f"   - With sponsored fields: {results['employees_with_sponsored_fields']}")
+        print(f"   - With reduced cost (coffee only): {results['employees_with_reduced_cost']}")
         
         return results
     
