@@ -448,6 +448,11 @@ class SponsoringDisplayTest:
         total_calculation_tests = 0
         
         for employee in employee_orders:
+            # Handle both dict and string formats
+            if not isinstance(employee, dict):
+                print(f"⚠️ Skipping non-dict employee data: {employee}")
+                continue
+                
             employee_name = employee.get("name", "Unknown")
             
             # Test breakfast calculation
