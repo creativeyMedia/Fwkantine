@@ -5165,6 +5165,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     breakfast_revenue: 0,
     lunch_revenue: 0
   });
+  const [dailyRevenues, setDailyRevenues] = useState({}); // Store daily revenue data
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
