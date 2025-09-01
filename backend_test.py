@@ -318,21 +318,31 @@ class SponsoringDisplayTest:
             print("❌ CRITICAL FAILURE: Need at least 2 sponsored employees")
             return False
         
-        # Step 4: Test Breakfast Sponsoring
+        # Step 4: Test Breakfast Sponsoring (or check existing)
         print(f"\n4️⃣ Testing Breakfast Sponsoring")
         breakfast_result = self.sponsor_breakfast_meals(self.sponsor_employee_id, sponsor_name)
         
+        breakfast_already_sponsored = False
         if "error" in breakfast_result:
-            print(f"⚠️ Breakfast sponsoring failed: {breakfast_result['error']}")
+            if "bereits gesponsert" in breakfast_result['error']:
+                print(f"ℹ️ Breakfast already sponsored today - will analyze existing data")
+                breakfast_already_sponsored = True
+            else:
+                print(f"⚠️ Breakfast sponsoring failed: {breakfast_result['error']}")
         else:
             print(f"✅ Breakfast sponsoring successful: {breakfast_result.get('affected_employees', 0)} employees affected")
         
-        # Step 5: Test Lunch Sponsoring
+        # Step 5: Test Lunch Sponsoring (or check existing)
         print(f"\n5️⃣ Testing Lunch Sponsoring")
         lunch_result = self.sponsor_lunch_meals(self.sponsor_employee_id, sponsor_name)
         
+        lunch_already_sponsored = False
         if "error" in lunch_result:
-            print(f"⚠️ Lunch sponsoring failed: {lunch_result['error']}")
+            if "bereits gesponsert" in lunch_result['error']:
+                print(f"ℹ️ Lunch already sponsored today - will analyze existing data")
+                lunch_already_sponsored = True
+            else:
+                print(f"⚠️ Lunch sponsoring failed: {lunch_result['error']}")
         else:
             print(f"✅ Lunch sponsoring successful: {lunch_result.get('affected_employees', 0)} employees affected")
         
