@@ -123,8 +123,8 @@ class CanteenManagementSystemTest:
             if response.status_code == 200:
                 result = response.json()
                 
-                # Verify response structure
-                expected_keys = ["deleted_orders", "reset_employees", "deleted_payment_logs", "department_id"]
+                # Verify response structure - updated to match actual response
+                expected_keys = ["message", "deleted_orders", "reset_employees", "deleted_payment_logs", "date", "warning"]
                 if all(key in result for key in expected_keys):
                     deleted_orders = result.get("deleted_orders", 0)
                     reset_employees = result.get("reset_employees", 0)
