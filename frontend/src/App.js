@@ -891,17 +891,17 @@ const LoginModal = ({ title, onLogin, onClose }) => {
           </div>
           <div className="flex gap-4">
             <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Anmelden
-            </button>
-            <button
               type="button"
               onClick={onClose}
               className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Abbrechen
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Anmelden
             </button>
           </div>
         </form>
