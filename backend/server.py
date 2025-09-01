@@ -1816,6 +1816,91 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             # NEW: Always use 0.0 if no price set for this day - admin must set price manually each day
             daily_lunch_price = daily_price["lunch_price"] if daily_price else 0.0
             
+            # Add sponsoring information for each employee
+            for employee_name, employee_data in employee_orders.items():
+                # Check if this employee sponsored any meals today
+                breakfast_sponsored_info = None
+                lunch_sponsored_info = None
+                
+                # Look for sponsoring activities by this employee
+                sponsored_orders = await db.orders.find({
+                    "department_id": department_id,
+                    "sponsored_by_employee_id": {"$exists": True},
+                    "sponsored_by_name": employee_name,
+                    "timestamp": {
+                        "$gte": start_of_day_utc.isoformat(),
+                        "$lte": end_of_day_utc.isoformat()
+                    }
+                }).to_list(1000)
+                
+                if sponsored_orders:
+                    # Calculate sponsored breakfast and lunch amounts
+                    breakfast_sponsored_count = 0
+                    breakfast_sponsored_amount = 0.0
+                    lunch_sponsored_count = 0
+                    lunch_sponsored_amount = 0.0
+                    
+                    # Get department prices for calculations
+                    try:
+                        white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
+                        white_roll_price = white_menu.get("price", 0.50) if white_menu else 0.50
+                        
+                        seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
+                        seeded_roll_price = seeded_menu.get("price", 0.60) if seeded_menu else 0.60
+                        
+                        department_prices = await get_department_prices(department_id)
+                        eggs_price = department_prices["boiled_eggs_price"]
+                    except:
+                        white_roll_price = 0.50
+                        seeded_roll_price = 0.60
+                        eggs_price = 0.50
+                    
+                    # Get daily lunch price
+                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                        "department_id": department_id,
+                        "date": current_date.isoformat()
+                    })
+                    daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
+                    
+                    for sponsored_order in sponsored_orders:
+                        sponsored_meal_types = sponsored_order.get("sponsored_meal_type", "")
+                        if sponsored_meal_types:
+                            meal_types_list = sponsored_meal_types.split(",")
+                            
+                            # Calculate sponsored amounts
+                            for item in sponsored_order.get("breakfast_items", []):
+                                if "breakfast" in meal_types_list:
+                                    # Calculate breakfast sponsored amount (rolls + eggs)
+                                    white_halves = item.get("white_halves", 0)
+                                    seeded_halves = item.get("seeded_halves", 0)
+                                    boiled_eggs = item.get("boiled_eggs", 0)
+                                    
+                                    breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
+                                    breakfast_sponsored_amount += breakfast_item_cost
+                                    breakfast_sponsored_count += 1
+                                
+                                if "lunch" in meal_types_list and item.get("has_lunch", False):
+                                    # Calculate lunch sponsored amount
+                                    lunch_sponsored_amount += daily_lunch_price
+                                    lunch_sponsored_count += 1
+                    
+                    # Add sponsoring info to employee data
+                    if breakfast_sponsored_count > 0:
+                        breakfast_sponsored_info = {
+                            "count": breakfast_sponsored_count,
+                            "amount": round(breakfast_sponsored_amount, 2)
+                        }
+                    
+                    if lunch_sponsored_count > 0:
+                        lunch_sponsored_info = {
+                            "count": lunch_sponsored_count,
+                            "amount": round(lunch_sponsored_amount, 2)
+                        }
+                
+                # Add sponsoring info to employee data
+                employee_data["sponsored_breakfast"] = breakfast_sponsored_info
+                employee_data["sponsored_lunch"] = lunch_sponsored_info
+            
             history.append({
                 "date": current_date.isoformat(),
                 "total_orders": total_orders,
