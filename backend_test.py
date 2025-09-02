@@ -171,7 +171,7 @@ class FinalDebugRegularOrderTest:
                 "department_id": DEPARTMENT_ID
             }
             
-            response = self.session.post(f"{API_BASE}/menu/breakfast", json=white_roll_data)
+            response = self.session.post(f"{API_BASE}/department-admin/menu/breakfast", json=white_roll_data)
             if response.status_code == 200:
                 print(f"✅ Created white roll menu item: €0.50")
             else:
@@ -185,7 +185,7 @@ class FinalDebugRegularOrderTest:
                 "department_id": DEPARTMENT_ID
             }
             
-            response = self.session.post(f"{API_BASE}/menu/breakfast", json=seeded_roll_data)
+            response = self.session.post(f"{API_BASE}/department-admin/menu/breakfast", json=seeded_roll_data)
             if response.status_code == 200:
                 print(f"✅ Created seeded roll menu item: €0.60")
             else:
@@ -202,7 +202,7 @@ class FinalDebugRegularOrderTest:
                     "department_id": DEPARTMENT_ID
                 }
                 
-                response = self.session.post(f"{API_BASE}/menu/toppings", json=topping_data)
+                response = self.session.post(f"{API_BASE}/department-admin/menu/toppings", json=topping_data)
                 if response.status_code == 200:
                     print(f"✅ Created topping '{topping}': €0.00")
                 else:
