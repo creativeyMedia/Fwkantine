@@ -1,35 +1,35 @@
 #!/usr/bin/env python3
 """
-🔍 SYSTEMATISCHE FRONTEND-DATENSTRUKTUR ANALYSE: Exakte User-Szenario
+🔍 DATENBANK ORDER-UPDATE VERIFIKATION: Überprüfe ob Sponsoring-Updates in DB geschrieben werden
 
-EXAKTE USER-SZENARIO NACHSTELLUNG:
+KRITISCHE DATENBANK-VERIFIKATION:
 
-1. **Create exact scenario:**
-   - Test1, Test2, Test3, Test4 mit Frühstück-Bestellungen
-   - Test1 sponsert Frühstück für Test2, Test3, Test4
-   - Test4 sponsert Mittag für Test1
+1. **Simple Test Scenario:**
+   - Create Test1: Breakfast order with lunch
+   - Create Test4: Breakfast order 
+   - Test4 sponsors lunch for Test1
 
-2. **Analysiere exakte Datenstruktur für alle:**
-   - Test1: Sollte haben eigene Order + gesponsert für andere + wird für Mittag gesponsert
-   - Test2: Sollte Frühstück gesponsert bekommen  
-   - Test3: Sollte Frühstück gesponsert bekommen
-   - Test4: Sollte Frühstück gesponsert bekommen + sponsert Mittag für andere
+2. **DATENBANK-UPDATE VERIFICATION:**
+   - Execute sponsoring and watch debug logs
+   - Verify that Test1's order gets updated in database with:
+     - is_sponsored: true
+     - sponsored_meal_type: "lunch"
+     - sponsored_message: "..."
 
-3. **KRITISCHE FELD-ANALYSE:**
-   - Für jede Person: `is_sponsored`, `sponsored_meal_type`, `sponsor_message`, `sponsored_message`
-   - Test1: Sollte `sponsored_meal_type="lunch"` haben
-   - Test4: Sollte `sponsored_meal_type="breakfast"` haben UND `sponsor_message` für Mittag-Sponsoring
-   - Test2,3: Sollten `sponsored_meal_type="breakfast"` haben
+3. **DIRECT DATABASE CHECK:**
+   - After sponsoring, directly query Test1's order from database
+   - Verify the fields are actually there in the raw database record
+   - Check if individual profile endpoint returns the same data
 
-4. **INDIVIDUAL PROFILE CHECKS:**
-   - Get individual profiles für Test1 und Test4
-   - Prüfe welche Messages und Felder das Frontend bekommt
-   - Identifiziere warum Durchstreichung nicht funktioniert
+4. **INDIVIDUAL PROFILE API TEST:**
+   - Call GET /employees/{test1_id}/profile
+   - Check if the response includes the sponsored fields
+   - Compare with raw database data
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Verstehe exakt welche Daten das Frontend bekommt und warum die Durchstreichungslogik versagt!
+ZIEL: Verifikation ob Order-Updates tatsächlich in die Datenbank geschrieben werden!
 """
 
 import requests
