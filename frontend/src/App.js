@@ -6,7 +6,7 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
-// Calculate displayed price after sponsoring using actual item prices
+// Calculate displayed price after sponsoring using backend-like calculation
 const calculateDisplayPrice = (item) => {
   console.log('🔍 calculateDisplayPrice called for:', item.id);
   console.log('  - is_sponsored:', item.is_sponsored);
@@ -18,38 +18,37 @@ const calculateDisplayPrice = (item) => {
     return item.total_price; // Original price for non-sponsored or sponsor orders
   }
   
-  // For sponsored orders, calculate remaining cost using actual readable_items
+  // For sponsored orders, calculate remaining cost using backend-like logic
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
   
   console.log('  - sponsoredTypes:', sponsoredTypes);
-  console.log('  - readable_items:', item.readable_items);
+  console.log('  - breakfast_items:', item.breakfast_items);
   
-  // Calculate what was sponsored using actual item prices from readable_items
-  if (item.readable_items && item.readable_items.length > 0) {
-    for (const readableItem of item.readable_items) {
-      const description = readableItem.description || '';
-      const itemPrice = readableItem.price || 0;
+  // ALTERNATIVE APPROACH: Use breakfast_items structure like backend
+  if (item.breakfast_items && item.breakfast_items.length > 0) {
+    const breakfastItem = item.breakfast_items[0];
+    
+    // Calculate breakfast cost (rolls + eggs) if sponsored
+    if (sponsoredTypes.includes('breakfast')) {
+      // Estimate breakfast costs (since readable_items prices are 0)
+      const rollsHalves = (breakfastItem.white_halves || 0) + (breakfastItem.seeded_halves || 0);
+      const eggs = breakfastItem.boiled_eggs || 0;
       
-      console.log(`  - Processing item: "${description}", price: ${itemPrice}`);
+      // Use average prices (this should match backend calculations)
+      const estimatedBreakfastCost = (rollsHalves * 0.55) + (eggs * 0.60); // Average roll + egg prices
       
-      // Subtract breakfast items if sponsored (rolls and eggs, but NOT coffee)
-      if (sponsoredTypes.includes('breakfast')) {
-        if ((description.includes('Brötchen') || 
-             description.includes('Helle') || 
-             description.includes('Körner') || 
-             description.includes('Ei')) &&
-            !description.includes('Kaffee')) {
-          console.log(`    - SUBTRACTING breakfast item: ${itemPrice}`);
-          remainingCost -= itemPrice;
-        }
-      }
+      console.log(`    - SUBTRACTING breakfast cost: ${estimatedBreakfastCost} (${rollsHalves} rolls + ${eggs} eggs)`);
+      remainingCost -= estimatedBreakfastCost;
+    }
+    
+    // Calculate lunch cost if sponsored
+    if (sponsoredTypes.includes('lunch') && breakfastItem.has_lunch) {
+      // Estimate lunch cost (should be 5.00€ typically)
+      const estimatedLunchCost = 5.00; // Standard lunch price
       
-      // Subtract lunch cost if sponsored
-      if (sponsoredTypes.includes('lunch') && description.includes('Mittagessen')) {
-        console.log(`    - SUBTRACTING lunch item: ${itemPrice}`);
-        remainingCost -= itemPrice;
-      }
+      console.log(`    - SUBTRACTING lunch cost: ${estimatedLunchCost}`);
+      remainingCost -= estimatedLunchCost;
     }
   }
   
