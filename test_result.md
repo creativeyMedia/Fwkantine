@@ -52,7 +52,7 @@ backend:
     implemented: true
     working: false
     file: "backend/server.py"
-    stuck_count: 2
+    stuck_count: 3
     priority: "critical"
     needs_retesting: false
     status_history:
