@@ -540,16 +540,16 @@ class FrontendDisplayBugFixTest:
         print(f"✅ Employee3 successfully sponsored lunch meals")
         print(f"✅ Combined sponsoring completed: Employee1 has both breakfast AND lunch sponsored")
         
-        # Step 5: Get Breakfast History and Verify Bug Fixes
-        print(f"\n5️⃣ Getting Breakfast History for Bug Fix Verification")
+        # Step 5: Get Breakfast History and Verify Combined Sponsoring Structure
+        print(f"\n5️⃣ Getting Breakfast History for Combined Sponsoring Verification")
         history_data = self.get_breakfast_history()
         
         if "error" in history_data:
             print(f"❌ CRITICAL FAILURE: Cannot get breakfast history: {history_data['error']}")
             return False
         
-        # Step 6: Verify Data Structure
-        print(f"\n6️⃣ Verifying Breakfast History Data Structure")
+        # Step 6: Verify Data Structure for Combined Sponsoring
+        print(f"\n6️⃣ Verifying Combined Sponsoring Data Structure")
         
         if not isinstance(history_data, dict) or "history" not in history_data:
             print(f"❌ CRITICAL FAILURE: Invalid history data structure")
@@ -570,32 +570,32 @@ class FrontendDisplayBugFixTest:
         
         print(f"✅ Found {len(employee_orders)} employees in today's breakfast history")
         
-        # Step 7: CRITICAL Bug 1 Test - Chronological History Display Fix
-        print(f"\n7️⃣ CRITICAL Bug 1 Test - Chronological History Display Fix")
-        bug_1_results = self.verify_bug_1_chronological_history_display(employee_orders)
+        # Step 7: CRITICAL Test - Individual Employee Profile (Employee1)
+        print(f"\n7️⃣ CRITICAL Test - Individual Employee Profile for Employee1")
+        employee1_results = self.verify_employee1_combined_sponsoring(employee_orders, employee1_name)
         
-        # Step 8: CRITICAL Bug 2 Test - Sponsor Total Display Fix
-        print(f"\n8️⃣ CRITICAL Bug 2 Test - Sponsor Total Display Fix")
-        bug_2_results = self.verify_bug_2_sponsor_total_display(employee_orders)
+        # Step 8: CRITICAL Test - sponsored_meal_type Structure
+        print(f"\n8️⃣ CRITICAL Test - sponsored_meal_type Structure")
+        sponsored_meal_type_results = self.verify_sponsored_meal_type_structure(employee_orders, employee1_name)
         
-        # Step 9: Test Combined Scenario
-        print(f"\n9️⃣ Test Combined Scenario")
-        combined_results = self.verify_combined_scenario(employee_orders)
+        # Step 9: CRITICAL Test - Total Display (calculateDisplayPrice equivalent)
+        print(f"\n9️⃣ CRITICAL Test - Total Display (Coffee Cost Only)")
+        total_display_results = self.verify_total_display_coffee_only(employee_orders, employee1_name)
         
-        # Step 10: Verify No Regressions
-        print(f"\n🔟 Verify No Regressions")
-        regression_results = self.verify_no_regressions(employee_orders)
+        # Step 10: Verify Sponsor Information
+        print(f"\n🔟 Verify Sponsor Information")
+        sponsor_results = self.verify_sponsor_information(employee_orders, employee2_name, employee3_name)
         
         # Final Results
         print(f"\n🏁 FINAL RESULTS:")
         
         success_criteria = [
-            (bug_1_results["bug_1_fixed"], f"Bug 1 Fixed (Chronological History): {bug_1_results['correct_remaining_costs']} correct, {bug_1_results['incorrect_original_costs']} incorrect"),
-            (bug_2_results["bug_2_fixed"], f"Bug 2 Fixed (Sponsor Total Display): {bug_2_results['correct_sponsor_totals']} correct, {bug_2_results['incorrect_zero_totals']} incorrect"),
-            (combined_results["combined_working"], f"Combined Scenario Working: {combined_results['combined_sponsors_found']} sponsors, {combined_results['combined_sponsored_found']} sponsored"),
-            (regression_results["no_regressions"], f"No Regressions: {len(regression_results['regression_issues'])} issues found"),
-            (bug_1_results["sponsored_employees_found"] > 0, f"Sponsored Employees Tested: {bug_1_results['sponsored_employees_found']} employees"),
-            (bug_2_results["sponsors_without_orders_found"] > 0, f"Sponsors Without Orders Tested: {bug_2_results['sponsors_without_orders_found']} sponsors")
+            (employee1_results["combined_sponsoring_detected"], f"Employee1 Combined Sponsoring Detected: {employee1_results['breakfast_sponsored']} breakfast, {employee1_results['lunch_sponsored']} lunch"),
+            (total_display_results["coffee_only_cost"], f"Total Display Shows Coffee Only: €{total_display_results['total_amount']:.2f} (expected ~€1-2)"),
+            (sponsored_meal_type_results["proper_structure"], f"sponsored_meal_type Structure: {sponsored_meal_type_results['structure_found']}"),
+            (sponsor_results["employee2_sponsored_breakfast"], f"Employee2 Sponsored Breakfast: {sponsor_results['employee2_breakfast_info']}"),
+            (sponsor_results["employee3_sponsored_lunch"], f"Employee3 Sponsored Lunch: {sponsor_results['employee3_lunch_info']}"),
+            (employee1_results["total_amount"] > 0, f"Employee1 Shows Remaining Cost: €{employee1_results['total_amount']:.2f} > €0.00")
         ]
         
         passed_tests = sum(1 for test, _ in success_criteria if test)
@@ -609,15 +609,16 @@ class FrontendDisplayBugFixTest:
         print(f"\n📊 Overall Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
         if success_rate >= 80:
-            print("🎉 CRITICAL FRONTEND DISPLAY BUG FIXES VERIFICATION SUCCESSFUL!")
-            print("✅ Bug 1: Chronological history shows remaining cost (coffee only), NOT original cost")
-            print("✅ Bug 2: Sponsor without orders shows sponsored costs (positive amount), NOT €0.00")
-            print("✅ Combined scenario: Both fixes work together correctly")
-            print("✅ No regressions detected in single sponsoring or normal orders")
+            print("🎉 CRITICAL COMBINED SPONSORING VERIFICATION SUCCESSFUL!")
+            print("✅ Employee1: Has both breakfast AND lunch sponsored")
+            print("✅ Total Display: Shows only coffee cost (~€1-2), NOT original cost (~€8-10)")
+            print("✅ sponsored_meal_type: Proper structure for combined sponsoring")
+            print("✅ Strikethrough Logic: API provides data for rolls, eggs, lunch to be struck through")
+            print("✅ Coffee NOT Sponsored: Coffee cost remains with Employee1")
             return True
         else:
-            print("🚨 CRITICAL FRONTEND DISPLAY BUG FIXES ISSUES DETECTED!")
-            print("❌ Some critical bug fix verification tests failed")
+            print("🚨 CRITICAL COMBINED SPONSORING ISSUES DETECTED!")
+            print("❌ Some critical combined sponsoring verification tests failed")
             return False
 
 def main():
