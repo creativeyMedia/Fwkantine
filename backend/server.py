@@ -1372,8 +1372,8 @@ async def create_order(order_data: OrderCreate):
                 {"$set": {"breakfast_balance": new_breakfast_balance}}
             )
         else:  # DRINKS or SWEETS
-            # CORRECTED: Orders DECREASE balance (create debt) 
-            new_drinks_sweets_balance = employee["drinks_sweets_balance"] - total_price
+            # For drinks/sweets: total_price is now negative, so we add it directly to balance (create debt)
+            new_drinks_sweets_balance = employee["drinks_sweets_balance"] + total_price
             await db.employees.update_one(
                 {"id": order_data.employee_id},
                 {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
