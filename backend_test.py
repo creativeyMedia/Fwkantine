@@ -1,34 +1,30 @@
 #!/usr/bin/env python3
 """
-🔍 FRONTEND DEBUG: Analysiere exakte Backend-Datenstruktur für Frontend-Verarbeitung
+🔍 DEBUG SPONSORED ORDER UPDATES: Test order updates with debug logging
 
-KRITISCHE FRONTEND-DATEN-ANALYSE:
+KRITISCHER DEBUG TEST:
 
-1. **Create exact scenario from User screenshot:**
-   - Test1: Eigene Bestellung (Brötchen, Eier, Kaffee, Mittag)
-   - Test1 sponsert Frühstück für andere (daher die Message "Frühstück wurde von dir ausgegeben")
-   - Test4 sponsert Mittag für Test1 (daher "Dieses Mittagessen wurde von Test4 ausgegeben")
+1. **Create simple sponsoring scenario:**
+   - Create Test1: breakfast order with Mittag
+   - Create Test4: breakfast order
+   - Test4 sponsors lunch for Test1
 
-2. **KRITISCHE DATENSTRUKTUR-ANALYSE für Test1:**
-   - Hol Test1's individual employee profile
-   - Analysiere EXACT die Order-Struktur die das Frontend bekommt
-   - WICHTIG: `sponsored_meal_type`, `is_sponsored`, `readable_items` Struktur
-   - WICHTIG: Prüfe ob `sponsored_meal_type = "lunch"` gesetzt ist (für Mittag-Sponsoring)
+2. **Execute sponsoring with debug logging:**
+   - Test4 sponsors lunch for Test1
+   - Watch debug logs to see:
+     - How many orders are being updated
+     - What order IDs are being targeted
+     - Whether updates are successful (matched_count, modified_count)
 
-3. **DETAILLIERTE ORDER-FELDER:**
-   - Zeige komplette Order mit allen Feldern
-   - Speziell: `breakfast_items`, `readable_items`, `sponsored_meal_type`, `sponsored_message`
-   - Prüfe ob die Daten so strukturiert sind, wie die Frontend-Logik erwartet
-
-4. **FRONTEND-LOGIK VERIFICATION:**
-   - Test1 sollte have: `is_sponsored=True`, `sponsored_meal_type="lunch"` (weil Mittag gesponsert)
-   - readable_items sollten korrekte Preise haben für calculateDisplayPrice
-   - sponsored_meal_type sollte "lunch" enthalten für Durchstreichungslogik
+3. **Verify after sponsoring:**
+   - Get Test1's individual profile
+   - Check if Test1 now has is_sponsored=True, sponsored_meal_type="lunch"
+   - Check if update actually worked
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Finde heraus warum Frontend die Backend-Daten nicht korrekt verarbeitet!
+ZIEL: Debug-Logs sollen zeigen ob und warum Order-Updates fehlschlagen!
 """
 
 import requests
