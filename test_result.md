@@ -174,6 +174,18 @@ backend:
           agent: "testing"
           comment: "✅ BUG 4 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Lunch Sponsoring Calculation - Successfully sponsored 7x Mittagessen lunch items for €14.90. Verification: sponsored employee retains breakfast+coffee costs (~€4.50), only lunch was sponsored. Sponsor pays for sponsored lunch items. Department-specific pricing correctly applied. ✅ 2) Individual Employee Balance Calculations - Updated individual employee calculation logic in breakfast-history endpoint properly handles sponsored meals. Calculates remaining cost correctly for both breakfast and lunch sponsoring. ✅ 3) Breakfast Sponsoring Balance Logic - For breakfast sponsoring: only rolls+eggs are sponsored, coffee+lunch costs remain with employee. Sponsored employees show correct remaining balances. ✅ 4) Lunch Sponsoring Balance Logic - For lunch sponsoring: only lunch costs are sponsored, breakfast+coffee costs remain with employee. Mathematical verification passed. ✅ 5) Sponsored Employee Refunds - Sponsored employees get proper refunds (balance adjustments) for sponsored meal components only. ✅ 6) Sponsor Additional Costs - Sponsor pays correct additional costs for sponsored employees without double-charging. ✅ 7) Balance Conservation - Total balance conservation maintained (sponsor pays more, sponsored pays less, total debt unchanged). CRITICAL VERIFICATION: Individual employee calculation logic in breakfast-history endpoint now properly handles sponsored meals for both breakfast and lunch sponsoring scenarios. The sponsored employee balance calculation fix is FULLY FUNCTIONAL."
 
+  - task: "Coffee Cost Missing from Individual Employee Totals Bug"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL BUG IDENTIFIED: Coffee costs (€1.50 per employee) are missing from individual employee total_amount calculations in breakfast-history endpoint. Expected scenario: Mit1,2,3: €7.60 each, Mit4: €8.20 = €31.00 total. Actual: All show €6.10 each = €24.40 total. Missing €6.60 matches user's report of missing €6.70. The separated revenue correctly excludes coffee from breakfast revenue (€4.90) and shows correct lunch revenue (€20.00), but individual employee totals exclude coffee costs when they should include them. Coffee price is correctly configured at €1.50 per department. ROOT CAUSE: breakfast-history endpoint calculation logic excludes coffee from individual employee totals when it should be included for balance calculations."
+
 frontend:
   - task: "UI Changes - Separated Revenue Display in Admin Dashboard"
     implemented: true
