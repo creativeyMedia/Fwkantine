@@ -3674,12 +3674,35 @@ async def sponsor_meal(meal_data: dict):
                 {"$set": sponsor_order_updates["updates"]}
             )
         
-        # Update sponsored orders
+        # Update sponsored orders with detailed logging
+        print(f"🔍 DEBUG: Updating {len(other_order_updates)} sponsored orders in database")
         for order_update in other_order_updates:
-            await db.orders.update_one(
-                {"id": order_update["id"]},
-                {"$set": order_update["updates"]}
+            order_id = order_update["id"]
+            updates = order_update["updates"]
+            
+            print(f"🔍 DEBUG: Updating order {order_id}")
+            print(f"   - Setting is_sponsored: {updates.get('is_sponsored')}")
+            print(f"   - Setting sponsored_meal_type: {updates.get('sponsored_meal_type')}")
+            print(f"   - Setting sponsored_message: {updates.get('sponsored_message', '')[:50]}...")
+            
+            result = await db.orders.update_one(
+                {"id": order_id},
+                {"$set": updates}
             )
+            
+            if result.matched_count == 0:
+                print(f"❌ DEBUG: Order {order_id} not found in database!")
+            elif result.modified_count == 0:
+                print(f"⚠️ DEBUG: Order {order_id} found but not modified (data unchanged)")
+            else:
+                print(f"✅ DEBUG: Order {order_id} successfully updated in database")
+                
+                # Verify the update
+                updated_order = await db.orders.find_one({"id": order_id})
+                if updated_order:
+                    print(f"✅ VERIFY: Order now has is_sponsored={updated_order.get('is_sponsored')}, sponsored_meal_type={updated_order.get('sponsored_meal_type')}")
+                else:
+                    print(f"❌ VERIFY: Could not retrieve updated order")
         
         # === RÜCKGABE ===
         sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
