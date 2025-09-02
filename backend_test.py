@@ -246,7 +246,209 @@ class FrontendDisplayBugFixTest:
             print(f"❌ Error getting breakfast history: {e}")
             return {"error": str(e)}
     
-    def verify_bug_1_chronological_history_display(self, employee_orders: Dict) -> Dict:
+    def verify_employee1_combined_sponsoring(self, employee_orders: Dict, employee1_name: str) -> Dict:
+        """
+        CRITICAL Test: Verify Employee1 has both breakfast AND lunch sponsored
+        Check that sponsored items should be struck through: rolls, eggs, lunch
+        Coffee should NOT be struck through (never sponsored)
+        """
+        results = {
+            "combined_sponsoring_detected": False,
+            "breakfast_sponsored": False,
+            "lunch_sponsored": False,
+            "coffee_not_sponsored": False,
+            "total_amount": 0.0,
+            "employee_found": False
+        }
+        
+        print(f"🔍 CRITICAL: Verifying Employee1 ({employee1_name}) Combined Sponsoring")
+        print(f"Expected: Breakfast AND lunch sponsored, coffee NOT sponsored")
+        
+        # Find Employee1 in the employee orders
+        employee1_data = None
+        for emp_name, emp_data in employee_orders.items():
+            if employee1_name in emp_name or emp_name in employee1_name:
+                employee1_data = emp_data
+                results["employee_found"] = True
+                results["total_amount"] = emp_data.get("total_amount", 0.0)
+                print(f"✅ Found Employee1: {emp_name} (€{results['total_amount']:.2f})")
+                break
+        
+        if not employee1_data:
+            print(f"❌ Employee1 ({employee1_name}) not found in employee orders")
+            return results
+        
+        # Check for breakfast sponsoring indicators
+        breakfast_sponsored_info = employee1_data.get("sponsored_breakfast")
+        if breakfast_sponsored_info:
+            results["breakfast_sponsored"] = True
+            print(f"✅ Breakfast sponsored detected: {breakfast_sponsored_info}")
+        else:
+            print(f"❌ Breakfast sponsoring not detected")
+        
+        # Check for lunch sponsoring indicators  
+        lunch_sponsored_info = employee1_data.get("sponsored_lunch")
+        if lunch_sponsored_info:
+            results["lunch_sponsored"] = True
+            print(f"✅ Lunch sponsored detected: {lunch_sponsored_info}")
+        else:
+            print(f"❌ Lunch sponsoring not detected")
+        
+        # Check if coffee is NOT sponsored (should remain with employee)
+        has_coffee = employee1_data.get("has_coffee", False)
+        if has_coffee and results["total_amount"] > 0:
+            results["coffee_not_sponsored"] = True
+            print(f"✅ Coffee NOT sponsored: Employee still owes €{results['total_amount']:.2f} (coffee cost)")
+        elif has_coffee and results["total_amount"] == 0:
+            print(f"❌ Coffee appears to be sponsored (total €0.00) - should remain with employee")
+        
+        # Combined sponsoring detected if both breakfast and lunch are sponsored
+        if results["breakfast_sponsored"] and results["lunch_sponsored"]:
+            results["combined_sponsoring_detected"] = True
+            print(f"✅ COMBINED SPONSORING DETECTED: Both breakfast AND lunch sponsored for Employee1")
+        else:
+            print(f"❌ Combined sponsoring NOT detected - missing breakfast or lunch sponsoring")
+        
+        return results
+    
+    def verify_sponsored_meal_type_structure(self, employee_orders: Dict, employee1_name: str) -> Dict:
+        """
+        CRITICAL Test: Verify sponsored_meal_type structure for combined sponsoring
+        Should be "breakfast,lunch" or similar structure
+        """
+        results = {
+            "proper_structure": False,
+            "structure_found": "None",
+            "sponsored_message_found": False,
+            "api_supports_combined": False
+        }
+        
+        print(f"🔍 CRITICAL: Verifying sponsored_meal_type Structure")
+        print(f"Expected: sponsored_meal_type = 'breakfast,lunch' or similar for combined sponsoring")
+        
+        # Find Employee1 in the employee orders
+        employee1_data = None
+        for emp_name, emp_data in employee_orders.items():
+            if employee1_name in emp_name or emp_name in employee1_name:
+                employee1_data = emp_data
+                break
+        
+        if not employee1_data:
+            print(f"❌ Employee1 not found for sponsored_meal_type verification")
+            return results
+        
+        # Check for sponsored_meal_type field or equivalent structure
+        sponsored_meal_type = employee1_data.get("sponsored_meal_type")
+        if sponsored_meal_type:
+            results["structure_found"] = sponsored_meal_type
+            if "breakfast" in str(sponsored_meal_type).lower() and "lunch" in str(sponsored_meal_type).lower():
+                results["proper_structure"] = True
+                print(f"✅ Proper sponsored_meal_type structure: {sponsored_meal_type}")
+            else:
+                print(f"⚠️ sponsored_meal_type found but incomplete: {sponsored_meal_type}")
+        
+        # Check for sponsored_message or similar
+        sponsored_message = employee1_data.get("sponsored_message")
+        if sponsored_message:
+            results["sponsored_message_found"] = True
+            print(f"✅ Sponsored message found: {sponsored_message}")
+        
+        # Check if API structure supports combined sponsoring detection
+        has_breakfast_info = employee1_data.get("sponsored_breakfast") is not None
+        has_lunch_info = employee1_data.get("sponsored_lunch") is not None
+        
+        if has_breakfast_info and has_lunch_info:
+            results["api_supports_combined"] = True
+            print(f"✅ API structure supports combined sponsoring detection")
+            print(f"   - sponsored_breakfast: {employee1_data.get('sponsored_breakfast')}")
+            print(f"   - sponsored_lunch: {employee1_data.get('sponsored_lunch')}")
+        
+        return results
+    
+    def verify_total_display_coffee_only(self, employee_orders: Dict, employee1_name: str) -> Dict:
+        """
+        CRITICAL Test: Verify total display shows only coffee cost (~€1-2), NOT original cost (~€8-10)
+        This is equivalent to calculateDisplayPrice functionality
+        """
+        results = {
+            "coffee_only_cost": False,
+            "total_amount": 0.0,
+            "in_coffee_range": False,
+            "not_original_cost": False
+        }
+        
+        print(f"🔍 CRITICAL: Verifying Total Display (Coffee Cost Only)")
+        print(f"Expected: €1-2 (coffee only), NOT €8-10 (original cost)")
+        
+        # Find Employee1 in the employee orders
+        employee1_data = None
+        for emp_name, emp_data in employee_orders.items():
+            if employee1_name in emp_name or emp_name in employee1_name:
+                employee1_data = emp_data
+                break
+        
+        if not employee1_data:
+            print(f"❌ Employee1 not found for total display verification")
+            return results
+        
+        total_amount = employee1_data.get("total_amount", 0.0)
+        results["total_amount"] = total_amount
+        
+        # Check if total is in coffee cost range (€0.50 - €3.00)
+        if 0.50 <= total_amount <= 3.00:
+            results["in_coffee_range"] = True
+            results["coffee_only_cost"] = True
+            print(f"✅ Total display shows coffee cost: €{total_amount:.2f} (within €0.50-€3.00 range)")
+        elif total_amount == 0.0:
+            print(f"❌ Total display shows €0.00 - coffee should NOT be sponsored")
+        elif 8.0 <= total_amount <= 12.0:
+            print(f"❌ Total display shows original cost: €{total_amount:.2f} (should show coffee cost ~€1-2)")
+        else:
+            print(f"⚠️ Total display shows unexpected amount: €{total_amount:.2f}")
+        
+        # Check that it's NOT the original order cost
+        if total_amount < 8.0:
+            results["not_original_cost"] = True
+            print(f"✅ Total is NOT original cost (€{total_amount:.2f} < €8.00)")
+        
+        return results
+    
+    def verify_sponsor_information(self, employee_orders: Dict, employee2_name: str, employee3_name: str) -> Dict:
+        """
+        Verify that Employee2 sponsored breakfast and Employee3 sponsored lunch
+        """
+        results = {
+            "employee2_sponsored_breakfast": False,
+            "employee3_sponsored_lunch": False,
+            "employee2_breakfast_info": "Not found",
+            "employee3_lunch_info": "Not found"
+        }
+        
+        print(f"🔍 Verifying Sponsor Information")
+        print(f"Expected: Employee2 sponsored breakfast, Employee3 sponsored lunch")
+        
+        for emp_name, emp_data in employee_orders.items():
+            # Check Employee2 (breakfast sponsor)
+            if employee2_name in emp_name or emp_name in employee2_name:
+                sponsored_breakfast = emp_data.get("sponsored_breakfast")
+                if sponsored_breakfast:
+                    results["employee2_sponsored_breakfast"] = True
+                    results["employee2_breakfast_info"] = sponsored_breakfast
+                    print(f"✅ Employee2 sponsored breakfast: {sponsored_breakfast}")
+                else:
+                    print(f"❌ Employee2 breakfast sponsoring not detected")
+            
+            # Check Employee3 (lunch sponsor)
+            if employee3_name in emp_name or emp_name in employee3_name:
+                sponsored_lunch = emp_data.get("sponsored_lunch")
+                if sponsored_lunch:
+                    results["employee3_sponsored_lunch"] = True
+                    results["employee3_lunch_info"] = sponsored_lunch
+                    print(f"✅ Employee3 sponsored lunch: {sponsored_lunch}")
+                else:
+                    print(f"❌ Employee3 lunch sponsoring not detected")
+        
+        return results
         """
         CRITICAL Bug 1 Test: Verify sponsored employees show correct remaining cost (only coffee ~€1-2), NOT original cost (~€8-10)
         """
