@@ -3650,15 +3650,16 @@ async def reset_employee_balance(employee_id: str, balance_type: str):
 # Include the router in the main app
 app.include_router(api_router)
 
-# Mount static files for landing page
+# Mount static files for landing page BEFORE other middleware
 landing_page_path = Path(__file__).parent.parent / "landing-page"
 if landing_page_path.exists():
-    app.mount("/landing", StaticFiles(directory=str(landing_page_path)), name="landing")
-    
-    # Serve landing page index at /landing route
-    @app.get("/landing")
+    # Serve landing page index at /landing-page route
+    @app.get("/landing-page")
     async def landing_page():
-        return FileResponse(str(landing_page_path / "index.html"))
+        return FileResponse(str(landing_page_path / "index.html"), media_type="text/html")
+    
+    # Mount static files under /landing-page/
+    app.mount("/landing-page", StaticFiles(directory=str(landing_page_path), html=True), name="landing")
 
 app.add_middleware(
     CORSMiddleware,
