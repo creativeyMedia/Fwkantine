@@ -8,13 +8,7 @@ const API = `${BACKEND_URL}/api`;
 
 // Calculate displayed price after sponsoring using backend-like calculation
 const calculateDisplayPrice = (item) => {
-  console.log('🔍 calculateDisplayPrice called for:', item.id);
-  console.log('  - is_sponsored:', item.is_sponsored);
-  console.log('  - sponsored_meal_type:', item.sponsored_meal_type);
-  console.log('  - total_price:', item.total_price);
-  
   if (!item.is_sponsored || item.is_sponsor_order) {
-    console.log('  - NOT sponsored, returning original price:', item.total_price);
     return item.total_price; // Original price for non-sponsored or sponsor orders
   }
   
@@ -22,39 +16,32 @@ const calculateDisplayPrice = (item) => {
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
   
-  console.log('  - sponsoredTypes:', sponsoredTypes);
-  console.log('  - breakfast_items:', item.breakfast_items);
-  
-  // ALTERNATIVE APPROACH: Use breakfast_items structure like backend
-  if (item.breakfast_items && item.breakfast_items.length > 0) {
-    const breakfastItem = item.breakfast_items[0];
-    
-    // Calculate breakfast cost (rolls + eggs) if sponsored
-    if (sponsoredTypes.includes('breakfast')) {
-      // Estimate breakfast costs (since readable_items prices are 0)
-      const rollsHalves = (breakfastItem.white_halves || 0) + (breakfastItem.seeded_halves || 0);
-      const eggs = breakfastItem.boiled_eggs || 0;
+  // Calculate exact sponsored amounts from readable_items (using total_price strings)
+  if (item.readable_items && item.readable_items.length > 0) {
+    for (const readableItem of item.readable_items) {
+      const description = readableItem.description || '';
+      const totalPriceStr = readableItem.total_price || '0.00 €';
+      const itemPrice = parseFloat(totalPriceStr.replace(' €', '').replace(',', '.')) || 0;
       
-      // Use average prices (this should match backend calculations)
-      const estimatedBreakfastCost = (rollsHalves * 0.55) + (eggs * 0.60); // Average roll + egg prices
+      // Subtract breakfast items if sponsored (rolls and eggs, but NOT coffee)
+      if (sponsoredTypes.includes('breakfast')) {
+        if ((description.includes('Brötchen') || 
+             description.includes('Helle') || 
+             description.includes('Körner') || 
+             description.includes('Ei')) &&
+            !description.includes('Kaffee')) {
+          remainingCost -= itemPrice;
+        }
+      }
       
-      console.log(`    - SUBTRACTING breakfast cost: ${estimatedBreakfastCost} (${rollsHalves} rolls + ${eggs} eggs)`);
-      remainingCost -= estimatedBreakfastCost;
-    }
-    
-    // Calculate lunch cost if sponsored
-    if (sponsoredTypes.includes('lunch') && breakfastItem.has_lunch) {
-      // Estimate lunch cost (should be 5.00€ typically)
-      const estimatedLunchCost = 5.00; // Standard lunch price
-      
-      console.log(`    - SUBTRACTING lunch cost: ${estimatedLunchCost}`);
-      remainingCost -= estimatedLunchCost;
+      // Subtract lunch cost if sponsored
+      if (sponsoredTypes.includes('lunch') && description.includes('Mittagessen')) {
+        remainingCost -= itemPrice;
+      }
     }
   }
   
-  const finalCost = Math.max(0, remainingCost);
-  console.log('  - Final remaining cost:', finalCost);
-  return finalCost;
+  return Math.max(0, remainingCost);
 };
 
 // Helper function to format date in German format
