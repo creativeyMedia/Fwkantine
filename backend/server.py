@@ -1837,6 +1837,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 # Initialize sponsoring info
                 employee_data["sponsored_breakfast"] = None
                 employee_data["sponsored_lunch"] = None
+                # Initialize sponsored status if not already set
+                if "is_sponsored" not in employee_data:
+                    employee_data["is_sponsored"] = False
+                if "sponsored_meal_type" not in employee_data:
+                    employee_data["sponsored_meal_type"] = None
             
             # CRITICAL: Also find sponsors who didn't make their own orders but sponsored others
             all_sponsors = await db.orders.find({
