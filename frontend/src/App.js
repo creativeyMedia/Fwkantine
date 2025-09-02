@@ -4274,7 +4274,9 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
                         <span className="text-sm text-gray-600">{formatDate(order.timestamp)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold">{order.total_price.toFixed(2)} €</p>
+                        <p className={`font-semibold ${order.total_price < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {order.total_price < 0 ? '-' : ''}{Math.abs(order.total_price || 0).toFixed(2)} €
+                        </p>
                         <button
                           onClick={() => deleteOrder(order.id)}
                           className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
