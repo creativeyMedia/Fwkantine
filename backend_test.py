@@ -1,44 +1,34 @@
 #!/usr/bin/env python3
 """
-🚨 CRITICAL FRONTEND DISPLAY BUG TEST: Test chronological history display fixes for combined sponsoring
+🔍 FRONTEND DEBUG: Analysiere exakte Backend-Datenstruktur für Frontend-Verarbeitung
 
-FOCUS ON FRONTEND DISPLAY BUGS:
+KRITISCHE FRONTEND-DATEN-ANALYSE:
 
-1. **Create Complex Combined Sponsoring Scenario:**
-   - Create Employee1: Full breakfast order (rolls, eggs, coffee, lunch) ~€8-10
-   - Create Employee2: Will sponsor breakfast for Employee1
-   - Create Employee3: Will sponsor lunch for Employee1
-   - Result: Employee1 should have both breakfast AND lunch sponsored
+1. **Create exact scenario from User screenshot:**
+   - Test1: Eigene Bestellung (Brötchen, Eier, Kaffee, Mittag)
+   - Test1 sponsert Frühstück für andere (daher die Message "Frühstück wurde von dir ausgegeben")
+   - Test4 sponsert Mittag für Test1 (daher "Dieses Mittagessen wurde von Test4 ausgegeben")
 
-2. **Test Combined Sponsoring:**
-   - Employee2 sponsors breakfast for Employee1
-   - Employee3 sponsors lunch for Employee1  
-   - This should create sponsored_meal_type = "breakfast,lunch" for Employee1's order
+2. **KRITISCHE DATENSTRUKTUR-ANALYSE für Test1:**
+   - Hol Test1's individual employee profile
+   - Analysiere EXACT die Order-Struktur die das Frontend bekommt
+   - WICHTIG: `sponsored_meal_type`, `is_sponsored`, `readable_items` Struktur
+   - WICHTIG: Prüfe ob `sponsored_meal_type = "lunch"` gesetzt ist (für Mittag-Sponsoring)
 
-3. **Critical Frontend Tests - Individual Employee Profile:**
-   - Get Employee1's individual profile/chronological history
-   - CRITICAL: Check that sponsored items are struck through:
-     - Rolls and eggs should be struck through (breakfast sponsored)
-     - Lunch should be struck through (lunch sponsored)
-     - Coffee should NOT be struck through (never sponsored)
-   
-4. **Critical Total Display Test:**
-   - CRITICAL: calculateDisplayPrice should show only coffee cost (~€1-2)
-   - Should NOT show original total cost (~€8-10)
-   - Verify total in chronological history matches actual remaining cost
+3. **DETAILLIERTE ORDER-FELDER:**
+   - Zeige komplette Order mit allen Feldern
+   - Speziell: `breakfast_items`, `readable_items`, `sponsored_meal_type`, `sponsored_message`
+   - Prüfe ob die Daten so strukturiert sind, wie die Frontend-Logik erwartet
 
-5. **Test sponsored_meal_type Structure:**
-   - Verify order has sponsored_meal_type = "breakfast,lunch" or similar
-   - Verify sponsored_message contains information about both sponsorings
-   - Test that both strikethrough logic and price calculation work
+4. **FRONTEND-LOGIK VERIFICATION:**
+   - Test1 sollte have: `is_sponsored=True`, `sponsored_meal_type="lunch"` (weil Mittag gesponsert)
+   - readable_items sollten korrekte Preise haben für calculateDisplayPrice
+   - sponsored_meal_type sollte "lunch" enthalten für Durchstreichungslogik
 
-EXPECTED RESULTS:
-- Struck through: Rolls, eggs, lunch (all sponsored items)
-- NOT struck through: Coffee (never sponsored)
-- Total display: Only coffee cost (e.g., -€1.50), NOT original cost (e.g., -€8.50)
-- Both sponsoring types should be handled correctly in combined scenario
+Department: fw1abteilung1 (1. Wachabteilung)
+Login: admin1/password1
 
-Use Department 2 (fw4abteilung2) with admin2 credentials.
+ZIEL: Finde heraus warum Frontend die Backend-Daten nicht korrekt verarbeitet!
 """
 
 import requests
