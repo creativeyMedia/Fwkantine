@@ -148,6 +148,72 @@ class FinalDebugRegularOrderTest:
             print(f"❌ Error setting up prices: {e}")
             return False
     
+    def setup_menu_items(self) -> bool:
+        """Setup breakfast menu items if they don't exist"""
+        try:
+            print(f"\n🔧 SETTING UP MENU ITEMS:")
+            print("=" * 60)
+            
+            # Check if breakfast menu exists
+            response = self.session.get(f"{API_BASE}/menu/breakfast/{DEPARTMENT_ID}")
+            if response.status_code == 200:
+                menu_items = response.json()
+                if len(menu_items) > 0:
+                    print(f"✅ Breakfast menu already exists with {len(menu_items)} items")
+                    return True
+            
+            print(f"🔧 Creating breakfast menu items...")
+            
+            # Create white roll (weiss) - €0.50
+            white_roll_data = {
+                "roll_type": "weiss",
+                "price": 0.50,
+                "department_id": DEPARTMENT_ID
+            }
+            
+            response = self.session.post(f"{API_BASE}/menu/breakfast", json=white_roll_data)
+            if response.status_code == 200:
+                print(f"✅ Created white roll menu item: €0.50")
+            else:
+                print(f"❌ Failed to create white roll: {response.text}")
+                return False
+            
+            # Create seeded roll (koerner) - €0.60
+            seeded_roll_data = {
+                "roll_type": "koerner", 
+                "price": 0.60,
+                "department_id": DEPARTMENT_ID
+            }
+            
+            response = self.session.post(f"{API_BASE}/menu/breakfast", json=seeded_roll_data)
+            if response.status_code == 200:
+                print(f"✅ Created seeded roll menu item: €0.60")
+            else:
+                print(f"❌ Failed to create seeded roll: {response.text}")
+                return False
+            
+            # Create basic toppings (free)
+            toppings = ["butter", "kaese", "schinken", "salami"]
+            for topping in toppings:
+                topping_data = {
+                    "topping_id": topping,
+                    "topping_name": topping,
+                    "price": 0.00,
+                    "department_id": DEPARTMENT_ID
+                }
+                
+                response = self.session.post(f"{API_BASE}/menu/toppings", json=topping_data)
+                if response.status_code == 200:
+                    print(f"✅ Created topping '{topping}': €0.00")
+                else:
+                    print(f"⚠️ Failed to create topping '{topping}': {response.text}")
+            
+            return True
+                
+        except Exception as e:
+            print(f"❌ Error setting up menu items: {e}")
+            return False
+    
     def create_mit1_standard_order(self) -> dict:
         """Create Mit1 standard order (expected €7.60) - NO SPONSORING"""
         
