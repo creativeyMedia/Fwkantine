@@ -1902,10 +1902,12 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 breakfast_sponsored_info = None
                 lunch_sponsored_info = None
                 
-                # CORRECTED: Look for sponsoring activities by this employee (match by ID, not name)
+                # CORRECTED: Find all orders where this employee sponsored others
+                # We need to find orders that have been sponsored BY this employee
                 sponsored_orders = await db.orders.find({
                     "department_id": department_id,
-                    "sponsored_by_employee_id": employee_id,  # Use ID instead of name
+                    "is_sponsored": True,  # Order must be sponsored
+                    "sponsored_by_employee_id": employee_id,  # This employee was the sponsor
                     "timestamp": {
                         "$gte": start_of_day_utc.isoformat(),
                         "$lte": end_of_day_utc.isoformat()
