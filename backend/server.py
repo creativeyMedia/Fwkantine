@@ -1663,7 +1663,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     # Regular orders - use full cost
                     total_amount += order.get("total_price", 0)
             
-            for order in orders:
+            for order in real_orders:  # Only process real orders for employee statistics
                 if order.get("breakfast_items"):
                     # Get employee info
                     employee = await db.employees.find_one({"id": order["employee_id"]})
