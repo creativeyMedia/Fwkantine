@@ -3489,51 +3489,49 @@ async def sponsor_meal(meal_data: dict):
         others_count = sponsored_count - (1 if sponsor_calculation else 0)  # Exclude sponsor only if they have an order
         meal_name = "Frühstück" if meal_type == "breakfast" else "Mittagessen"
         
-        # 1. Update sponsor's order to show sponsoring details (if sponsor has an order)
+        # 1. Create sponsor order to show sponsoring details (for all sponsors)
         if sponsor_calculation:
-            sponsor_order = sponsor_calculation["order"]
+            # Sponsor has their own order - create a SEPARATE sponsor order for this sponsoring action
+            today = get_berlin_date().strftime('%Y-%m-%d')
+            current_time = datetime.utcnow()
             
-            # Use the already calculated counts
-            
-            # Create detailed breakdown: "Ausgegeben 4x Mittagessen á 5€ für 4 Mitarbeiter - 20€"
+            # Calculate total cost for display
             total_others_cost = total_sponsored_cost - sponsor_contributed_amount
             
-            # Sponsor message with cost information
-            sponsor_message = f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)"
-            
             if others_count > 0:
-                # Remove the incorrect "á X.XX€" calculation - just show total
                 detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} für {total_others_cost:.2f}€"
                 unit_price_text = f"{others_count} × {total_others_cost:.2f}€"
             else:
                 detailed_breakdown = f"Keine anderen Mitarbeiter gesponsert"
                 unit_price_text = ""
             
-            # Update sponsor order with detailed breakdown
-            original_readable_items = sponsor_order.get("readable_items", [])
-            sponsor_readable_items = original_readable_items + [{
-                "description": detailed_breakdown,
-                "unit_price": unit_price_text,
-                "total_price": f"{total_others_cost:.2f} €"
-            }]
-            
-            # Store sponsor order update for later (after all calculations are complete)
-            sponsor_order_updates = {
-                "id": sponsor_order["id"],
-                "updates": {
-                    "is_sponsor_order": True,
-                    # CORRECTED: Sponsor is NOT sponsored - they are sponsoring others
-                    "is_sponsored": False,  # Sponsor is not sponsored
-                    "sponsored_message": sponsor_message,  # Add sponsor message
-                    "sponsor_message": sponsor_message,
-                    "sponsor_total_cost": total_others_cost,  # CRITICAL: Cost sponsored by this sponsor (excluding their own)
-                    "sponsor_employee_count": others_count,  # CRITICAL: Number of other employees sponsored
-                    "sponsored_meal_type": meal_type,
-                    "readable_items": sponsor_readable_items,
-                    # WICHTIG: total_price muss die gesponserten Kosten enthalten für korrekte Anzeige
-                    "total_price": sponsor_order.get("total_price", 0) + sponsor_additional_cost,
-                }
+            # Create a separate sponsor order (don't modify the original breakfast order)
+            sponsor_order_data = {
+                "id": str(uuid.uuid4()),
+                "employee_id": sponsor_employee_id,
+                "department_id": department_id,
+                "order_type": "breakfast",  # Sponsoring always goes to breakfast account
+                "total_price": total_others_cost,
+                "timestamp": current_time.isoformat(),
+                "breakfast_items": [],  # Empty - this is a pure sponsoring order
+                "drink_items": {},
+                "sweet_items": {},
+                "has_lunch": False,
+                "lunch_price": 0.0,
+                "is_sponsored": False,  # Sponsor is not sponsored
+                "is_sponsor_order": True,  # This IS a sponsor order
+                "sponsored_meal_type": meal_type,  # Only the current meal type being sponsored
+                "sponsor_total_cost": total_others_cost,  # CRITICAL: Cost sponsored by this sponsor (excluding their own)
+                "sponsor_employee_count": others_count,  # CRITICAL: Number of other employees sponsored
+                "sponsor_message": f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)",
+                "readable_items": [{
+                    "description": detailed_breakdown,
+                    "unit_price": unit_price_text,
+                    "total_price": f"{total_others_cost:.2f} €"
+                }]
             }
+            
+            await db.orders.insert_one(sponsor_order_data)
         
         # 2. Update employee balances and store order updates for later
         other_order_updates = []
