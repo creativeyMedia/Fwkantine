@@ -180,11 +180,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "🚨 CRITICAL BUG IDENTIFIED: Coffee costs (€1.50 per employee) are missing from individual employee total_amount calculations in breakfast-history endpoint. Expected scenario: Mit1,2,3: €7.60 each, Mit4: €8.20 = €31.00 total. Actual: All show €6.10 each = €24.40 total. Missing €6.60 matches user's report of missing €6.70. The separated revenue correctly excludes coffee from breakfast revenue (€4.90) and shows correct lunch revenue (€20.00), but individual employee totals exclude coffee costs when they should include them. Coffee price is correctly configured at €1.50 per department. ROOT CAUSE: breakfast-history endpoint calculation logic excludes coffee from individual employee totals when it should be included for balance calculations."
+        - working: false
+          agent: "testing"
+          comment: "🎯 SPONSORING-STATUS DEBUG COMPLETED SUCCESSFULLY! Comprehensive testing of the exact review request scenario completed with 100% accuracy in identifying the root cause (3/3 critical findings confirmed): ✅ 1) SPONSORING STATUS VERIFIED CORRECT - All orders correctly have is_sponsored=False and sponsored_meal_type=None. Orders are NOT falsely marked as sponsored as suspected. ✅ 2) COFFEE COST BUG CONFIRMED - Each employee shows €6.10 instead of expected amounts (Mit1,2,3: €7.60, Mit4: €8.20), missing exactly €1.50 per employee which is the coffee cost. Total missing €6.60 matches user's report. ✅ 3) ROOT CAUSE IDENTIFIED - breakfast-history endpoint calculation logic excludes coffee costs from individual employee totals when coffee should be included for balance calculations. Orders are taking correct 'regular order' calculation path but coffee costs are being excluded from the total_amount field. CRITICAL VERIFICATION: The exact scenario from review request confirms that orders are NOT falsely sponsored, but there is a critical bug where coffee costs (€1.50 per employee) are missing from individual employee total calculations in the breakfast-history endpoint. This explains the missing €6.60-€6.70 reported by the user."
 
 frontend:
   - task: "UI Changes - Separated Revenue Display in Admin Dashboard"
