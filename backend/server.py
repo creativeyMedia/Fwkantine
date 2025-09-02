@@ -3533,7 +3533,8 @@ async def sponsor_meal(meal_data: dict):
                 "id": sponsor_order["id"],
                 "updates": {
                     "is_sponsor_order": True,
-                    "is_sponsored": True,  # Mark sponsor as sponsored too
+                    # CORRECTED: Sponsor is NOT sponsored - they are sponsoring others
+                    "is_sponsored": False,  # Sponsor is not sponsored
                     "sponsored_message": sponsor_message,  # Add sponsor message
                     "sponsor_message": sponsor_message,
                     "sponsor_total_cost": total_sponsored_cost,
