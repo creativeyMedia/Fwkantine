@@ -14,9 +14,9 @@ FINALE VERIFIKATION DER KORRIGIERTEN BERECHNUNG:
    - NOT: Sum of individual employee balances (which includes cost redistribution) ❌
 
 3. **SEPARATED REVENUE VERIFICATION:**  
-   - Separated breakfast revenue: €10.40 (excluding coffee)
+   - Separated breakfast revenue: €4.40 (excluding coffee)
    - Separated lunch revenue: €20.00
-   - Total separated: €30.40 (matches daily total)
+   - Total separated: €24.40 (breakfast + lunch only)
 
 4. **INDIVIDUAL EMPLOYEE TOTALS:**
    - Should reflect actual amounts employees need to pay after sponsoring
@@ -52,7 +52,7 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
-class RoundingErrorSponsoringDebugTest:
+class DailyTotalCalculationVerificationTest:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
@@ -64,9 +64,9 @@ class RoundingErrorSponsoringDebugTest:
         # CORRECTED EXPECTATION: Daily total should be €30.40 (sum of all real order prices)
         # NOT €24.40 (which was user's incorrect expectation from separated revenue)
         self.expected_daily_total = 30.40          # 4 employees × €7.60 each = actual revenue
-        self.expected_separated_total = 30.40      # Should match daily total
-        self.expected_breakfast_revenue = 4.40     # 4 × €1.10 (rolls only, excluding coffee)
-        self.expected_lunch_revenue = 20.00        # 4 × €5.00
+        self.expected_separated_breakfast = 4.40   # 4 × €1.10 (rolls only, excluding coffee)
+        self.expected_separated_lunch = 20.00      # 4 × €5.00
+        self.expected_separated_total = 24.40      # breakfast + lunch (excluding coffee)
         
     def cleanup_test_data(self) -> bool:
         """Clean up test data to create fresh scenario"""
@@ -376,17 +376,19 @@ class RoundingErrorSponsoringDebugTest:
                 print(f"  - Breakfast Revenue: €{breakfast_revenue:.2f}")
                 print(f"  - Lunch Revenue: €{lunch_revenue:.2f}")
                 print(f"  - Total Separated: €{total_separated:.2f}")
+                print(f"  - Expected Breakfast: €{self.expected_separated_breakfast:.2f}")
+                print(f"  - Expected Lunch: €{self.expected_separated_lunch:.2f}")
                 print(f"  - Expected Total: €{self.expected_separated_total:.2f}")
                 
                 # Verify breakfast revenue (excluding coffee)
-                breakfast_correct = abs(breakfast_revenue - self.expected_breakfast_revenue) < 0.01
-                lunch_correct = abs(lunch_revenue - self.expected_lunch_revenue) < 0.01
+                breakfast_correct = abs(breakfast_revenue - self.expected_separated_breakfast) < 0.01
+                lunch_correct = abs(lunch_revenue - self.expected_separated_lunch) < 0.01
                 total_correct = abs(total_separated - self.expected_separated_total) < 0.01
                 
                 print(f"\n🎯 SEPARATED REVENUE VERIFICATION:")
-                print(f"  - Breakfast Revenue: {'✅' if breakfast_correct else '❌'} Expected €{self.expected_breakfast_revenue:.2f}, Got €{breakfast_revenue:.2f}")
-                print(f"  - Lunch Revenue: {'✅' if lunch_correct else '❌'} Expected €{self.expected_lunch_revenue:.2f}, Got €{lunch_revenue:.2f}")
-                print(f"  - Total Matches Daily: {'✅' if total_correct else '❌'} Expected €{self.expected_separated_total:.2f}, Got €{total_separated:.2f}")
+                print(f"  - Breakfast Revenue: {'✅' if breakfast_correct else '❌'} Expected €{self.expected_separated_breakfast:.2f}, Got €{breakfast_revenue:.2f}")
+                print(f"  - Lunch Revenue: {'✅' if lunch_correct else '❌'} Expected €{self.expected_separated_lunch:.2f}, Got €{lunch_revenue:.2f}")
+                print(f"  - Total Separated: {'✅' if total_correct else '❌'} Expected €{self.expected_separated_total:.2f}, Got €{total_separated:.2f}")
                 
                 return {
                     "status": "success",
@@ -404,6 +406,7 @@ class RoundingErrorSponsoringDebugTest:
         except Exception as e:
             print(f"❌ Error verifying separated revenue: {e}")
             return {"status": "error", "message": str(e)}
+    
     def analyze_daily_total_calculation(self) -> dict:
         """Analyze daily total calculation - should show actual revenue (€30.40), not cost redistribution"""
         try:
@@ -484,9 +487,9 @@ class RoundingErrorSponsoringDebugTest:
             print(f"❌ Error analyzing daily total: {e}")
             return {"status": "error", "message": str(e)}
     
-    def run_rounding_error_debug_test(self):
-        """Run the complete rounding error and sponsoring debug test"""
-        print("🔍 RUNDUNGSFEHLER UND SPONSORING-SUMMEN DEBUG: Analysiere 24.30€ vs 24.40€")
+    def run_daily_total_verification_test(self):
+        """Run the complete daily total calculation verification test"""
+        print("🎯 FINAL VERIFICATION: Test corrected daily total calculation (revenue-only approach)")
         print("=" * 100)
         
         # Step 1: Admin Authentication
@@ -529,9 +532,9 @@ class RoundingErrorSponsoringDebugTest:
                 print(f"❌ CRITICAL FAILURE: Cannot create order for {name}")
                 return False
         
-        # Step 7: Analyze totals before sponsoring
-        print(f"\n7️⃣ Analyzing Totals BEFORE Sponsoring")
-        before_sponsoring = self.analyze_breakfast_history_totals()
+        # Step 7: Verify initial daily total (before sponsoring)
+        print(f"\n7️⃣ Verifying Initial Daily Total (Before Sponsoring)")
+        initial_analysis = self.analyze_daily_total_calculation()
         
         # Step 8: Mit1 sponsors breakfast for Mit2, Mit3, Mit4
         print(f"\n8️⃣ Mit1 Sponsors Breakfast for Mit2, Mit3, Mit4")
@@ -539,53 +542,75 @@ class RoundingErrorSponsoringDebugTest:
             print("❌ CRITICAL FAILURE: Cannot sponsor breakfast")
             return False
         
-        # Step 9: Analyze totals after breakfast sponsoring
-        print(f"\n9️⃣ Analyzing Totals AFTER Breakfast Sponsoring")
-        after_breakfast_sponsoring = self.analyze_breakfast_history_totals()
-        
-        # Step 10: Mit4 sponsors lunch for Mit1
-        print(f"\n🔟 Mit4 Sponsors Lunch for Mit1")
+        # Step 9: Mit4 sponsors lunch for Mit1
+        print(f"\n9️⃣ Mit4 Sponsors Lunch for Mit1")
         if not self.sponsor_lunch("Mit4", self.employees["Mit4"], ["Mit1"]):
             print("❌ CRITICAL FAILURE: Cannot sponsor lunch")
             return False
         
-        # Step 11: Final analysis after all sponsoring
-        print(f"\n1️⃣1️⃣ FINAL Analysis After All Sponsoring")
-        final_analysis = self.analyze_breakfast_history_totals()
+        # Step 10: Verify final daily total (after sponsoring)
+        print(f"\n🔟 Verifying Final Daily Total (After Sponsoring)")
+        final_analysis = self.analyze_daily_total_calculation()
+        
+        # Step 11: Verify separated revenue calculation
+        print(f"\n1️⃣1️⃣ Verifying Separated Revenue Calculation")
+        revenue_analysis = self.verify_separated_revenue_calculation()
         
         # Final Results
-        print(f"\n🏁 FINAL ROUNDING ERROR DEBUG RESULTS:")
+        print(f"\n🏁 FINAL VERIFICATION RESULTS:")
         print("=" * 100)
         
+        all_tests_passed = True
+        
         if final_analysis.get("status") == "success":
-            if final_analysis.get("discrepancy_found"):
-                print(f"🚨 CRITICAL BUG CONFIRMED: Found the exact 0.10€ discrepancy!")
-                print(f"   Expected: €{final_analysis['expected_total']:.2f}")
-                print(f"   Actual: €{final_analysis['api_total']:.2f}")
-                print(f"   Missing: €{final_analysis['expected_total'] - final_analysis['api_total']:.2f}")
-                print(f"🎯 ROOT CAUSE: Sponsoring calculation or rounding error in breakfast-history endpoint")
-                return False
-            else:
-                print(f"✅ SUCCESS: No significant discrepancy found")
-                print(f"   Expected: €{final_analysis['expected_total']:.2f}")
-                print(f"   Actual: €{final_analysis['api_total']:.2f}")
-                return True
+            daily_total_correct = final_analysis.get("daily_total_correct", False)
+            shows_actual_revenue = final_analysis.get("shows_actual_revenue", False)
+            
+            print(f"✅ Daily Total Calculation: {'PASSED' if daily_total_correct else 'FAILED'}")
+            print(f"   - Shows Actual Revenue (€30.40): {'✅' if shows_actual_revenue else '❌'}")
+            print(f"   - NOT Cost Redistribution (€24.40): {'✅' if shows_actual_revenue else '❌'}")
+            
+            if not daily_total_correct:
+                all_tests_passed = False
         else:
-            print(f"❌ ERROR: {final_analysis.get('message', 'Unknown error')}")
-            return False
+            print(f"❌ Daily Total Analysis: FAILED - {final_analysis.get('message', 'Unknown error')}")
+            all_tests_passed = False
+        
+        if revenue_analysis.get("status") == "success":
+            breakfast_correct = revenue_analysis.get("breakfast_correct", False)
+            lunch_correct = revenue_analysis.get("lunch_correct", False)
+            total_correct = revenue_analysis.get("total_correct", False)
+            
+            print(f"✅ Separated Revenue Calculation: {'PASSED' if all([breakfast_correct, lunch_correct, total_correct]) else 'FAILED'}")
+            print(f"   - Breakfast Revenue (€4.40): {'✅' if breakfast_correct else '❌'}")
+            print(f"   - Lunch Revenue (€20.00): {'✅' if lunch_correct else '❌'}")
+            print(f"   - Total Separated (€24.40): {'✅' if total_correct else '❌'}")
+            
+            if not all([breakfast_correct, lunch_correct, total_correct]):
+                all_tests_passed = False
+        else:
+            print(f"❌ Separated Revenue Analysis: FAILED - {revenue_analysis.get('message', 'Unknown error')}")
+            all_tests_passed = False
+        
+        print(f"\n🎯 CRITICAL VERIFICATION SUMMARY:")
+        print(f"   - Daily total correctly shows actual food revenue (€30.40): {'✅' if all_tests_passed else '❌'}")
+        print(f"   - Sponsoring is cost redistribution, not revenue reduction: {'✅' if all_tests_passed else '❌'}")
+        print(f"   - Separated revenue excludes coffee (€24.40): {'✅' if all_tests_passed else '❌'}")
+        
+        return all_tests_passed
 
 def main():
     """Main test execution"""
-    test = RoundingErrorSponsoringDebugTest()
+    test = DailyTotalCalculationVerificationTest()
     
     try:
-        success = test.run_rounding_error_debug_test()
+        success = test.run_daily_total_verification_test()
         
         if success:
-            print(f"\n✅ ROUNDING ERROR DEBUG TEST: COMPLETED SUCCESSFULLY")
+            print(f"\n✅ DAILY TOTAL VERIFICATION TEST: COMPLETED SUCCESSFULLY")
             exit(0)
         else:
-            print(f"\n❌ ROUNDING ERROR DEBUG TEST: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ DAILY TOTAL VERIFICATION TEST: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
