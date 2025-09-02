@@ -358,9 +358,10 @@ class DrinksSweeetsNegativeDisplayTest:
             
             if response.status_code == 200:
                 profile = response.json()
+                employee_data = profile.get("employee", {})
                 
-                breakfast_balance = profile.get("breakfast_balance", 0.0)
-                drinks_sweets_balance = profile.get("drinks_sweets_balance", 0.0)
+                breakfast_balance = employee_data.get("breakfast_balance", 0.0)
+                drinks_sweets_balance = employee_data.get("drinks_sweets_balance", 0.0)
                 
                 print(f"📊 CURRENT BALANCES:")
                 print(f"  - Breakfast Balance: €{breakfast_balance:.2f}")
