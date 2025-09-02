@@ -1876,7 +1876,9 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     "total_amount": 0.0,
                     "toppings": {},
                     "sponsored_breakfast": None,
-                    "sponsored_lunch": None
+                    "sponsored_lunch": None,
+                    "is_sponsored": False,  # Sponsors are not sponsored
+                    "sponsored_meal_type": None  # Sponsors don't have sponsored meal types
                 }
             
             # Now calculate sponsoring information for ALL employees (including sponsors-only)
