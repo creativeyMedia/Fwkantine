@@ -1,35 +1,28 @@
 #!/usr/bin/env python3
 """
-🔍 DATENBANK ORDER-UPDATE VERIFIKATION: Überprüfe ob Sponsoring-Updates in DB geschrieben werden
+🔍 FINAL VERIFICATION: Test corrected sponsoring assignment logic
 
-KRITISCHE DATENBANK-VERIFIKATION:
+KRITISCHE VERIFIKATION DER KORRIGIERTEN LOGIK:
 
-1. **Simple Test Scenario:**
-   - Create Test1: Breakfast order with lunch
-   - Create Test4: Breakfast order 
-   - Test4 sponsors lunch for Test1
+1. **Create exact scenario again:**
+   - Mit1, Mit2, Mit3, Mit4 mit Frühstück-Bestellungen
+   - Mit1 sponsert Frühstück für andere
+   - Mit4 sponsert Mittag für Mit1
 
-2. **DATENBANK-UPDATE VERIFICATION:**
-   - Execute sponsoring and watch debug logs
-   - Verify that Test1's order gets updated in database with:
-     - is_sponsored: true
-     - sponsored_meal_type: "lunch"
-     - sponsored_message: "..."
+2. **CRITICAL VERIFICATION:**
+   - Mit1 sollte zeigen: "sponsored_breakfast: {count: 3, amount: X.XX}" 
+   - Mit4 sollte zeigen: "sponsored_lunch: {count: 1, amount: X.XX}"
+   - Mit2, Mit3 sollten zeigen: "sponsored_breakfast: null, sponsored_lunch: null"
 
-3. **DIRECT DATABASE CHECK:**
-   - After sponsoring, directly query Test1's order from database
-   - Verify the fields are actually there in the raw database record
-   - Check if individual profile endpoint returns the same data
-
-4. **INDIVIDUAL PROFILE API TEST:**
-   - Call GET /employees/{test1_id}/profile
-   - Check if the response includes the sponsored fields
-   - Compare with raw database data
+3. **TEST CORRECTED LOGIC:**
+   - Verify that query for "is_sponsored: True" + "sponsored_by_employee_id: employee_id" works
+   - Ensure each employee only shows their own sponsoring activities
+   - No cross-contamination between employees
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Verifikation ob Order-Updates tatsächlich in die Datenbank geschrieben werden!
+ZIEL: Final verification of corrected sponsoring assignment logic!
 """
 
 import requests
