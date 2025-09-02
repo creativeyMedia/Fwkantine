@@ -1,41 +1,37 @@
 #!/usr/bin/env python3
 """
-🔍 DETAILLIERTE TOTAL-BERECHNUNGS-ANALYSE: Debug warum 24.30€ statt 31.00€
+🔍 SPONSORING-STATUS DEBUG: Prüfe ob Orders fälschlicherweise als gesponsert markiert sind
 
-KRITISCHE BERECHNUNG-DEBUG:
+KRITISCHE SPONSORING-STATUS ANALYSE:
 
-1. **User's Expected Scenario:**
-   - Mit1: €7.60 (0.50 + 0.60 + 1.50 + 5.00)
-   - Mit2: €7.60 (same as Mit1)
-   - Mit3: €7.60 (same as Mit1)  
-   - Mit4: €8.20 (1.00 + 0.60 + 1.50 + 5.00)
-   - EXPECTED TOTAL: €31.00
+1. **Current Scenario Analysis:**
+   - Mit1, Mit2, Mit3, Mit4 haben Orders erstellt
+   - KEINE Sponsoring-Aktionen ausgeführt
+   - Alle Orders sollten is_sponsored=False haben
 
-2. **BACKEND SHOWS:**
-   - Total: €24.30 (WRONG - missing €6.70)
-   - Breakfast Revenue: €5.00 (should be €4.90 without coffee)
-   - Lunch Revenue: €20.00 (correct)
+2. **DIRECT DATABASE ORDER CHECK:**
+   - Hole alle Orders für heute
+   - Prüfe für jede Order: is_sponsored, is_sponsor_order, sponsored_meal_type
+   - CRITICAL: Alle sollten is_sponsored=False sein (keine Sponsoring-Aktionen)
 
-3. **DETAILED ORDER ANALYSIS:**
-   - Get breakfast-history response
-   - Show EXACT total_price for each order  
-   - Show EXACT calculation for each employee
-   - Identify where the missing €6.70 goes
+3. **INDIVIDUAL ORDER PRICE VERIFICATION:**
+   - Prüfe total_price für jede Order direkt aus Database
+   - Mit1,2,3 sollten haben: total_price=7.60
+   - Mit4 sollte haben: total_price=8.20
 
-4. **SPONSORING IMPACT ANALYSIS:**
-   - Check if sponsored orders affect total calculation
-   - Verify that real_orders filtering works correctly
-   - Check if sponsored amounts are incorrectly subtracted from totals
+4. **BREAKFAST-HISTORY LOGIC TRACE:**
+   - Prüfe welcher Code-Pfad für jede Order genommen wird
+   - Sollten alle in "Regular orders - use full cost" gehen
+   - Nicht in sponsored oder sponsor_order Pfad
 
-5. **COFFEE CALCULATION CHECK:**
-   - Coffee should be EXCLUDED from breakfast revenue (per user request)
-   - But coffee should be INCLUDED in daily total (€6.00 total coffee)
-   - Verify coffee is counted in daily total but not breakfast revenue
+5. **COFFEE PRICE VERIFICATION:**
+   - Prüfe coffee_price in Department-Settings
+   - Sollte 1.50€ sein pro User's Angabe
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Find exactly where the missing €6.70 went and why totals don't match!
+ZIEL: Identifiziere ob Orders fälschlicherweise als gesponsert behandelt werden!
 """
 
 import requests
