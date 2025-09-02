@@ -48,6 +48,42 @@
 ##   run_ui: false
 ##
 backend:
+  - task: "Remove Debug Tab and Functions from Admin Dashboard"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js + backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Removed Debug Tab from Admin Dashboard frontend (lines 2628, 2681, and complete DebugTab component). Also removed temporary debug functions from backend: debug-cleanup endpoint and cleanup-sponsoring endpoint. This cleans up the application for production use."
+
+  - task: "Cleanup Unnecessary Test Files"
+    implemented: true
+    working: true
+    file: "root directory cleanup"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Removed 19 unnecessary test and debug files from root directory, keeping only important files like README.md, DEPLOYMENT.md, database_migration_guide.md, cleanup scripts, and core application folders. Files removed include all *test*.py and debug*.py files."
+
+  - task: "Fix Landing Page CSS Loading Issue"
+    implemented: true
+    working: "needs_testing"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Added StaticFiles support to backend server to serve landing page files correctly. Added FastAPI StaticFiles import and mounted /landing-page directory with proper MIME type handling. The landing page should now be accessible at /landing-page route with working CSS."
+
   - task: "Fix Drinks/Sweets Negative Display Bug (Backend Data Storage)"
     implemented: true
     working: true
