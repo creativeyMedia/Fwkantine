@@ -256,11 +256,12 @@ frontend:
           agent: "testing"
           comment: "✅ BUG #5 VERIFIED WORKING! Comprehensive testing completed: ✅ 1) Label Changes Verified - Found correct implementation of 'Frühstück/Mittag Saldo' label in IndividualEmployeeProfile component (line 379), replacing the old 'Frühstück Saldo' label as requested. ✅ 2) Color Coding Implementation Verified - Located proper green/red color implementation in employee profile components (lines 371-401): positive balances use 'text-green-600' and 'bg-green-50', negative balances use 'text-red-600' and 'bg-red-50', completely removing blue colors for balance displays. ✅ 3) 50/50 Layout Maintained - Confirmed grid layout uses 'grid grid-cols-1 md:grid-cols-2' (line 369) maintaining the requested 50/50 layout for balance displays. ✅ 4) Gesamt Fields Removed - Verified that 'Gesamt Schulden' and 'Gesamt Bestellungen' fields are not present in the simplified admin view, showing only the essential balance information. ✅ 5) Consistent Implementation - The color and label changes are consistently applied across both employee dashboard and admin dashboard views. CRITICAL VERIFICATION: All UI changes are properly implemented: positive balances show in GREEN (not blue), negative balances show in RED, labels changed to 'Frühstück/Mittag Saldo', 'Gesamt' fields removed from admin views, and 50/50 layout maintained for balance displays."
 
-## test_plan:
-##   current_focus: []
-##   stuck_tasks: []
-##   test_all: false
-##   test_priority: "completed"
+test_plan:
+  current_focus:
+    - "Coffee Cost Missing from Individual Employee Totals Bug"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "critical_first"
 ##
 ## agent_communication:
 ##     - agent: "main"
