@@ -1888,21 +1888,24 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             
             # Now calculate sponsoring information for ALL employees (including sponsors-only)
             for employee_key in employee_orders.keys():
-                # Extract employee name from key (format: "Name (ID: 12345678)")
+                # Extract employee ID from key (format: "Name (ID: 12345678)")
+                employee_id = None
                 if " (ID: " in employee_key:
                     employee_name = employee_key.split(" (ID: ")[0]
+                    employee_id = employee_key.split(" (ID: ")[1].rstrip(")")
                 else:
                     employee_name = employee_key  # Fallback for any edge cases
+                    # Try to find employee ID from employee_orders data or database
+                    continue  # Skip if we can't extract ID
                 
                 # Check if this employee sponsored any meals today
                 breakfast_sponsored_info = None
                 lunch_sponsored_info = None
                 
-                # Look for sponsoring activities by this employee (match by name)
+                # CORRECTED: Look for sponsoring activities by this employee (match by ID, not name)
                 sponsored_orders = await db.orders.find({
                     "department_id": department_id,
-                    "sponsored_by_employee_id": {"$exists": True},
-                    "sponsored_by_name": employee_name,
+                    "sponsored_by_employee_id": employee_id,  # Use ID instead of name
                     "timestamp": {
                         "$gte": start_of_day_utc.isoformat(),
                         "$lte": end_of_day_utc.isoformat()
