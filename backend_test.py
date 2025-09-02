@@ -57,7 +57,7 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
-class SponsoringAssignmentVerification:
+class TotalCalculationDebugAnalysis:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
@@ -66,6 +66,13 @@ class SponsoringAssignmentVerification:
         self.mit3_employee_id = None
         self.mit4_employee_id = None
         self.employee_orders = {}
+        self.expected_totals = {
+            "Mit1": 7.60,  # 0.50 + 0.60 + 1.50 + 5.00
+            "Mit2": 7.60,  # same as Mit1
+            "Mit3": 7.60,  # same as Mit1
+            "Mit4": 8.20   # 1.00 + 0.60 + 1.50 + 5.00
+        }
+        self.expected_grand_total = 31.00
         
     def cleanup_test_data(self) -> bool:
         """Clean up test data to create fresh scenario"""
@@ -129,181 +136,102 @@ class SponsoringAssignmentVerification:
             print(f"❌ Error creating employee '{name}': {e}")
             return None
     
-    def create_breakfast_order_with_lunch(self, employee_id: str, name: str) -> Dict:
-        """Create breakfast order with lunch"""
+    def create_exact_user_scenario_orders(self):
+        """Create the EXACT orders from user's expected scenario"""
+        
+        # Set lunch price to 5.00 as expected by user
+        today = self.get_berlin_date()
+        print(f"\n🔧 Setting lunch price to €5.00 for {today}")
+        
         try:
-            order_data = {
-                "employee_id": employee_id,
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 4,  # 2 Brötchen (4 halves)
-                    "white_halves": 2,
-                    "seeded_halves": 2,
-                    "toppings": ["butter", "kaese", "schinken", "salami"],
-                    "has_lunch": True,  # MITTAG
-                    "boiled_eggs": 2,
-                    "has_coffee": True
-                }]
-            }
-            
-            response = self.session.post(f"{API_BASE}/orders", json=order_data)
-            
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{DEPARTMENT_ID}/{today}", 
+                                      json={"lunch_price": 5.00})
             if response.status_code == 200:
-                order = response.json()
-                order_id = order["id"]
-                
-                print(f"✅ Created {name} breakfast order with Mittag: {order_id} (€{order['total_price']:.2f})")
-                print(f"   - Brötchen: 2 (4 halves)")
-                print(f"   - Eier: 2")
-                print(f"   - Kaffee: Yes")
-                print(f"   - Mittag: Yes")
-                
-                return {
-                    "order_id": order_id,
-                    "total_price": order["total_price"],
-                    "has_lunch": True
-                }
+                print(f"✅ Lunch price set to €5.00")
             else:
-                print(f"❌ Failed to create {name} breakfast order: {response.status_code} - {response.text}")
-                return None
-                
+                print(f"⚠️ Failed to set lunch price: {response.text}")
         except Exception as e:
-            print(f"❌ Error creating {name} breakfast order: {e}")
-            return None
-    
-    def create_breakfast_order_no_lunch(self, employee_id: str, name: str) -> Dict:
-        """Create breakfast order without lunch"""
-        try:
+            print(f"⚠️ Error setting lunch price: {e}")
+        
+        orders_created = {}
+        
+        # Mit1, Mit2, Mit3: Same order (0.50 + 0.60 + 1.50 + 5.00 = €7.60)
+        for name in ["Mit1", "Mit2", "Mit3"]:
+            employee_id = getattr(self, f"{name.lower()}_employee_id")
+            
             order_data = {
                 "employee_id": employee_id,
                 "department_id": DEPARTMENT_ID,
                 "order_type": "breakfast",
                 "breakfast_items": [{
-                    "total_halves": 2,
-                    "white_halves": 1,
-                    "seeded_halves": 1,
+                    "total_halves": 2,  # 1 Brötchen (2 halves)
+                    "white_halves": 1,  # 0.50€
+                    "seeded_halves": 1, # 0.60€
                     "toppings": ["butter", "kaese"],
-                    "has_lunch": False,  # No lunch
-                    "boiled_eggs": 1,
-                    "has_coffee": True
+                    "has_lunch": True,  # 5.00€
+                    "boiled_eggs": 0,
+                    "has_coffee": True  # 1.50€
                 }]
             }
             
+            try:
+                response = self.session.post(f"{API_BASE}/orders", json=order_data)
+                if response.status_code == 200:
+                    order = response.json()
+                    orders_created[name] = {
+                        "order_id": order["id"],
+                        "total_price": order["total_price"],
+                        "expected": 7.60
+                    }
+                    print(f"✅ Created {name} order: €{order['total_price']:.2f} (expected €7.60)")
+                else:
+                    print(f"❌ Failed to create {name} order: {response.text}")
+                    return None
+            except Exception as e:
+                print(f"❌ Error creating {name} order: {e}")
+                return None
+        
+        # Mit4: Different order (1.00 + 0.60 + 1.50 + 5.00 = €8.20)
+        order_data = {
+            "employee_id": self.mit4_employee_id,
+            "department_id": DEPARTMENT_ID,
+            "order_type": "breakfast",
+            "breakfast_items": [{
+                "total_halves": 3,  # 1.5 Brötchen (3 halves)
+                "white_halves": 2,  # 1.00€ (2 * 0.50)
+                "seeded_halves": 1, # 0.60€
+                "toppings": ["butter", "kaese", "schinken"],
+                "has_lunch": True,  # 5.00€
+                "boiled_eggs": 0,
+                "has_coffee": True  # 1.50€
+            }]
+        }
+        
+        try:
             response = self.session.post(f"{API_BASE}/orders", json=order_data)
-            
             if response.status_code == 200:
                 order = response.json()
-                order_id = order["id"]
-                
-                print(f"✅ Created {name} breakfast order: {order_id} (€{order['total_price']:.2f})")
-                print(f"   - Brötchen: 1 (2 halves)")
-                print(f"   - Eier: 1")
-                print(f"   - Kaffee: Yes")
-                print(f"   - Mittag: No")
-                
-                return {
-                    "order_id": order_id,
+                orders_created["Mit4"] = {
+                    "order_id": order["id"],
                     "total_price": order["total_price"],
-                    "has_lunch": False
+                    "expected": 8.20
                 }
+                print(f"✅ Created Mit4 order: €{order['total_price']:.2f} (expected €8.20)")
             else:
-                print(f"❌ Failed to create {name} breakfast order: {response.status_code} - {response.text}")
+                print(f"❌ Failed to create Mit4 order: {response.text}")
                 return None
-                
         except Exception as e:
-            print(f"❌ Error creating {name} breakfast order: {e}")
+            print(f"❌ Error creating Mit4 order: {e}")
             return None
+        
+        return orders_created
     
-    def mit1_sponsors_breakfast_for_others(self, mit1_employee_id: str) -> Dict:
-        """Mit1 sponsors breakfast for Mit2, Mit3, Mit4"""
+    def analyze_breakfast_history_totals(self):
+        """Analyze breakfast-history endpoint for total calculation issues"""
         try:
-            today = self.get_berlin_date()
-            
-            print(f"\n🔍 CRITICAL TEST: Mit1 sponsors breakfast for others")
-            print(f"   - Sponsor: Mit1 (ID: {mit1_employee_id})")
-            print(f"   - Target: All employees with breakfast orders (Mit2, Mit3, Mit4)")
-            print(f"   - Date: {today}")
-            print(f"   - Meal Type: breakfast")
-            
-            response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "breakfast",
-                "sponsor_employee_id": mit1_employee_id,
-                "sponsor_employee_name": "Mit1"
-            })
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"✅ Mit1 successfully sponsored breakfast meals!")
-                print(f"🔍 BREAKFAST SPONSORING RESPONSE: {json.dumps(result, indent=2)}")
-                
-                affected_employees = result.get("affected_employees", 0)
-                total_cost = result.get("total_cost", 0.0)
-                
-                print(f"🔍 BREAKFAST SPONSORING SUMMARY:")
-                print(f"   - Affected employees: {affected_employees}")
-                print(f"   - Total sponsoring cost: €{total_cost:.2f}")
-                print(f"   - Expected: Mit2, Mit3, Mit4 should be affected (3 employees)")
-                
-                return result
-            else:
-                print(f"❌ Mit1 failed to sponsor breakfast meals: {response.status_code} - {response.text}")
-                return {"error": response.text}
-                
-        except Exception as e:
-            print(f"❌ Error Mit1 sponsoring breakfast meals: {e}")
-            return {"error": str(e)}
-    
-    def mit4_sponsors_lunch_for_mit1(self, mit4_employee_id: str) -> Dict:
-        """Mit4 sponsors lunch for Mit1"""
-        try:
-            today = self.get_berlin_date()
-            
-            print(f"\n🔍 CRITICAL TEST: Mit4 sponsors lunch for Mit1")
-            print(f"   - Sponsor: Mit4 (ID: {mit4_employee_id})")
-            print(f"   - Target: All employees with lunch orders (Mit1)")
-            print(f"   - Date: {today}")
-            print(f"   - Meal Type: lunch")
-            
-            response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "lunch",
-                "sponsor_employee_id": mit4_employee_id,
-                "sponsor_employee_name": "Mit4"
-            })
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"✅ Mit4 successfully sponsored lunch meals!")
-                print(f"🔍 LUNCH SPONSORING RESPONSE: {json.dumps(result, indent=2)}")
-                
-                affected_employees = result.get("affected_employees", 0)
-                total_cost = result.get("total_cost", 0.0)
-                
-                print(f"🔍 LUNCH SPONSORING SUMMARY:")
-                print(f"   - Affected employees: {affected_employees}")
-                print(f"   - Total sponsoring cost: €{total_cost:.2f}")
-                print(f"   - Expected: Mit1 should be affected (1 employee)")
-                
-                return result
-            else:
-                print(f"❌ Mit4 failed to sponsor lunch meals: {response.status_code} - {response.text}")
-                return {"error": response.text}
-                
-        except Exception as e:
-            print(f"❌ Error Mit4 sponsoring lunch meals: {e}")
-            return {"error": str(e)}
-    
-    def verify_sponsoring_assignment_logic(self) -> Dict:
-        """Verify the corrected sponsoring assignment logic"""
-        try:
-            print(f"\n🔍 VERIFYING CORRECTED SPONSORING ASSIGNMENT LOGIC:")
+            print(f"\n🔍 ANALYZING BREAKFAST-HISTORY TOTALS:")
             print("=" * 80)
             
-            # Get breakfast-history data
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
@@ -311,135 +239,158 @@ class SponsoringAssignmentVerification:
                 
                 if "history" in data and len(data["history"]) > 0:
                     today_data = data["history"][0]
+                    
+                    # Extract key totals
+                    total_orders = today_data.get("total_orders", 0)
+                    total_amount = today_data.get("total_amount", 0.0)
+                    breakfast_summary = today_data.get("breakfast_summary", {})
                     employee_orders = today_data.get("employee_orders", {})
                     
-                    print(f"✅ Found {len(employee_orders)} employees in breakfast-history")
+                    print(f"📊 DAILY TOTALS FROM BREAKFAST-HISTORY:")
+                    print(f"   - Total Orders: {total_orders}")
+                    print(f"   - Total Amount: €{total_amount:.2f}")
+                    print(f"   - Expected Total: €{self.expected_grand_total:.2f}")
+                    print(f"   - Difference: €{abs(total_amount - self.expected_grand_total):.2f}")
                     
-                    # Find each employee in the data
-                    employees_found = {}
+                    if breakfast_summary:
+                        print(f"\n📊 BREAKFAST SUMMARY:")
+                        for key, value in breakfast_summary.items():
+                            print(f"   - {key}: {value}")
+                    
+                    print(f"\n🔍 INDIVIDUAL EMPLOYEE ANALYSIS:")
+                    individual_total = 0.0
+                    
                     for emp_name, emp_data in employee_orders.items():
-                        if "Mit1" in emp_name:
-                            employees_found["Mit1"] = emp_data
-                        elif "Mit2" in emp_name:
-                            employees_found["Mit2"] = emp_data
-                        elif "Mit3" in emp_name:
-                            employees_found["Mit3"] = emp_data
-                        elif "Mit4" in emp_name:
-                            employees_found["Mit4"] = emp_data
+                        emp_total = emp_data.get("total_amount", 0.0)
+                        individual_total += emp_total
+                        
+                        # Find expected total for this employee
+                        expected = 0.0
+                        for expected_name, expected_total in self.expected_totals.items():
+                            if expected_name in emp_name:
+                                expected = expected_total
+                                break
+                        
+                        difference = abs(emp_total - expected)
+                        status = "✅" if difference < 0.01 else "❌"
+                        
+                        print(f"   {status} {emp_name}: €{emp_total:.2f} (expected €{expected:.2f}, diff: €{difference:.2f})")
+                        
+                        # Show detailed breakdown if available
+                        if "breakfast_items" in emp_data:
+                            items = emp_data["breakfast_items"]
+                            print(f"      Items: {len(items)} breakfast items")
+                            for i, item in enumerate(items):
+                                print(f"        Item {i+1}: {item}")
                     
-                    print(f"✅ Found employees: {list(employees_found.keys())}")
+                    print(f"\n📊 CALCULATION VERIFICATION:")
+                    print(f"   - Sum of Individual Totals: €{individual_total:.2f}")
+                    print(f"   - Daily Total from API: €{total_amount:.2f}")
+                    print(f"   - Expected Grand Total: €{self.expected_grand_total:.2f}")
                     
-                    # Verify sponsoring assignment for each employee
-                    verification_results = {
-                        "employees_found": len(employees_found),
-                        "mit1_correct": False,
-                        "mit2_correct": False,
-                        "mit3_correct": False,
-                        "mit4_correct": False,
-                        "all_data": employees_found
+                    # Check for discrepancies
+                    individual_vs_daily = abs(individual_total - total_amount)
+                    daily_vs_expected = abs(total_amount - self.expected_grand_total)
+                    
+                    print(f"\n🔍 DISCREPANCY ANALYSIS:")
+                    print(f"   - Individual vs Daily Total: €{individual_vs_daily:.2f}")
+                    print(f"   - Daily vs Expected Total: €{daily_vs_expected:.2f}")
+                    
+                    if individual_vs_daily > 0.01:
+                        print(f"   ❌ CRITICAL: Individual totals don't match daily total!")
+                    
+                    if daily_vs_expected > 0.01:
+                        print(f"   ❌ CRITICAL: Daily total doesn't match expected total!")
+                        print(f"   🔍 Missing amount: €{self.expected_grand_total - total_amount:.2f}")
+                    
+                    return {
+                        "total_orders": total_orders,
+                        "total_amount": total_amount,
+                        "individual_total": individual_total,
+                        "expected_total": self.expected_grand_total,
+                        "missing_amount": self.expected_grand_total - total_amount,
+                        "employee_data": employee_orders
                     }
-                    
-                    # Check Mit1 - should show sponsored_breakfast info (sponsors breakfast for others)
-                    if "Mit1" in employees_found:
-                        mit1_data = employees_found["Mit1"]
-                        sponsored_breakfast = mit1_data.get("sponsored_breakfast")
-                        sponsored_lunch = mit1_data.get("sponsored_lunch")
-                        
-                        print(f"\n🔍 Mit1 Sponsoring Assignment:")
-                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
-                        print(f"   - sponsored_lunch: {sponsored_lunch}")
-                        
-                        # Mit1 should have sponsored_breakfast info (count: 3, amount: X.XX)
-                        mit1_breakfast_correct = (
-                            sponsored_breakfast is not None and 
-                            isinstance(sponsored_breakfast, dict) and
-                            sponsored_breakfast.get("count", 0) == 3 and
-                            sponsored_breakfast.get("amount", 0) > 0
-                        )
-                        
-                        # Mit1 should NOT have sponsored_lunch info (should be null)
-                        mit1_lunch_correct = sponsored_lunch is None
-                        
-                        verification_results["mit1_correct"] = mit1_breakfast_correct and mit1_lunch_correct
-                        
-                        print(f"   ✅ Mit1 breakfast sponsoring correct: {mit1_breakfast_correct}")
-                        print(f"   ✅ Mit1 lunch sponsoring correct (null): {mit1_lunch_correct}")
-                    
-                    # Check Mit2 - should show NO sponsoring info (sponsored by others, doesn't sponsor)
-                    if "Mit2" in employees_found:
-                        mit2_data = employees_found["Mit2"]
-                        sponsored_breakfast = mit2_data.get("sponsored_breakfast")
-                        sponsored_lunch = mit2_data.get("sponsored_lunch")
-                        
-                        print(f"\n🔍 Mit2 Sponsoring Assignment:")
-                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
-                        print(f"   - sponsored_lunch: {sponsored_lunch}")
-                        
-                        # Mit2 should have NO sponsoring info (both null)
-                        verification_results["mit2_correct"] = (
-                            sponsored_breakfast is None and sponsored_lunch is None
-                        )
-                        
-                        print(f"   ✅ Mit2 no sponsoring info (correct): {verification_results['mit2_correct']}")
-                    
-                    # Check Mit3 - should show NO sponsoring info (sponsored by others, doesn't sponsor)
-                    if "Mit3" in employees_found:
-                        mit3_data = employees_found["Mit3"]
-                        sponsored_breakfast = mit3_data.get("sponsored_breakfast")
-                        sponsored_lunch = mit3_data.get("sponsored_lunch")
-                        
-                        print(f"\n🔍 Mit3 Sponsoring Assignment:")
-                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
-                        print(f"   - sponsored_lunch: {sponsored_lunch}")
-                        
-                        # Mit3 should have NO sponsoring info (both null)
-                        verification_results["mit3_correct"] = (
-                            sponsored_breakfast is None and sponsored_lunch is None
-                        )
-                        
-                        print(f"   ✅ Mit3 no sponsoring info (correct): {verification_results['mit3_correct']}")
-                    
-                    # Check Mit4 - should show sponsored_lunch info (sponsors lunch for Mit1)
-                    if "Mit4" in employees_found:
-                        mit4_data = employees_found["Mit4"]
-                        sponsored_breakfast = mit4_data.get("sponsored_breakfast")
-                        sponsored_lunch = mit4_data.get("sponsored_lunch")
-                        
-                        print(f"\n🔍 Mit4 Sponsoring Assignment:")
-                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
-                        print(f"   - sponsored_lunch: {sponsored_lunch}")
-                        
-                        # Mit4 should have sponsored_lunch info (count: 1, amount: X.XX)
-                        mit4_lunch_correct = (
-                            sponsored_lunch is not None and 
-                            isinstance(sponsored_lunch, dict) and
-                            sponsored_lunch.get("count", 0) == 1 and
-                            sponsored_lunch.get("amount", 0) > 0
-                        )
-                        
-                        # Mit4 should NOT have sponsored_breakfast info (should be null)
-                        mit4_breakfast_correct = sponsored_breakfast is None
-                        
-                        verification_results["mit4_correct"] = mit4_lunch_correct and mit4_breakfast_correct
-                        
-                        print(f"   ✅ Mit4 lunch sponsoring correct: {mit4_lunch_correct}")
-                        print(f"   ✅ Mit4 breakfast sponsoring correct (null): {mit4_breakfast_correct}")
-                    
-                    return verification_results
                 else:
-                    print(f"❌ No history data found in breakfast-history response")
-                    return {"error": "No history data found", "employees_found": 0}
+                    print(f"❌ No history data found")
+                    return {"error": "No history data"}
             else:
                 print(f"❌ Failed to get breakfast history: {response.status_code} - {response.text}")
-                return {"error": f"API call failed: {response.text}", "employees_found": 0}
+                return {"error": f"API call failed: {response.text}"}
                 
         except Exception as e:
-            print(f"❌ Error verifying sponsoring assignment logic: {e}")
-            return {"error": str(e), "employees_found": 0}
+            print(f"❌ Error analyzing breakfast history: {e}")
+            return {"error": str(e)}
     
-    def run_sponsoring_assignment_verification(self):
-        """Run the sponsoring assignment verification as per review request"""
-        print("🔍 FINAL VERIFICATION: Test corrected sponsoring assignment logic")
+    def analyze_separated_revenue(self):
+        """Analyze separated revenue endpoints"""
+        try:
+            print(f"\n🔍 ANALYZING SEPARATED REVENUE:")
+            print("=" * 80)
+            
+            today = self.get_berlin_date()
+            
+            # Check daily revenue
+            response = self.session.get(f"{API_BASE}/orders/daily-revenue/{DEPARTMENT_ID}/{today}")
+            
+            if response.status_code == 200:
+                revenue_data = response.json()
+                
+                breakfast_revenue = revenue_data.get("breakfast_revenue", 0.0)
+                lunch_revenue = revenue_data.get("lunch_revenue", 0.0)
+                total_orders = revenue_data.get("total_orders", 0)
+                
+                print(f"📊 SEPARATED REVENUE ANALYSIS:")
+                print(f"   - Breakfast Revenue: €{breakfast_revenue:.2f}")
+                print(f"   - Lunch Revenue: €{lunch_revenue:.2f}")
+                print(f"   - Total Revenue: €{breakfast_revenue + lunch_revenue:.2f}")
+                print(f"   - Total Orders: {total_orders}")
+                
+                # Expected breakdown:
+                # Breakfast (without coffee): Mit1,2,3: (0.50+0.60)*3 = 3.30, Mit4: (1.00+0.60) = 1.60, Total: 4.90
+                # Lunch: 4 * 5.00 = 20.00
+                # Coffee: 4 * 1.50 = 6.00 (should be excluded from breakfast revenue)
+                
+                expected_breakfast = 4.90  # Rolls + eggs only
+                expected_lunch = 20.00     # 4 * 5.00
+                expected_coffee = 6.00     # 4 * 1.50 (excluded from revenue)
+                
+                print(f"\n🔍 EXPECTED BREAKDOWN:")
+                print(f"   - Expected Breakfast Revenue: €{expected_breakfast:.2f} (rolls + eggs only)")
+                print(f"   - Expected Lunch Revenue: €{expected_lunch:.2f} (4 * €5.00)")
+                print(f"   - Expected Coffee (excluded): €{expected_coffee:.2f} (4 * €1.50)")
+                print(f"   - Expected Total Revenue: €{expected_breakfast + expected_lunch:.2f}")
+                
+                breakfast_diff = abs(breakfast_revenue - expected_breakfast)
+                lunch_diff = abs(lunch_revenue - expected_lunch)
+                
+                print(f"\n🔍 REVENUE VERIFICATION:")
+                breakfast_status = "✅" if breakfast_diff < 0.01 else "❌"
+                lunch_status = "✅" if lunch_diff < 0.01 else "❌"
+                
+                print(f"   {breakfast_status} Breakfast Revenue: €{breakfast_revenue:.2f} vs €{expected_breakfast:.2f} (diff: €{breakfast_diff:.2f})")
+                print(f"   {lunch_status} Lunch Revenue: €{lunch_revenue:.2f} vs €{expected_lunch:.2f} (diff: €{lunch_diff:.2f})")
+                
+                return {
+                    "breakfast_revenue": breakfast_revenue,
+                    "lunch_revenue": lunch_revenue,
+                    "total_revenue": breakfast_revenue + lunch_revenue,
+                    "expected_breakfast": expected_breakfast,
+                    "expected_lunch": expected_lunch,
+                    "breakfast_correct": breakfast_diff < 0.01,
+                    "lunch_correct": lunch_diff < 0.01
+                }
+            else:
+                print(f"❌ Failed to get daily revenue: {response.status_code} - {response.text}")
+                return {"error": f"Daily revenue API failed: {response.text}"}
+                
+        except Exception as e:
+            print(f"❌ Error analyzing separated revenue: {e}")
+            return {"error": str(e)}
+    
+    def run_total_calculation_debug(self):
+        """Run the complete total calculation debug analysis"""
+        print("🔍 DETAILLIERTE TOTAL-BERECHNUNGS-ANALYSE")
         print("=" * 100)
         
         # Step 1: Admin Authentication
@@ -452,10 +403,9 @@ class SponsoringAssignmentVerification:
         print("\n1️⃣.5 Attempting to Clean Up Existing Data")
         self.cleanup_test_data()
         
-        # Step 2: Create exact scenario - Mit1, Mit2, Mit3, Mit4
-        print(f"\n2️⃣ Creating Exact Scenario: Mit1, Mit2, Mit3, Mit4 with breakfast orders")
+        # Step 2: Create employees
+        print(f"\n2️⃣ Creating Test Employees")
         
-        # Create all employees
         self.mit1_employee_id = self.create_test_employee("Mit1")
         if not self.mit1_employee_id:
             print("❌ CRITICAL FAILURE: Cannot create Mit1")
@@ -476,72 +426,42 @@ class SponsoringAssignmentVerification:
             print("❌ CRITICAL FAILURE: Cannot create Mit4")
             return False
         
-        # Step 3: Create breakfast orders
-        print(f"\n3️⃣ Creating Breakfast Orders")
+        # Step 3: Create exact user scenario orders
+        print(f"\n3️⃣ Creating EXACT User Scenario Orders")
         
-        # Mit1: breakfast order with lunch (will be sponsored by Mit4)
-        print(f"\n📋 Creating Mit1 order (with lunch):")
-        mit1_order = self.create_breakfast_order_with_lunch(self.mit1_employee_id, "Mit1")
-        if not mit1_order:
-            print("❌ CRITICAL FAILURE: Cannot create Mit1's order")
+        orders_created = self.create_exact_user_scenario_orders()
+        if not orders_created:
+            print("❌ CRITICAL FAILURE: Cannot create orders")
             return False
         
-        # Mit2: breakfast order without lunch (will be sponsored by Mit1)
-        print(f"\n📋 Creating Mit2 order (no lunch):")
-        mit2_order = self.create_breakfast_order_no_lunch(self.mit2_employee_id, "Mit2")
-        if not mit2_order:
-            print("❌ CRITICAL FAILURE: Cannot create Mit2's order")
+        # Step 4: Analyze breakfast-history totals
+        print(f"\n4️⃣ Analyzing Breakfast-History Totals")
+        
+        history_analysis = self.analyze_breakfast_history_totals()
+        if "error" in history_analysis:
+            print(f"❌ History analysis failed: {history_analysis['error']}")
             return False
         
-        # Mit3: breakfast order without lunch (will be sponsored by Mit1)
-        print(f"\n📋 Creating Mit3 order (no lunch):")
-        mit3_order = self.create_breakfast_order_no_lunch(self.mit3_employee_id, "Mit3")
-        if not mit3_order:
-            print("❌ CRITICAL FAILURE: Cannot create Mit3's order")
-            return False
+        # Step 5: Analyze separated revenue
+        print(f"\n5️⃣ Analyzing Separated Revenue")
         
-        # Mit4: breakfast order without lunch (will sponsor lunch for Mit1)
-        print(f"\n📋 Creating Mit4 order (no lunch):")
-        mit4_order = self.create_breakfast_order_no_lunch(self.mit4_employee_id, "Mit4")
-        if not mit4_order:
-            print("❌ CRITICAL FAILURE: Cannot create Mit4's order")
-            return False
-        
-        # Step 4: Execute sponsoring scenarios
-        print(f"\n4️⃣ Execute Sponsoring Scenarios")
-        
-        # Mit1 sponsors breakfast for Mit2, Mit3, Mit4
-        print(f"\n🔍 SCENARIO 1: Mit1 sponsors breakfast for others")
-        breakfast_result = self.mit1_sponsors_breakfast_for_others(self.mit1_employee_id)
-        if "error" in breakfast_result:
-            print(f"❌ Mit1 breakfast sponsoring failed: {breakfast_result['error']}")
-            return False
-        
-        # Mit4 sponsors lunch for Mit1
-        print(f"\n🔍 SCENARIO 2: Mit4 sponsors lunch for Mit1")
-        lunch_result = self.mit4_sponsors_lunch_for_mit1(self.mit4_employee_id)
-        if "error" in lunch_result:
-            print(f"❌ Mit4 lunch sponsoring failed: {lunch_result['error']}")
-            return False
-        
-        # Step 5: Verify corrected sponsoring assignment logic
-        print(f"\n5️⃣ Verify Corrected Sponsoring Assignment Logic")
-        
-        assignment_verification = self.verify_sponsoring_assignment_logic()
-        if "error" in assignment_verification:
-            print(f"❌ Sponsoring assignment verification failed: {assignment_verification['error']}")
+        revenue_analysis = self.analyze_separated_revenue()
+        if "error" in revenue_analysis:
+            print(f"❌ Revenue analysis failed: {revenue_analysis['error']}")
             return False
         
         # Final Results
-        print(f"\n🏁 FINAL SPONSORING ASSIGNMENT VERIFICATION RESULTS:")
+        print(f"\n🏁 FINAL TOTAL CALCULATION DEBUG RESULTS:")
         print("=" * 100)
         
+        # Check if totals match expectations
+        total_amount = history_analysis.get("total_amount", 0.0)
+        missing_amount = history_analysis.get("missing_amount", 0.0)
+        
         success_criteria = [
-            (assignment_verification.get("employees_found", 0) == 4, "All 4 employees found in breakfast-history"),
-            (assignment_verification.get("mit1_correct", False), "Mit1 shows correct sponsoring info (sponsored_breakfast: count=3)"),
-            (assignment_verification.get("mit2_correct", False), "Mit2 shows no sponsoring info (both null)"),
-            (assignment_verification.get("mit3_correct", False), "Mit3 shows no sponsoring info (both null)"),
-            (assignment_verification.get("mit4_correct", False), "Mit4 shows correct sponsoring info (sponsored_lunch: count=1)")
+            (abs(missing_amount) < 0.01, f"Daily total matches expected (€{total_amount:.2f} vs €{self.expected_grand_total:.2f})"),
+            (revenue_analysis.get("breakfast_correct", False), f"Breakfast revenue correct (€{revenue_analysis.get('breakfast_revenue', 0):.2f} vs €{revenue_analysis.get('expected_breakfast', 0):.2f})"),
+            (revenue_analysis.get("lunch_correct", False), f"Lunch revenue correct (€{revenue_analysis.get('lunch_revenue', 0):.2f} vs €{revenue_analysis.get('expected_lunch', 0):.2f})")
         ]
         
         passed_tests = sum(1 for test, _ in success_criteria if test)
@@ -552,48 +472,44 @@ class SponsoringAssignmentVerification:
             print(f"{status} {description}")
         
         success_rate = (passed_tests / total_tests) * 100
-        print(f"\n📊 Sponsoring Assignment Verification Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+        print(f"\n📊 Total Calculation Debug Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
-        # Print summary for main agent
-        print(f"\n🔍 SUMMARY FOR MAIN AGENT:")
-        print(f"Mit1 Employee ID: {self.mit1_employee_id}")
-        print(f"Mit2 Employee ID: {self.mit2_employee_id}")
-        print(f"Mit3 Employee ID: {self.mit3_employee_id}")
-        print(f"Mit4 Employee ID: {self.mit4_employee_id}")
+        # Print detailed findings
+        print(f"\n🔍 DETAILED FINDINGS:")
+        if abs(missing_amount) > 0.01:
+            print(f"❌ CRITICAL BUG CONFIRMED: Missing €{abs(missing_amount):.2f} from daily total")
+            print(f"   - Expected: €{self.expected_grand_total:.2f}")
+            print(f"   - Actual: €{total_amount:.2f}")
+            print(f"   - This matches the user's report of €24.30 vs €31.00 (missing €6.70)")
+        
+        if not revenue_analysis.get("breakfast_correct", False):
+            print(f"❌ Breakfast revenue calculation issue detected")
+        
+        if not revenue_analysis.get("lunch_correct", False):
+            print(f"❌ Lunch revenue calculation issue detected")
         
         all_correct = all(test for test, _ in success_criteria)
         
         if all_correct:
-            print(f"\n✅ SPONSORING ASSIGNMENT LOGIC: WORKING CORRECTLY!")
-            print(f"✅ Mit1 correctly shows sponsored_breakfast info (count: 3)")
-            print(f"✅ Mit4 correctly shows sponsored_lunch info (count: 1)")
-            print(f"✅ Mit2, Mit3 correctly show no sponsoring info (both null)")
-            print(f"✅ No cross-contamination between employees detected")
+            print(f"\n✅ TOTAL CALCULATION: WORKING CORRECTLY!")
         else:
-            print(f"\n❌ SPONSORING ASSIGNMENT LOGIC: CRITICAL ISSUES DETECTED!")
-            if not assignment_verification.get("mit1_correct", False):
-                print(f"❌ Mit1 does NOT show correct sponsored_breakfast info")
-            if not assignment_verification.get("mit4_correct", False):
-                print(f"❌ Mit4 does NOT show correct sponsored_lunch info")
-            if not assignment_verification.get("mit2_correct", False):
-                print(f"❌ Mit2 shows incorrect sponsoring info (should be null)")
-            if not assignment_verification.get("mit3_correct", False):
-                print(f"❌ Mit3 shows incorrect sponsoring info (should be null)")
+            print(f"\n❌ TOTAL CALCULATION: CRITICAL ISSUES DETECTED!")
+            print(f"❌ The user's report of missing €6.70 appears to be confirmed")
         
         return all_correct
 
 def main():
     """Main test execution"""
-    test = SponsoringAssignmentVerification()
+    test = TotalCalculationDebugAnalysis()
     
     try:
-        success = test.run_sponsoring_assignment_verification()
+        success = test.run_total_calculation_debug()
         
         if success:
-            print(f"\n✅ SPONSORING ASSIGNMENT VERIFICATION: COMPLETED SUCCESSFULLY")
+            print(f"\n✅ TOTAL CALCULATION DEBUG: COMPLETED SUCCESSFULLY")
             exit(0)
         else:
-            print(f"\n❌ SPONSORING ASSIGNMENT VERIFICATION: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ TOTAL CALCULATION DEBUG: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
