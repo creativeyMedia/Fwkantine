@@ -2983,7 +2983,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                                 {new Date(item.timestamp).toLocaleString('de-DE')}
                               </span>
                               <span className={`${isCancelled ? 'bg-red-100 text-red-800' : (item.total_price < 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800')} text-sm px-2 py-1 rounded ${isCancelled ? 'line-through' : ''}`}>
-                                {item.total_price < 0 ? '' : ''}{item.total_price?.toFixed(2)} €
+                                {item.total_price < 0 ? '-' : ''}{Math.abs(item.total_price || 0).toFixed(2)} €
                               </span>
                               {isCancelled && (
                                 <span className="bg-red-200 text-red-900 text-xs px-2 py-1 rounded font-semibold">
