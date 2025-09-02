@@ -9,6 +9,13 @@ import os
 from datetime import datetime, timezone, timedelta
 import pytz
 
+# Load environment variables
+from dotenv import load_dotenv
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).parent / 'backend'
+load_dotenv(ROOT_DIR / '.env')
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
