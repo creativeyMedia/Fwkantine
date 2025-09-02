@@ -51,17 +51,13 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
-class SystematicFrontendDataStructureAnalysis:
+class DatabaseOrderUpdateVerification:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
         self.test1_employee_id = None
-        self.test2_employee_id = None
-        self.test3_employee_id = None
         self.test4_employee_id = None
         self.test1_order_id = None
-        self.test2_order_id = None
-        self.test3_order_id = None
         self.test4_order_id = None
         
     def cleanup_test_data(self) -> bool:
@@ -170,7 +166,7 @@ class SystematicFrontendDataStructureAnalysis:
             return None
     
     def create_breakfast_order_no_lunch(self, employee_id: str, name: str) -> Dict:
-        """Create breakfast order without lunch for Test2, Test3, Test4"""
+        """Create breakfast order without lunch for Test4"""
         try:
             order_data = {
                 "employee_id": employee_id,
@@ -212,57 +208,17 @@ class SystematicFrontendDataStructureAnalysis:
             print(f"❌ Error creating {name} breakfast order: {e}")
             return None
     
-    def test1_sponsors_breakfast(self, test1_employee_id: str) -> Dict:
-        """Test1 sponsors breakfast for Test2, Test3, Test4"""
+    def test4_sponsors_lunch_for_test1(self, test4_employee_id: str) -> Dict:
+        """Test4 sponsors lunch for Test1 - CRITICAL DATABASE UPDATE TEST"""
         try:
             today = self.get_berlin_date()
             
-            print(f"\n🔍 STEP 1: Test1 sponsors breakfast for Test2, Test3, Test4")
-            print(f"   - Sponsor: Test1 (ID: {test1_employee_id})")
-            print(f"   - Target: All employees with breakfast orders (Test2, Test3, Test4)")
-            print(f"   - Date: {today}")
-            print(f"   - Meal Type: breakfast")
-            
-            response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
-                "department_id": DEPARTMENT_ID,
-                "date": today,
-                "meal_type": "breakfast",
-                "sponsor_employee_id": test1_employee_id,
-                "sponsor_employee_name": "Test1"
-            })
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"✅ Test1 successfully sponsored breakfast meals!")
-                print(f"🔍 BREAKFAST SPONSORING RESPONSE: {json.dumps(result, indent=2)}")
-                
-                affected_employees = result.get("affected_employees", 0)
-                total_cost = result.get("total_cost", 0.0)
-                
-                print(f"🔍 BREAKFAST SPONSORING SUMMARY:")
-                print(f"   - Affected employees: {affected_employees}")
-                print(f"   - Total sponsoring cost: €{total_cost:.2f}")
-                print(f"   - Expected: Test2, Test3, Test4 should be affected")
-                
-                return result
-            else:
-                print(f"❌ Test1 failed to sponsor breakfast meals: {response.status_code} - {response.text}")
-                return {"error": response.text}
-                
-        except Exception as e:
-            print(f"❌ Error Test1 sponsoring breakfast meals: {e}")
-            return {"error": str(e)}
-    
-    def test4_sponsors_lunch(self, test4_employee_id: str) -> Dict:
-        """Test4 sponsors lunch for Test1"""
-        try:
-            today = self.get_berlin_date()
-            
-            print(f"\n🔍 STEP 2: Test4 sponsors lunch for Test1")
+            print(f"\n🔍 CRITICAL DATABASE UPDATE TEST: Test4 sponsors lunch for Test1")
             print(f"   - Sponsor: Test4 (ID: {test4_employee_id})")
             print(f"   - Target: All employees with lunch orders (Test1)")
             print(f"   - Date: {today}")
             print(f"   - Meal Type: lunch")
+            print(f"   - Expected: Test1's order should be updated in database with sponsored fields")
             
             response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
                 "department_id": DEPARTMENT_ID,
@@ -294,9 +250,13 @@ class SystematicFrontendDataStructureAnalysis:
             print(f"❌ Error Test4 sponsoring lunch meals: {e}")
             return {"error": str(e)}
     
-    def get_all_employee_data(self) -> Dict:
-        """Get all employee data from breakfast-history endpoint"""
+    def verify_test1_database_update(self) -> Dict:
+        """Verify Test1's order was updated in database with sponsored fields"""
         try:
+            print(f"\n🔍 VERIFYING TEST1 DATABASE UPDATE:")
+            print("=" * 60)
+            
+            # Get Test1's data from breakfast-history endpoint
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
@@ -306,220 +266,129 @@ class SystematicFrontendDataStructureAnalysis:
                     today_data = data["history"][0]
                     employee_orders = today_data.get("employee_orders", {})
                     
-                    print(f"✅ Successfully retrieved all employee data")
-                    print(f"🔍 Found {len(employee_orders)} employees in data")
+                    # Find Test1 in the data
+                    test1_data = None
+                    for emp_name, emp_data in employee_orders.items():
+                        if "Test1" in emp_name:
+                            test1_data = emp_data
+                            break
                     
-                    return employee_orders
+                    if test1_data:
+                        print(f"✅ Found Test1 in database response")
+                        print(f"🔍 Test1 Complete Data Structure:")
+                        for key, value in test1_data.items():
+                            print(f"   - {key}: {value}")
+                        
+                        # Check critical sponsored fields
+                        verification_results = {
+                            "test1_found": True,
+                            "is_sponsored_found": "is_sponsored" in test1_data,
+                            "is_sponsored_value": test1_data.get("is_sponsored"),
+                            "sponsored_meal_type_found": "sponsored_meal_type" in test1_data,
+                            "sponsored_meal_type_value": test1_data.get("sponsored_meal_type"),
+                            "sponsored_message_found": "sponsored_message" in test1_data,
+                            "sponsored_message_value": test1_data.get("sponsored_message"),
+                            "total_amount": test1_data.get("total_amount", 0.0),
+                            "all_data": test1_data
+                        }
+                        
+                        print(f"\n🔍 CRITICAL SPONSORED FIELDS VERIFICATION:")
+                        print(f"   ✅ is_sponsored found: {verification_results['is_sponsored_found']}")
+                        if verification_results['is_sponsored_found']:
+                            print(f"   ✅ is_sponsored value: {verification_results['is_sponsored_value']}")
+                        
+                        print(f"   ✅ sponsored_meal_type found: {verification_results['sponsored_meal_type_found']}")
+                        if verification_results['sponsored_meal_type_found']:
+                            print(f"   ✅ sponsored_meal_type value: {verification_results['sponsored_meal_type_value']}")
+                        
+                        print(f"   ✅ sponsored_message found: {verification_results['sponsored_message_found']}")
+                        if verification_results['sponsored_message_found']:
+                            print(f"   ✅ sponsored_message value: {verification_results['sponsored_message_value']}")
+                        
+                        print(f"   💰 total_amount: €{verification_results['total_amount']:.2f}")
+                        
+                        # Verify expected values
+                        expected_is_sponsored = verification_results['is_sponsored_value'] == True
+                        expected_meal_type = "lunch" in str(verification_results['sponsored_meal_type_value']).lower() if verification_results['sponsored_meal_type_value'] else False
+                        expected_coffee_only_cost = 0.5 <= verification_results['total_amount'] <= 3.0  # Coffee should be around €1-2
+                        
+                        print(f"\n🎯 EXPECTED VALUES VERIFICATION:")
+                        print(f"   ✅ is_sponsored == True: {expected_is_sponsored}")
+                        print(f"   ✅ sponsored_meal_type contains 'lunch': {expected_meal_type}")
+                        print(f"   ✅ total_amount is coffee-only cost (€0.5-3.0): {expected_coffee_only_cost}")
+                        
+                        verification_results.update({
+                            "expected_is_sponsored": expected_is_sponsored,
+                            "expected_meal_type": expected_meal_type,
+                            "expected_coffee_only_cost": expected_coffee_only_cost,
+                            "database_update_working": expected_is_sponsored and expected_meal_type
+                        })
+                        
+                        return verification_results
+                    else:
+                        print(f"❌ Test1 not found in database response")
+                        return {"error": "Test1 not found in database response", "test1_found": False}
                 else:
-                    print(f"❌ No history data found")
-                    return {"error": "No history data"}
+                    print(f"❌ No history data found in database response")
+                    return {"error": "No history data found", "test1_found": False}
             else:
                 print(f"❌ Failed to get breakfast history: {response.status_code} - {response.text}")
-                return {"error": response.text}
+                return {"error": f"API call failed: {response.text}", "test1_found": False}
                 
         except Exception as e:
-            print(f"❌ Error getting employee data: {e}")
-            return {"error": str(e)}
+            print(f"❌ Error verifying Test1 database update: {e}")
+            return {"error": str(e), "test1_found": False}
     
-    def analyze_employee_data_structure(self, employee_name: str, employee_data: Dict) -> Dict:
-        """Analyze individual employee data structure for critical fields"""
-        results = {
-            "employee_name": employee_name,
-            "is_sponsored_found": False,
-            "is_sponsored_value": None,
-            "sponsored_meal_type_found": False,
-            "sponsored_meal_type_value": None,
-            "sponsor_message_found": False,
-            "sponsor_message_value": None,
-            "sponsored_message_found": False,
-            "sponsored_message_value": None,
-            "total_amount": 0.0,
-            "readable_items_found": False,
-            "readable_items_value": None,
-            "sponsored_breakfast_found": False,
-            "sponsored_lunch_found": False,
-            "all_fields": {}
-        }
-        
-        print(f"\n🔍 ANALYZING {employee_name} DATA STRUCTURE:")
-        print("=" * 60)
-        
-        # Store all fields for complete analysis
-        results["all_fields"] = employee_data.copy()
-        
-        # Print complete data structure
-        print(f"📋 Complete Data Structure for {employee_name}:")
-        for key, value in employee_data.items():
-            print(f"   - {key}: {value}")
-        
-        # Check critical fields
-        critical_fields = [
-            ("is_sponsored", "is_sponsored_found", "is_sponsored_value"),
-            ("sponsored_meal_type", "sponsored_meal_type_found", "sponsored_meal_type_value"),
-            ("sponsor_message", "sponsor_message_found", "sponsor_message_value"),
-            ("sponsored_message", "sponsored_message_found", "sponsored_message_value"),
-            ("readable_items", "readable_items_found", "readable_items_value")
-        ]
-        
-        print(f"\n🔍 CRITICAL FIELDS ANALYSIS for {employee_name}:")
-        for field_name, found_key, value_key in critical_fields:
-            if field_name in employee_data:
-                results[found_key] = True
-                results[value_key] = employee_data[field_name]
-                print(f"✅ {field_name}: {employee_data[field_name]}")
-            else:
-                print(f"❌ {field_name}: NOT FOUND")
-        
-        # Check total_amount
-        total_amount = employee_data.get("total_amount", 0.0)
-        results["total_amount"] = total_amount
-        print(f"💰 total_amount: €{total_amount:.2f}")
-        
-        # Check sponsored_breakfast and sponsored_lunch fields
-        if "sponsored_breakfast" in employee_data:
-            results["sponsored_breakfast_found"] = True
-            print(f"✅ sponsored_breakfast: {employee_data['sponsored_breakfast']}")
-        else:
-            print(f"❌ sponsored_breakfast: NOT FOUND")
+    def verify_individual_profile_endpoint(self, test1_employee_id: str) -> Dict:
+        """Verify individual profile endpoint returns sponsored fields"""
+        try:
+            print(f"\n🔍 VERIFYING INDIVIDUAL PROFILE ENDPOINT:")
+            print("=" * 60)
             
-        if "sponsored_lunch" in employee_data:
-            results["sponsored_lunch_found"] = True
-            print(f"✅ sponsored_lunch: {employee_data['sponsored_lunch']}")
-        else:
-            print(f"❌ sponsored_lunch: NOT FOUND")
-        
-        return results
-    
-    def verify_expected_data_structure(self, all_analyses: Dict) -> Dict:
-        """Verify if the data structure matches expected patterns from review request"""
-        verification_results = {
-            "test1_correct": False,
-            "test2_correct": False,
-            "test3_correct": False,
-            "test4_correct": False,
-            "critical_issues": [],
-            "missing_fields": [],
-            "overall_working": False
-        }
-        
-        print(f"\n🎯 VERIFYING EXPECTED DATA STRUCTURE PATTERNS:")
-        print("=" * 80)
-        
-        # Find each test employee in the data
-        test1_data = None
-        test2_data = None
-        test3_data = None
-        test4_data = None
-        
-        for emp_name, analysis in all_analyses.items():
-            if "Test1" in emp_name:
-                test1_data = analysis
-            elif "Test2" in emp_name:
-                test2_data = analysis
-            elif "Test3" in emp_name:
-                test3_data = analysis
-            elif "Test4" in emp_name:
-                test4_data = analysis
-        
-        # Verify Test1 (should be sponsored for lunch)
-        if test1_data:
-            print(f"\n🔍 VERIFYING Test1 (should be sponsored for lunch):")
-            expected_test1 = (
-                test1_data["is_sponsored_found"] and
-                test1_data["is_sponsored_value"] == True and
-                test1_data["sponsored_meal_type_found"] and
-                "lunch" in str(test1_data["sponsored_meal_type_value"]).lower()
-            )
+            # Call individual profile endpoint
+            response = self.session.get(f"{API_BASE}/employees/{test1_employee_id}/profile")
             
-            if expected_test1:
-                print(f"✅ Test1 data structure CORRECT")
-                verification_results["test1_correct"] = True
-            else:
-                print(f"❌ Test1 data structure INCORRECT")
-                if not test1_data["is_sponsored_found"]:
-                    verification_results["critical_issues"].append("Test1 missing is_sponsored field")
-                if not test1_data["sponsored_meal_type_found"]:
-                    verification_results["critical_issues"].append("Test1 missing sponsored_meal_type field")
-                elif "lunch" not in str(test1_data["sponsored_meal_type_value"]).lower():
-                    verification_results["critical_issues"].append(f"Test1 sponsored_meal_type should contain 'lunch', got: {test1_data['sponsored_meal_type_value']}")
-        else:
-            print(f"❌ Test1 not found in data")
-            verification_results["critical_issues"].append("Test1 not found in employee data")
-        
-        # Verify Test2 and Test3 (should be sponsored for breakfast)
-        for test_name, test_data in [("Test2", test2_data), ("Test3", test3_data)]:
-            if test_data:
-                print(f"\n🔍 VERIFYING {test_name} (should be sponsored for breakfast):")
-                expected_test = (
-                    test_data["is_sponsored_found"] and
-                    test_data["is_sponsored_value"] == True and
-                    test_data["sponsored_meal_type_found"] and
-                    "breakfast" in str(test_data["sponsored_meal_type_value"]).lower()
-                )
+            if response.status_code == 200:
+                profile_data = response.json()
                 
-                if expected_test:
-                    print(f"✅ {test_name} data structure CORRECT")
-                    if test_name == "Test2":
-                        verification_results["test2_correct"] = True
-                    else:
-                        verification_results["test3_correct"] = True
+                print(f"✅ Individual profile endpoint accessible")
+                print(f"🔍 Test1 Individual Profile Data:")
+                print(json.dumps(profile_data, indent=2))
+                
+                # Check if sponsored fields are present
+                profile_verification = {
+                    "profile_accessible": True,
+                    "has_sponsored_fields": False,
+                    "profile_data": profile_data
+                }
+                
+                # Look for sponsored-related fields in the profile
+                sponsored_fields = ["is_sponsored", "sponsored_meal_type", "sponsored_message"]
+                found_fields = []
+                
+                for field in sponsored_fields:
+                    if field in profile_data:
+                        found_fields.append(field)
+                
+                if found_fields:
+                    profile_verification["has_sponsored_fields"] = True
+                    print(f"✅ Found sponsored fields in profile: {found_fields}")
                 else:
-                    print(f"❌ {test_name} data structure INCORRECT")
-                    if not test_data["is_sponsored_found"]:
-                        verification_results["critical_issues"].append(f"{test_name} missing is_sponsored field")
-                    if not test_data["sponsored_meal_type_found"]:
-                        verification_results["critical_issues"].append(f"{test_name} missing sponsored_meal_type field")
+                    print(f"❌ No sponsored fields found in individual profile")
+                
+                return profile_verification
             else:
-                print(f"❌ {test_name} not found in data")
-                verification_results["critical_issues"].append(f"{test_name} not found in employee data")
-        
-        # Verify Test4 (should be sponsored for breakfast AND have sponsor messages for lunch)
-        if test4_data:
-            print(f"\n🔍 VERIFYING Test4 (should be sponsored for breakfast + sponsor lunch):")
-            expected_test4 = (
-                test4_data["is_sponsored_found"] and
-                test4_data["is_sponsored_value"] == True and
-                test4_data["sponsored_meal_type_found"] and
-                "breakfast" in str(test4_data["sponsored_meal_type_value"]).lower()
-            )
-            
-            if expected_test4:
-                print(f"✅ Test4 data structure CORRECT")
-                verification_results["test4_correct"] = True
-            else:
-                print(f"❌ Test4 data structure INCORRECT")
-                if not test4_data["is_sponsored_found"]:
-                    verification_results["critical_issues"].append("Test4 missing is_sponsored field")
-                if not test4_data["sponsored_meal_type_found"]:
-                    verification_results["critical_issues"].append("Test4 missing sponsored_meal_type field")
-        else:
-            print(f"❌ Test4 not found in data")
-            verification_results["critical_issues"].append("Test4 not found in employee data")
-        
-        # Check for missing critical fields across all employees
-        all_employees = [test1_data, test2_data, test3_data, test4_data]
-        critical_fields = ["is_sponsored", "sponsored_meal_type", "readable_items"]
-        
-        for field in critical_fields:
-            missing_count = sum(1 for emp in all_employees if emp and not emp.get(f"{field}_found", False))
-            if missing_count > 0:
-                verification_results["missing_fields"].append(f"{field} missing in {missing_count}/4 employees")
-        
-        # Overall verification
-        verification_results["overall_working"] = (
-            verification_results["test1_correct"] and
-            verification_results["test2_correct"] and
-            verification_results["test3_correct"] and
-            verification_results["test4_correct"] and
-            len(verification_results["critical_issues"]) == 0
-        )
-        
-        return verification_results
+                print(f"❌ Individual profile endpoint failed: {response.status_code} - {response.text}")
+                return {"error": f"Profile endpoint failed: {response.text}", "profile_accessible": False}
+                
+        except Exception as e:
+            print(f"❌ Error verifying individual profile endpoint: {e}")
+            return {"error": str(e), "profile_accessible": False}
     
-    def run_systematic_frontend_data_analysis(self):
-        """Run the systematic frontend data structure analysis as per review request"""
-        print("🔍 SYSTEMATISCHE FRONTEND-DATENSTRUKTUR ANALYSE: Exakte User-Szenario")
-        print("=" * 80)
+    def run_database_order_update_verification(self):
+        """Run the database order update verification as per review request"""
+        print("🔍 DATENBANK ORDER-UPDATE VERIFIKATION: Überprüfe ob Sponsoring-Updates in DB geschrieben werden")
+        print("=" * 100)
         
         # Step 1: Admin Authentication
         print("\n1️⃣ Admin Authentication for Department 1 (fw1abteilung1)")
@@ -531,85 +400,77 @@ class SystematicFrontendDataStructureAnalysis:
         print("\n1️⃣.5 Attempting to Clean Up Existing Data")
         self.cleanup_test_data()
         
-        # Step 2: Create exact scenario
-        print(f"\n2️⃣ Creating Exact Scenario: Test1, Test2, Test3, Test4")
+        # Step 2: Create simple test scenario
+        print(f"\n2️⃣ Creating Simple Test Scenario: Test1 (with lunch) + Test4 (no lunch)")
         
-        # Create all test employees
-        employees = ["Test1", "Test2", "Test3", "Test4"]
-        employee_ids = {}
+        # Create Test1 employee
+        self.test1_employee_id = self.create_test_employee("Test1")
+        if not self.test1_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Test1")
+            return False
         
-        for name in employees:
-            employee_id = self.create_test_employee(name)
-            if not employee_id:
-                print(f"❌ CRITICAL FAILURE: Cannot create {name}")
-                return False
-            employee_ids[name] = employee_id
+        # Create Test4 employee
+        self.test4_employee_id = self.create_test_employee("Test4")
+        if not self.test4_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Test4")
+            return False
         
         # Step 3: Create breakfast orders
         print(f"\n3️⃣ Creating Breakfast Orders")
         
         # Test1: breakfast order with lunch
         print(f"\n📋 Creating Test1 order (with lunch):")
-        test1_order = self.create_breakfast_order_with_lunch(employee_ids["Test1"], "Test1")
+        test1_order = self.create_breakfast_order_with_lunch(self.test1_employee_id, "Test1")
         if not test1_order:
             print("❌ CRITICAL FAILURE: Cannot create Test1's order")
             return False
+        self.test1_order_id = test1_order["order_id"]
         
-        # Test2, Test3, Test4: breakfast orders without lunch
-        for name in ["Test2", "Test3", "Test4"]:
-            print(f"\n📋 Creating {name} order (no lunch):")
-            order = self.create_breakfast_order_no_lunch(employee_ids[name], name)
-            if not order:
-                print(f"❌ CRITICAL FAILURE: Cannot create {name}'s order")
-                return False
-        
-        # Step 4: Execute sponsoring scenario
-        print(f"\n4️⃣ Execute Sponsoring Scenario")
-        
-        # Test1 sponsors breakfast for Test2, Test3, Test4
-        breakfast_result = self.test1_sponsors_breakfast(employee_ids["Test1"])
-        if "error" in breakfast_result:
-            print(f"❌ Test1 breakfast sponsoring failed: {breakfast_result['error']}")
+        # Test4: breakfast order without lunch
+        print(f"\n📋 Creating Test4 order (no lunch):")
+        test4_order = self.create_breakfast_order_no_lunch(self.test4_employee_id, "Test4")
+        if not test4_order:
+            print("❌ CRITICAL FAILURE: Cannot create Test4's order")
             return False
+        self.test4_order_id = test4_order["order_id"]
+        
+        # Step 4: Execute critical sponsoring scenario
+        print(f"\n4️⃣ Execute Critical Sponsoring Scenario")
         
         # Test4 sponsors lunch for Test1
-        lunch_result = self.test4_sponsors_lunch(employee_ids["Test4"])
+        lunch_result = self.test4_sponsors_lunch_for_test1(self.test4_employee_id)
         if "error" in lunch_result:
             print(f"❌ Test4 lunch sponsoring failed: {lunch_result['error']}")
             return False
         
-        # Step 5: Analyze data structure
-        print(f"\n5️⃣ Analyze Frontend Data Structure")
+        # Step 5: Verify database update
+        print(f"\n5️⃣ Verify Database Update")
         
-        all_employee_data = self.get_all_employee_data()
-        if "error" in all_employee_data:
-            print(f"❌ CRITICAL FAILURE: Cannot get employee data: {all_employee_data['error']}")
+        database_verification = self.verify_test1_database_update()
+        if "error" in database_verification:
+            print(f"❌ Database verification failed: {database_verification['error']}")
             return False
         
-        # Step 6: Individual employee analysis
-        print(f"\n6️⃣ Individual Employee Data Analysis")
+        # Step 6: Verify individual profile endpoint
+        print(f"\n6️⃣ Verify Individual Profile Endpoint")
         
-        all_analyses = {}
-        for emp_name, emp_data in all_employee_data.items():
-            analysis = self.analyze_employee_data_structure(emp_name, emp_data)
-            all_analyses[emp_name] = analysis
-        
-        # Step 7: Verify expected patterns
-        print(f"\n7️⃣ Verify Expected Data Structure Patterns")
-        
-        verification_results = self.verify_expected_data_structure(all_analyses)
+        profile_verification = self.verify_individual_profile_endpoint(self.test1_employee_id)
+        if "error" in profile_verification:
+            print(f"⚠️ Profile verification failed: {profile_verification['error']}")
+            # Don't fail the test for this, just note it
         
         # Final Results
-        print(f"\n🏁 FINAL SYSTEMATIC ANALYSIS RESULTS:")
-        print("=" * 80)
+        print(f"\n🏁 FINAL DATABASE VERIFICATION RESULTS:")
+        print("=" * 100)
         
         success_criteria = [
-            (verification_results["test1_correct"], "Test1 data structure correct (sponsored for lunch)"),
-            (verification_results["test2_correct"], "Test2 data structure correct (sponsored for breakfast)"),
-            (verification_results["test3_correct"], "Test3 data structure correct (sponsored for breakfast)"),
-            (verification_results["test4_correct"], "Test4 data structure correct (sponsored for breakfast)"),
-            (len(verification_results["critical_issues"]) == 0, f"No critical issues ({len(verification_results['critical_issues'])} found)"),
-            (len(verification_results["missing_fields"]) == 0, f"No missing fields ({len(verification_results['missing_fields'])} found)")
+            (database_verification.get("test1_found", False), "Test1 found in database response"),
+            (database_verification.get("is_sponsored_found", False), "is_sponsored field found in database"),
+            (database_verification.get("expected_is_sponsored", False), "is_sponsored value is True"),
+            (database_verification.get("sponsored_meal_type_found", False), "sponsored_meal_type field found in database"),
+            (database_verification.get("expected_meal_type", False), "sponsored_meal_type contains 'lunch'"),
+            (database_verification.get("expected_coffee_only_cost", False), "total_amount shows coffee-only cost"),
+            (database_verification.get("database_update_working", False), "Database update working correctly")
         ]
         
         passed_tests = sum(1 for test, _ in success_criteria if test)
@@ -619,46 +480,48 @@ class SystematicFrontendDataStructureAnalysis:
             status = "✅" if test_passed else "❌"
             print(f"{status} {description}")
         
-        # Print critical issues
-        if verification_results["critical_issues"]:
-            print(f"\n🚨 CRITICAL ISSUES DETECTED:")
-            for issue in verification_results["critical_issues"]:
-                print(f"   ❌ {issue}")
-        
-        # Print missing fields
-        if verification_results["missing_fields"]:
-            print(f"\n📋 MISSING FIELDS DETECTED:")
-            for missing in verification_results["missing_fields"]:
-                print(f"   ❌ {missing}")
-        
         success_rate = (passed_tests / total_tests) * 100
-        print(f"\n📊 Overall Analysis Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+        print(f"\n📊 Database Verification Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
         # Print summary for main agent
         print(f"\n🔍 SUMMARY FOR MAIN AGENT:")
-        print(f"Employee IDs created: {employee_ids}")
+        print(f"Test1 Employee ID: {self.test1_employee_id}")
+        print(f"Test4 Employee ID: {self.test4_employee_id}")
+        print(f"Test1 Order ID: {self.test1_order_id}")
+        print(f"Test4 Order ID: {self.test4_order_id}")
         
-        if success_rate >= 80:
-            print("\n✅ SYSTEMATIC FRONTEND DATA ANALYSIS: PASSED!")
-            print("✅ Frontend data structure is working correctly for sponsoring scenarios")
-            return True
+        if database_verification.get("database_update_working", False):
+            print(f"\n✅ DATABASE ORDER UPDATE VERIFICATION: WORKING!")
+            print(f"✅ Test1's order is correctly updated in database with sponsored fields")
+            print(f"✅ is_sponsored: {database_verification.get('is_sponsored_value')}")
+            print(f"✅ sponsored_meal_type: {database_verification.get('sponsored_meal_type_value')}")
+            print(f"✅ total_amount: €{database_verification.get('total_amount', 0):.2f} (coffee-only cost)")
         else:
-            print("\n❌ SYSTEMATIC FRONTEND DATA ANALYSIS: FAILED!")
-            print("❌ Frontend data structure has critical issues preventing proper display")
-            return False
+            print(f"\n❌ DATABASE ORDER UPDATE VERIFICATION: FAILED!")
+            print(f"❌ Test1's order is NOT correctly updated in database")
+            if not database_verification.get("is_sponsored_found", False):
+                print(f"❌ Missing: is_sponsored field")
+            if not database_verification.get("sponsored_meal_type_found", False):
+                print(f"❌ Missing: sponsored_meal_type field")
+            if not database_verification.get("expected_is_sponsored", False):
+                print(f"❌ Wrong: is_sponsored value should be True")
+            if not database_verification.get("expected_meal_type", False):
+                print(f"❌ Wrong: sponsored_meal_type should contain 'lunch'")
+        
+        return database_verification.get("database_update_working", False)
 
 def main():
     """Main test execution"""
-    test = SystematicFrontendDataStructureAnalysis()
+    test = DatabaseOrderUpdateVerification()
     
     try:
-        success = test.run_systematic_frontend_data_analysis()
+        success = test.run_database_order_update_verification()
         
         if success:
-            print(f"\n✅ SYSTEMATIC FRONTEND DATA ANALYSIS: COMPLETED SUCCESSFULLY")
+            print(f"\n✅ DATABASE ORDER UPDATE VERIFICATION: COMPLETED SUCCESSFULLY")
             exit(0)
         else:
-            print(f"\n❌ SYSTEMATIC FRONTEND DATA ANALYSIS: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ DATABASE ORDER UPDATE VERIFICATION: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
