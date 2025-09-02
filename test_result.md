@@ -48,6 +48,18 @@
 ##   run_ui: false
 ##
 backend:
+  - task: "Fix Drinks/Sweets Negative Display Bug (Backend Data Storage)"
+    implemented: true
+    working: "needs_testing"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed backend logic to store drinks and sweets orders as negative amounts (representing employee debt). Modified create_order endpoint lines 1321-1340 to set total_price = -total_price for DRINKS and SWEETS orders. Also corrected balance update logic to use addition instead of subtraction for drinks/sweets since total_price is now negative. This ensures drinks/sweets orders display as red negative amounts in Admin Dashboard UI instead of green positive amounts."
+
   - task: "Fix Sponsoring Logic Error for Double Sponsoring (Breakfast + Lunch)"
     implemented: true
     working: true
