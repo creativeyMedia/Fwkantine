@@ -1677,7 +1677,9 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "has_lunch": False,  # Add lunch tracking
                             "has_coffee": False,  # Add coffee tracking
                             "toppings": {}, 
-                            "total_amount": 0
+                            "total_amount": 0,
+                            "is_sponsored": False,  # Add sponsored status tracking
+                            "sponsored_meal_type": None  # Add sponsored meal type tracking
                         }
                     
                     # Calculate individual employee total_amount considering sponsoring
