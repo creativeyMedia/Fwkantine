@@ -291,20 +291,23 @@ class RoundingErrorSponsoringDebugTest:
             print(f"\n🎯 {sponsor_name} SPONSORING BREAKFAST:")
             print("=" * 60)
             
+            today = self.get_berlin_date()
             sponsor_data = {
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "breakfast",
                 "sponsor_employee_id": sponsor_id,
-                "sponsored_employee_ids": [self.employees[name] for name in sponsored_employees],
-                "meal_type": "breakfast"
+                "sponsor_employee_name": sponsor_name
             }
             
             print(f"Sponsoring data: {json.dumps(sponsor_data, indent=2)}")
             
-            response = self.session.post(f"{API_BASE}/orders/sponsor-meals/{DEPARTMENT_ID}", json=sponsor_data)
+            response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json=sponsor_data)
             
             if response.status_code == 200:
                 result = response.json()
                 print(f"✅ Breakfast sponsoring successful:")
-                print(f"  - Sponsored employees: {len(sponsored_employees)}")
+                print(f"  - Message: {result.get('message', 'Success')}")
                 print(f"  - Total cost: €{result.get('total_cost', 0.0):.2f}")
                 print(f"  - Expected cost: €{self.expected_breakfast_sponsoring:.2f}")
                 return True
