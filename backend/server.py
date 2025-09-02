@@ -1927,11 +1927,15 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                 "count": sponsor_count,
                                 "amount": round(sponsor_cost, 2)
                             }
+                            # Add sponsored breakfast amount to sponsor's total_amount
+                            employee_orders[employee_key]["total_amount"] += sponsor_cost
                         elif "lunch" in sponsor_meal_type.lower() or "mittag" in sponsor_meal_type.lower():
                             lunch_sponsored_info = {
                                 "count": sponsor_count,
                                 "amount": round(sponsor_cost, 2)
                             }
+                            # Add sponsored lunch amount to sponsor's total_amount
+                            employee_orders[employee_key]["total_amount"] += sponsor_cost
                 
                 # Add sponsoring info to employee data
                 employee_orders[employee_key]["sponsored_breakfast"] = breakfast_sponsored_info
