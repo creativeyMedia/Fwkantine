@@ -2832,7 +2832,10 @@ async def get_admin_breakfast_history(department_id: str, days: int = 7):
             breakfast_summary = {}
             employee_orders = {}
             
-            for order in orders:
+            # Filter out sponsor orders from statistics (they're not real food orders)
+            real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+            
+            for order in real_orders:  # Only process real orders for employee statistics
                 employee = await db.employees.find_one({"id": order["employee_id"]})
                 employee_name = employee["name"] if employee else "Unknown"
                 
