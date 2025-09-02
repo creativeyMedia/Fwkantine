@@ -586,9 +586,23 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Chronologischer Verlauf</h3>
-              <span className="text-sm text-gray-600">
-                Seite {currentPage} von {totalPages} ({combinedHistory.length} Einträge gesamt)
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={fetchEmployeeProfile}
+                  disabled={isLoading}
+                  className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                    isLoading 
+                      ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                      : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+                  }`}
+                  title="Verlauf aktualisieren (z.B. nach Sponsoring durch andere)"
+                >
+                  {isLoading ? '🔄 Lädt...' : '🔄 Aktualisieren'}
+                </button>
+                <span className="text-sm text-gray-600">
+                  Seite {currentPage} von {totalPages} ({combinedHistory.length} Einträge gesamt)
+                </span>
+              </div>
             </div>
             
             {combinedHistory.length === 0 ? (
