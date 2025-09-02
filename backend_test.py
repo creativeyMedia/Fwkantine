@@ -449,6 +449,12 @@ class FinalDebugRegularOrderTest:
             print("❌ CRITICAL FAILURE: Cannot setup prices")
             return False
         
+        # Step 3.5: Setup menu items
+        print("\n3️⃣.5 Setting Up Menu Items")
+        if not self.setup_menu_items():
+            print("❌ CRITICAL FAILURE: Cannot setup menu items")
+            return False
+        
         # Step 4: Create Mit1 employee
         print(f"\n4️⃣ Creating Mit1 Employee")
         self.mit1_employee_id = self.create_test_employee("Mit1")
