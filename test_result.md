@@ -50,9 +50,9 @@
 backend:
   - task: "Fix Sponsoring Logic Error for Double Sponsoring (Breakfast + Lunch)"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "critical"
     needs_retesting: false
     status_history:
