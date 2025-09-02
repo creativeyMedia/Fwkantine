@@ -3617,6 +3617,8 @@ async def sponsor_meal(meal_data: dict):
                 "is_sponsor_order": True,  # This IS a sponsor order
                 "sponsored_meal_type": meal_type,
                 "sponsored_by_employee_id": sponsor_employee_id,
+                "sponsor_employee_count": others_count,  # CRITICAL: Number of employees sponsored
+                "sponsor_total_cost": total_others_cost,  # CRITICAL: Total cost sponsored
                 "sponsor_message": f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)",
                 "readable_items": [{
                     "description": detailed_breakdown,
