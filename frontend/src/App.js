@@ -8,7 +8,13 @@ const API = `${BACKEND_URL}/api`;
 
 // Calculate displayed price after sponsoring using actual item prices
 const calculateDisplayPrice = (item) => {
+  console.log('🔍 calculateDisplayPrice called for:', item.id);
+  console.log('  - is_sponsored:', item.is_sponsored);
+  console.log('  - sponsored_meal_type:', item.sponsored_meal_type);
+  console.log('  - total_price:', item.total_price);
+  
   if (!item.is_sponsored || item.is_sponsor_order) {
+    console.log('  - NOT sponsored, returning original price:', item.total_price);
     return item.total_price; // Original price for non-sponsored or sponsor orders
   }
   
@@ -16,11 +22,16 @@ const calculateDisplayPrice = (item) => {
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
   
+  console.log('  - sponsoredTypes:', sponsoredTypes);
+  console.log('  - readable_items:', item.readable_items);
+  
   // Calculate what was sponsored using actual item prices from readable_items
   if (item.readable_items && item.readable_items.length > 0) {
     for (const readableItem of item.readable_items) {
       const description = readableItem.description || '';
       const itemPrice = readableItem.price || 0;
+      
+      console.log(`  - Processing item: "${description}", price: ${itemPrice}`);
       
       // Subtract breakfast items if sponsored (rolls and eggs, but NOT coffee)
       if (sponsoredTypes.includes('breakfast')) {
@@ -29,18 +40,22 @@ const calculateDisplayPrice = (item) => {
              description.includes('Körner') || 
              description.includes('Ei')) &&
             !description.includes('Kaffee')) {
+          console.log(`    - SUBTRACTING breakfast item: ${itemPrice}`);
           remainingCost -= itemPrice;
         }
       }
       
       // Subtract lunch cost if sponsored
       if (sponsoredTypes.includes('lunch') && description.includes('Mittagessen')) {
+        console.log(`    - SUBTRACTING lunch item: ${itemPrice}`);
         remainingCost -= itemPrice;
       }
     }
   }
   
-  return Math.max(0, remainingCost); // Never go below 0
+  const finalCost = Math.max(0, remainingCost);
+  console.log('  - Final remaining cost:', finalCost);
+  return finalCost;
 };
 
 // Helper function to format date in German format
