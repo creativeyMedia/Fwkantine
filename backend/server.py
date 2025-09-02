@@ -1999,13 +1999,16 @@ async def get_daily_summary(department_id: str):
         ]
     }).to_list(1000)
     
+    # Filter out sponsor orders from statistics (they're not real food orders)
+    real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+    
     # Aggregate breakfast orders with employee details
     breakfast_summary = {}
     employee_orders = {}  # Track individual employee orders
     drinks_summary = {}
     sweets_summary = {}
     
-    for order in orders:
+    for order in real_orders:  # Only process real orders for employee statistics
         if order["order_type"] == "breakfast" and order.get("breakfast_items"):
             # Get employee info
             employee = await db.employees.find_one({"id": order["employee_id"]})
