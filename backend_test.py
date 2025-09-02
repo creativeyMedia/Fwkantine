@@ -378,6 +378,22 @@ class RoundingErrorSponsoringDebugTest:
                     manual_sum = 0.0
                     individual_totals = {}
                     
+                    # Calculate manual sum of individual employee totals
+                    manual_sum = 0.0
+                    individual_totals = {}
+                    
+                    print(f"\n🔍 INDIVIDUAL EMPLOYEE ANALYSIS:")
+                    for emp_key, emp_data in employee_orders.items():
+                        total_amount = emp_data.get('total_amount', 0.0)
+                        individual_totals[emp_key] = total_amount
+                        manual_sum += total_amount
+                        
+                        print(f"  - {emp_key}: €{total_amount:.2f}")
+                        print(f"    - Is Sponsored: {emp_data.get('is_sponsored', False)}")
+                        print(f"    - Sponsored Meal Type: {emp_data.get('sponsored_meal_type', None)}")
+                        print(f"    - Sponsored Breakfast: {emp_data.get('sponsored_breakfast', None)}")
+                        print(f"    - Sponsored Lunch: {emp_data.get('sponsored_lunch', None)}")
+                    
                     print(f"\n🔍 DETAILED INDIVIDUAL ANALYSIS:")
                     expected_individual_breakdown = {
                         "Mit1": 1.50,  # Coffee only (breakfast sponsored by self, lunch sponsored by Mit4)
