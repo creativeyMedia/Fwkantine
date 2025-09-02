@@ -454,8 +454,8 @@ class FrontendDisplayBugFixTest:
         return results
     
     def run_comprehensive_test(self):
-        """Run the comprehensive frontend display bug fix test"""
-        print("🚨 CRITICAL FRONTEND DISPLAY BUG FIX TEST: Test both frontend display fixes")
+        """Run the comprehensive combined sponsoring test as per review request"""
+        print("🚨 CRITICAL FRONTEND DISPLAY BUG TEST: Test chronological history display fixes for combined sponsoring")
         print("=" * 80)
         
         # Step 1: Admin Authentication
@@ -468,62 +468,77 @@ class FrontendDisplayBugFixTest:
         print("\n1️⃣.5 Attempting to Clean Up Existing Data")
         self.cleanup_test_data()
         
-        # Step 2: Create Test Scenario (EXACT from review request)
-        print(f"\n2️⃣ Creating Test Scenario for Department {DEPARTMENT_ID}")
-        print("Creating employee with breakfast order (rolls, eggs, coffee, lunch) ~€8-10")
+        # Step 2: Create Complex Combined Sponsoring Scenario (EXACT from review request)
+        print(f"\n2️⃣ Creating Complex Combined Sponsoring Scenario for Department {DEPARTMENT_ID}")
+        print("Creating Employee1: Full breakfast order (rolls, eggs, coffee, lunch) ~€8-10")
+        print("Creating Employee2: Will sponsor breakfast for Employee1")
+        print("Creating Employee3: Will sponsor lunch for Employee1")
         
-        # Create sponsored employee
-        sponsored_employee_name = f"SponsoredEmployee_{datetime.now().strftime('%H%M%S')}"
-        sponsored_employee_id = self.create_test_employee(sponsored_employee_name)
+        # Create Employee1 (will be sponsored)
+        employee1_name = f"Employee1_{datetime.now().strftime('%H%M%S')}"
+        employee1_id = self.create_test_employee(employee1_name)
         
-        if not sponsored_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create sponsored employee")
+        if not employee1_id:
+            print("❌ CRITICAL FAILURE: Cannot create Employee1")
             return False
         
-        # Create sponsor employee WITHOUT own orders (Bug 2 test)
-        sponsor_without_orders_name = f"SponsorNoOrders_{datetime.now().strftime('%H%M%S')}"
-        self.sponsor_without_orders_id = self.create_test_employee(sponsor_without_orders_name)
+        # Create Employee2 (will sponsor breakfast)
+        employee2_name = f"Employee2_{datetime.now().strftime('%H%M%S')}"
+        employee2_id = self.create_test_employee(employee2_name)
         
-        if not self.sponsor_without_orders_id:
-            print("❌ CRITICAL FAILURE: Cannot create sponsor without orders")
+        if not employee2_id:
+            print("❌ CRITICAL FAILURE: Cannot create Employee2")
             return False
         
-        print(f"\n3️⃣ Creating Comprehensive Breakfast Order (€8-10)")
+        # Create Employee3 (will sponsor lunch)
+        employee3_name = f"Employee3_{datetime.now().strftime('%H%M%S')}"
+        employee3_id = self.create_test_employee(employee3_name)
         
-        # Create comprehensive breakfast order for sponsored employee
-        sponsored_order = self.create_comprehensive_breakfast_order(
-            sponsored_employee_id, sponsored_employee_name, include_lunch=True
+        if not employee3_id:
+            print("❌ CRITICAL FAILURE: Cannot create Employee3")
+            return False
+        
+        print(f"\n3️⃣ Creating Full Breakfast Order for Employee1 (€8-10)")
+        
+        # Create comprehensive breakfast order for Employee1
+        employee1_order = self.create_comprehensive_breakfast_order(
+            employee1_id, employee1_name, include_lunch=True
         )
         
-        if not sponsored_order:
-            print("❌ CRITICAL FAILURE: Cannot create sponsored employee's order")
+        if not employee1_order:
+            print("❌ CRITICAL FAILURE: Cannot create Employee1's order")
             return False
         
         # Verify order total is in €8-10 range
-        if 8.0 <= sponsored_order["total_price"] <= 12.0:
-            print(f"✅ Order total €{sponsored_order['total_price']:.2f} is within target range (€8-10)")
+        if 8.0 <= employee1_order["total_price"] <= 12.0:
+            print(f"✅ Employee1 order total €{employee1_order['total_price']:.2f} is within target range (€8-10)")
         else:
-            print(f"⚠️ Order total €{sponsored_order['total_price']:.2f} is outside €8-10 range")
+            print(f"⚠️ Employee1 order total €{employee1_order['total_price']:.2f} is outside €8-10 range")
         
-        # Step 4: Test Combined Sponsoring (breakfast + lunch) using sponsor WITHOUT own orders
-        print(f"\n4️⃣ Testing Combined Sponsoring by Sponsor WITHOUT Own Orders")
-        print("This tests Bug 2: Sponsor without orders should show sponsored costs, NOT €0.00")
+        # Step 4: Test Combined Sponsoring (Employee2 sponsors breakfast, Employee3 sponsors lunch)
+        print(f"\n4️⃣ Testing Combined Sponsoring Scenario")
+        print("Employee2 sponsors breakfast for Employee1")
+        print("Employee3 sponsors lunch for Employee1")
+        print("Result: Employee1 should have both breakfast AND lunch sponsored")
         
-        # First sponsor breakfast meals using sponsor without own orders
-        breakfast_result = self.sponsor_breakfast_meals(self.sponsor_without_orders_id, sponsor_without_orders_name)
+        # Employee2 sponsors breakfast meals
+        breakfast_result = self.sponsor_breakfast_meals(employee2_id, employee2_name)
         
         if "error" in breakfast_result and "bereits gesponsert" not in breakfast_result.get('error', ''):
-            print(f"❌ Breakfast sponsoring failed: {breakfast_result['error']}")
+            print(f"❌ Breakfast sponsoring by Employee2 failed: {breakfast_result['error']}")
             return False
         
-        # Then sponsor lunch meals for the same employees using same sponsor
-        lunch_result = self.sponsor_lunch_meals(self.sponsor_without_orders_id, sponsor_without_orders_name)
+        print(f"✅ Employee2 successfully sponsored breakfast meals")
+        
+        # Employee3 sponsors lunch meals
+        lunch_result = self.sponsor_lunch_meals(employee3_id, employee3_name)
         
         if "error" in lunch_result and "bereits gesponsert" not in lunch_result.get('error', ''):
-            print(f"❌ Lunch sponsoring failed: {lunch_result['error']}")
+            print(f"❌ Lunch sponsoring by Employee3 failed: {lunch_result['error']}")
             return False
         
-        print(f"✅ Combined sponsoring completed (breakfast + lunch) by sponsor without own orders")
+        print(f"✅ Employee3 successfully sponsored lunch meals")
+        print(f"✅ Combined sponsoring completed: Employee1 has both breakfast AND lunch sponsored")
         
         # Step 5: Get Breakfast History and Verify Bug Fixes
         print(f"\n5️⃣ Getting Breakfast History for Bug Fix Verification")
