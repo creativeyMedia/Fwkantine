@@ -1688,6 +1688,10 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
                         # BUT KEEP THE EMPLOYEE IN THE STATISTICS FOR SHOPPING LIST!
                         
+                        # CRITICAL FIX: Set sponsored status fields for frontend
+                        employee_orders[employee_key]["is_sponsored"] = True
+                        employee_orders[employee_key]["sponsored_meal_type"] = order.get("sponsored_meal_type", "")
+                        
                         sponsored_meal_types = order.get("sponsored_meal_type", "")
                         if sponsored_meal_types:
                             # Handle comma-separated meal types (e.g., "breakfast,lunch")
