@@ -44,14 +44,15 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
-class DatabaseOrderUpdateVerification:
+class SponsoringAssignmentVerification:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
-        self.test1_employee_id = None
-        self.test4_employee_id = None
-        self.test1_order_id = None
-        self.test4_order_id = None
+        self.mit1_employee_id = None
+        self.mit2_employee_id = None
+        self.mit3_employee_id = None
+        self.mit4_employee_id = None
+        self.employee_orders = {}
         
     def cleanup_test_data(self) -> bool:
         """Clean up test data to create fresh scenario"""
@@ -116,7 +117,7 @@ class DatabaseOrderUpdateVerification:
             return None
     
     def create_breakfast_order_with_lunch(self, employee_id: str, name: str) -> Dict:
-        """Create breakfast order with lunch for Test1"""
+        """Create breakfast order with lunch"""
         try:
             order_data = {
                 "employee_id": employee_id,
@@ -127,7 +128,7 @@ class DatabaseOrderUpdateVerification:
                     "white_halves": 2,
                     "seeded_halves": 2,
                     "toppings": ["butter", "kaese", "schinken", "salami"],
-                    "has_lunch": True,  # MITTAG - this will be sponsored by Test4
+                    "has_lunch": True,  # MITTAG
                     "boiled_eggs": 2,
                     "has_coffee": True
                 }]
@@ -159,7 +160,7 @@ class DatabaseOrderUpdateVerification:
             return None
     
     def create_breakfast_order_no_lunch(self, employee_id: str, name: str) -> Dict:
-        """Create breakfast order without lunch for Test4"""
+        """Create breakfast order without lunch"""
         try:
             order_data = {
                 "employee_id": employee_id,
@@ -201,29 +202,69 @@ class DatabaseOrderUpdateVerification:
             print(f"❌ Error creating {name} breakfast order: {e}")
             return None
     
-    def test4_sponsors_lunch_for_test1(self, test4_employee_id: str) -> Dict:
-        """Test4 sponsors lunch for Test1 - CRITICAL DATABASE UPDATE TEST"""
+    def mit1_sponsors_breakfast_for_others(self, mit1_employee_id: str) -> Dict:
+        """Mit1 sponsors breakfast for Mit2, Mit3, Mit4"""
         try:
             today = self.get_berlin_date()
             
-            print(f"\n🔍 CRITICAL DATABASE UPDATE TEST: Test4 sponsors lunch for Test1")
-            print(f"   - Sponsor: Test4 (ID: {test4_employee_id})")
-            print(f"   - Target: All employees with lunch orders (Test1)")
+            print(f"\n🔍 CRITICAL TEST: Mit1 sponsors breakfast for others")
+            print(f"   - Sponsor: Mit1 (ID: {mit1_employee_id})")
+            print(f"   - Target: All employees with breakfast orders (Mit2, Mit3, Mit4)")
+            print(f"   - Date: {today}")
+            print(f"   - Meal Type: breakfast")
+            
+            response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
+                "department_id": DEPARTMENT_ID,
+                "date": today,
+                "meal_type": "breakfast",
+                "sponsor_employee_id": mit1_employee_id,
+                "sponsor_employee_name": "Mit1"
+            })
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Mit1 successfully sponsored breakfast meals!")
+                print(f"🔍 BREAKFAST SPONSORING RESPONSE: {json.dumps(result, indent=2)}")
+                
+                affected_employees = result.get("affected_employees", 0)
+                total_cost = result.get("total_cost", 0.0)
+                
+                print(f"🔍 BREAKFAST SPONSORING SUMMARY:")
+                print(f"   - Affected employees: {affected_employees}")
+                print(f"   - Total sponsoring cost: €{total_cost:.2f}")
+                print(f"   - Expected: Mit2, Mit3, Mit4 should be affected (3 employees)")
+                
+                return result
+            else:
+                print(f"❌ Mit1 failed to sponsor breakfast meals: {response.status_code} - {response.text}")
+                return {"error": response.text}
+                
+        except Exception as e:
+            print(f"❌ Error Mit1 sponsoring breakfast meals: {e}")
+            return {"error": str(e)}
+    
+    def mit4_sponsors_lunch_for_mit1(self, mit4_employee_id: str) -> Dict:
+        """Mit4 sponsors lunch for Mit1"""
+        try:
+            today = self.get_berlin_date()
+            
+            print(f"\n🔍 CRITICAL TEST: Mit4 sponsors lunch for Mit1")
+            print(f"   - Sponsor: Mit4 (ID: {mit4_employee_id})")
+            print(f"   - Target: All employees with lunch orders (Mit1)")
             print(f"   - Date: {today}")
             print(f"   - Meal Type: lunch")
-            print(f"   - Expected: Test1's order should be updated in database with sponsored fields")
             
             response = self.session.post(f"{API_BASE}/department-admin/sponsor-meal", json={
                 "department_id": DEPARTMENT_ID,
                 "date": today,
                 "meal_type": "lunch",
-                "sponsor_employee_id": test4_employee_id,
-                "sponsor_employee_name": "Test4"
+                "sponsor_employee_id": mit4_employee_id,
+                "sponsor_employee_name": "Mit4"
             })
             
             if response.status_code == 200:
                 result = response.json()
-                print(f"✅ Test4 successfully sponsored lunch meals!")
+                print(f"✅ Mit4 successfully sponsored lunch meals!")
                 print(f"🔍 LUNCH SPONSORING RESPONSE: {json.dumps(result, indent=2)}")
                 
                 affected_employees = result.get("affected_employees", 0)
@@ -232,24 +273,24 @@ class DatabaseOrderUpdateVerification:
                 print(f"🔍 LUNCH SPONSORING SUMMARY:")
                 print(f"   - Affected employees: {affected_employees}")
                 print(f"   - Total sponsoring cost: €{total_cost:.2f}")
-                print(f"   - Expected: Test1 should be affected (has lunch order)")
+                print(f"   - Expected: Mit1 should be affected (1 employee)")
                 
                 return result
             else:
-                print(f"❌ Test4 failed to sponsor lunch meals: {response.status_code} - {response.text}")
+                print(f"❌ Mit4 failed to sponsor lunch meals: {response.status_code} - {response.text}")
                 return {"error": response.text}
                 
         except Exception as e:
-            print(f"❌ Error Test4 sponsoring lunch meals: {e}")
+            print(f"❌ Error Mit4 sponsoring lunch meals: {e}")
             return {"error": str(e)}
     
-    def verify_test1_database_update(self) -> Dict:
-        """Verify Test1's order was updated in database with sponsored fields"""
+    def verify_sponsoring_assignment_logic(self) -> Dict:
+        """Verify the corrected sponsoring assignment logic"""
         try:
-            print(f"\n🔍 VERIFYING TEST1 DATABASE UPDATE:")
-            print("=" * 60)
+            print(f"\n🔍 VERIFYING CORRECTED SPONSORING ASSIGNMENT LOGIC:")
+            print("=" * 80)
             
-            # Get Test1's data from breakfast-history endpoint
+            # Get breakfast-history data
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
@@ -259,128 +300,133 @@ class DatabaseOrderUpdateVerification:
                     today_data = data["history"][0]
                     employee_orders = today_data.get("employee_orders", {})
                     
-                    # Find Test1 in the data
-                    test1_data = None
-                    for emp_name, emp_data in employee_orders.items():
-                        if "Test1" in emp_name:
-                            test1_data = emp_data
-                            break
+                    print(f"✅ Found {len(employee_orders)} employees in breakfast-history")
                     
-                    if test1_data:
-                        print(f"✅ Found Test1 in database response")
-                        print(f"🔍 Test1 Complete Data Structure:")
-                        for key, value in test1_data.items():
-                            print(f"   - {key}: {value}")
+                    # Find each employee in the data
+                    employees_found = {}
+                    for emp_name, emp_data in employee_orders.items():
+                        if "Mit1" in emp_name:
+                            employees_found["Mit1"] = emp_data
+                        elif "Mit2" in emp_name:
+                            employees_found["Mit2"] = emp_data
+                        elif "Mit3" in emp_name:
+                            employees_found["Mit3"] = emp_data
+                        elif "Mit4" in emp_name:
+                            employees_found["Mit4"] = emp_data
+                    
+                    print(f"✅ Found employees: {list(employees_found.keys())}")
+                    
+                    # Verify sponsoring assignment for each employee
+                    verification_results = {
+                        "employees_found": len(employees_found),
+                        "mit1_correct": False,
+                        "mit2_correct": False,
+                        "mit3_correct": False,
+                        "mit4_correct": False,
+                        "all_data": employees_found
+                    }
+                    
+                    # Check Mit1 - should show sponsored_breakfast info (sponsors breakfast for others)
+                    if "Mit1" in employees_found:
+                        mit1_data = employees_found["Mit1"]
+                        sponsored_breakfast = mit1_data.get("sponsored_breakfast")
+                        sponsored_lunch = mit1_data.get("sponsored_lunch")
                         
-                        # Check critical sponsored fields
-                        verification_results = {
-                            "test1_found": True,
-                            "is_sponsored_found": "is_sponsored" in test1_data,
-                            "is_sponsored_value": test1_data.get("is_sponsored"),
-                            "sponsored_meal_type_found": "sponsored_meal_type" in test1_data,
-                            "sponsored_meal_type_value": test1_data.get("sponsored_meal_type"),
-                            "sponsored_message_found": "sponsored_message" in test1_data,
-                            "sponsored_message_value": test1_data.get("sponsored_message"),
-                            "total_amount": test1_data.get("total_amount", 0.0),
-                            "all_data": test1_data
-                        }
+                        print(f"\n🔍 Mit1 Sponsoring Assignment:")
+                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
+                        print(f"   - sponsored_lunch: {sponsored_lunch}")
                         
-                        print(f"\n🔍 CRITICAL SPONSORED FIELDS VERIFICATION:")
-                        print(f"   ✅ is_sponsored found: {verification_results['is_sponsored_found']}")
-                        if verification_results['is_sponsored_found']:
-                            print(f"   ✅ is_sponsored value: {verification_results['is_sponsored_value']}")
+                        # Mit1 should have sponsored_breakfast info (count: 3, amount: X.XX)
+                        mit1_breakfast_correct = (
+                            sponsored_breakfast is not None and 
+                            isinstance(sponsored_breakfast, dict) and
+                            sponsored_breakfast.get("count", 0) == 3 and
+                            sponsored_breakfast.get("amount", 0) > 0
+                        )
                         
-                        print(f"   ✅ sponsored_meal_type found: {verification_results['sponsored_meal_type_found']}")
-                        if verification_results['sponsored_meal_type_found']:
-                            print(f"   ✅ sponsored_meal_type value: {verification_results['sponsored_meal_type_value']}")
+                        # Mit1 should NOT have sponsored_lunch info (should be null)
+                        mit1_lunch_correct = sponsored_lunch is None
                         
-                        print(f"   ✅ sponsored_message found: {verification_results['sponsored_message_found']}")
-                        if verification_results['sponsored_message_found']:
-                            print(f"   ✅ sponsored_message value: {verification_results['sponsored_message_value']}")
+                        verification_results["mit1_correct"] = mit1_breakfast_correct and mit1_lunch_correct
                         
-                        print(f"   💰 total_amount: €{verification_results['total_amount']:.2f}")
+                        print(f"   ✅ Mit1 breakfast sponsoring correct: {mit1_breakfast_correct}")
+                        print(f"   ✅ Mit1 lunch sponsoring correct (null): {mit1_lunch_correct}")
+                    
+                    # Check Mit2 - should show NO sponsoring info (sponsored by others, doesn't sponsor)
+                    if "Mit2" in employees_found:
+                        mit2_data = employees_found["Mit2"]
+                        sponsored_breakfast = mit2_data.get("sponsored_breakfast")
+                        sponsored_lunch = mit2_data.get("sponsored_lunch")
                         
-                        # Verify expected values
-                        expected_is_sponsored = verification_results['is_sponsored_value'] == True
-                        expected_meal_type = "lunch" in str(verification_results['sponsored_meal_type_value']).lower() if verification_results['sponsored_meal_type_value'] else False
-                        expected_coffee_only_cost = 0.5 <= verification_results['total_amount'] <= 3.0  # Coffee should be around €1-2
+                        print(f"\n🔍 Mit2 Sponsoring Assignment:")
+                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
+                        print(f"   - sponsored_lunch: {sponsored_lunch}")
                         
-                        print(f"\n🎯 EXPECTED VALUES VERIFICATION:")
-                        print(f"   ✅ is_sponsored == True: {expected_is_sponsored}")
-                        print(f"   ✅ sponsored_meal_type contains 'lunch': {expected_meal_type}")
-                        print(f"   ✅ total_amount is coffee-only cost (€0.5-3.0): {expected_coffee_only_cost}")
+                        # Mit2 should have NO sponsoring info (both null)
+                        verification_results["mit2_correct"] = (
+                            sponsored_breakfast is None and sponsored_lunch is None
+                        )
                         
-                        verification_results.update({
-                            "expected_is_sponsored": expected_is_sponsored,
-                            "expected_meal_type": expected_meal_type,
-                            "expected_coffee_only_cost": expected_coffee_only_cost,
-                            "database_update_working": expected_is_sponsored and expected_meal_type
-                        })
+                        print(f"   ✅ Mit2 no sponsoring info (correct): {verification_results['mit2_correct']}")
+                    
+                    # Check Mit3 - should show NO sponsoring info (sponsored by others, doesn't sponsor)
+                    if "Mit3" in employees_found:
+                        mit3_data = employees_found["Mit3"]
+                        sponsored_breakfast = mit3_data.get("sponsored_breakfast")
+                        sponsored_lunch = mit3_data.get("sponsored_lunch")
                         
-                        return verification_results
-                    else:
-                        print(f"❌ Test1 not found in database response")
-                        return {"error": "Test1 not found in database response", "test1_found": False}
+                        print(f"\n🔍 Mit3 Sponsoring Assignment:")
+                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
+                        print(f"   - sponsored_lunch: {sponsored_lunch}")
+                        
+                        # Mit3 should have NO sponsoring info (both null)
+                        verification_results["mit3_correct"] = (
+                            sponsored_breakfast is None and sponsored_lunch is None
+                        )
+                        
+                        print(f"   ✅ Mit3 no sponsoring info (correct): {verification_results['mit3_correct']}")
+                    
+                    # Check Mit4 - should show sponsored_lunch info (sponsors lunch for Mit1)
+                    if "Mit4" in employees_found:
+                        mit4_data = employees_found["Mit4"]
+                        sponsored_breakfast = mit4_data.get("sponsored_breakfast")
+                        sponsored_lunch = mit4_data.get("sponsored_lunch")
+                        
+                        print(f"\n🔍 Mit4 Sponsoring Assignment:")
+                        print(f"   - sponsored_breakfast: {sponsored_breakfast}")
+                        print(f"   - sponsored_lunch: {sponsored_lunch}")
+                        
+                        # Mit4 should have sponsored_lunch info (count: 1, amount: X.XX)
+                        mit4_lunch_correct = (
+                            sponsored_lunch is not None and 
+                            isinstance(sponsored_lunch, dict) and
+                            sponsored_lunch.get("count", 0) == 1 and
+                            sponsored_lunch.get("amount", 0) > 0
+                        )
+                        
+                        # Mit4 should NOT have sponsored_breakfast info (should be null)
+                        mit4_breakfast_correct = sponsored_breakfast is None
+                        
+                        verification_results["mit4_correct"] = mit4_lunch_correct and mit4_breakfast_correct
+                        
+                        print(f"   ✅ Mit4 lunch sponsoring correct: {mit4_lunch_correct}")
+                        print(f"   ✅ Mit4 breakfast sponsoring correct (null): {mit4_breakfast_correct}")
+                    
+                    return verification_results
                 else:
-                    print(f"❌ No history data found in database response")
-                    return {"error": "No history data found", "test1_found": False}
+                    print(f"❌ No history data found in breakfast-history response")
+                    return {"error": "No history data found", "employees_found": 0}
             else:
                 print(f"❌ Failed to get breakfast history: {response.status_code} - {response.text}")
-                return {"error": f"API call failed: {response.text}", "test1_found": False}
+                return {"error": f"API call failed: {response.text}", "employees_found": 0}
                 
         except Exception as e:
-            print(f"❌ Error verifying Test1 database update: {e}")
-            return {"error": str(e), "test1_found": False}
+            print(f"❌ Error verifying sponsoring assignment logic: {e}")
+            return {"error": str(e), "employees_found": 0}
     
-    def verify_individual_profile_endpoint(self, test1_employee_id: str) -> Dict:
-        """Verify individual profile endpoint returns sponsored fields"""
-        try:
-            print(f"\n🔍 VERIFYING INDIVIDUAL PROFILE ENDPOINT:")
-            print("=" * 60)
-            
-            # Call individual profile endpoint
-            response = self.session.get(f"{API_BASE}/employees/{test1_employee_id}/profile")
-            
-            if response.status_code == 200:
-                profile_data = response.json()
-                
-                print(f"✅ Individual profile endpoint accessible")
-                print(f"🔍 Test1 Individual Profile Data:")
-                print(json.dumps(profile_data, indent=2))
-                
-                # Check if sponsored fields are present
-                profile_verification = {
-                    "profile_accessible": True,
-                    "has_sponsored_fields": False,
-                    "profile_data": profile_data
-                }
-                
-                # Look for sponsored-related fields in the profile
-                sponsored_fields = ["is_sponsored", "sponsored_meal_type", "sponsored_message"]
-                found_fields = []
-                
-                for field in sponsored_fields:
-                    if field in profile_data:
-                        found_fields.append(field)
-                
-                if found_fields:
-                    profile_verification["has_sponsored_fields"] = True
-                    print(f"✅ Found sponsored fields in profile: {found_fields}")
-                else:
-                    print(f"❌ No sponsored fields found in individual profile")
-                
-                return profile_verification
-            else:
-                print(f"❌ Individual profile endpoint failed: {response.status_code} - {response.text}")
-                return {"error": f"Profile endpoint failed: {response.text}", "profile_accessible": False}
-                
-        except Exception as e:
-            print(f"❌ Error verifying individual profile endpoint: {e}")
-            return {"error": str(e), "profile_accessible": False}
-    
-    def run_database_order_update_verification(self):
-        """Run the database order update verification as per review request"""
-        print("🔍 DATENBANK ORDER-UPDATE VERIFIKATION: Überprüfe ob Sponsoring-Updates in DB geschrieben werden")
+    def run_sponsoring_assignment_verification(self):
+        """Run the sponsoring assignment verification as per review request"""
+        print("🔍 FINAL VERIFICATION: Test corrected sponsoring assignment logic")
         print("=" * 100)
         
         # Step 1: Admin Authentication
@@ -393,77 +439,96 @@ class DatabaseOrderUpdateVerification:
         print("\n1️⃣.5 Attempting to Clean Up Existing Data")
         self.cleanup_test_data()
         
-        # Step 2: Create simple test scenario
-        print(f"\n2️⃣ Creating Simple Test Scenario: Test1 (with lunch) + Test4 (no lunch)")
+        # Step 2: Create exact scenario - Mit1, Mit2, Mit3, Mit4
+        print(f"\n2️⃣ Creating Exact Scenario: Mit1, Mit2, Mit3, Mit4 with breakfast orders")
         
-        # Create Test1 employee
-        self.test1_employee_id = self.create_test_employee("Test1")
-        if not self.test1_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create Test1")
+        # Create all employees
+        self.mit1_employee_id = self.create_test_employee("Mit1")
+        if not self.mit1_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Mit1")
             return False
         
-        # Create Test4 employee
-        self.test4_employee_id = self.create_test_employee("Test4")
-        if not self.test4_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create Test4")
+        self.mit2_employee_id = self.create_test_employee("Mit2")
+        if not self.mit2_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Mit2")
+            return False
+        
+        self.mit3_employee_id = self.create_test_employee("Mit3")
+        if not self.mit3_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Mit3")
+            return False
+        
+        self.mit4_employee_id = self.create_test_employee("Mit4")
+        if not self.mit4_employee_id:
+            print("❌ CRITICAL FAILURE: Cannot create Mit4")
             return False
         
         # Step 3: Create breakfast orders
         print(f"\n3️⃣ Creating Breakfast Orders")
         
-        # Test1: breakfast order with lunch
-        print(f"\n📋 Creating Test1 order (with lunch):")
-        test1_order = self.create_breakfast_order_with_lunch(self.test1_employee_id, "Test1")
-        if not test1_order:
-            print("❌ CRITICAL FAILURE: Cannot create Test1's order")
+        # Mit1: breakfast order with lunch (will be sponsored by Mit4)
+        print(f"\n📋 Creating Mit1 order (with lunch):")
+        mit1_order = self.create_breakfast_order_with_lunch(self.mit1_employee_id, "Mit1")
+        if not mit1_order:
+            print("❌ CRITICAL FAILURE: Cannot create Mit1's order")
             return False
-        self.test1_order_id = test1_order["order_id"]
         
-        # Test4: breakfast order without lunch
-        print(f"\n📋 Creating Test4 order (no lunch):")
-        test4_order = self.create_breakfast_order_no_lunch(self.test4_employee_id, "Test4")
-        if not test4_order:
-            print("❌ CRITICAL FAILURE: Cannot create Test4's order")
+        # Mit2: breakfast order without lunch (will be sponsored by Mit1)
+        print(f"\n📋 Creating Mit2 order (no lunch):")
+        mit2_order = self.create_breakfast_order_no_lunch(self.mit2_employee_id, "Mit2")
+        if not mit2_order:
+            print("❌ CRITICAL FAILURE: Cannot create Mit2's order")
             return False
-        self.test4_order_id = test4_order["order_id"]
         
-        # Step 4: Execute critical sponsoring scenario
-        print(f"\n4️⃣ Execute Critical Sponsoring Scenario")
+        # Mit3: breakfast order without lunch (will be sponsored by Mit1)
+        print(f"\n📋 Creating Mit3 order (no lunch):")
+        mit3_order = self.create_breakfast_order_no_lunch(self.mit3_employee_id, "Mit3")
+        if not mit3_order:
+            print("❌ CRITICAL FAILURE: Cannot create Mit3's order")
+            return False
         
-        # Test4 sponsors lunch for Test1
-        lunch_result = self.test4_sponsors_lunch_for_test1(self.test4_employee_id)
+        # Mit4: breakfast order without lunch (will sponsor lunch for Mit1)
+        print(f"\n📋 Creating Mit4 order (no lunch):")
+        mit4_order = self.create_breakfast_order_no_lunch(self.mit4_employee_id, "Mit4")
+        if not mit4_order:
+            print("❌ CRITICAL FAILURE: Cannot create Mit4's order")
+            return False
+        
+        # Step 4: Execute sponsoring scenarios
+        print(f"\n4️⃣ Execute Sponsoring Scenarios")
+        
+        # Mit1 sponsors breakfast for Mit2, Mit3, Mit4
+        print(f"\n🔍 SCENARIO 1: Mit1 sponsors breakfast for others")
+        breakfast_result = self.mit1_sponsors_breakfast_for_others(self.mit1_employee_id)
+        if "error" in breakfast_result:
+            print(f"❌ Mit1 breakfast sponsoring failed: {breakfast_result['error']}")
+            return False
+        
+        # Mit4 sponsors lunch for Mit1
+        print(f"\n🔍 SCENARIO 2: Mit4 sponsors lunch for Mit1")
+        lunch_result = self.mit4_sponsors_lunch_for_mit1(self.mit4_employee_id)
         if "error" in lunch_result:
-            print(f"❌ Test4 lunch sponsoring failed: {lunch_result['error']}")
+            print(f"❌ Mit4 lunch sponsoring failed: {lunch_result['error']}")
             return False
         
-        # Step 5: Verify database update
-        print(f"\n5️⃣ Verify Database Update")
+        # Step 5: Verify corrected sponsoring assignment logic
+        print(f"\n5️⃣ Verify Corrected Sponsoring Assignment Logic")
         
-        database_verification = self.verify_test1_database_update()
-        if "error" in database_verification:
-            print(f"❌ Database verification failed: {database_verification['error']}")
+        assignment_verification = self.verify_sponsoring_assignment_logic()
+        if "error" in assignment_verification:
+            print(f"❌ Sponsoring assignment verification failed: {assignment_verification['error']}")
             return False
-        
-        # Step 6: Verify individual profile endpoint
-        print(f"\n6️⃣ Verify Individual Profile Endpoint")
-        
-        profile_verification = self.verify_individual_profile_endpoint(self.test1_employee_id)
-        if "error" in profile_verification:
-            print(f"⚠️ Profile verification failed: {profile_verification['error']}")
-            # Don't fail the test for this, just note it
         
         # Final Results
-        print(f"\n🏁 FINAL DATABASE VERIFICATION RESULTS:")
+        print(f"\n🏁 FINAL SPONSORING ASSIGNMENT VERIFICATION RESULTS:")
         print("=" * 100)
         
         success_criteria = [
-            (database_verification.get("test1_found", False), "Test1 found in database response"),
-            (database_verification.get("is_sponsored_found", False), "is_sponsored field found in database"),
-            (database_verification.get("expected_is_sponsored", False), "is_sponsored value is True"),
-            (database_verification.get("sponsored_meal_type_found", False), "sponsored_meal_type field found in database"),
-            (database_verification.get("expected_meal_type", False), "sponsored_meal_type contains 'lunch'"),
-            (database_verification.get("expected_coffee_only_cost", False), "total_amount shows coffee-only cost"),
-            (database_verification.get("database_update_working", False), "Database update working correctly")
+            (assignment_verification.get("employees_found", 0) == 4, "All 4 employees found in breakfast-history"),
+            (assignment_verification.get("mit1_correct", False), "Mit1 shows correct sponsoring info (sponsored_breakfast: count=3)"),
+            (assignment_verification.get("mit2_correct", False), "Mit2 shows no sponsoring info (both null)"),
+            (assignment_verification.get("mit3_correct", False), "Mit3 shows no sponsoring info (both null)"),
+            (assignment_verification.get("mit4_correct", False), "Mit4 shows correct sponsoring info (sponsored_lunch: count=1)")
         ]
         
         passed_tests = sum(1 for test, _ in success_criteria if test)
@@ -474,47 +539,48 @@ class DatabaseOrderUpdateVerification:
             print(f"{status} {description}")
         
         success_rate = (passed_tests / total_tests) * 100
-        print(f"\n📊 Database Verification Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+        print(f"\n📊 Sponsoring Assignment Verification Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
         # Print summary for main agent
         print(f"\n🔍 SUMMARY FOR MAIN AGENT:")
-        print(f"Test1 Employee ID: {self.test1_employee_id}")
-        print(f"Test4 Employee ID: {self.test4_employee_id}")
-        print(f"Test1 Order ID: {self.test1_order_id}")
-        print(f"Test4 Order ID: {self.test4_order_id}")
+        print(f"Mit1 Employee ID: {self.mit1_employee_id}")
+        print(f"Mit2 Employee ID: {self.mit2_employee_id}")
+        print(f"Mit3 Employee ID: {self.mit3_employee_id}")
+        print(f"Mit4 Employee ID: {self.mit4_employee_id}")
         
-        if database_verification.get("database_update_working", False):
-            print(f"\n✅ DATABASE ORDER UPDATE VERIFICATION: WORKING!")
-            print(f"✅ Test1's order is correctly updated in database with sponsored fields")
-            print(f"✅ is_sponsored: {database_verification.get('is_sponsored_value')}")
-            print(f"✅ sponsored_meal_type: {database_verification.get('sponsored_meal_type_value')}")
-            print(f"✅ total_amount: €{database_verification.get('total_amount', 0):.2f} (coffee-only cost)")
+        all_correct = all(test for test, _ in success_criteria)
+        
+        if all_correct:
+            print(f"\n✅ SPONSORING ASSIGNMENT LOGIC: WORKING CORRECTLY!")
+            print(f"✅ Mit1 correctly shows sponsored_breakfast info (count: 3)")
+            print(f"✅ Mit4 correctly shows sponsored_lunch info (count: 1)")
+            print(f"✅ Mit2, Mit3 correctly show no sponsoring info (both null)")
+            print(f"✅ No cross-contamination between employees detected")
         else:
-            print(f"\n❌ DATABASE ORDER UPDATE VERIFICATION: FAILED!")
-            print(f"❌ Test1's order is NOT correctly updated in database")
-            if not database_verification.get("is_sponsored_found", False):
-                print(f"❌ Missing: is_sponsored field")
-            if not database_verification.get("sponsored_meal_type_found", False):
-                print(f"❌ Missing: sponsored_meal_type field")
-            if not database_verification.get("expected_is_sponsored", False):
-                print(f"❌ Wrong: is_sponsored value should be True")
-            if not database_verification.get("expected_meal_type", False):
-                print(f"❌ Wrong: sponsored_meal_type should contain 'lunch'")
+            print(f"\n❌ SPONSORING ASSIGNMENT LOGIC: CRITICAL ISSUES DETECTED!")
+            if not assignment_verification.get("mit1_correct", False):
+                print(f"❌ Mit1 does NOT show correct sponsored_breakfast info")
+            if not assignment_verification.get("mit4_correct", False):
+                print(f"❌ Mit4 does NOT show correct sponsored_lunch info")
+            if not assignment_verification.get("mit2_correct", False):
+                print(f"❌ Mit2 shows incorrect sponsoring info (should be null)")
+            if not assignment_verification.get("mit3_correct", False):
+                print(f"❌ Mit3 shows incorrect sponsoring info (should be null)")
         
-        return database_verification.get("database_update_working", False)
+        return all_correct
 
 def main():
     """Main test execution"""
-    test = DatabaseOrderUpdateVerification()
+    test = SponsoringAssignmentVerification()
     
     try:
-        success = test.run_database_order_update_verification()
+        success = test.run_sponsoring_assignment_verification()
         
         if success:
-            print(f"\n✅ DATABASE ORDER UPDATE VERIFICATION: COMPLETED SUCCESSFULLY")
+            print(f"\n✅ SPONSORING ASSIGNMENT VERIFICATION: COMPLETED SUCCESSFULLY")
             exit(0)
         else:
-            print(f"\n❌ DATABASE ORDER UPDATE VERIFICATION: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ SPONSORING ASSIGNMENT VERIFICATION: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
