@@ -5761,7 +5761,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {Object.entries(day.employee_orders).map(([employeeName, employeeData]) => (
                             <div key={employeeName} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                              <h7 className="font-medium text-gray-800">{employeeName}</h7>
+                              <h6 className="font-medium text-gray-800">{employeeName}</h6>
                               <div className="mt-2 space-y-1 text-sm text-gray-600">
                                 <div>Helle Hälften: {employeeData.white_halves}</div>
                                 <div>Körner Hälften: {employeeData.seeded_halves}</div>
