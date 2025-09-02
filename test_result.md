@@ -174,6 +174,18 @@ backend:
           agent: "testing"
           comment: "✅ BUG 4 VERIFIED WORKING! Comprehensive testing completed with 100% success rate (7/7 tests passed): ✅ 1) Lunch Sponsoring Calculation - Successfully sponsored 7x Mittagessen lunch items for €14.90. Verification: sponsored employee retains breakfast+coffee costs (~€4.50), only lunch was sponsored. Sponsor pays for sponsored lunch items. Department-specific pricing correctly applied. ✅ 2) Individual Employee Balance Calculations - Updated individual employee calculation logic in breakfast-history endpoint properly handles sponsored meals. Calculates remaining cost correctly for both breakfast and lunch sponsoring. ✅ 3) Breakfast Sponsoring Balance Logic - For breakfast sponsoring: only rolls+eggs are sponsored, coffee+lunch costs remain with employee. Sponsored employees show correct remaining balances. ✅ 4) Lunch Sponsoring Balance Logic - For lunch sponsoring: only lunch costs are sponsored, breakfast+coffee costs remain with employee. Mathematical verification passed. ✅ 5) Sponsored Employee Refunds - Sponsored employees get proper refunds (balance adjustments) for sponsored meal components only. ✅ 6) Sponsor Additional Costs - Sponsor pays correct additional costs for sponsored employees without double-charging. ✅ 7) Balance Conservation - Total balance conservation maintained (sponsor pays more, sponsored pays less, total debt unchanged). CRITICAL VERIFICATION: Individual employee calculation logic in breakfast-history endpoint now properly handles sponsored meals for both breakfast and lunch sponsoring scenarios. The sponsored employee balance calculation fix is FULLY FUNCTIONAL."
 
+  - task: "Critical Rounding Error and Sponsoring Calculation Bug - €24.30 vs €24.40 Discrepancy"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL BUG CONFIRMED: Comprehensive testing of the exact review request scenario (4 employees with 1.10€ Brötchen+Eier + 1.50€ Kaffee + 5.00€ Mittag = 7.60€ each, Mit1 sponsors breakfast for €4.40, Mit4 sponsors lunch for €20.00) successfully reproduced the reported €0.10 discrepancy. Expected daily total: €24.40, Actual: €24.30. ROOT CAUSE: Multiple calculation errors in breakfast-history endpoint: 1) Individual employee totals incorrect after sponsoring (Mit1 shows €5.90 instead of €1.50, Mit4 shows €21.50 instead of €20.90), 2) Sponsoring amounts incorrect (breakfast sponsoring shows €3.30 instead of €4.40, lunch sponsoring shows €15.00 instead of €20.00), 3) Final daily total has €0.10 precision error. While sponsoring functionality works (orders marked correctly), display calculations have rounding/precision issues affecting financial accuracy. URGENT FIX NEEDED: Correct calculation logic in breakfast-history endpoint for sponsored meal totals and individual employee balances."
+
   - task: "Coffee Cost Missing from Individual Employee Totals Bug"
     implemented: false
     working: true
