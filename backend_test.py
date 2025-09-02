@@ -378,17 +378,48 @@ class RoundingErrorSponsoringDebugTest:
                     manual_sum = 0.0
                     individual_totals = {}
                     
-                    print(f"\n🔍 INDIVIDUAL EMPLOYEE ANALYSIS:")
+                    print(f"\n🔍 DETAILED INDIVIDUAL ANALYSIS:")
+                    expected_individual_breakdown = {
+                        "Mit1": 1.50,  # Coffee only (breakfast sponsored by self, lunch sponsored by Mit4)
+                        "Mit2": 1.50,  # Coffee only (breakfast sponsored by Mit1, lunch sponsored by Mit4)  
+                        "Mit3": 1.50,  # Coffee only (breakfast sponsored by Mit1, lunch sponsored by Mit4)
+                        "Mit4": 1.50 + 4.40 + 15.00  # Coffee + breakfast sponsoring cost + lunch sponsoring cost
+                    }
+                    
+                    total_expected_individual = sum(expected_individual_breakdown.values())
+                    
+                    print(f"  Expected individual breakdown:")
+                    for name, expected in expected_individual_breakdown.items():
+                        print(f"    - {name}: €{expected:.2f}")
+                    print(f"  Expected sum of individuals: €{total_expected_individual:.2f}")
+                    
+                    print(f"\n🔍 ACTUAL vs EXPECTED INDIVIDUAL COMPARISON:")
                     for emp_key, emp_data in employee_orders.items():
-                        total_amount = emp_data.get('total_amount', 0.0)
-                        individual_totals[emp_key] = total_amount
-                        manual_sum += total_amount
+                        actual_total = emp_data.get('total_amount', 0.0)
+                        # Extract employee name from key (e.g., "Mit1 (ID: 97cbea01)" -> "Mit1")
+                        emp_name = emp_key.split(' ')[0]
+                        expected_total = expected_individual_breakdown.get(emp_name, 0.0)
+                        difference = actual_total - expected_total
                         
-                        print(f"  - {emp_key}: €{total_amount:.2f}")
-                        print(f"    - Is Sponsored: {emp_data.get('is_sponsored', False)}")
-                        print(f"    - Sponsored Meal Type: {emp_data.get('sponsored_meal_type', None)}")
-                        print(f"    - Sponsored Breakfast: {emp_data.get('sponsored_breakfast', None)}")
-                        print(f"    - Sponsored Lunch: {emp_data.get('sponsored_lunch', None)}")
+                        print(f"  - {emp_key}:")
+                        print(f"    - Actual: €{actual_total:.2f}")
+                        print(f"    - Expected: €{expected_total:.2f}")
+                        print(f"    - Difference: €{difference:.2f}")
+                        
+                        if abs(difference) > 0.01:
+                            print(f"    - ⚠️ SIGNIFICANT DIFFERENCE DETECTED!")
+                    
+                    # Check sponsoring amounts
+                    print(f"\n🔍 SPONSORING AMOUNTS VERIFICATION:")
+                    for emp_key, emp_data in employee_orders.items():
+                        sponsored_breakfast = emp_data.get('sponsored_breakfast', None)
+                        sponsored_lunch = emp_data.get('sponsored_lunch', None)
+                        
+                        if sponsored_breakfast:
+                            print(f"  - {emp_key} sponsored breakfast: €{sponsored_breakfast.get('amount', 0.0):.2f} for {sponsored_breakfast.get('count', 0)} employees")
+                        
+                        if sponsored_lunch:
+                            print(f"  - {emp_key} sponsored lunch: €{sponsored_lunch.get('amount', 0.0):.2f} for {sponsored_lunch.get('count', 0)} employees")
                     
                     print(f"\n🧮 CALCULATION VERIFICATION:")
                     print(f"  - Manual sum of individuals: €{manual_sum:.2f}")
