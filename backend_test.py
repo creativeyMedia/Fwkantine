@@ -1,30 +1,35 @@
 #!/usr/bin/env python3
 """
-🔍 DEBUG SPONSORED ORDER UPDATES: Test order updates with debug logging
+🔍 SYSTEMATISCHE FRONTEND-DATENSTRUKTUR ANALYSE: Exakte User-Szenario
 
-KRITISCHER DEBUG TEST:
+EXAKTE USER-SZENARIO NACHSTELLUNG:
 
-1. **Create simple sponsoring scenario:**
-   - Create Test1: breakfast order with Mittag
-   - Create Test4: breakfast order
-   - Test4 sponsors lunch for Test1
+1. **Create exact scenario:**
+   - Test1, Test2, Test3, Test4 mit Frühstück-Bestellungen
+   - Test1 sponsert Frühstück für Test2, Test3, Test4
+   - Test4 sponsert Mittag für Test1
 
-2. **Execute sponsoring with debug logging:**
-   - Test4 sponsors lunch for Test1
-   - Watch debug logs to see:
-     - How many orders are being updated
-     - What order IDs are being targeted
-     - Whether updates are successful (matched_count, modified_count)
+2. **Analysiere exakte Datenstruktur für alle:**
+   - Test1: Sollte haben eigene Order + gesponsert für andere + wird für Mittag gesponsert
+   - Test2: Sollte Frühstück gesponsert bekommen  
+   - Test3: Sollte Frühstück gesponsert bekommen
+   - Test4: Sollte Frühstück gesponsert bekommen + sponsert Mittag für andere
 
-3. **Verify after sponsoring:**
-   - Get Test1's individual profile
-   - Check if Test1 now has is_sponsored=True, sponsored_meal_type="lunch"
-   - Check if update actually worked
+3. **KRITISCHE FELD-ANALYSE:**
+   - Für jede Person: `is_sponsored`, `sponsored_meal_type`, `sponsor_message`, `sponsored_message`
+   - Test1: Sollte `sponsored_meal_type="lunch"` haben
+   - Test4: Sollte `sponsored_meal_type="breakfast"` haben UND `sponsor_message` für Mittag-Sponsoring
+   - Test2,3: Sollten `sponsored_meal_type="breakfast"` haben
+
+4. **INDIVIDUAL PROFILE CHECKS:**
+   - Get individual profiles für Test1 und Test4
+   - Prüfe welche Messages und Felder das Frontend bekommt
+   - Identifiziere warum Durchstreichung nicht funktioniert
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Debug-Logs sollen zeigen ob und warum Order-Updates fehlschlagen!
+ZIEL: Verstehe exakt welche Daten das Frontend bekommt und warum die Durchstreichungslogik versagt!
 """
 
 import requests
