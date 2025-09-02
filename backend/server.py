@@ -1325,6 +1325,9 @@ async def create_order(order_data: OrderCreate):
         for drink_id, quantity in order_data.drink_items.items():
             drink_price = drink_prices.get(drink_id, 0.0)
             total_price += drink_price * quantity
+        
+        # Store drinks orders as negative amounts (representing employee debt)
+        total_price = -total_price
             
     elif order_data.order_type == OrderType.SWEETS and order_data.sweet_items:
         sweets_menu = await db.menu_sweets.find({"department_id": order_data.department_id}).to_list(100)
@@ -1333,6 +1336,9 @@ async def create_order(order_data: OrderCreate):
         for sweet_id, quantity in order_data.sweet_items.items():
             sweet_price = sweet_prices.get(sweet_id, 0.0)
             total_price += sweet_price * quantity
+        
+        # Store sweets orders as negative amounts (representing employee debt)
+        total_price = -total_price
     
     # Create order
     order_has_lunch = False
