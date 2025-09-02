@@ -567,6 +567,20 @@ class FrontendDisplayBugFixTest:
         
         print(f"✅ Found {len(employee_orders)} employees in today's breakfast history")
         
+        # Debug: Print the actual data structure
+        print(f"\n🔍 DEBUG: Employee Orders Structure")
+        for emp_name, emp_data in employee_orders.items():
+            print(f"Employee: {emp_name}")
+            print(f"  - total_amount: {emp_data.get('total_amount', 'N/A')}")
+            print(f"  - sponsored_breakfast: {emp_data.get('sponsored_breakfast', 'N/A')}")
+            print(f"  - sponsored_lunch: {emp_data.get('sponsored_lunch', 'N/A')}")
+            print(f"  - has_coffee: {emp_data.get('has_coffee', 'N/A')}")
+            print(f"  - white_halves: {emp_data.get('white_halves', 'N/A')}")
+            print(f"  - seeded_halves: {emp_data.get('seeded_halves', 'N/A')}")
+            print(f"  - boiled_eggs: {emp_data.get('boiled_eggs', 'N/A')}")
+            print(f"  - has_lunch: {emp_data.get('has_lunch', 'N/A')}")
+            print("")
+        
         # Step 7: CRITICAL Test - Individual Employee Profile (Employee1)
         print(f"\n7️⃣ CRITICAL Test - Individual Employee Profile for Employee1")
         employee1_results = self.verify_employee1_combined_sponsoring(employee_orders, employee1_name)
