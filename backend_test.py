@@ -124,8 +124,7 @@ class FinalDebugRegularOrderTest:
             print("=" * 60)
             
             # Set coffee price to 1.50€
-            response = self.session.put(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                      json={"price": 1.50})
+            response = self.session.put(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price?price=1.50")
             
             if response.status_code == 200:
                 print(f"✅ Coffee price set to €1.50")
