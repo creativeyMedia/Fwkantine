@@ -1,37 +1,31 @@
 #!/usr/bin/env python3
 """
-🔍 SPONSORING-STATUS DEBUG: Prüfe ob Orders fälschlicherweise als gesponsert markiert sind
+🔍 FINAL DEBUG: Test mit Debug-Logging für Regular Order total_price
 
-KRITISCHE SPONSORING-STATUS ANALYSE:
+FINALER DEBUG TEST:
 
-1. **Current Scenario Analysis:**
-   - Mit1, Mit2, Mit3, Mit4 haben Orders erstellt
-   - KEINE Sponsoring-Aktionen ausgeführt
-   - Alle Orders sollten is_sponsored=False haben
+1. **Create simple scenario:**
+   - Create Mit1 mit standard order (expected €7.60)
+   - NO sponsoring actions
 
-2. **DIRECT DATABASE ORDER CHECK:**
-   - Hole alle Orders für heute
-   - Prüfe für jede Order: is_sponsored, is_sponsor_order, sponsored_meal_type
-   - CRITICAL: Alle sollten is_sponsored=False sein (keine Sponsoring-Aktionen)
+2. **DEBUG REGULAR ORDER CALCULATION:**
+   - Watch debug logs for regular order calculation
+   - Should show: total_price=7.60, order_amount=7.60
+   - Verify that regular orders path is taken
 
-3. **INDIVIDUAL ORDER PRICE VERIFICATION:**
-   - Prüfe total_price für jede Order direkt aus Database
-   - Mit1,2,3 sollten haben: total_price=7.60
-   - Mit4 sollte haben: total_price=8.20
+3. **BREAKFAST-HISTORY VERIFICATION:**
+   - Call breakfast-history endpoint
+   - Should show Mit1 with total_amount=7.60 (not 6.10)
 
-4. **BREAKFAST-HISTORY LOGIC TRACE:**
-   - Prüfe welcher Code-Pfad für jede Order genommen wird
-   - Sollten alle in "Regular orders - use full cost" gehen
-   - Nicht in sponsored oder sponsor_order Pfad
-
-5. **COFFEE PRICE VERIFICATION:**
-   - Prüfe coffee_price in Department-Settings
-   - Sollte 1.50€ sein pro User's Angabe
+4. **IDENTIFY EXACT BUG:**
+   - If debug shows total_price=7.60 but total_amount=6.10
+   - Then there's a calculation error in the logic
+   - If total_price is already 6.10, then the order creation is wrong
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Identifiziere ob Orders fälschlicherweise als gesponsert behandelt werden!
+ZIEL: Final debug to identify exactly where the €1.50 coffee cost disappears!
 """
 
 import requests
