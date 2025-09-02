@@ -176,9 +176,9 @@ backend:
 
   - task: "Critical Rounding Error and Sponsoring Calculation Bug - €24.30 vs €24.40 Discrepancy"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "critical"
     needs_retesting: false
     status_history:
