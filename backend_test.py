@@ -831,10 +831,10 @@ def main():
         success = test.run_comprehensive_test()
         
         if success:
-            print(f"\n✅ FRONTEND DISPLAY BUG FIXES: VERIFIED WORKING")
+            print(f"\n✅ COMBINED SPONSORING DISPLAY FIXES: VERIFIED WORKING")
             exit(0)
         else:
-            print(f"\n❌ FRONTEND DISPLAY BUG FIXES: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ COMBINED SPONSORING DISPLAY FIXES: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
