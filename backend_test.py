@@ -1,28 +1,34 @@
 #!/usr/bin/env python3
 """
-🔍 FINAL VERIFICATION: Test corrected sponsoring assignment logic
+🔍 FINAL CORRECTED APPROACH: Test simplified sponsor order lookup
 
-KRITISCHE VERIFIKATION DER KORRIGIERTEN LOGIK:
+KRITISCHER TEST MIT VEREINFACHTEM ANSATZ:
 
-1. **Create exact scenario again:**
-   - Mit1, Mit2, Mit3, Mit4 mit Frühstück-Bestellungen
-   - Mit1 sponsert Frühstück für andere
-   - Mit4 sponsert Mittag für Mit1
+1. **Create exact User scenario:**
+   - Mit1, Mit2, Mit3, Mit4 mit breakfast orders
+   - Mit1 sponsert Frühstück für andere (creates sponsor order for Mit1)
+   - Mit4 sponsert Mittag für Mit1 (creates sponsor order for Mit4)
 
-2. **CRITICAL VERIFICATION:**
-   - Mit1 sollte zeigen: "sponsored_breakfast: {count: 3, amount: X.XX}" 
-   - Mit4 sollte zeigen: "sponsored_lunch: {count: 1, amount: X.XX}"
-   - Mit2, Mit3 sollten zeigen: "sponsored_breakfast: null, sponsored_lunch: null"
+2. **TEST SIMPLIFIED LOGIC:**
+   - Logic now looks for is_sponsor_order=True orders belonging to each employee
+   - Mit1 should have sponsor order with breakfast sponsoring info
+   - Mit4 should have sponsor order with lunch sponsoring info
+   - Mit2, Mit3 should have no sponsor orders
 
-3. **TEST CORRECTED LOGIC:**
-   - Verify that query for "is_sponsored: True" + "sponsored_by_employee_id: employee_id" works
-   - Ensure each employee only shows their own sponsoring activities
+3. **VERIFY SPONSOR ORDER STRUCTURE:**
+   - Check what fields are actually stored in sponsor orders
+   - Verify sponsor_employee_count, sponsor_total_cost, sponsored_meal_type fields
+   - Ensure the simplified approach extracts correct data
+
+4. **FINAL VERIFICATION:**
+   - Mit1 breakfast-history should show: sponsored_breakfast: {count: 3, amount: X.XX}
+   - Mit4 breakfast-history should show: sponsored_lunch: {count: 1, amount: X.XX}
    - No cross-contamination between employees
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Final verification of corrected sponsoring assignment logic!
+ZIEL: Test the corrected simplified approach that looks for sponsor orders instead of sponsored orders!
 """
 
 import requests
