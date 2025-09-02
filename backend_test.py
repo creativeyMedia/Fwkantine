@@ -47,22 +47,13 @@ DEPARTMENT_NAME = "1. Wachabteilung"
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
-class SponsoringStatusDebugAnalysis:
+class FinalDebugRegularOrderTest:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
         self.mit1_employee_id = None
-        self.mit2_employee_id = None
-        self.mit3_employee_id = None
-        self.mit4_employee_id = None
-        self.created_orders = {}
-        self.expected_totals = {
-            "Mit1": 7.60,  # 0.50 + 0.60 + 1.50 + 5.00
-            "Mit2": 7.60,  # same as Mit1
-            "Mit3": 7.60,  # same as Mit1
-            "Mit4": 8.20   # 1.00 + 0.60 + 1.50 + 5.00
-        }
-        self.expected_grand_total = 31.00
+        self.created_order = None
+        self.expected_total = 7.60  # 0.50 + 0.60 + 1.50 + 5.00
         
     def cleanup_test_data(self) -> bool:
         """Clean up test data to create fresh scenario"""
@@ -126,110 +117,59 @@ class SponsoringStatusDebugAnalysis:
             print(f"❌ Error creating employee '{name}': {e}")
             return None
     
-    def verify_coffee_price_settings(self) -> bool:
-        """Verify coffee price is set to 1.50€ as expected"""
+    def setup_department_prices(self) -> bool:
+        """Setup correct department prices for testing"""
         try:
-            print(f"\n🔍 VERIFYING COFFEE PRICE SETTINGS:")
+            print(f"\n🔧 SETTING UP DEPARTMENT PRICES:")
             print("=" * 60)
             
-            response = self.session.get(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            # Set coffee price to 1.50€
+            response = self.session.put(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price", 
+                                      json={"price": 1.50})
             
             if response.status_code == 200:
-                data = response.json()
-                coffee_price = data.get("coffee_price", 0.0)
-                
-                print(f"📊 Department Coffee Price: €{coffee_price:.2f}")
-                
-                if abs(coffee_price - 1.50) < 0.01:
-                    print(f"✅ Coffee price is correct: €{coffee_price:.2f}")
-                    return True
-                else:
-                    print(f"❌ Coffee price is wrong: €{coffee_price:.2f} (expected €1.50)")
-                    
-                    # Try to set correct price
-                    print(f"🔧 Attempting to set coffee price to €1.50")
-                    set_response = self.session.put(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price", 
-                                                  json={"price": 1.50})
-                    
-                    if set_response.status_code == 200:
-                        print(f"✅ Successfully set coffee price to €1.50")
-                        return True
-                    else:
-                        print(f"❌ Failed to set coffee price: {set_response.text}")
-                        return False
+                print(f"✅ Coffee price set to €1.50")
             else:
-                print(f"❌ Failed to get coffee price: {response.status_code} - {response.text}")
+                print(f"❌ Failed to set coffee price: {response.text}")
                 return False
+            
+            # Set lunch price to 5.00€ for today
+            today = self.get_berlin_date()
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{DEPARTMENT_ID}/{today}?lunch_price=5.00")
+            
+            if response.status_code == 200:
+                print(f"✅ Lunch price set to €5.00 for {today}")
+            else:
+                print(f"❌ Failed to set lunch price: {response.text}")
+                return False
+            
+            return True
                 
         except Exception as e:
-            print(f"❌ Error verifying coffee price: {e}")
+            print(f"❌ Error setting up prices: {e}")
             return False
     
-    def create_exact_user_scenario_orders(self):
-        """Create the EXACT orders from user's expected scenario - NO SPONSORING"""
+    def create_mit1_standard_order(self) -> dict:
+        """Create Mit1 standard order (expected €7.60) - NO SPONSORING"""
         
-        # Set lunch price to 5.00 as expected by user
-        today = self.get_berlin_date()
-        print(f"\n🔧 Setting lunch price to €5.00 for {today}")
+        print(f"\n🔧 CREATING MIT1 STANDARD ORDER:")
+        print("=" * 60)
+        print(f"Expected breakdown:")
+        print(f"  - White roll half: €0.50")
+        print(f"  - Seeded roll half: €0.60") 
+        print(f"  - Coffee: €1.50")
+        print(f"  - Lunch: €5.00")
+        print(f"  - TOTAL EXPECTED: €7.60")
         
-        try:
-            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{DEPARTMENT_ID}/{today}?lunch_price=5.00")
-            if response.status_code == 200:
-                print(f"✅ Lunch price set to €5.00")
-            else:
-                print(f"⚠️ Failed to set lunch price: {response.text}")
-        except Exception as e:
-            print(f"⚠️ Error setting lunch price: {e}")
-        
-        orders_created = {}
-        
-        # Mit1, Mit2, Mit3: Same order (0.50 + 0.60 + 1.50 + 5.00 = €7.60)
-        for name in ["Mit1", "Mit2", "Mit3"]:
-            employee_id = getattr(self, f"{name.lower()}_employee_id")
-            
-            order_data = {
-                "employee_id": employee_id,
-                "department_id": DEPARTMENT_ID,
-                "order_type": "breakfast",
-                "breakfast_items": [{
-                    "total_halves": 2,  # 1 Brötchen (2 halves)
-                    "white_halves": 1,  # 0.50€
-                    "seeded_halves": 1, # 0.60€
-                    "toppings": ["butter", "kaese"],
-                    "has_lunch": True,  # 5.00€
-                    "boiled_eggs": 0,
-                    "has_coffee": True  # 1.50€
-                }]
-            }
-            
-            try:
-                response = self.session.post(f"{API_BASE}/orders", json=order_data)
-                if response.status_code == 200:
-                    order = response.json()
-                    orders_created[name] = {
-                        "order_id": order["id"],
-                        "total_price": order["total_price"],
-                        "expected": 7.60,
-                        "employee_id": employee_id
-                    }
-                    print(f"✅ Created {name} order: €{order['total_price']:.2f} (expected €7.60)")
-                else:
-                    print(f"❌ Failed to create {name} order: {response.text}")
-                    return None
-            except Exception as e:
-                print(f"❌ Error creating {name} order: {e}")
-                return None
-        
-        # Mit4: Different order (1.00 + 0.60 + 1.50 + 5.00 = €8.20)
         order_data = {
-            "employee_id": self.mit4_employee_id,
+            "employee_id": self.mit1_employee_id,
             "department_id": DEPARTMENT_ID,
             "order_type": "breakfast",
             "breakfast_items": [{
-                "total_halves": 3,  # 1.5 Brötchen (3 halves)
-                "white_halves": 2,  # 1.00€ (2 * 0.50)
+                "total_halves": 2,  # 1 Brötchen (2 halves)
+                "white_halves": 1,  # 0.50€
                 "seeded_halves": 1, # 0.60€
-                "toppings": ["butter", "kaese", "schinken"],
+                "toppings": ["butter", "kaese"],
                 "has_lunch": True,  # 5.00€
                 "boiled_eggs": 0,
                 "has_coffee": True  # 1.50€
@@ -237,35 +177,42 @@ class SponsoringStatusDebugAnalysis:
         }
         
         try:
+            print(f"\n📤 SENDING ORDER REQUEST:")
+            print(f"Order data: {json.dumps(order_data, indent=2)}")
+            
             response = self.session.post(f"{API_BASE}/orders", json=order_data)
+            
             if response.status_code == 200:
                 order = response.json()
-                orders_created["Mit4"] = {
-                    "order_id": order["id"],
-                    "total_price": order["total_price"],
-                    "expected": 8.20,
-                    "employee_id": self.mit4_employee_id
-                }
-                print(f"✅ Created Mit4 order: €{order['total_price']:.2f} (expected €8.20)")
+                self.created_order = order
+                
+                print(f"\n✅ ORDER CREATED SUCCESSFULLY:")
+                print(f"  - Order ID: {order['id']}")
+                print(f"  - Total Price: €{order['total_price']:.2f}")
+                print(f"  - Expected: €{self.expected_total:.2f}")
+                print(f"  - Difference: €{abs(order['total_price'] - self.expected_total):.2f}")
+                
+                # Check if order creation total is correct
+                if abs(order['total_price'] - self.expected_total) < 0.01:
+                    print(f"  ✅ Order creation total is CORRECT")
+                else:
+                    print(f"  ❌ Order creation total is WRONG!")
+                    print(f"     🔍 BUG LOCATION: Order creation logic")
+                
+                return order
             else:
-                print(f"❌ Failed to create Mit4 order: {response.text}")
+                print(f"❌ Failed to create Mit1 order: {response.status_code} - {response.text}")
                 return None
         except Exception as e:
-            print(f"❌ Error creating Mit4 order: {e}")
+            print(f"❌ Error creating Mit1 order: {e}")
             return None
-        
-        self.created_orders = orders_created
-        return orders_created
     
-    def check_direct_order_sponsoring_status(self):
-        """Check direct order sponsoring status from database via API"""
+    def verify_breakfast_history_calculation(self) -> dict:
+        """Verify breakfast-history endpoint shows correct total_amount"""
         try:
-            print(f"\n🔍 DIRECT ORDER SPONSORING STATUS CHECK:")
+            print(f"\n🔍 BREAKFAST-HISTORY ENDPOINT VERIFICATION:")
             print("=" * 80)
             
-            today = self.get_berlin_date()
-            
-            # Get all orders for today via breakfast-history endpoint
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
             
             if response.status_code == 200:
@@ -275,191 +222,150 @@ class SponsoringStatusDebugAnalysis:
                     today_data = data["history"][0]
                     employee_orders = today_data.get("employee_orders", {})
                     
-                    print(f"📊 FOUND {len(employee_orders)} EMPLOYEES WITH ORDERS:")
+                    print(f"📊 BREAKFAST-HISTORY RESPONSE:")
+                    print(f"  - Total Orders: {today_data.get('total_orders', 0)}")
+                    print(f"  - Total Amount: €{today_data.get('total_amount', 0.0):.2f}")
+                    print(f"  - Employees Found: {len(employee_orders)}")
                     
-                    sponsoring_issues = []
+                    # Find Mit1 in the response
+                    mit1_data = None
+                    mit1_key = None
                     
-                    for emp_name, emp_data in employee_orders.items():
-                        # Check sponsoring status fields
-                        is_sponsored = emp_data.get("is_sponsored", False)
-                        sponsored_meal_type = emp_data.get("sponsored_meal_type", None)
-                        total_amount = emp_data.get("total_amount", 0.0)
-                        
-                        # Find expected employee
-                        expected_name = None
-                        expected_total = 0.0
-                        for name in ["Mit1", "Mit2", "Mit3", "Mit4"]:
-                            if name in emp_name:
-                                expected_name = name
-                                expected_total = self.expected_totals[name]
-                                break
-                        
-                        print(f"\n🔍 {emp_name} (Expected: {expected_name}):")
-                        print(f"   - is_sponsored: {is_sponsored}")
-                        print(f"   - sponsored_meal_type: {sponsored_meal_type}")
-                        print(f"   - total_amount: €{total_amount:.2f} (expected €{expected_total:.2f})")
-                        
-                        # Check for sponsoring issues
-                        if is_sponsored:
-                            sponsoring_issues.append(f"{emp_name} is marked as sponsored (should be False)")
-                            print(f"   ❌ CRITICAL: Employee is marked as sponsored!")
-                        else:
-                            print(f"   ✅ Correctly NOT sponsored")
-                        
-                        if sponsored_meal_type is not None:
-                            sponsoring_issues.append(f"{emp_name} has sponsored_meal_type: {sponsored_meal_type} (should be None)")
-                            print(f"   ❌ CRITICAL: Has sponsored_meal_type when it shouldn't!")
-                        else:
-                            print(f"   ✅ Correctly no sponsored_meal_type")
-                        
-                        # Check total amount
-                        amount_diff = abs(total_amount - expected_total)
-                        if amount_diff > 0.01:
-                            sponsoring_issues.append(f"{emp_name} total €{total_amount:.2f} vs expected €{expected_total:.2f}")
-                            print(f"   ❌ CRITICAL: Total amount mismatch!")
-                        else:
-                            print(f"   ✅ Total amount correct")
+                    for emp_key, emp_data in employee_orders.items():
+                        if "Mit1" in emp_key:
+                            mit1_data = emp_data
+                            mit1_key = emp_key
+                            break
                     
-                    print(f"\n📊 SPONSORING STATUS SUMMARY:")
-                    if sponsoring_issues:
-                        print(f"❌ CRITICAL ISSUES DETECTED ({len(sponsoring_issues)}):")
-                        for issue in sponsoring_issues:
-                            print(f"   - {issue}")
-                        return False
+                    if mit1_data:
+                        print(f"\n🔍 MIT1 DATA FROM BREAKFAST-HISTORY:")
+                        print(f"  - Employee Key: {mit1_key}")
+                        print(f"  - Total Amount: €{mit1_data.get('total_amount', 0.0):.2f}")
+                        print(f"  - Expected: €{self.expected_total:.2f}")
+                        print(f"  - Is Sponsored: {mit1_data.get('is_sponsored', False)}")
+                        print(f"  - Sponsored Meal Type: {mit1_data.get('sponsored_meal_type', None)}")
+                        
+                        # Check calculation path
+                        breakfast_history_total = mit1_data.get('total_amount', 0.0)
+                        order_creation_total = self.created_order['total_price'] if self.created_order else 0.0
+                        
+                        print(f"\n🔍 CALCULATION PATH ANALYSIS:")
+                        print(f"  - Order Creation Total: €{order_creation_total:.2f}")
+                        print(f"  - Breakfast-History Total: €{breakfast_history_total:.2f}")
+                        print(f"  - Expected Total: €{self.expected_total:.2f}")
+                        
+                        # Identify where the bug occurs
+                        creation_correct = abs(order_creation_total - self.expected_total) < 0.01
+                        history_correct = abs(breakfast_history_total - self.expected_total) < 0.01
+                        
+                        print(f"\n🎯 BUG LOCATION ANALYSIS:")
+                        if creation_correct and history_correct:
+                            print(f"  ✅ Both order creation AND breakfast-history are correct")
+                            return {"status": "correct", "bug_location": "none"}
+                        elif creation_correct and not history_correct:
+                            print(f"  ❌ Order creation is correct, but breakfast-history is WRONG")
+                            print(f"     🔍 BUG LOCATION: breakfast-history endpoint calculation")
+                            print(f"     🔍 Missing amount: €{self.expected_total - breakfast_history_total:.2f}")
+                            return {"status": "bug_in_history", "bug_location": "breakfast-history", "missing_amount": self.expected_total - breakfast_history_total}
+                        elif not creation_correct and history_correct:
+                            print(f"  ❌ Order creation is WRONG, but breakfast-history is correct")
+                            print(f"     🔍 BUG LOCATION: order creation logic")
+                            return {"status": "bug_in_creation", "bug_location": "order_creation"}
+                        else:
+                            print(f"  ❌ BOTH order creation AND breakfast-history are WRONG")
+                            print(f"     🔍 BUG LOCATION: Both systems have issues")
+                            return {"status": "bug_in_both", "bug_location": "both"}
                     else:
-                        print(f"✅ ALL ORDERS CORRECTLY NOT SPONSORED")
-                        return True
-                        
+                        print(f"❌ Mit1 not found in breakfast-history response")
+                        print(f"Available employees: {list(employee_orders.keys())}")
+                        return {"status": "error", "message": "Mit1 not found"}
                 else:
                     print(f"❌ No history data found")
-                    return False
+                    return {"status": "error", "message": "No history data"}
             else:
                 print(f"❌ Failed to get breakfast history: {response.status_code} - {response.text}")
-                return False
+                return {"status": "error", "message": f"API call failed: {response.text}"}
                 
         except Exception as e:
-            print(f"❌ Error checking order sponsoring status: {e}")
+            print(f"❌ Error verifying breakfast-history: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    def debug_coffee_cost_calculation(self) -> bool:
+        """Debug where coffee cost gets lost in calculation"""
+        try:
+            print(f"\n🔍 COFFEE COST DEBUG ANALYSIS:")
+            print("=" * 80)
+            
+            # Get department coffee price
+            response = self.session.get(f"{API_BASE}/department-settings/{DEPARTMENT_ID}/coffee-price")
+            if response.status_code == 200:
+                coffee_data = response.json()
+                coffee_price = coffee_data.get("coffee_price", 0.0)
+                print(f"📊 Department Coffee Price: €{coffee_price:.2f}")
+            else:
+                print(f"❌ Failed to get coffee price")
+                return False
+            
+            # Get lunch price
+            today = self.get_berlin_date()
+            response = self.session.get(f"{API_BASE}/daily-lunch-price/{DEPARTMENT_ID}/{today}")
+            if response.status_code == 200:
+                lunch_data = response.json()
+                lunch_price = lunch_data.get("lunch_price", 0.0)
+                print(f"📊 Daily Lunch Price: €{lunch_price:.2f}")
+            else:
+                print(f"❌ Failed to get lunch price")
+                return False
+            
+            # Get roll prices
+            response = self.session.get(f"{API_BASE}/menu/breakfast/{DEPARTMENT_ID}")
+            if response.status_code == 200:
+                breakfast_menu = response.json()
+                white_price = 0.0
+                seeded_price = 0.0
+                
+                for item in breakfast_menu:
+                    if item.get("roll_type") == "weiss":
+                        white_price = item.get("price", 0.0)
+                    elif item.get("roll_type") == "koerner":
+                        seeded_price = item.get("price", 0.0)
+                
+                print(f"📊 Roll Prices: White €{white_price:.2f}, Seeded €{seeded_price:.2f}")
+            else:
+                print(f"❌ Failed to get breakfast menu")
+                return False
+            
+            # Calculate expected total manually
+            expected_breakdown = {
+                "white_roll": white_price * 1,  # 1 half
+                "seeded_roll": seeded_price * 1,  # 1 half
+                "coffee": coffee_price,
+                "lunch": lunch_price
+            }
+            
+            manual_total = sum(expected_breakdown.values())
+            
+            print(f"\n🧮 MANUAL CALCULATION BREAKDOWN:")
+            for item, cost in expected_breakdown.items():
+                print(f"  - {item}: €{cost:.2f}")
+            print(f"  - MANUAL TOTAL: €{manual_total:.2f}")
+            print(f"  - EXPECTED TOTAL: €{self.expected_total:.2f}")
+            print(f"  - DIFFERENCE: €{abs(manual_total - self.expected_total):.2f}")
+            
+            if abs(manual_total - self.expected_total) < 0.01:
+                print(f"  ✅ Manual calculation matches expected")
+            else:
+                print(f"  ❌ Manual calculation doesn't match expected")
+            
+            return True
+                
+        except Exception as e:
+            print(f"❌ Error in coffee cost debug: {e}")
             return False
     
-    def analyze_breakfast_history_calculation_path(self):
-        """Analyze which calculation path each order takes in breakfast-history"""
-        try:
-            print(f"\n🔍 BREAKFAST-HISTORY CALCULATION PATH ANALYSIS:")
-            print("=" * 80)
-            
-            response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                if "history" in data and len(data["history"]) > 0:
-                    today_data = data["history"][0]
-                    
-                    # Extract key totals
-                    total_orders = today_data.get("total_orders", 0)
-                    total_amount = today_data.get("total_amount", 0.0)
-                    employee_orders = today_data.get("employee_orders", {})
-                    
-                    print(f"📊 DAILY TOTALS FROM BREAKFAST-HISTORY:")
-                    print(f"   - Total Orders: {total_orders}")
-                    print(f"   - Total Amount: €{total_amount:.2f}")
-                    print(f"   - Expected Total: €{self.expected_grand_total:.2f}")
-                    print(f"   - Difference: €{abs(total_amount - self.expected_grand_total):.2f}")
-                    
-                    print(f"\n🔍 INDIVIDUAL EMPLOYEE CALCULATION PATH:")
-                    individual_total = 0.0
-                    calculation_issues = []
-                    
-                    for emp_name, emp_data in employee_orders.items():
-                        emp_total = emp_data.get("total_amount", 0.0)
-                        individual_total += emp_total
-                        
-                        # Find expected total for this employee
-                        expected = 0.0
-                        expected_name = None
-                        for name, expected_total in self.expected_totals.items():
-                            if name in emp_name:
-                                expected = expected_total
-                                expected_name = name
-                                break
-                        
-                        difference = abs(emp_total - expected)
-                        status = "✅" if difference < 0.01 else "❌"
-                        
-                        print(f"\n   {status} {emp_name} ({expected_name}):")
-                        print(f"      - Calculated Total: €{emp_total:.2f}")
-                        print(f"      - Expected Total: €{expected:.2f}")
-                        print(f"      - Difference: €{difference:.2f}")
-                        
-                        # Analyze calculation path
-                        is_sponsored = emp_data.get("is_sponsored", False)
-                        sponsored_meal_type = emp_data.get("sponsored_meal_type", None)
-                        
-                        if is_sponsored:
-                            print(f"      - CALCULATION PATH: Sponsored order (is_sponsored=True)")
-                            calculation_issues.append(f"{emp_name} taking sponsored path when it shouldn't")
-                        else:
-                            print(f"      - CALCULATION PATH: Regular order (is_sponsored=False)")
-                        
-                        if sponsored_meal_type:
-                            print(f"      - SPONSORED MEAL TYPE: {sponsored_meal_type}")
-                            calculation_issues.append(f"{emp_name} has sponsored_meal_type when it shouldn't")
-                        else:
-                            print(f"      - SPONSORED MEAL TYPE: None (correct)")
-                        
-                        # Check if total matches expected (should use full cost)
-                        if difference > 0.01:
-                            calculation_issues.append(f"{emp_name} total mismatch - not using full cost path")
-                    
-                    print(f"\n📊 CALCULATION PATH VERIFICATION:")
-                    print(f"   - Sum of Individual Totals: €{individual_total:.2f}")
-                    print(f"   - Daily Total from API: €{total_amount:.2f}")
-                    print(f"   - Expected Grand Total: €{self.expected_grand_total:.2f}")
-                    
-                    # Check for discrepancies
-                    individual_vs_daily = abs(individual_total - total_amount)
-                    daily_vs_expected = abs(total_amount - self.expected_grand_total)
-                    
-                    print(f"\n🔍 CALCULATION ISSUES ANALYSIS:")
-                    if calculation_issues:
-                        print(f"❌ CRITICAL CALCULATION ISSUES DETECTED ({len(calculation_issues)}):")
-                        for issue in calculation_issues:
-                            print(f"   - {issue}")
-                    else:
-                        print(f"✅ All orders taking correct calculation path")
-                    
-                    if individual_vs_daily > 0.01:
-                        print(f"❌ CRITICAL: Individual totals don't match daily total!")
-                        calculation_issues.append("Individual vs daily total mismatch")
-                    
-                    if daily_vs_expected > 0.01:
-                        print(f"❌ CRITICAL: Daily total doesn't match expected total!")
-                        print(f"   🔍 Missing amount: €{self.expected_grand_total - total_amount:.2f}")
-                        calculation_issues.append(f"Missing €{self.expected_grand_total - total_amount:.2f} from daily total")
-                    
-                    return {
-                        "total_orders": total_orders,
-                        "total_amount": total_amount,
-                        "individual_total": individual_total,
-                        "expected_total": self.expected_grand_total,
-                        "missing_amount": self.expected_grand_total - total_amount,
-                        "calculation_issues": calculation_issues,
-                        "all_correct": len(calculation_issues) == 0
-                    }
-                else:
-                    print(f"❌ No history data found")
-                    return {"error": "No history data"}
-            else:
-                print(f"❌ Failed to get breakfast history: {response.status_code} - {response.text}")
-                return {"error": f"API call failed: {response.text}"}
-                
-        except Exception as e:
-            print(f"❌ Error analyzing calculation path: {e}")
-            return {"error": str(e)}
-    
-    def run_sponsoring_status_debug(self):
-        """Run the complete sponsoring status debug analysis"""
-        print("🔍 SPONSORING-STATUS DEBUG ANALYSE")
+    def run_final_debug_test(self):
+        """Run the complete final debug test"""
+        print("🔍 FINAL DEBUG: Regular Order total_price Test")
         print("=" * 100)
         
         # Step 1: Admin Authentication
@@ -468,129 +374,80 @@ class SponsoringStatusDebugAnalysis:
             print("❌ CRITICAL FAILURE: Cannot authenticate as admin")
             return False
         
-        # Step 1.5: Clean up existing data for fresh test
-        print("\n1️⃣.5 Attempting to Clean Up Existing Data")
+        # Step 2: Clean up existing data for fresh test
+        print("\n2️⃣ Cleaning Up Existing Data")
         self.cleanup_test_data()
         
-        # Step 2: Verify coffee price settings
-        print("\n2️⃣ Verifying Coffee Price Settings")
-        if not self.verify_coffee_price_settings():
-            print("❌ CRITICAL FAILURE: Coffee price not set correctly")
+        # Step 3: Setup department prices
+        print("\n3️⃣ Setting Up Department Prices")
+        if not self.setup_department_prices():
+            print("❌ CRITICAL FAILURE: Cannot setup prices")
             return False
         
-        # Step 3: Create employees
-        print(f"\n3️⃣ Creating Test Employees")
-        
+        # Step 4: Create Mit1 employee
+        print(f"\n4️⃣ Creating Mit1 Employee")
         self.mit1_employee_id = self.create_test_employee("Mit1")
         if not self.mit1_employee_id:
             print("❌ CRITICAL FAILURE: Cannot create Mit1")
             return False
         
-        self.mit2_employee_id = self.create_test_employee("Mit2")
-        if not self.mit2_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create Mit2")
+        # Step 5: Debug coffee cost calculation
+        print(f"\n5️⃣ Debug Coffee Cost Calculation")
+        if not self.debug_coffee_cost_calculation():
+            print("❌ CRITICAL FAILURE: Cannot debug coffee cost")
             return False
         
-        self.mit3_employee_id = self.create_test_employee("Mit3")
-        if not self.mit3_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create Mit3")
+        # Step 6: Create Mit1 standard order (NO SPONSORING)
+        print(f"\n6️⃣ Creating Mit1 Standard Order (NO SPONSORING)")
+        order_created = self.create_mit1_standard_order()
+        if not order_created:
+            print("❌ CRITICAL FAILURE: Cannot create order")
             return False
         
-        self.mit4_employee_id = self.create_test_employee("Mit4")
-        if not self.mit4_employee_id:
-            print("❌ CRITICAL FAILURE: Cannot create Mit4")
-            return False
-        
-        # Step 4: Create exact user scenario orders (NO SPONSORING)
-        print(f"\n4️⃣ Creating EXACT User Scenario Orders (NO SPONSORING)")
-        
-        orders_created = self.create_exact_user_scenario_orders()
-        if not orders_created:
-            print("❌ CRITICAL FAILURE: Cannot create orders")
-            return False
-        
-        # Step 5: Check direct order sponsoring status
-        print(f"\n5️⃣ Checking Direct Order Sponsoring Status")
-        
-        sponsoring_status_correct = self.check_direct_order_sponsoring_status()
-        
-        # Step 6: Analyze breakfast-history calculation path
-        print(f"\n6️⃣ Analyzing Breakfast-History Calculation Path")
-        
-        calculation_analysis = self.analyze_breakfast_history_calculation_path()
-        if "error" in calculation_analysis:
-            print(f"❌ Calculation analysis failed: {calculation_analysis['error']}")
-            return False
+        # Step 7: Verify breakfast-history calculation
+        print(f"\n7️⃣ Verifying Breakfast-History Calculation")
+        history_result = self.verify_breakfast_history_calculation()
         
         # Final Results
-        print(f"\n🏁 FINAL SPONSORING STATUS DEBUG RESULTS:")
+        print(f"\n🏁 FINAL DEBUG RESULTS:")
         print("=" * 100)
         
-        # Check if all criteria are met
-        total_amount = calculation_analysis.get("total_amount", 0.0)
-        missing_amount = calculation_analysis.get("missing_amount", 0.0)
-        calculation_issues = calculation_analysis.get("calculation_issues", [])
-        
-        success_criteria = [
-            (sponsoring_status_correct, "All orders correctly NOT sponsored"),
-            (len(calculation_issues) == 0, "All orders taking correct calculation path"),
-            (abs(missing_amount) < 0.01, f"Daily total matches expected (€{total_amount:.2f} vs €{self.expected_grand_total:.2f})")
-        ]
-        
-        passed_tests = sum(1 for test, _ in success_criteria if test)
-        total_tests = len(success_criteria)
-        
-        for test_passed, description in success_criteria:
-            status = "✅" if test_passed else "❌"
-            print(f"{status} {description}")
-        
-        success_rate = (passed_tests / total_tests) * 100
-        print(f"\n📊 Sponsoring Status Debug Success Rate: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
-        
-        # Print detailed findings
-        print(f"\n🔍 DETAILED FINDINGS:")
-        
-        if not sponsoring_status_correct:
-            print(f"❌ CRITICAL BUG CONFIRMED: Orders are falsely marked as sponsored!")
-            print(f"   - Expected: All orders should have is_sponsored=False")
-            print(f"   - Expected: All orders should have sponsored_meal_type=None")
-        
-        if calculation_issues:
-            print(f"❌ CRITICAL CALCULATION ISSUES DETECTED ({len(calculation_issues)}):")
-            for issue in calculation_issues:
-                print(f"   - {issue}")
-        
-        if abs(missing_amount) > 0.01:
-            print(f"❌ CRITICAL BUG CONFIRMED: Missing €{abs(missing_amount):.2f} from daily total")
-            print(f"   - Expected: €{self.expected_grand_total:.2f}")
-            print(f"   - Actual: €{total_amount:.2f}")
-            print(f"   - This confirms the coffee cost missing bug!")
-        
-        all_correct = all(test for test, _ in success_criteria)
-        
-        if all_correct:
-            print(f"\n✅ SPONSORING STATUS: WORKING CORRECTLY!")
-            print(f"✅ No orders are falsely marked as sponsored")
-            print(f"✅ All calculation paths are correct")
+        if history_result.get("status") == "correct":
+            print(f"✅ SUCCESS: Both order creation and breakfast-history are working correctly!")
+            print(f"✅ Mit1 shows €{self.expected_total:.2f} in both systems")
+            return True
+        elif history_result.get("status") == "bug_in_history":
+            print(f"❌ BUG IDENTIFIED: breakfast-history endpoint calculation is wrong")
+            print(f"❌ Order creation total: €{self.created_order['total_price']:.2f} (CORRECT)")
+            print(f"❌ Breakfast-history total: Missing €{history_result.get('missing_amount', 0.0):.2f}")
+            print(f"🎯 ROOT CAUSE: Coffee cost (€1.50) is missing from breakfast-history calculation")
+            print(f"🎯 EXACT BUG LOCATION: breakfast-history endpoint individual employee total calculation")
+            return False
+        elif history_result.get("status") == "bug_in_creation":
+            print(f"❌ BUG IDENTIFIED: Order creation logic is wrong")
+            print(f"🎯 ROOT CAUSE: Coffee cost not included in order total_price calculation")
+            print(f"🎯 EXACT BUG LOCATION: Order creation endpoint")
+            return False
+        elif history_result.get("status") == "bug_in_both":
+            print(f"❌ BUG IDENTIFIED: Both systems have calculation errors")
+            print(f"🎯 ROOT CAUSE: Coffee cost missing from multiple locations")
+            return False
         else:
-            print(f"\n❌ SPONSORING STATUS: CRITICAL ISSUES DETECTED!")
-            print(f"❌ Orders may be falsely treated as sponsored")
-            print(f"❌ This explains the missing coffee costs in totals")
-        
-        return all_correct
+            print(f"❌ ERROR: {history_result.get('message', 'Unknown error')}")
+            return False
 
 def main():
     """Main test execution"""
-    test = SponsoringStatusDebugAnalysis()
+    test = FinalDebugRegularOrderTest()
     
     try:
-        success = test.run_sponsoring_status_debug()
+        success = test.run_final_debug_test()
         
         if success:
-            print(f"\n✅ SPONSORING STATUS DEBUG: COMPLETED SUCCESSFULLY")
+            print(f"\n✅ FINAL DEBUG TEST: COMPLETED SUCCESSFULLY")
             exit(0)
         else:
-            print(f"\n❌ SPONSORING STATUS DEBUG: CRITICAL ISSUES DETECTED")
+            print(f"\n❌ FINAL DEBUG TEST: CRITICAL ISSUES DETECTED")
             exit(1)
             
     except Exception as e:
