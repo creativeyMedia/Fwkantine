@@ -354,7 +354,56 @@ class RoundingErrorSponsoringDebugTest:
             print(f"❌ Error in lunch sponsoring: {e}")
             return False
     
-    def analyze_breakfast_history_totals(self) -> dict:
+    def verify_separated_revenue_calculation(self) -> dict:
+        """Verify separated revenue calculation matches daily total"""
+        try:
+            print(f"\n🔍 SEPARATED REVENUE VERIFICATION:")
+            print("=" * 80)
+            
+            today = self.get_berlin_date()
+            
+            # Test daily revenue endpoint
+            response = self.session.get(f"{API_BASE}/orders/daily-revenue/{DEPARTMENT_ID}/{today}")
+            
+            if response.status_code == 200:
+                revenue_data = response.json()
+                
+                breakfast_revenue = revenue_data.get('breakfast_revenue', 0.0)
+                lunch_revenue = revenue_data.get('lunch_revenue', 0.0)
+                total_separated = breakfast_revenue + lunch_revenue
+                
+                print(f"📊 SEPARATED REVENUE RESPONSE:")
+                print(f"  - Breakfast Revenue: €{breakfast_revenue:.2f}")
+                print(f"  - Lunch Revenue: €{lunch_revenue:.2f}")
+                print(f"  - Total Separated: €{total_separated:.2f}")
+                print(f"  - Expected Total: €{self.expected_separated_total:.2f}")
+                
+                # Verify breakfast revenue (excluding coffee)
+                breakfast_correct = abs(breakfast_revenue - self.expected_breakfast_revenue) < 0.01
+                lunch_correct = abs(lunch_revenue - self.expected_lunch_revenue) < 0.01
+                total_correct = abs(total_separated - self.expected_separated_total) < 0.01
+                
+                print(f"\n🎯 SEPARATED REVENUE VERIFICATION:")
+                print(f"  - Breakfast Revenue: {'✅' if breakfast_correct else '❌'} Expected €{self.expected_breakfast_revenue:.2f}, Got €{breakfast_revenue:.2f}")
+                print(f"  - Lunch Revenue: {'✅' if lunch_correct else '❌'} Expected €{self.expected_lunch_revenue:.2f}, Got €{lunch_revenue:.2f}")
+                print(f"  - Total Matches Daily: {'✅' if total_correct else '❌'} Expected €{self.expected_separated_total:.2f}, Got €{total_separated:.2f}")
+                
+                return {
+                    "status": "success",
+                    "breakfast_revenue": breakfast_revenue,
+                    "lunch_revenue": lunch_revenue,
+                    "total_separated": total_separated,
+                    "breakfast_correct": breakfast_correct,
+                    "lunch_correct": lunch_correct,
+                    "total_correct": total_correct
+                }
+            else:
+                print(f"❌ Failed to get separated revenue: {response.status_code} - {response.text}")
+                return {"status": "error", "message": f"API call failed: {response.text}"}
+                
+        except Exception as e:
+            print(f"❌ Error verifying separated revenue: {e}")
+            return {"status": "error", "message": str(e)}
         """Analyze breakfast-history endpoint for rounding errors and sponsoring calculation issues"""
         try:
             print(f"\n🔍 BREAKFAST-HISTORY TOTAL ANALYSIS:")
