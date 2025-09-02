@@ -1,3 +1,4 @@
+from decimal import Decimal, ROUND_HALF_UP
 from fastapi import FastAPI, APIRouter, HTTPException, status
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
