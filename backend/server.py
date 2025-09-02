@@ -1902,85 +1902,36 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 breakfast_sponsored_info = None
                 lunch_sponsored_info = None
                 
-                # CORRECTED: Find all orders where this employee sponsored others
-                # We need to find orders that have been sponsored BY this employee
-                sponsored_orders = await db.orders.find({
+                # SIMPLIFIED CORRECT APPROACH: Find sponsor orders for this employee
+                # Look for orders where this employee is marked as a sponsor (is_sponsor_order=True)
+                sponsor_orders = await db.orders.find({
                     "department_id": department_id,
-                    "is_sponsored": True,  # Order must be sponsored
-                    "sponsored_by_employee_id": employee_id,  # This employee was the sponsor
+                    "employee_id": employee_id,  # Orders belonging to this employee
+                    "is_sponsor_order": True,    # This employee sponsored someone
                     "timestamp": {
                         "$gte": start_of_day_utc.isoformat(),
                         "$lte": end_of_day_utc.isoformat()
                     }
                 }).to_list(1000)
                 
-                if sponsored_orders:
-                    # Calculate sponsored breakfast and lunch amounts
-                    breakfast_sponsored_count = 0
-                    breakfast_sponsored_amount = 0.0
-                    lunch_sponsored_count = 0
-                    lunch_sponsored_amount = 0.0
-                    
-                    # Get department prices for calculations
-                    try:
-                        white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                        white_roll_price = white_menu.get("price", 0.50) if white_menu else 0.50
+                if sponsor_orders:
+                    # Process sponsor orders to extract sponsoring info
+                    for sponsor_order in sponsor_orders:
+                        sponsor_meal_type = sponsor_order.get("sponsored_meal_type", "")
+                        sponsor_count = sponsor_order.get("sponsor_employee_count", 0)
+                        sponsor_cost = sponsor_order.get("sponsor_total_cost", 0.0)
                         
-                        seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                        seeded_roll_price = seeded_menu.get("price", 0.60) if seeded_menu else 0.60
-                        
-                        department_prices = await get_department_prices(department_id)
-                        eggs_price = department_prices["boiled_eggs_price"]
-                    except:
-                        white_roll_price = 0.50
-                        seeded_roll_price = 0.60
-                        eggs_price = 0.50
-                    
-                    # Get daily lunch price
-                    daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
-                        "department_id": department_id,
-                        "date": current_date.isoformat()
-                    })
-                    daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
-                    
-                    for sponsored_order in sponsored_orders:
-                        sponsored_meal_types = sponsored_order.get("sponsored_meal_type", "")
-                        if sponsored_meal_types:
-                            meal_types_list = sponsored_meal_types.split(",")
-                            
-                            # Calculate sponsored amounts
-                            for item in sponsored_order.get("breakfast_items", []):
-                                if "breakfast" in meal_types_list:
-                                    # Calculate breakfast sponsored amount (rolls + eggs)
-                                    white_halves = item.get("white_halves", 0)
-                                    seeded_halves = item.get("seeded_halves", 0)
-                                    boiled_eggs = item.get("boiled_eggs", 0)
-                                    
-                                    breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
-                                    breakfast_sponsored_amount += breakfast_item_cost
-                                    breakfast_sponsored_count += 1
-                                
-                                if "lunch" in meal_types_list and item.get("has_lunch", False):
-                                    # Calculate lunch sponsored amount
-                                    lunch_sponsored_amount += daily_lunch_price
-                                    lunch_sponsored_count += 1
-                    
-                    # Add sponsoring info to employee data
-                    if breakfast_sponsored_count > 0:
-                        breakfast_sponsored_info = {
-                            "count": breakfast_sponsored_count,
-                            "amount": round(breakfast_sponsored_amount, 2)
-                        }
-                        # Add sponsored breakfast amount to sponsor's total_amount
-                        employee_orders[employee_key]["total_amount"] += breakfast_sponsored_amount
-                    
-                    if lunch_sponsored_count > 0:
-                        lunch_sponsored_info = {
-                            "count": lunch_sponsored_count,
-                            "amount": round(lunch_sponsored_amount, 2)
-                        }
-                        # Add sponsored lunch amount to sponsor's total_amount
-                        employee_orders[employee_key]["total_amount"] += lunch_sponsored_amount
+                        # Extract meal type from sponsor order
+                        if "breakfast" in sponsor_meal_type.lower():
+                            breakfast_sponsored_info = {
+                                "count": sponsor_count,
+                                "amount": round(sponsor_cost, 2)
+                            }
+                        elif "lunch" in sponsor_meal_type.lower() or "mittag" in sponsor_meal_type.lower():
+                            lunch_sponsored_info = {
+                                "count": sponsor_count,
+                                "amount": round(sponsor_cost, 2)
+                            }
                 
                 # Add sponsoring info to employee data
                 employee_orders[employee_key]["sponsored_breakfast"] = breakfast_sponsored_info
