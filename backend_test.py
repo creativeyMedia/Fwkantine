@@ -144,8 +144,7 @@ class TotalCalculationDebugAnalysis:
         print(f"\n🔧 Setting lunch price to €5.00 for {today}")
         
         try:
-            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{DEPARTMENT_ID}/{today}", 
-                                      json={"lunch_price": 5.00})
+            response = self.session.put(f"{API_BASE}/daily-lunch-settings/{DEPARTMENT_ID}/{today}?lunch_price=5.00")
             if response.status_code == 200:
                 print(f"✅ Lunch price set to €5.00")
             else:
