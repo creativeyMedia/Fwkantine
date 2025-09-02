@@ -1,34 +1,41 @@
 #!/usr/bin/env python3
 """
-🔍 FINAL CORRECTED APPROACH: Test simplified sponsor order lookup
+🔍 DETAILLIERTE TOTAL-BERECHNUNGS-ANALYSE: Debug warum 24.30€ statt 31.00€
 
-KRITISCHER TEST MIT VEREINFACHTEM ANSATZ:
+KRITISCHE BERECHNUNG-DEBUG:
 
-1. **Create exact User scenario:**
-   - Mit1, Mit2, Mit3, Mit4 mit breakfast orders
-   - Mit1 sponsert Frühstück für andere (creates sponsor order for Mit1)
-   - Mit4 sponsert Mittag für Mit1 (creates sponsor order for Mit4)
+1. **User's Expected Scenario:**
+   - Mit1: €7.60 (0.50 + 0.60 + 1.50 + 5.00)
+   - Mit2: €7.60 (same as Mit1)
+   - Mit3: €7.60 (same as Mit1)  
+   - Mit4: €8.20 (1.00 + 0.60 + 1.50 + 5.00)
+   - EXPECTED TOTAL: €31.00
 
-2. **TEST SIMPLIFIED LOGIC:**
-   - Logic now looks for is_sponsor_order=True orders belonging to each employee
-   - Mit1 should have sponsor order with breakfast sponsoring info
-   - Mit4 should have sponsor order with lunch sponsoring info
-   - Mit2, Mit3 should have no sponsor orders
+2. **BACKEND SHOWS:**
+   - Total: €24.30 (WRONG - missing €6.70)
+   - Breakfast Revenue: €5.00 (should be €4.90 without coffee)
+   - Lunch Revenue: €20.00 (correct)
 
-3. **VERIFY SPONSOR ORDER STRUCTURE:**
-   - Check what fields are actually stored in sponsor orders
-   - Verify sponsor_employee_count, sponsor_total_cost, sponsored_meal_type fields
-   - Ensure the simplified approach extracts correct data
+3. **DETAILED ORDER ANALYSIS:**
+   - Get breakfast-history response
+   - Show EXACT total_price for each order  
+   - Show EXACT calculation for each employee
+   - Identify where the missing €6.70 goes
 
-4. **FINAL VERIFICATION:**
-   - Mit1 breakfast-history should show: sponsored_breakfast: {count: 3, amount: X.XX}
-   - Mit4 breakfast-history should show: sponsored_lunch: {count: 1, amount: X.XX}
-   - No cross-contamination between employees
+4. **SPONSORING IMPACT ANALYSIS:**
+   - Check if sponsored orders affect total calculation
+   - Verify that real_orders filtering works correctly
+   - Check if sponsored amounts are incorrectly subtracted from totals
+
+5. **COFFEE CALCULATION CHECK:**
+   - Coffee should be EXCLUDED from breakfast revenue (per user request)
+   - But coffee should be INCLUDED in daily total (€6.00 total coffee)
+   - Verify coffee is counted in daily total but not breakfast revenue
 
 Department: fw1abteilung1 (1. Wachabteilung)
 Login: admin1/password1
 
-ZIEL: Test the corrected simplified approach that looks for sponsor orders instead of sponsored orders!
+ZIEL: Find exactly where the missing €6.70 went and why totals don't match!
 """
 
 import requests
