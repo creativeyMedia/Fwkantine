@@ -16,7 +16,7 @@ import os
 from typing import Dict, List, Any
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://canteen-fire.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://canteenio.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test Configuration
