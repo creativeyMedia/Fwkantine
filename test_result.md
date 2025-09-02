@@ -55,6 +55,14 @@ backend:
     stuck_count: 0
     priority: "critical"
     needs_retesting: false
+
+  - task: "Daily Statistics Calculation Bug Fix - Exclude Sponsor Orders"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
