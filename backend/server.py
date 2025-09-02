@@ -3526,8 +3526,8 @@ async def sponsor_meal(meal_data: dict):
                     "is_sponsored": False,  # Sponsor is not sponsored
                     "sponsored_message": sponsor_message,  # Add sponsor message
                     "sponsor_message": sponsor_message,
-                    "sponsor_total_cost": total_sponsored_cost,
-                    "sponsor_employee_count": sponsored_count,
+                    "sponsor_total_cost": total_others_cost,  # CRITICAL: Cost sponsored by this sponsor (excluding their own)
+                    "sponsor_employee_count": others_count,  # CRITICAL: Number of other employees sponsored
                     "sponsored_meal_type": meal_type,
                     "readable_items": sponsor_readable_items,
                     # WICHTIG: total_price muss die gesponserten Kosten enthalten für korrekte Anzeige
