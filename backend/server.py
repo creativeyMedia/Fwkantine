@@ -1900,12 +1900,17 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 # Round total_amount to avoid floating point errors
                 employee_orders[employee_key]["total_amount"] = round(employee_orders[employee_key]["total_amount"], 2)
             
-            # CORRECTED: Calculate total_amount by summing all employee totals (using Decimal for precision)
-            for employee_total in employee_orders.values():
-                total_amount += Decimal(str(employee_total["total_amount"]))
+            # CORRECTED: Calculate daily total as ACTUAL REVENUE only (exclude sponsor cost redistribution)
+            # Daily total should represent actual food cost, not cost redistribution between employees
+            daily_total = Decimal('0')
+            
+            for order in real_orders:  # Only count real orders
+                # Always use the original order total_price for daily revenue calculation
+                # This represents actual food costs, regardless of who pays
+                daily_total += Decimal(str(order.get("total_price", 0)))
             
             # Convert back to float and round to 2 decimal places
-            total_amount = float(total_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+            total_amount = float(daily_total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
             
             history.append({
                 "date": current_date.isoformat(),
