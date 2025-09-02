@@ -1921,21 +1921,25 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         sponsor_count = sponsor_order.get("sponsor_employee_count", 0)
                         sponsor_cost = sponsor_order.get("sponsor_total_cost", 0.0)
                         
-                        # Extract meal type from sponsor order
-                        if "breakfast" in sponsor_meal_type.lower():
-                            breakfast_sponsored_info = {
-                                "count": sponsor_count,
-                                "amount": round(sponsor_cost, 2)
-                            }
-                            # Add sponsored breakfast amount to sponsor's total_amount
-                            employee_orders[employee_key]["total_amount"] += sponsor_cost
-                        elif "lunch" in sponsor_meal_type.lower() or "mittag" in sponsor_meal_type.lower():
-                            lunch_sponsored_info = {
-                                "count": sponsor_count,
-                                "amount": round(sponsor_cost, 2)
-                            }
-                            # Add sponsored lunch amount to sponsor's total_amount
-                            employee_orders[employee_key]["total_amount"] += sponsor_cost
+                        # Extract meal type from sponsor order - FIXED: Handle combined meal types
+                        # Split combined meal types like "breakfast,lunch" and process each separately
+                        meal_types = [mt.strip() for mt in sponsor_meal_type.lower().split(",")]
+                        
+                        for meal_type in meal_types:
+                            if "breakfast" in meal_type:
+                                breakfast_sponsored_info = {
+                                    "count": sponsor_count,
+                                    "amount": round(sponsor_cost, 2)
+                                }
+                                # Add sponsored breakfast amount to sponsor's total_amount
+                                employee_orders[employee_key]["total_amount"] += sponsor_cost
+                            elif "lunch" in meal_type or "mittag" in meal_type:
+                                lunch_sponsored_info = {
+                                    "count": sponsor_count,
+                                    "amount": round(sponsor_cost, 2)
+                                }
+                                # Add sponsored lunch amount to sponsor's total_amount
+                                employee_orders[employee_key]["total_amount"] += sponsor_cost
                 
                 # Add sponsoring info to employee data
                 employee_orders[employee_key]["sponsored_breakfast"] = breakfast_sponsored_info
