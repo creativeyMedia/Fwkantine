@@ -178,13 +178,16 @@ backend:
     implemented: true
     working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "🚨 CRITICAL BUG CONFIRMED: Comprehensive testing of the exact review request scenario (4 employees with 1.10€ Brötchen+Eier + 1.50€ Kaffee + 5.00€ Mittag = 7.60€ each, Mit1 sponsors breakfast for €4.40, Mit4 sponsors lunch for €20.00) successfully reproduced the reported €0.10 discrepancy. Expected daily total: €24.40, Actual: €24.30. ROOT CAUSE: Multiple calculation errors in breakfast-history endpoint: 1) Individual employee totals incorrect after sponsoring (Mit1 shows €5.90 instead of €1.50, Mit4 shows €21.50 instead of €20.90), 2) Sponsoring amounts incorrect (breakfast sponsoring shows €3.30 instead of €4.40, lunch sponsoring shows €15.00 instead of €20.00), 3) Final daily total has €0.10 precision error. While sponsoring functionality works (orders marked correctly), display calculations have rounding/precision issues affecting financial accuracy. URGENT FIX NEEDED: Correct calculation logic in breakfast-history endpoint for sponsored meal totals and individual employee balances."
+        - working: false
+          agent: "testing"
+          comment: "🚨 DECIMAL PRECISION FIX VERIFICATION FAILED: Comprehensive testing of the exact review request scenario reveals that while Decimal precision has been implemented in the code (lines 1597, 1903-1908), the underlying calculation logic still has critical errors: ✅ 1) Order Creation Correct - All 4 employees created orders correctly at €7.60 each. ✅ 2) Decimal Implementation Present - Code uses Decimal('0') and quantize() for precision. ❌ 3) CRITICAL: Daily Total Wrong - Shows €30.40 instead of expected €24.40 (€6.00 discrepancy). ❌ 4) CRITICAL: Sponsoring Amounts Wrong - Breakfast sponsoring shows €3.30 instead of €4.40 (missing €1.10), Lunch sponsoring shows €15.00 instead of €20.00 (missing €5.00). ❌ 5) CRITICAL: Employee Count Wrong - Both sponsoring show '3 employees' instead of '4 employees'. ❌ 6) ROOT CAUSE: Daily total calculation (lines 1903-1908) sums ALL individual employee totals INCLUDING sponsor costs, when it should exclude sponsor costs as they are cost redistributions, not additional revenue. The Decimal precision fix addresses floating-point errors but the fundamental calculation logic for sponsoring and daily totals is incorrect. URGENT: Fix sponsoring amount calculations and daily total logic to exclude sponsor costs."
 
   - task: "Coffee Cost Missing from Individual Employee Totals Bug"
     implemented: false
