@@ -1584,13 +1584,16 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
         }).to_list(1000)
         
         if orders:  # Only include dates with orders
-            # Calculate daily summary
+            # CORRECTED: Filter out sponsor orders from statistics (they're not real food orders)
+            real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+            
+            # Calculate daily summary using only real orders
             breakfast_summary = {}
             employee_orders = {}
-            total_orders = len(orders)
+            total_orders = len(real_orders)  # Only count real orders, not sponsor orders
             # Calculate total_amount considering sponsored orders
             total_amount = 0
-            for order in orders:
+            for order in real_orders:  # Only process real orders for statistics
                 if order.get("is_sponsored") and not order.get("is_sponsor_order"):
                     # For sponsored orders (not sponsor's own order), calculate only non-sponsored costs
                     if order.get("sponsored_meal_type") == "breakfast":
