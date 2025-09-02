@@ -43,9 +43,9 @@ BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://canteen-fire.preview.e
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test Configuration
-DEPARTMENT_ID = "fw4abteilung2"  # Department 2
-ADMIN_PASSWORD = "admin2"
-DEPARTMENT_NAME = "2. Wachabteilung"
+DEPARTMENT_ID = "fw1abteilung1"  # Department 1 (1. Wachabteilung)
+ADMIN_PASSWORD = "admin1"
+DEPARTMENT_NAME = "1. Wachabteilung"
 
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
