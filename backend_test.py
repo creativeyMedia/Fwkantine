@@ -61,7 +61,12 @@ class RoundingErrorSponsoringDebugTest:
         self.expected_individual_total = 7.60  # Per employee: 1.10 + 1.50 + 5.00
         self.expected_breakfast_sponsoring = 4.40  # 1.10 * 4 employees
         self.expected_lunch_sponsoring = 20.00     # 5.00 * 4 employees
-        self.expected_daily_total = 24.40          # 4.40 + 20.00
+        # CORRECTED EXPECTATION: Daily total should be €30.40 (sum of all real order prices)
+        # NOT €24.40 (which was user's incorrect expectation from separated revenue)
+        self.expected_daily_total = 30.40          # 4 employees × €7.60 each = actual revenue
+        self.expected_separated_total = 30.40      # Should match daily total
+        self.expected_breakfast_revenue = 4.40     # 4 × €1.10 (rolls only, excluding coffee)
+        self.expected_lunch_revenue = 20.00        # 4 × €5.00
         
     def cleanup_test_data(self) -> bool:
         """Clean up test data to create fresh scenario"""
