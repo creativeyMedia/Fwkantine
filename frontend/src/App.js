@@ -2624,8 +2624,7 @@ const DepartmentAdminDashboard = () => {
             { id: 'employees', label: 'Mitarbeiter' },
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'breakfast-history', label: 'Bestellverlauf' },
-            { id: 'settings', label: 'Einstellungen' },
-            { id: 'debug', label: '🧹 Debug' }
+            { id: 'settings', label: 'Einstellungen' }
           ].map((tab) => (
             <button
               key={tab.id}
