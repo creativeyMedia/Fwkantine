@@ -1,34 +1,42 @@
 #!/usr/bin/env python3
 """
-🚨 CRITICAL FRONTEND DISPLAY BUG FIX TEST: Test both frontend display fixes
+🚨 CRITICAL FRONTEND DISPLAY BUG TEST: Test chronological history display fixes for combined sponsoring
 
-This test verifies the two critical frontend display bug fixes:
+FOCUS ON FRONTEND DISPLAY BUGS:
 
-1. **Bug 1 - Chronological History Display Fix:**
-   - Create employee with breakfast order (rolls, eggs, coffee, lunch) ~€8-10
-   - Sponsor the breakfast and lunch for this employee
-   - Check employee individual profile chronological history
-   - CRITICAL: Individual order entry should show remaining cost (~€1-2 for coffee) NOT original cost (~€8-10)
+1. **Create Complex Combined Sponsoring Scenario:**
+   - Create Employee1: Full breakfast order (rolls, eggs, coffee, lunch) ~€8-10
+   - Create Employee2: Will sponsor breakfast for Employee1
+   - Create Employee3: Will sponsor lunch for Employee1
+   - Result: Employee1 should have both breakfast AND lunch sponsored
 
-2. **Bug 2 - Sponsor Total Display Fix:**
-   - Create sponsor employee with NO own orders
-   - Have sponsor sponsor meals for other employees
-   - Check daily overview (breakfast-history endpoint)
-   - CRITICAL: Sponsor's total_amount should show sponsored costs (positive amount) NOT €0.00
+2. **Test Combined Sponsoring:**
+   - Employee2 sponsors breakfast for Employee1
+   - Employee3 sponsors lunch for Employee1  
+   - This should create sponsored_meal_type = "breakfast,lunch" for Employee1's order
 
-3. **Test Combined Scenario:**
-   - Sponsor both breakfast AND lunch using same sponsor
-   - Verify both sponsored amounts are added to sponsor's total_amount
-   - Verify sponsored employee shows only coffee cost in chronological history
+3. **Critical Frontend Tests - Individual Employee Profile:**
+   - Get Employee1's individual profile/chronological history
+   - CRITICAL: Check that sponsored items are struck through:
+     - Rolls and eggs should be struck through (breakfast sponsored)
+     - Lunch should be struck through (lunch sponsored)
+     - Coffee should NOT be struck through (never sponsored)
+   
+4. **Critical Total Display Test:**
+   - CRITICAL: calculateDisplayPrice should show only coffee cost (~€1-2)
+   - Should NOT show original total cost (~€8-10)
+   - Verify total in chronological history matches actual remaining cost
 
-4. **Test No Regressions:**
-   - Test normal orders (no sponsoring) still show correct amounts
-   - Test single sponsoring still works correctly
+5. **Test sponsored_meal_type Structure:**
+   - Verify order has sponsored_meal_type = "breakfast,lunch" or similar
+   - Verify sponsored_message contains information about both sponsorings
+   - Test that both strikethrough logic and price calculation work
 
 EXPECTED RESULTS:
-- Bug 1: Chronological history shows -€1.00 (coffee only) for sponsored employee, NOT -€8.00 (original)
-- Bug 2: Sponsor without orders shows positive total (e.g., +€28.50) representing sponsoring costs
-- Combined: Both fixes work together correctly
+- Struck through: Rolls, eggs, lunch (all sponsored items)
+- NOT struck through: Coffee (never sponsored)
+- Total display: Only coffee cost (e.g., -€1.50), NOT original cost (e.g., -€8.50)
+- Both sponsoring types should be handled correctly in combined scenario
 
 Use Department 2 (fw4abteilung2) with admin2 credentials.
 """
