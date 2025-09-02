@@ -3663,10 +3663,19 @@ async def sponsor_meal(meal_data: dict):
         
         # Update sponsored orders
         for order_update in other_order_updates:
-            await db.orders.update_one(
+            print(f"🔍 DEBUG: Updating order {order_update['id']} with sponsored_meal_type: {order_update['updates'].get('sponsored_meal_type')}")
+            result = await db.orders.update_one(
                 {"id": order_update["id"]},
                 {"$set": order_update["updates"]}
             )
+            print(f"🔍 DEBUG: Update result - matched: {result.matched_count}, modified: {result.modified_count}")
+            
+            # Verify the update worked
+            updated_order = await db.orders.find_one({"id": order_update["id"]})
+            if updated_order:
+                print(f"✅ DEBUG: Order {order_update['id']} now has is_sponsored: {updated_order.get('is_sponsored')}, sponsored_meal_type: {updated_order.get('sponsored_meal_type')}")
+            else:
+                print(f"❌ DEBUG: Could not find updated order {order_update['id']}")
         
         # === RÜCKGABE ===
         sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
