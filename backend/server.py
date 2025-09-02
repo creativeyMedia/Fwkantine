@@ -1888,14 +1888,27 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             
             # Now calculate sponsoring information for ALL employees (including sponsors-only)
             for employee_key in employee_orders.keys():
-                # Extract employee ID from key (format: "Name (ID: 12345678)")
+                # Extract employee name and partial ID from key (format: "Name (ID: 12345678)")
                 employee_id = None
                 if " (ID: " in employee_key:
                     employee_name = employee_key.split(" (ID: ")[0]
-                    employee_id = employee_key.split(" (ID: ")[1].rstrip(")")
+                    partial_employee_id = employee_key.split(" (ID: ")[1].rstrip(")")
+                    
+                    # CRITICAL FIX: Find the full employee ID from database using partial ID
+                    # The employee key contains only last 8 characters, but we need the full UUID
+                    employee_doc = await db.employees.find_one({
+                        "department_id": department_id,
+                        "name": employee_name,
+                        "id": {"$regex": f".*{partial_employee_id}$"}  # Match ending with partial ID
+                    })
+                    
+                    if employee_doc:
+                        employee_id = employee_doc["id"]  # Use full employee ID
+                    else:
+                        print(f"⚠️ Could not find full employee ID for {employee_name} with partial ID {partial_employee_id}")
+                        continue
                 else:
                     employee_name = employee_key  # Fallback for any edge cases
-                    # Try to find employee ID from employee_orders data or database
                     continue  # Skip if we can't extract ID
                 
                 # Check if this employee sponsored any meals today
@@ -1906,7 +1919,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 # Look for orders where this employee is marked as a sponsor (is_sponsor_order=True)
                 sponsor_orders = await db.orders.find({
                     "department_id": department_id,
-                    "employee_id": employee_id,  # Orders belonging to this employee
+                    "employee_id": employee_id,  # Orders belonging to this employee (now using full ID)
                     "is_sponsor_order": True,    # This employee sponsored someone
                     "timestamp": {
                         "$gte": start_of_day_utc.isoformat(),
