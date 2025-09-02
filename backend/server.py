@@ -1768,7 +1768,6 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         # Regular orders - use full cost INCLUDING COFFEE
                         # CRITICAL: Coffee must be included in employee balance calculations
                         order_amount = order.get("total_price", 0)
-                        print(f"🔍 DEBUG Regular Order {order['id']}: total_price={order.get('total_price', 0)}, order_amount={order_amount}")
                     
                     # Round to avoid floating point errors
                     order_amount = round(order_amount, 2)
