@@ -404,9 +404,10 @@ class RoundingErrorSponsoringDebugTest:
         except Exception as e:
             print(f"❌ Error verifying separated revenue: {e}")
             return {"status": "error", "message": str(e)}
-        """Analyze breakfast-history endpoint for rounding errors and sponsoring calculation issues"""
+    def analyze_daily_total_calculation(self) -> dict:
+        """Analyze daily total calculation - should show actual revenue (€30.40), not cost redistribution"""
         try:
-            print(f"\n🔍 BREAKFAST-HISTORY TOTAL ANALYSIS:")
+            print(f"\n🔍 DAILY TOTAL CALCULATION ANALYSIS:")
             print("=" * 80)
             
             response = self.session.get(f"{API_BASE}/orders/breakfast-history/{DEPARTMENT_ID}")
@@ -418,21 +419,27 @@ class RoundingErrorSponsoringDebugTest:
                     today_data = data["history"][0]
                     employee_orders = today_data.get("employee_orders", {})
                     
-                    print(f"📊 BREAKFAST-HISTORY RESPONSE:")
+                    print(f"📊 DAILY TOTAL VERIFICATION:")
                     print(f"  - Total Orders: {today_data.get('total_orders', 0)}")
-                    print(f"  - Total Amount: €{today_data.get('total_amount', 0.0):.2f}")
-                    print(f"  - Expected Total: €{self.expected_daily_total:.2f}")
+                    print(f"  - Daily Total: €{today_data.get('total_amount', 0.0):.2f}")
+                    print(f"  - Expected (Revenue): €{self.expected_daily_total:.2f}")
                     print(f"  - Employees Found: {len(employee_orders)}")
                     
-                    # Calculate manual sum of individual employee totals
+                    api_total = today_data.get('total_amount', 0.0)
+                    
+                    # CRITICAL: Daily total should be €30.40 (actual revenue), NOT €24.40 (cost redistribution)
+                    daily_total_correct = abs(api_total - self.expected_daily_total) < 0.01
+                    
+                    print(f"\n🎯 CRITICAL VERIFICATION:")
+                    print(f"  - Daily Total Correct: {'✅' if daily_total_correct else '❌'}")
+                    print(f"  - Shows Actual Revenue: {'✅' if daily_total_correct else '❌'} (€30.40)")
+                    print(f"  - NOT Cost Redistribution: {'✅' if daily_total_correct else '❌'} (would be €24.40)")
+                    
+                    # Calculate sum of individual employee totals (includes cost redistribution)
                     manual_sum = 0.0
                     individual_totals = {}
                     
-                    # Calculate manual sum of individual employee totals
-                    manual_sum = 0.0
-                    individual_totals = {}
-                    
-                    print(f"\n🔍 INDIVIDUAL EMPLOYEE ANALYSIS:")
+                    print(f"\n🔍 INDIVIDUAL EMPLOYEE TOTALS (Cost Redistribution):")
                     for emp_key, emp_data in employee_orders.items():
                         total_amount = emp_data.get('total_amount', 0.0)
                         individual_totals[emp_key] = total_amount
@@ -444,84 +451,26 @@ class RoundingErrorSponsoringDebugTest:
                         print(f"    - Sponsored Breakfast: {emp_data.get('sponsored_breakfast', None)}")
                         print(f"    - Sponsored Lunch: {emp_data.get('sponsored_lunch', None)}")
                     
-                    print(f"\n🔍 DETAILED INDIVIDUAL ANALYSIS:")
-                    expected_individual_breakdown = {
-                        "Mit1": 1.50,  # Coffee only (breakfast sponsored by self, lunch sponsored by Mit4)
-                        "Mit2": 1.50,  # Coffee only (breakfast sponsored by Mit1, lunch sponsored by Mit4)  
-                        "Mit3": 1.50,  # Coffee only (breakfast sponsored by Mit1, lunch sponsored by Mit4)
-                        "Mit4": 1.50 + 4.40 + 15.00  # Coffee + breakfast sponsoring cost + lunch sponsoring cost
-                    }
+                    print(f"\n🧮 MATHEMATICAL VERIFICATION:")
+                    print(f"  - Sum of Individual Totals: €{manual_sum:.2f} (includes cost redistribution)")
+                    print(f"  - Daily Total (API): €{api_total:.2f} (should be actual revenue)")
+                    print(f"  - Expected Revenue: €{self.expected_daily_total:.2f}")
                     
-                    total_expected_individual = sum(expected_individual_breakdown.values())
+                    # The key insight: Daily total should NOT equal sum of individual totals after sponsoring
+                    # Daily total = actual revenue, Individual totals = cost redistribution
+                    individual_sum_matches_daily = abs(manual_sum - api_total) < 0.01
                     
-                    print(f"  Expected individual breakdown:")
-                    for name, expected in expected_individual_breakdown.items():
-                        print(f"    - {name}: €{expected:.2f}")
-                    print(f"  Expected sum of individuals: €{total_expected_individual:.2f}")
-                    
-                    print(f"\n🔍 ACTUAL vs EXPECTED INDIVIDUAL COMPARISON:")
-                    for emp_key, emp_data in employee_orders.items():
-                        actual_total = emp_data.get('total_amount', 0.0)
-                        # Extract employee name from key (e.g., "Mit1 (ID: 97cbea01)" -> "Mit1")
-                        emp_name = emp_key.split(' ')[0]
-                        expected_total = expected_individual_breakdown.get(emp_name, 0.0)
-                        difference = actual_total - expected_total
-                        
-                        print(f"  - {emp_key}:")
-                        print(f"    - Actual: €{actual_total:.2f}")
-                        print(f"    - Expected: €{expected_total:.2f}")
-                        print(f"    - Difference: €{difference:.2f}")
-                        
-                        if abs(difference) > 0.01:
-                            print(f"    - ⚠️ SIGNIFICANT DIFFERENCE DETECTED!")
-                    
-                    # Check sponsoring amounts
-                    print(f"\n🔍 SPONSORING AMOUNTS VERIFICATION:")
-                    for emp_key, emp_data in employee_orders.items():
-                        sponsored_breakfast = emp_data.get('sponsored_breakfast', None)
-                        sponsored_lunch = emp_data.get('sponsored_lunch', None)
-                        
-                        if sponsored_breakfast:
-                            print(f"  - {emp_key} sponsored breakfast: €{sponsored_breakfast.get('amount', 0.0):.2f} for {sponsored_breakfast.get('count', 0)} employees")
-                        
-                        if sponsored_lunch:
-                            print(f"  - {emp_key} sponsored lunch: €{sponsored_lunch.get('amount', 0.0):.2f} for {sponsored_lunch.get('count', 0)} employees")
-                    
-                    print(f"\n🧮 CALCULATION VERIFICATION:")
-                    print(f"  - Manual sum of individuals: €{manual_sum:.2f}")
-                    print(f"  - API reported total: €{today_data.get('total_amount', 0.0):.2f}")
-                    print(f"  - Expected total: €{self.expected_daily_total:.2f}")
-                    
-                    api_total = today_data.get('total_amount', 0.0)
-                    discrepancy_manual = abs(manual_sum - self.expected_daily_total)
-                    discrepancy_api = abs(api_total - self.expected_daily_total)
-                    
-                    print(f"\n🎯 DISCREPANCY ANALYSIS:")
-                    print(f"  - Manual vs Expected: €{discrepancy_manual:.2f}")
-                    print(f"  - API vs Expected: €{discrepancy_api:.2f}")
-                    print(f"  - Manual vs API: €{abs(manual_sum - api_total):.2f}")
-                    
-                    # Check for the specific 0.10€ discrepancy mentioned in review request
-                    if abs(discrepancy_api - 0.10) < 0.01:
-                        print(f"  🚨 CONFIRMED: Found the exact 0.10€ discrepancy mentioned in review request!")
-                        print(f"     Expected: €24.40, Actual: €{api_total:.2f}")
-                    
-                    # Analyze floating point precision
-                    print(f"\n🔬 FLOATING POINT PRECISION CHECK:")
-                    for emp_key, total in individual_totals.items():
-                        rounded_total = round(total, 2)
-                        precision_diff = abs(total - rounded_total)
-                        if precision_diff > 0.001:
-                            print(f"  ⚠️ {emp_key}: Precision issue - Raw: {total}, Rounded: {rounded_total}")
-                        else:
-                            print(f"  ✅ {emp_key}: No precision issues")
+                    print(f"\n🎯 KEY VERIFICATION:")
+                    print(f"  - Daily Total = Revenue: {'✅' if daily_total_correct else '❌'}")
+                    print(f"  - Individual Sum ≠ Daily: {'✅' if not individual_sum_matches_daily else '❌'} (cost redistribution)")
                     
                     return {
                         "status": "success",
-                        "manual_sum": manual_sum,
-                        "api_total": api_total,
-                        "expected_total": self.expected_daily_total,
-                        "discrepancy_found": abs(discrepancy_api - 0.10) < 0.01,
+                        "daily_total": api_total,
+                        "individual_sum": manual_sum,
+                        "expected_revenue": self.expected_daily_total,
+                        "daily_total_correct": daily_total_correct,
+                        "shows_actual_revenue": daily_total_correct,
                         "individual_totals": individual_totals
                     }
                 else:
@@ -532,7 +481,7 @@ class RoundingErrorSponsoringDebugTest:
                 return {"status": "error", "message": f"API call failed: {response.text}"}
                 
         except Exception as e:
-            print(f"❌ Error analyzing breakfast-history: {e}")
+            print(f"❌ Error analyzing daily total: {e}")
             return {"status": "error", "message": str(e)}
     
     def run_rounding_error_debug_test(self):
