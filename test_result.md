@@ -50,15 +50,18 @@
 backend:
   - task: "Fix Drinks/Sweets Negative Display Bug (Backend Data Storage)"
     implemented: true
-    working: "needs_testing"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "IMPLEMENTED: Fixed backend logic to store drinks and sweets orders as negative amounts (representing employee debt). Modified create_order endpoint lines 1321-1340 to set total_price = -total_price for DRINKS and SWEETS orders. Also corrected balance update logic to use addition instead of subtraction for drinks/sweets since total_price is now negative. This ensures drinks/sweets orders display as red negative amounts in Admin Dashboard UI instead of green positive amounts."
+        - working: true
+          agent: "testing"
+          comment: "🎯 DRINKS AND SWEETS NEGATIVE DISPLAY BUG FIX VERIFICATION COMPLETED SUCCESSFULLY! Comprehensive testing of the backend fix for drinks and sweets negative display completed with 100% success rate (5/5 tests passed): ✅ 1) DRINKS ORDERS NEGATIVE STORAGE VERIFIED: Created drinks orders (Kaffee €2.00 + 2x Tee €0.80 = €3.60 total) and confirmed orders are stored with NEGATIVE total_price values (€-3.60) as required. The fix correctly applies total_price = -total_price for drinks orders. ✅ 2) SWEETS ORDERS NEGATIVE STORAGE VERIFIED: Created sweets orders (2x Schokoriegel €2.00 + Keks €0.80 = €4.80 total) and confirmed orders are stored with NEGATIVE total_price values (€-4.80) as required. The fix correctly applies total_price = -total_price for sweets orders. ✅ 3) EMPLOYEE BALANCE UPDATES VERIFIED: Employee drinks_sweets_balance correctly decreases (becomes more negative) after orders, representing debt as intended. TestDrinks: €-3.60 debt, TestSweets: €-4.80 debt, TestBoth: €-8.40 debt (combined drinks + sweets). Balance update logic new_balance = old_balance + total_price works correctly since total_price is negative. ✅ 4) BREAKFAST ORDERS REMAIN POSITIVE VERIFIED: Control test confirmed breakfast orders continue to work normally with POSITIVE total_price values (€2.75 for breakfast order), ensuring the fix only affects drinks and sweets orders as intended. ✅ 5) GET ENDPOINTS RETURN NEGATIVE VALUES VERIFIED: Employee profile endpoint correctly returns negative total_price values for drinks and sweets orders in order history, confirming the negative values are properly stored and retrieved for frontend display. CRITICAL VERIFICATION: The exact scenario from review request is working perfectly - drinks orders (e.g., -€0.80 for €0.80 drink), sweets orders (e.g., -€1.50 for €1.50 sweet), employee balances represent debt correctly, breakfast orders remain positive, and GET endpoints return negative values for proper frontend red display. The drinks and sweets negative display bug fix is FULLY FUNCTIONAL."
 
   - task: "Fix Sponsoring Logic Error for Double Sponsoring (Breakfast + Lunch)"
     implemented: true
