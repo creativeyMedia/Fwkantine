@@ -1929,34 +1929,27 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 
                 if sponsor_orders:
                     # Process sponsor orders to extract sponsoring info
-                    print(f"🔍 DEBUG: Found {len(sponsor_orders)} sponsor orders for {employee_name}")
                     for sponsor_order in sponsor_orders:
                         sponsor_meal_type = sponsor_order.get("sponsored_meal_type", "")
                         sponsor_count = sponsor_order.get("sponsor_employee_count", 0)
                         sponsor_cost = sponsor_order.get("sponsor_total_cost", 0.0)
                         
-                        print(f"🔍 DEBUG: Sponsor order - meal_type: {sponsor_meal_type}, count: {sponsor_count}, cost: {sponsor_cost}")
-                        
-                        # Extract meal type from sponsor order - FIXED: Handle combined meal types
-                        # Split combined meal types like "breakfast,lunch" and process each separately
-                        meal_types = [mt.strip() for mt in sponsor_meal_type.lower().split(",")]
-                        
-                        for meal_type in meal_types:
-                            print(f"🔍 DEBUG: Processing meal type: {meal_type}")
-                            if "breakfast" in meal_type:
+                        # CRITICAL FIX: Each sponsor order should be processed separately
+                        # Don't combine meal types from different sponsor orders
+                        if sponsor_meal_type.lower() == "breakfast":
+                            if breakfast_sponsored_info is None:  # Only set if not already set
                                 breakfast_sponsored_info = {
                                     "count": sponsor_count,
                                     "amount": round(sponsor_cost, 2)
                                 }
-                                print(f"🔍 DEBUG: Set breakfast_sponsored_info: {breakfast_sponsored_info}")
                                 # Add sponsored breakfast amount to sponsor's total_amount
                                 employee_orders[employee_key]["total_amount"] += sponsor_cost
-                            elif "lunch" in meal_type or "mittag" in meal_type:
+                        elif sponsor_meal_type.lower() == "lunch":
+                            if lunch_sponsored_info is None:  # Only set if not already set
                                 lunch_sponsored_info = {
                                     "count": sponsor_count,
                                     "amount": round(sponsor_cost, 2)
                                 }
-                                print(f"🔍 DEBUG: Set lunch_sponsored_info: {lunch_sponsored_info}")
                                 # Add sponsored lunch amount to sponsor's total_amount
                                 employee_orders[employee_key]["total_amount"] += sponsor_cost
                 
