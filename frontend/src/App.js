@@ -4682,7 +4682,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                     
                                     return (
                                       <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
-                                        {parts.join(' ') || toppingCount.toString()}
+                                        {parts.join(' ') || totalCount.toString()}
                                       </td>
                                     );
                                   })}
