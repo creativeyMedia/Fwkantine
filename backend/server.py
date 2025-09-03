@@ -2324,7 +2324,7 @@ async def get_employee_profile(employee_id: str):
                         "description": f"{white_halves}x Helles Brötchen (Hälften)",
                         "unit_price": f"{white_roll_price:.2f} € pro Hälfte",
                         "total_price": f"{(white_halves * white_roll_price):.2f} €",
-                        "toppings": toppings_str if toppings_str else "Ohne Belag"
+                        "toppings": white_toppings_str
                     })
                 
                 if seeded_halves > 0:
@@ -2333,7 +2333,7 @@ async def get_employee_profile(employee_id: str):
                         "description": f"{seeded_halves}x Körnerbrötchen (Hälften)", 
                         "unit_price": f"{seeded_roll_price:.2f} € pro Hälfte",
                         "total_price": f"{(seeded_halves * seeded_roll_price):.2f} €",
-                        "toppings": toppings_str if toppings_str else "Ohne Belag"
+                        "toppings": seeded_toppings_str
                     })
                 
                 # Add boiled eggs as separate item if present
