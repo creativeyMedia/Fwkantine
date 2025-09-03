@@ -4470,15 +4470,23 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   toppingBreakdown[topping] = { white: 0, seeded: 0 };
                                 }
                                 
-                                const whiteHalves = employeeData.white_halves || 0;
-                                const seededHalves = employeeData.seeded_halves || 0;
-                                const totalHalves = whiteHalves + seededHalves;
-                                
-                                if (totalHalves > 0) {
-                                  const whiteRatio = whiteHalves / totalHalves;
-                                  const seededRatio = seededHalves / totalHalves;
-                                  toppingBreakdown[topping].white += Math.round(count * whiteRatio);
-                                  toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
+                                // Check if the count is already broken down by roll type (new format)
+                                if (typeof count === 'object' && count.white !== undefined && count.seeded !== undefined) {
+                                  // New format: direct assignment from backend
+                                  toppingBreakdown[topping].white += count.white || 0;
+                                  toppingBreakdown[topping].seeded += count.seeded || 0;
+                                } else {
+                                  // Legacy format: proportional distribution (fallback)
+                                  const whiteHalves = employeeData.white_halves || 0;
+                                  const seededHalves = employeeData.seeded_halves || 0;
+                                  const totalHalves = whiteHalves + seededHalves;
+                                  
+                                  if (totalHalves > 0) {
+                                    const whiteRatio = whiteHalves / totalHalves;
+                                    const seededRatio = seededHalves / totalHalves;
+                                    toppingBreakdown[topping].white += Math.round(count * whiteRatio);
+                                    toppingBreakdown[topping].seeded += Math.round(count * seededRatio);
+                                  }
                                 }
                               });
                             }
