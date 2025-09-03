@@ -1770,6 +1770,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                     old_count = employee_orders[employee_key]["toppings"][topping]
                                     employee_orders[employee_key]["toppings"][topping] = {"white": old_count, "seeded": 0}
                                 employee_orders[employee_key]["toppings"][topping]["white"] += 1
+                                
+                                # Also update breakfast_summary for overall topping counts
+                                if topping not in breakfast_summary["weiss"]["toppings"]:
+                                    breakfast_summary["weiss"]["toppings"][topping] = 0
+                                breakfast_summary["weiss"]["toppings"][topping] += 1
                             else:
                                 # This topping is on a seeded roll
                                 if topping not in employee_orders[employee_key]["toppings"]:
@@ -1779,6 +1784,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                     old_count = employee_orders[employee_key]["toppings"][topping]
                                     employee_orders[employee_key]["toppings"][topping] = {"white": 0, "seeded": old_count}
                                 employee_orders[employee_key]["toppings"][topping]["seeded"] += 1
+                                
+                                # Also update breakfast_summary for overall topping counts
+                                if topping not in breakfast_summary["koerner"]["toppings"]:
+                                    breakfast_summary["koerner"]["toppings"][topping] = 0
+                                breakfast_summary["koerner"]["toppings"][topping] += 1
             
             # Calculate shopping list
             shopping_list = {}
