@@ -4470,13 +4470,17 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   toppingBreakdown[topping] = { white: 0, seeded: 0 };
                                 }
                                 
+                                console.log(`Processing topping ${topping}:`, count, typeof count);
+                                
                                 // Check if the count is already broken down by roll type (new format)
                                 if (typeof count === 'object' && count.white !== undefined && count.seeded !== undefined) {
                                   // New format: direct assignment from backend
+                                  console.log(`Using NEW format for ${topping}:`, count);
                                   toppingBreakdown[topping].white += count.white || 0;
                                   toppingBreakdown[topping].seeded += count.seeded || 0;
                                 } else {
                                   // Legacy format: proportional distribution (fallback)
+                                  console.log(`Using LEGACY format for ${topping}:`, count);
                                   const whiteHalves = employeeData.white_halves || 0;
                                   const seededHalves = employeeData.seeded_halves || 0;
                                   const totalHalves = whiteHalves + seededHalves;
