@@ -2287,6 +2287,23 @@ async def get_employee_profile(employee_id: str):
                 }
                 toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
                 
+                # Create separate topping strings for white and seeded rolls based on position
+                toppings_list = item["toppings"]
+                white_toppings = []
+                seeded_toppings = []
+                
+                for topping_index, topping in enumerate(toppings_list):
+                    topping_display = topping_names_german.get(topping, topping)
+                    if topping_index < white_halves:
+                        # This topping is on a white roll
+                        white_toppings.append(topping_display)
+                    else:
+                        # This topping is on a seeded roll
+                        seeded_toppings.append(topping_display)
+                
+                white_toppings_str = ", ".join(white_toppings) if white_toppings else "Ohne Belag"
+                seeded_toppings_str = ", ".join(seeded_toppings) if seeded_toppings else "Ohne Belag"
+                
                 # Create breakfast prices dictionary for this context
                 breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
                 
