@@ -1758,11 +1758,27 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         breakfast_summary["weiss"]["halves"] += white_halves
                         breakfast_summary["koerner"]["halves"] += seeded_halves
                         
-                        # Count toppings
-                        for topping in item["toppings"]:
-                            if topping not in employee_orders[employee_key]["toppings"]:
-                                employee_orders[employee_key]["toppings"][topping] = 0
-                            employee_orders[employee_key]["toppings"][topping] += 1
+                        # Count toppings with proper roll type assignment
+                        for topping_index, topping in enumerate(item["toppings"]):
+                            # Determine which roll type this topping belongs to based on position
+                            if topping_index < white_halves:
+                                # This topping is on a white roll
+                                if topping not in employee_orders[employee_key]["toppings"]:
+                                    employee_orders[employee_key]["toppings"][topping] = {"white": 0, "seeded": 0}
+                                elif isinstance(employee_orders[employee_key]["toppings"][topping], int):
+                                    # Convert old format to new format
+                                    old_count = employee_orders[employee_key]["toppings"][topping]
+                                    employee_orders[employee_key]["toppings"][topping] = {"white": old_count, "seeded": 0}
+                                employee_orders[employee_key]["toppings"][topping]["white"] += 1
+                            else:
+                                # This topping is on a seeded roll
+                                if topping not in employee_orders[employee_key]["toppings"]:
+                                    employee_orders[employee_key]["toppings"][topping] = {"white": 0, "seeded": 0}
+                                elif isinstance(employee_orders[employee_key]["toppings"][topping], int):
+                                    # Convert old format to new format
+                                    old_count = employee_orders[employee_key]["toppings"][topping]
+                                    employee_orders[employee_key]["toppings"][topping] = {"white": 0, "seeded": old_count}
+                                employee_orders[employee_key]["toppings"][topping]["seeded"] += 1
             
             # Calculate shopping list
             shopping_list = {}
