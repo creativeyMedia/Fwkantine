@@ -4635,7 +4635,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   {toppingsList.map(topping => {
                                     const toppingCount = (employeeData && employeeData.toppings && employeeData.toppings[topping]) || 0;
                                     
-                                    if (toppingCount === 0) {
+                                    if (toppingCount === 0 || (typeof toppingCount === 'object' && (toppingCount.white || 0) + (toppingCount.seeded || 0) === 0)) {
                                       return (
                                         <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm text-gray-400">
                                           -
@@ -4643,23 +4643,37 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                       );
                                     }
                                     
-                                    const whiteHalves = (employeeData && employeeData.white_halves) || 0;
-                                    const seededHalves = (employeeData && employeeData.seeded_halves) || 0;
-                                    const totalHalves = whiteHalves + seededHalves;
+                                    let whiteCount = 0;
+                                    let seededCount = 0;
+                                    let totalCount = 0;
                                     
-                                    if (totalHalves === 0) {
-                                      return (
-                                        <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
-                                          {toppingCount}
-                                        </td>
-                                      );
+                                    // Check if the count is already broken down by roll type (new format)
+                                    if (typeof toppingCount === 'object' && toppingCount.white !== undefined && toppingCount.seeded !== undefined) {
+                                      // New format: use direct assignment from backend
+                                      whiteCount = toppingCount.white || 0;
+                                      seededCount = toppingCount.seeded || 0;
+                                      totalCount = whiteCount + seededCount;
+                                    } else {
+                                      // Legacy format: proportional distribution (fallback)
+                                      const whiteHalves = (employeeData && employeeData.white_halves) || 0;
+                                      const seededHalves = (employeeData && employeeData.seeded_halves) || 0;
+                                      const totalHalves = whiteHalves + seededHalves;
+                                      totalCount = toppingCount;
+                                      
+                                      if (totalHalves === 0) {
+                                        return (
+                                          <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
+                                            {totalCount}
+                                          </td>
+                                        );
+                                      }
+                                      
+                                      // Calculate proportional distribution
+                                      const whiteRatio = whiteHalves / totalHalves;
+                                      const seededRatio = seededHalves / totalHalves;
+                                      whiteCount = Math.round(totalCount * whiteRatio);
+                                      seededCount = Math.round(totalCount * seededRatio);
                                     }
-                                    
-                                    // Calculate proportional distribution
-                                    const whiteRatio = whiteHalves / totalHalves;
-                                    const seededRatio = seededHalves / totalHalves;
-                                    const whiteCount = Math.round(toppingCount * whiteRatio);
-                                    const seededCount = Math.round(toppingCount * seededRatio);
                                     
                                     // Format with abbreviations  
                                     const parts = [];
