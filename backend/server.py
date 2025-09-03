@@ -2066,22 +2066,31 @@ async def get_daily_summary(department_id: str):
                     breakfast_summary["weiss"]["halves"] += white_halves
                     breakfast_summary["koerner"]["halves"] += seeded_halves
                 
-                # Count toppings per employee (only if breakfast visible)
+                # Count toppings per employee with proper roll type assignment
                 if show_breakfast:
-                    for topping in item["toppings"]:
-                        # Employee toppings - use simple integer count for frontend display compatibility
+                    for topping_index, topping in enumerate(item["toppings"]):
+                        # Employee toppings - use new format {white: X, seeded: Y} for frontend compatibility
                         if topping not in employee_orders[employee_name]["toppings"]:
-                            employee_orders[employee_name]["toppings"][topping] = 0
+                            employee_orders[employee_name]["toppings"][topping] = {"white": 0, "seeded": 0}
+                        elif isinstance(employee_orders[employee_name]["toppings"][topping], int):
+                            # Convert old format to new format
+                            old_count = employee_orders[employee_name]["toppings"][topping]
+                            employee_orders[employee_name]["toppings"][topping] = {"white": old_count, "seeded": 0}
                         
-                        # Increment topping count for employee
-                        employee_orders[employee_name]["toppings"][topping] += 1
-                        
-                        # Distribute toppings proportionally for breakfast summary (simplified: assign to roll type with more halves)
-                        if white_halves >= seeded_halves:
+                        # Determine which roll type this topping belongs to based on position
+                        if topping_index < white_halves:
+                            # This topping is on a white roll
+                            employee_orders[employee_name]["toppings"][topping]["white"] += 1
+                            
+                            # Also update breakfast_summary for overall topping counts
                             if topping not in breakfast_summary["weiss"]["toppings"]:
                                 breakfast_summary["weiss"]["toppings"][topping] = 0
                             breakfast_summary["weiss"]["toppings"][topping] += 1
                         else:
+                            # This topping is on a seeded roll
+                            employee_orders[employee_name]["toppings"][topping]["seeded"] += 1
+                            
+                            # Also update breakfast_summary for overall topping counts
                             if topping not in breakfast_summary["koerner"]["toppings"]:
                                 breakfast_summary["koerner"]["toppings"][topping] = 0
                             breakfast_summary["koerner"]["toppings"][topping] += 1
