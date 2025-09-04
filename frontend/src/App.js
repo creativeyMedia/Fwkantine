@@ -6590,13 +6590,15 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   const fetchLunchSettings = async () => {
     try {
       // Get department-specific egg and coffee prices using separate endpoints
-      const [eggsResponse, coffeeResponse] = await Promise.all([
+      const [eggsResponse, friedEggsResponse, coffeeResponse] = await Promise.all([
         axios.get(`${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`),
+        axios.get(`${API}/department-settings/${currentDepartment.department_id}/fried-eggs-price`),
         axios.get(`${API}/department-settings/${currentDepartment.department_id}/coffee-price`)
       ]);
       
       setLunchSettings({
         boiled_eggs_price: eggsResponse.data.boiled_eggs_price,
+        fried_eggs_price: friedEggsResponse.data.fried_eggs_price,
         coffee_price: coffeeResponse.data.coffee_price
       });
     } catch (error) {
@@ -6604,6 +6606,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
       // Fallback to default settings
       setLunchSettings({
         boiled_eggs_price: 0.50,
+        fried_eggs_price: 0.50,
         coffee_price: 1.50
       });
     }
