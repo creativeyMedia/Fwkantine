@@ -1908,8 +1908,8 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
     )}
 
-    {/* Boiled Eggs and Coffee Options - Side by Side */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* Eggs and Coffee Options - Three columns */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Boiled Eggs Option */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <label className="block text-sm font-medium mb-3">🥚 Gekochte Frühstückseier</label>
@@ -1923,6 +1923,23 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
           />
           <span className="text-sm text-gray-600">
             {boiledEggsPrice.toFixed(2)} € pro Ei = {boiledEggsCost.toFixed(2)} €
+          </span>
+        </div>
+      </div>
+
+      {/* Fried Eggs Option */}
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <label className="block text-sm font-medium mb-3">🍳 Spiegeleier</label>
+        <div className="flex flex-col gap-2">
+          <NumberSelector
+            value={friedEggs}
+            onChange={setFriedEggs}
+            min={0}
+            max={10}
+            unit="Stück"
+          />
+          <span className="text-sm text-gray-600">
+            {friedEggsPrice.toFixed(2)} € pro Ei = {friedEggsCost.toFixed(2)} €
           </span>
         </div>
       </div>
