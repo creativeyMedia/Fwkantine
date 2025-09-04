@@ -6573,7 +6573,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
     <div>
       <h4 className="text-md font-semibold text-gray-700 border-b pb-2 mb-4">🥚☕ Eier & Kaffee</h4>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Gekochte Eier */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           {editingItem === 'eggs' ? (
