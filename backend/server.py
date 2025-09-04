@@ -3083,6 +3083,9 @@ async def update_order(order_id: str, order_update: dict):
             update_fields["sweet_items"] = order_update["sweet_items"]
             # TODO: Calculate total price for sweets
         
+        if "notes" in order_update:
+            update_fields["notes"] = order_update["notes"]
+        
         # Update the order in database
         result = await db.orders.update_one(
             {"id": order_id},
