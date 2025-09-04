@@ -4804,6 +4804,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-50 font-semibold">
                                     {(employeeData && employeeData.boiled_eggs) || 0}
                                   </td>
+                                  <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-50 font-semibold">
+                                    {(employeeData && employeeData.fried_eggs) || 0}
+                                  </td>
                                   <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-50 font-semibold">
                                     {(employeeData && employeeData.has_lunch) ? 'X' : '-'}
                                   </td>
