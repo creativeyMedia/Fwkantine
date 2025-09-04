@@ -201,6 +201,7 @@ class LunchSettings(BaseModel):
     price: float = 0.0
     enabled: bool = True
     boiled_eggs_price: float = 0.50  # Default price per boiled egg (global fallback)
+    fried_eggs_price: float = 0.50  # Default price per fried egg (global fallback)
     coffee_price: float = 1.50  # Default price for daily coffee (global fallback)
 
 class DailyLunchPrice(BaseModel):
