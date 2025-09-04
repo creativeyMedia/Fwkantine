@@ -1311,9 +1311,9 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       setLunchSettings({
         price: 0.0, // Lunch price handled separately 
         enabled: true,
-        boiled_eggs_price: deptResponse.data.boiled_eggs_price,
-        fried_eggs_price: deptResponse.data.fried_eggs_price,
-        coffee_price: deptResponse.data.coffee_price
+        boiled_eggs_price: deptResponse.data.boiled_eggs_price || 0.50,
+        fried_eggs_price: deptResponse.data.fried_eggs_price || 0.50,
+        coffee_price: deptResponse.data.coffee_price || 1.50
       });
       
     } catch (error) {
