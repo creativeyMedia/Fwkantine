@@ -1302,6 +1302,7 @@ async def create_order(order_data: OrderCreate):
         # Get department-specific prices
         department_prices = await get_department_prices(order_data.department_id)
         boiled_eggs_price = department_prices["boiled_eggs_price"]
+        fried_eggs_price = department_prices["fried_eggs_price"]
         coffee_price = department_prices["coffee_price"]
         
         for breakfast_item in order_data.breakfast_items:
