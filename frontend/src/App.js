@@ -4504,6 +4504,14 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                         </div>
                       )}
                       
+                      {/* Fried Eggs */}
+                      {dailySummary.total_fried_eggs > 0 && (
+                        <div className="pb-2 border-b border-gray-200">
+                          <div className="font-semibold text-gray-700 mb-2">Spiegeleier:</div>
+                          <div className="ml-4 text-lg font-bold text-orange-700">{dailySummary.total_fried_eggs} Stück</div>
+                        </div>
+                      )}
+                      
                       {/* Toppings with Roll Type Detail */}
                       {(() => {
                         // Check if we have employee orders data
