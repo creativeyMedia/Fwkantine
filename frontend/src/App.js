@@ -1816,7 +1816,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     // Convert assignments to the expected format (empty array if no rolls)
     const toppings = hasRolls ? toppingAssignments.map(assignment => assignment.topping) : [];
     
-    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch, boiledEggs, totalCost);
+    onAddItem(totalHalves, whiteRolls, seededRolls, toppings, hasLunch, boiledEggs, friedEggs, totalCost);
     
     // Reset form
     setWhiteRolls(0);
@@ -1824,6 +1824,8 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     setToppingAssignments([]);
     setHasLunch(false);
     setBoiledEggs(0);
+    setFriedEggs(0);
+    setNotes('');
   };
 
   return (
