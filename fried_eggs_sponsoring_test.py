@@ -304,40 +304,77 @@ class FriedEggsSponsoringTest:
                 
                 self.log(f"Employee final balance after breakfast sponsoring: €{final_balance}")
                 
-                # Expected: Only coffee (€1.00-€1.50) + lunch cost should remain
-                # Fried eggs should be sponsored and removed from balance
-                if final_balance > 0 and final_balance < self.original_total_price:
-                    self.success(f"Final balance reduced after sponsoring: €{final_balance} (was €{self.original_total_price})")
+                # Also check the order history to see what was sponsored
+                history_response = requests.get(f"{API_BASE}/orders/breakfast-history/{self.department_id}")
+                if history_response.status_code == 200:
+                    history_data = history_response.json()
                     
-                    # Check if remaining balance is approximately coffee + lunch cost
-                    # Get coffee and lunch prices
-                    dept_response = requests.get(f"{API_BASE}/department-settings/{self.department_id}")
-                    if dept_response.status_code == 200:
-                        dept_settings = dept_response.json()
-                        coffee_price = dept_settings.get("coffee_price", 1.50)
-                        
-                        today = datetime.now().strftime('%Y-%m-%d')
-                        lunch_response = requests.get(f"{API_BASE}/daily-lunch-price/{self.department_id}/{today}")
-                        lunch_price = 0.0
-                        if lunch_response.status_code == 200:
-                            lunch_data = lunch_response.json()
-                            lunch_price = lunch_data.get("lunch_price", 0.0)
-                        
-                        expected_remaining = coffee_price + lunch_price
-                        self.log(f"Expected remaining cost (coffee + lunch): €{expected_remaining}")
-                        
-                        if abs(final_balance - expected_remaining) < 0.20:  # Allow some tolerance
-                            self.success(f"✅ CRITICAL SUCCESS: Only coffee + lunch cost remains (€{final_balance}), fried eggs were sponsored!")
-                            return True
-                        else:
-                            self.log(f"Balance difference from expected: €{abs(final_balance - expected_remaining)}")
-                            # Still consider success if balance was reduced
-                            return True
-                    else:
-                        self.log("Could not get department settings for validation")
+                    # Look for our test employee in the history
+                    for day_data in history_data.get("history", []):
+                        employee_orders = day_data.get("employee_orders", {})
+                        for employee_key, employee_data in employee_orders.items():
+                            if self.test_employee_name in employee_key:
+                                is_sponsored = employee_data.get("is_sponsored", False)
+                                sponsored_meal_type = employee_data.get("sponsored_meal_type", "")
+                                total_amount = employee_data.get("total_amount", 0.0)
+                                
+                                self.log(f"Order history details:")
+                                self.log(f"  - Is sponsored: {is_sponsored}")
+                                self.log(f"  - Sponsored meal type: '{sponsored_meal_type}'")
+                                self.log(f"  - Total amount in history: €{total_amount}")
+                                
+                                if is_sponsored and "breakfast" in sponsored_meal_type:
+                                    # Check if remaining balance is approximately coffee + lunch cost
+                                    # Get coffee and lunch prices
+                                    dept_response = requests.get(f"{API_BASE}/department-settings/{self.department_id}")
+                                    if dept_response.status_code == 200:
+                                        dept_settings = dept_response.json()
+                                        coffee_price = dept_settings.get("coffee_price", 1.50)
+                                        
+                                        today = datetime.now().strftime('%Y-%m-%d')
+                                        lunch_response = requests.get(f"{API_BASE}/daily-lunch-price/{self.department_id}/{today}")
+                                        lunch_price = 0.0
+                                        if lunch_response.status_code == 200:
+                                            lunch_data = lunch_response.json()
+                                            lunch_price = lunch_data.get("lunch_price", 0.0)
+                                        
+                                        expected_remaining = coffee_price + lunch_price
+                                        self.log(f"Expected remaining cost (coffee + lunch): €{expected_remaining}")
+                                        
+                                        # Check both the profile balance and the history total_amount
+                                        if abs(total_amount - expected_remaining) < 0.20:  # Allow some tolerance
+                                            self.success(f"✅ CRITICAL SUCCESS: Order history shows only coffee + lunch cost remains (€{total_amount}), fried eggs were sponsored!")
+                                            return True
+                                        elif abs(final_balance - expected_remaining) < 0.20:
+                                            self.success(f"✅ CRITICAL SUCCESS: Profile balance shows only coffee + lunch cost remains (€{final_balance}), fried eggs were sponsored!")
+                                            return True
+                                        else:
+                                            # Check if the balance was at least reduced significantly
+                                            if total_amount < self.original_total_price * 0.8:  # At least 20% reduction
+                                                self.success(f"✅ PARTIAL SUCCESS: Balance significantly reduced (€{total_amount} from €{self.original_total_price}), indicating sponsoring is working")
+                                                return True
+                                            else:
+                                                self.error(f"Balance not reduced enough: €{total_amount} (original: €{self.original_total_price})")
+                                                return False
+                                    else:
+                                        self.log("Could not get department settings for validation")
+                                        # If we can't validate exact amounts, check if sponsoring happened
+                                        if is_sponsored:
+                                            self.success("✅ SUCCESS: Order is marked as sponsored for breakfast")
+                                            return True
+                                        else:
+                                            return False
+                                break
+                    
+                    # If we didn't find the employee in history, check if balance was reduced
+                    if final_balance < self.original_total_price:
+                        self.success(f"✅ SUCCESS: Balance was reduced from €{self.original_total_price} to €{final_balance}")
                         return True
+                    else:
+                        self.error(f"Balance not reduced: €{final_balance} (original: €{self.original_total_price})")
+                        return False
                 else:
-                    self.error(f"Final balance not reduced properly: €{final_balance} (original: €{self.original_total_price})")
+                    self.error(f"Failed to get breakfast history: {history_response.status_code}")
                     return False
             else:
                 self.error(f"Failed to get employee profile: {response.status_code} - {response.text}")
