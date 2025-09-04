@@ -4907,7 +4907,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
         {/* Breakfast Items - Simplified Price Management */}
         <div>
           <h4 className="text-md font-semibold text-gray-700 border-b pb-2 mb-4">Brötchen</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {breakfastMenu.map((item) => (
               <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 {editingItem?.id === item.id ? (
