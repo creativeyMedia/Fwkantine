@@ -1796,7 +1796,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
 
   const handleAddItem = () => {
     const hasRolls = totalHalves > 0;
-    const hasEggsOrLunch = boiledEggs > 0 || hasLunch;
+    const hasEggsOrLunch = boiledEggs > 0 || friedEggs > 0 || hasLunch;
     
     // Validate that user has selected something
     if (!hasRolls && !hasEggsOrLunch) {
