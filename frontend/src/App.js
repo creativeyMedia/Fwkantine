@@ -1653,7 +1653,9 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       setSeededRolls(existingOrderData.seeded_halves || 0);
       setHasLunch(existingOrderData.has_lunch || false);
       setBoiledEggs(existingOrderData.boiled_eggs || 0);
+      setFriedEggs(existingOrderData.fried_eggs || 0);
       setHasCoffee(existingOrderData.has_coffee || false);
+      setNotes(existingOrderData.notes || '');
       
       // Reconstruct toppings assignments
       if (existingOrderData.toppings && Array.isArray(existingOrderData.toppings)) {
