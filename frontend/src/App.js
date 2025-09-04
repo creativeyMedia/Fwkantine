@@ -6620,6 +6620,52 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
           )}
         </div>
 
+        {/* Spiegeleier */}
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          {editingItem === 'fried_eggs' ? (
+            <div className="space-y-3">
+              <div className="font-medium text-gray-700">🍳 Spiegeleier</div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Preis pro Ei (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={updatePrice}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium">🍳 Spiegeleier</span>
+                <div className="text-sm text-gray-600">{lunchSettings.fried_eggs_price?.toFixed(2) || '0.50'} € pro Ei</div>
+              </div>
+              <button
+                onClick={() => startEdit('fried_eggs', lunchSettings.fried_eggs_price || 0.50)}
+                className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+              >
+                Preis ändern
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Kaffee */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           {editingItem === 'coffee' ? (
