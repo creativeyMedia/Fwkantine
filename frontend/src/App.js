@@ -1323,6 +1323,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         price: 0.0,
         enabled: true,
         boiled_eggs_price: 0,
+        fried_eggs_price: 0,
         coffee_price: 0
       });
     }
