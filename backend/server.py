@@ -235,6 +235,7 @@ class BreakfastOrder(BaseModel):
     toppings: List[str]  # Exactly matches total_halves count - flexible string names
     has_lunch: bool = False
     boiled_eggs: int = 0  # Number of boiled breakfast eggs
+    fried_eggs: int = 0  # Number of fried breakfast eggs
     has_coffee: bool = False  # Whether daily coffee is ordered
     
 class Order(BaseModel):
