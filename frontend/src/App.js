@@ -692,7 +692,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                     (orderItem.description.includes('Brötchen') || 
                                      orderItem.description.includes('Helle') || 
                                      orderItem.description.includes('Körner') || 
-                                     orderItem.description.includes('Ei')) &&
+                                     orderItem.description.includes('Gekochte Eier') ||
+                                     orderItem.description.includes('Spiegeleier')) &&
                                     !orderItem.description.includes('Kaffee')) {
                                   isSponsoredItem = true;
                                 }
