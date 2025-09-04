@@ -1798,7 +1798,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     } else if (onDirectSubmit && totalHalves === 0 && !hasExtras) {
       onDirectSubmit(null); // Clear data if nothing selected
     }
-  }, [toppingAssignments, totalHalves, hasLunch, boiledEggs, friedEggs, hasCoffee, notes, onDirectSubmit]); // Remove totalCost to avoid infinite loop
+  }, [toppingAssignments, totalHalves, hasLunch, boiledEggs, friedEggs, hasCoffee, notes]); // Remove onDirectSubmit to avoid infinite loop
 
   const handleToppingAssignment = (assignmentIndex, toppingType) => {
     setToppingAssignments(prev => {
