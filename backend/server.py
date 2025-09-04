@@ -2148,11 +2148,20 @@ async def get_daily_summary(department_id: str):
                 # Add notes from order level (combine multiple notes if needed)
                 order_notes = order.get("notes", "")
                 if order_notes and order_notes.strip():
-                    if employee_orders[employee_name]["notes"]:
-                        # Combine notes if employee already has notes
-                        employee_orders[employee_name]["notes"] += f"; {order_notes}"
+                    existing_notes = employee_orders[employee_name]["notes"]
+                    if existing_notes:
+                        # Split existing notes and new notes by semicolon, combine and deduplicate
+                        existing_parts = [note.strip() for note in existing_notes.split(";") if note.strip()]
+                        new_parts = [note.strip() for note in order_notes.split(";") if note.strip()]
+                        all_parts = existing_parts + new_parts
+                        # Remove duplicates while preserving order
+                        unique_parts = list(dict.fromkeys(all_parts))
+                        employee_orders[employee_name]["notes"] = "; ".join(unique_parts)
                     else:
-                        employee_orders[employee_name]["notes"] = order_notes
+                        # Clean up potential duplicates in the initial notes too
+                        parts = [note.strip() for note in order_notes.split(";") if note.strip()]
+                        unique_parts = list(dict.fromkeys(parts))
+                        employee_orders[employee_name]["notes"] = "; ".join(unique_parts)
                 
                 # Update overall summary only for visible items
                 if show_breakfast:
