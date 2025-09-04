@@ -638,8 +638,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                           </div>
                         )}
                         
-                        {/* Show sponsored info if sponsored */}
-                        {item.is_sponsored && (
+                        {/* Show sponsored info if sponsored OR sponsor order */}
+                        {(item.is_sponsored || item.is_sponsor_order) && (
                           <div className="mb-2 text-sm text-green-700 bg-green-100 p-2 rounded">
                             {item.sponsored_message || (item.is_sponsor_order ? 
                               `${item.sponsor_message || 'Frühstück wurde an alle Kollegen ausgegeben, vielen Dank!'}` :
