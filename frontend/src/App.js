@@ -1999,8 +1999,14 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         </div>
         {boiledEggs > 0 && (
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Gekochte Eier ({boiledEggs} Stück):</span>
+            <span className="text-sm text-gray-600">🥚 Gekochte Eier ({boiledEggs} Stück):</span>
             <span className="text-sm text-gray-600">{boiledEggsCost.toFixed(2)} €</span>
+          </div>
+        )}
+        {friedEggs > 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-orange-600">🍳 Spiegeleier ({friedEggs} Stück):</span>
+            <span className="text-sm text-orange-600">{friedEggsCost.toFixed(2)} €</span>
           </div>
         )}
         {hasCoffee && (
