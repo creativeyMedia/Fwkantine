@@ -1813,6 +1813,15 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         # Add coffee if present
                         if item.get("has_coffee", False):
                             employee_orders[employee_key]["has_coffee"] = True
+                    
+                    # Add notes from order level (combine multiple notes if needed)
+                    order_notes = order.get("notes", "")
+                    if order_notes and order_notes.strip():
+                        if employee_orders[employee_key]["notes"]:
+                            # Combine notes if employee already has notes
+                            employee_orders[employee_key]["notes"] += f"; {order_notes}"
+                        else:
+                            employee_orders[employee_key]["notes"] = order_notes
                         
                         # Update overall summary
                         if "weiss" not in breakfast_summary:
