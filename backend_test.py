@@ -152,8 +152,7 @@ class FriedEggsAndNotesTest:
     def test_set_fried_eggs_price(self):
         """Test PUT /api/department-settings/{department_id}/fried-eggs-price with price=0.75"""
         try:
-            response = requests.put(f"{API_BASE}/department-settings/{self.department_id}/fried-eggs-price", 
-                                  json={"price": 0.75})
+            response = requests.put(f"{API_BASE}/department-settings/{self.department_id}/fried-eggs-price?price=0.75")
             if response.status_code == 200:
                 self.success("PUT fried eggs price successful: €0.75")
                 
