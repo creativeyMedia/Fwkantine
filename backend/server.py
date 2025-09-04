@@ -151,6 +151,7 @@ class Employee(BaseModel):
     breakfast_balance: float = 0.0
     drinks_sweets_balance: float = 0.0
     sort_order: int = 0  # For drag & drop sorting
+    is_guest: bool = False  # Guest marker for employee dashboard sorting
     
 class MenuItemBreakfast(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
