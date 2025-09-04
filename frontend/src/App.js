@@ -1941,7 +1941,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
 
       {/* Fried Eggs Option */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <label className="block text-sm font-medium mb-3">🍳 Spiegeleier</label>
         <div className="flex flex-col gap-2">
           <NumberSelector
