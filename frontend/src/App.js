@@ -5943,7 +5943,15 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                     Beläge: {Object.entries(employeeData.toppings).map(([topping, count]) => {
                                       // Handle both string and object toppings
                                       const toppingName = typeof topping === 'string' ? topping : (topping.name || topping.topping_type || 'Unknown');
-                                      return `${count}x ${toppingName}`;
+                                      
+                                      // Handle new format: count = {white: X, seeded: Y}
+                                      if (typeof count === 'object' && count !== null) {
+                                        const totalCount = (count.white || 0) + (count.seeded || 0);
+                                        return `${totalCount}x ${toppingName}`;
+                                      } else {
+                                        // Handle old format: count = number
+                                        return `${count}x ${toppingName}`;
+                                      }
                                     }).join(', ')}
                                   </div>
                                 )}
