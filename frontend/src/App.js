@@ -1976,6 +1976,19 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </label>
     </div>
 
+    {/* Notes Field - Extras + Sonderwünsche */}
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <label className="block text-sm font-medium mb-3">📝 Extras + Sonderwünsche</label>
+      <textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="z.B. keine Butter auf das Brötchen, Brötchen nicht geschnitten, etc."
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
+        rows={3}
+      />
+      <p className="text-xs text-gray-500 mt-1">Optionale Hinweise für die Zubereitung und den Einkauf</p>
+    </div>
+
     {/* Gesamtrechnung nach unten verschoben */}
     <div className="mt-4 p-4 bg-gray-50 border border-gray-300 rounded-lg">
       <h4 className="font-semibold mb-3 text-gray-800">📋 Bestellzusammenfassung</h4>
