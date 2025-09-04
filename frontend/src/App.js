@@ -2084,7 +2084,7 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Süßes auswählen</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sweetsMenu.map((sweet) => (
           <div key={sweet.id} className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
             <div>
