@@ -4689,7 +4689,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       const employeesWithBookings = Object.entries(dailySummary.employee_orders).filter(([employeeName, employeeData]) => {
                         if (!employeeData) return false;
                         const hasRolls = (employeeData.white_halves || 0) > 0 || (employeeData.seeded_halves || 0) > 0;
-                        const hasEggs = (employeeData.boiled_eggs || 0) > 0;
+                        const hasEggs = (employeeData.boiled_eggs || 0) > 0 || (employeeData.fried_eggs || 0) > 0;
                         const hasToppings = employeeData.toppings && Object.keys(employeeData.toppings).length > 0;
                         const hasLunch = employeeData.has_lunch;
                         const isSponsored = employeeData.is_sponsored;
