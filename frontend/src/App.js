@@ -1464,7 +1464,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               order_type: activeCategory,
               breakfast_items: breakfastItems,
               drink_items: {},
-              sweet_items: {}
+              sweet_items: {},
+              notes: breakfastFormData?.notes || null
             });
             
             setSuccessMessage('Bestellung erfolgreich gespeichert!');
