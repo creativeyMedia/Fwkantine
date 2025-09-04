@@ -1451,7 +1451,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
             const existingOrderId = todaysBreakfastOrders[0].id;
             
             await axios.put(`${API}/orders/${existingOrderId}`, {
-              breakfast_items: breakfastItems
+              breakfast_items: breakfastItems,
+              notes: breakfastFormData?.notes || null
             });
             
             setSuccessMessage('Bestellung erfolgreich aktualisiert!');
