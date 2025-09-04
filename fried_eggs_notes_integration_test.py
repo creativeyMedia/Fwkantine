@@ -293,14 +293,32 @@ class FriedEggsNotesIntegrationTest:
                                 found_toppings = True
                                 self.log(f"Found toppings data in {endpoint_name}: {toppings}")
                                 
-                                # Check if toppings are in correct {white: X, seeded: Y} format
+                                # Check if toppings are in correct format
+                                # Expected format: {'ToppingName': {'white': X, 'seeded': Y}, ...}
                                 if isinstance(toppings, dict):
-                                    if "white" in toppings and "seeded" in toppings:
-                                        white_count = toppings.get("white", 0)
-                                        seeded_count = toppings.get("seeded", 0)
-                                        self.success(f"✅ Toppings in correct format in {endpoint_name}: {{white: {white_count}, seeded: {seeded_count}}}")
+                                    format_valid = True
+                                    total_white = 0
+                                    total_seeded = 0
+                                    
+                                    for topping_name, topping_data in toppings.items():
+                                        if isinstance(topping_data, dict):
+                                            if "white" in topping_data and "seeded" in topping_data:
+                                                white_count = topping_data.get("white", 0)
+                                                seeded_count = topping_data.get("seeded", 0)
+                                                total_white += white_count
+                                                total_seeded += seeded_count
+                                                self.log(f"  {topping_name}: white={white_count}, seeded={seeded_count}")
+                                            else:
+                                                format_valid = False
+                                                break
+                                        else:
+                                            format_valid = False
+                                            break
+                                    
+                                    if format_valid:
+                                        self.success(f"✅ Toppings in correct format in {endpoint_name}: Total white={total_white}, seeded={total_seeded}")
                                     else:
-                                        self.error(f"❌ Toppings missing white/seeded keys in {endpoint_name}: {toppings}")
+                                        self.error(f"❌ Toppings format invalid in {endpoint_name}: {toppings}")
                                         toppings_format_correct = False
                                 else:
                                     self.error(f"❌ Toppings not in object format in {endpoint_name}: {toppings}")
