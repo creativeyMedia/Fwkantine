@@ -1351,6 +1351,10 @@ async def create_order(order_data: OrderCreate):
             if breakfast_item.boiled_eggs > 0:
                 total_price += boiled_eggs_price * breakfast_item.boiled_eggs
             
+            # Fried eggs price
+            if breakfast_item.fried_eggs > 0:
+                total_price += fried_eggs_price * breakfast_item.fried_eggs
+            
             # Coffee price (daily flat rate)
             if breakfast_item.has_coffee:
                 total_price += coffee_price
