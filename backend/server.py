@@ -3038,6 +3038,13 @@ async def update_order(order_id: str, order_update: dict):
                     boiled_eggs_price = department_prices["boiled_eggs_price"]
                     total_price += boiled_eggs * boiled_eggs_price
                 
+                # Add fried eggs price if applicable
+                fried_eggs = item.get("fried_eggs", 0)
+                if fried_eggs > 0:
+                    department_prices = await get_department_prices(existing_order["department_id"])
+                    fried_eggs_price = department_prices["fried_eggs_price"]
+                    total_price += fried_eggs * fried_eggs_price
+                
                 # Add coffee price if applicable
                 if item.get("has_coffee", False):
                     department_prices = await get_department_prices(existing_order["department_id"])
