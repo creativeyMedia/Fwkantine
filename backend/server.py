@@ -2079,7 +2079,7 @@ async def get_daily_summary(department_id: str):
                     "fried_eggs": 0,  # Add fried eggs tracking
                     "has_lunch": False,  # Add lunch tracking
                     "has_coffee": False,  # Add coffee tracking
-                    "notes": order.get("notes", ""),  # Add notes from order level
+                    "notes": "",  # Initialize empty - will be populated during processing
                     "toppings": {}
                 }
             
