@@ -1322,9 +1322,9 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       setLunchSettings({
         price: 0.0,
         enabled: true,
-        boiled_eggs_price: 0,
-        fried_eggs_price: 0,
-        coffee_price: 0
+        boiled_eggs_price: 0.50,
+        fried_eggs_price: 0.50,
+        coffee_price: 1.50
       });
     }
   };
