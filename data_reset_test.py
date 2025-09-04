@@ -177,7 +177,7 @@ class DataResetTest:
         """Verify payment logs are cleared (this is harder to verify directly)"""
         # Since there's no direct endpoint to check payment logs, we'll rely on the cleanup stats
         cleanup_stats = self.reset_results.get(department_id, {})
-        payment_logs_deleted = cleanup_stats.get('payment_logs_deleted', 0)
+        payment_logs_deleted = cleanup_stats.get('deleted_payment_logs', 0)
         
         if payment_logs_deleted >= 0:  # Any number is acceptable (0 means no logs to delete)
             self.success(f"✅ Payment logs cleared for {department_name} ({payment_logs_deleted} deleted)")
