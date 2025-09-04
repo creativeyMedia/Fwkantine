@@ -179,6 +179,7 @@ class DepartmentSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     department_id: str
     boiled_eggs_price: float = 0.50  # Price per boiled egg for this department
+    fried_eggs_price: float = 0.50  # Price per fried egg for this department
     coffee_price: float = 1.50  # Daily coffee price for this department
 
 class PayPalSettings(BaseModel):
