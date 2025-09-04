@@ -1574,6 +1574,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
                 toppingLabels={finalToppingLabels}
                 existingOrderData={breakfastFormData}
                 boiledEggsPrice={lunchSettings.boiled_eggs_price}
+                friedEggsPrice={lunchSettings.fried_eggs_price}
                 coffeePrice={lunchSettings.coffee_price}
                 onDirectSubmit={(breakfastData) => {
                   // This will be called directly when breakfast form is submitted
