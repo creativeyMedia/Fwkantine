@@ -249,6 +249,7 @@ class Order(BaseModel):
     total_price: float
     has_lunch: bool = False  # Whether this order includes lunch
     lunch_price: Optional[float] = None  # The specific lunch price used for this order
+    notes: Optional[str] = None  # Free text field for special requests/notes
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Request/Response Models
