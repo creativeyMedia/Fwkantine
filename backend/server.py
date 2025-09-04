@@ -1802,6 +1802,10 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         boiled_eggs = item.get("boiled_eggs", 0)
                         employee_orders[employee_key]["boiled_eggs"] += boiled_eggs
                         
+                        # Add fried eggs if present
+                        fried_eggs = item.get("fried_eggs", 0)
+                        employee_orders[employee_key]["fried_eggs"] += fried_eggs
+                        
                         # Add lunch if present
                         if item.get("has_lunch", False):
                             employee_orders[employee_key]["has_lunch"] = True
