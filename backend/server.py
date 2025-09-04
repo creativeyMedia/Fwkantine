@@ -64,7 +64,7 @@ async def get_department_prices(department_id: str):
     if lunch_settings:
         return {
             "boiled_eggs_price": lunch_settings.get("boiled_eggs_price", 0.50),
-            "fried_eggs_price": 0.50,  # Default for fried eggs if not in global settings
+            "fried_eggs_price": lunch_settings.get("fried_eggs_price", 0.50),
             "coffee_price": lunch_settings.get("coffee_price", 1.50)
         }
     
