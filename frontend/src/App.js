@@ -1062,11 +1062,12 @@ const DepartmentDashboard = () => {
     }
   };
 
-  const handleCreateEmployee = async (name) => {
+  const handleCreateEmployee = async (name, isGuest = false) => {
     try {
       await axios.post(`${API}/employees`, {
         name,
-        department_id: currentDepartment.department_id
+        department_id: currentDepartment.department_id,
+        is_guest: isGuest
       });
       fetchEmployees();
       setShowNewEmployee(false);
