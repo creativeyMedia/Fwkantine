@@ -1383,7 +1383,9 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const finalToppingLabels = Object.keys(toppingLabels).length > 0 ? toppingLabels : defaultToppingLabels;
 
-  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, boiledEggs, friedEggs, totalCost) => {
+  const handleBreakfastFormSubmit = useCallback((breakfastData) => {
+    setBreakfastFormData(breakfastData);
+  }, []);
     const newItem = {
       total_halves: totalHalves,
       white_halves: whiteHalves,
