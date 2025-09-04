@@ -1,28 +1,35 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Topping Assignment Bug Fix
-=================================================
+Backend Test Suite for Fried Eggs and Notes Field Functionality
+===============================================================
 
-This test suite specifically tests the topping assignment bug fix that was implemented.
+This test suite tests the newly implemented fried eggs functionality and notes field functionality.
 
-BUG THAT WAS FIXED:
-- PROBLEM: User orders 1x White roll with Rührei + 3x Seeded rolls with Spiegelei
-- BUG: Display showed Rührei assigned to Seeded rolls and Spiegelei assigned to White rolls (incorrect!)
-- EXPECTED: Rührei should only be on White rolls, Spiegelei should only be on Seeded rolls
+NEW FEATURES TESTED:
+1. NEW API ENDPOINTS FOR FRIED EGGS:
+   - GET /api/department-settings/{department_id}/fried-eggs-price
+   - PUT /api/department-settings/{department_id}/fried-eggs-price with price=0.75
+   - Verify price is stored and retrieved correctly
 
-CRITICAL CHANGES TESTED:
-1. Backend server.py (lines 1761-1780): Modified topping counting logic to track proper roll type assignment based on array position
-2. Frontend App.js (lines 4468-4485, 4635-4685): Updated to use new format {white: count, seeded: count} instead of proportional distribution
+2. ORDER CREATION WITH FRIED EGGS:
+   - Create a breakfast order with fried_eggs: 2 in breakfast_items
+   - Verify the order is created successfully 
+   - Verify the total_price includes fried eggs cost
 
-TEST SCENARIO:
-1. Create a test employee in Department fw4abteilung2
-2. Create exact order that reproduces the original bug:
-   - 1x White roll half (0.5 halves of white)
-   - 3x Seeded roll halves (1.5 halves of seeded) 
-   - Toppings array: ['Rührei', 'Spiegelei', 'Spiegelei', 'Spiegelei']
-3. Verify in breakfast-history endpoint that toppings are correctly assigned:
-   - Rührei should have {white: 1, seeded: 0} 
-   - Spiegelei should have {white: 0, seeded: 3}
+3. NOTES FIELD FUNCTIONALITY:
+   - Create an order with notes: "Keine Butter auf das Brötchen"
+   - Verify the notes field is stored in the order
+   - Verify notes are returned when retrieving the order
+
+4. DAILY SUMMARY WITH FRIED EGGS:
+   - Create orders with fried eggs and test GET /api/orders/daily-summary/{department_id}
+   - Verify total_fried_eggs is included in the response
+   - Verify employee_orders contain fried_eggs data
+
+5. BASIC FUNCTIONALITY TEST:
+   - First initialize data with GET /api/init-data to ensure departments exist
+   - Test that departments are returned by GET /api/departments
+   - Create test employee for department fw4abteilung1
 """
 
 import requests
