@@ -4850,14 +4850,11 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
 
               {/* Extras & Sonderwünsche Section */}
               {(() => {
-                // Check if any employee has notes
-                const employeeNotesEntries = dailySummary?.employee_orders ? 
-                  Object.entries(dailySummary.employee_orders)
-                    .filter(([employeeName, employeeData]) => employeeData.notes && employeeData.notes.trim() !== '')
-                    .map(([employeeName, employeeData]) => ({ name: employeeName, notes: employeeData.notes }))
-                  : [];
+                // Use the new notes_summary from backend if available
+                const notesEntries = dailySummary?.notes_summary ? 
+                  Object.entries(dailySummary.notes_summary) : [];
 
-                if (employeeNotesEntries.length === 0) {
+                if (notesEntries.length === 0) {
                   return null;
                 }
 
@@ -4866,10 +4863,10 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                     <h3 className="text-lg font-semibold mb-4">📝 Extras & Sonderwünsche</h3>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="space-y-2">
-                        {employeeNotesEntries.map((entry, index) => (
+                        {notesEntries.map(([employeeName, notes], index) => (
                           <div key={index} className="flex gap-2">
-                            <span className="font-medium text-gray-700 min-w-[120px]">{entry.name}:</span>
-                            <span className="text-gray-600">{entry.notes}</span>
+                            <span className="font-medium text-gray-700 min-w-[120px]">{employeeName}:</span>
+                            <span className="text-gray-600">{notes}</span>
                           </div>
                         ))}
                       </div>
