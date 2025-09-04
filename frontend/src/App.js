@@ -3307,7 +3307,252 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedEmployees.map((employee, index) => (
+        {(() => {
+          // Sort employees: regular employees first, then guests
+          const regularEmployees = sortedEmployees.filter(emp => !emp.is_guest);
+          const guestEmployees = sortedEmployees.filter(emp => emp.is_guest);
+          
+          return (
+            <>
+              {/* Regular employees */}
+              {regularEmployees.map((employee) => {
+                // Find the original index in sortedEmployees for drag & drop and display
+                const originalIndex = sortedEmployees.findIndex(emp => emp.id === employee.id);
+                
+                return (
+                  <div 
+                    key={employee.id} 
+                    className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all duration-200 ${
+                      draggedIndex === originalIndex ? 'shadow-lg border-blue-400 bg-blue-50' : 'hover:shadow-md'
+                    }`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, originalIndex)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, originalIndex)}
+                  >
+                    {/* Drag Handle */}
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-lg">{employee.name}</h4>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="cursor-move text-gray-400 hover:text-gray-600"
+                          title="Zum Sortieren ziehen"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8,18H11V15H8V18M8,14H11V10H8V14M8,9H11V6H8V9M13,18H16V15H13V18M13,14H16V10H13V14M13,9H16V6H13V9Z" />
+                          </svg>
+                        </div>
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                          #{originalIndex + 1}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Breakfast Balance */}
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Frühstück:</span>
+                        <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Drinks/Sweets Balance */}
+                    <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Getränke/Süßes:</span>
+                        <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Order Management Button */}
+                    <div className="mb-3">
+                      <button
+                        onClick={() => {
+                          setSelectedEmployeeForOrders(employee);
+                          setShowOrdersModal(true);
+                        }}
+                        className="w-full bg-green-600 text-white text-sm py-2 px-3 rounded hover:bg-green-700"
+                      >
+                        📋 Bestellungen verwalten
+                      </button>
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => deleteEmployee(employee)}
+                        className="w-full bg-red-600 text-white text-xs py-2 px-2 rounded hover:bg-red-700"
+                      >
+                        Mitarbeiter löschen
+                      </button>
+                    </div>
+
+                    {/* Payment Buttons */}
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setPaymentEmployeeData({
+                            employee: employee,
+                            paymentType: 'breakfast',
+                            accountLabel: 'Frühstück'
+                          });
+                          setShowPaymentModal(true);
+                        }}
+                        className="bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
+                      >
+                        💰 Frühstück
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPaymentEmployeeData({
+                            employee: employee,
+                            paymentType: 'drinks_sweets',
+                            accountLabel: 'Getränke'
+                          });
+                          setShowPaymentModal(true);
+                        }}
+                        className="bg-purple-600 text-white text-xs py-1 px-2 rounded hover:bg-purple-700"
+                      >
+                        💰 Getränke
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Visual separator if guests exist */}
+              {guestEmployees.length > 0 && (
+                <div className="col-span-full">
+                  <div className="flex items-center my-6">
+                    <div className="flex-1 border-t-2 border-gray-300"></div>
+                    <div className="px-4 text-sm font-medium text-gray-500 bg-white">
+                      👤 Gäste
+                    </div>
+                    <div className="flex-1 border-t-2 border-gray-300"></div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Guest employees */}
+              {guestEmployees.map((employee) => {
+                // Find the original index in sortedEmployees for drag & drop and display
+                const originalIndex = sortedEmployees.findIndex(emp => emp.id === employee.id);
+                
+                return (
+                  <div 
+                    key={employee.id} 
+                    className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all duration-200 border-l-4 border-l-blue-400 ${
+                      draggedIndex === originalIndex ? 'shadow-lg border-blue-400 bg-blue-50' : 'hover:shadow-md'
+                    }`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, originalIndex)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, originalIndex)}
+                  >
+                    {/* Drag Handle */}
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-lg">
+                        {employee.name} <span className="text-sm text-blue-600 font-normal">👤 Gast</span>
+                      </h4>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="cursor-move text-gray-400 hover:text-gray-600"
+                          title="Zum Sortieren ziehen"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8,18H11V15H8V18M8,14H11V10H8V14M8,9H11V6H8V9M13,18H16V15H13V18M13,14H16V10H13V14M13,9H16V6H13V9Z" />
+                          </svg>
+                        </div>
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                          #{originalIndex + 1}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Breakfast Balance */}
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Frühstück:</span>
+                        <span className={`font-bold ${employee.breakfast_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {employee.breakfast_balance >= 0 ? '+' : ''}{employee.breakfast_balance.toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Drinks/Sweets Balance */}
+                    <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Getränke/Süßes:</span>
+                        <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Order Management Button */}
+                    <div className="mb-3">
+                      <button
+                        onClick={() => {
+                          setSelectedEmployeeForOrders(employee);
+                          setShowOrdersModal(true);
+                        }}
+                        className="w-full bg-green-600 text-white text-sm py-2 px-3 rounded hover:bg-green-700"
+                      >
+                        📋 Bestellungen verwalten
+                      </button>
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => deleteEmployee(employee)}
+                        className="w-full bg-red-600 text-white text-xs py-2 px-2 rounded hover:bg-red-700"
+                      >
+                        Mitarbeiter löschen
+                      </button>
+                    </div>
+
+                    {/* Payment Buttons */}
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setPaymentEmployeeData({
+                            employee: employee,
+                            paymentType: 'breakfast',
+                            accountLabel: 'Frühstück'
+                          });
+                          setShowPaymentModal(true);
+                        }}
+                        className="bg-green-600 text-white text-xs py-1 px-2 rounded hover:bg-green-700"
+                      >
+                        💰 Frühstück
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPaymentEmployeeData({
+                            employee: employee,
+                            paymentType: 'drinks_sweets',
+                            accountLabel: 'Getränke'
+                          });
+                          setShowPaymentModal(true);
+                        }}
+                        className="bg-purple-600 text-white text-xs py-1 px-2 rounded hover:bg-purple-700"
+                      >
+                        💰 Getränke
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          );
+        })()}
           <div 
             key={employee.id} 
             className={`bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all duration-200 ${
