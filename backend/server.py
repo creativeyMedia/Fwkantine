@@ -1308,7 +1308,7 @@ async def create_order(order_data: OrderCreate):
         for breakfast_item in order_data.breakfast_items:
             # Allow orders without rolls (just eggs, coffee and/or lunch)
             has_rolls = breakfast_item.total_halves > 0
-            has_extras = breakfast_item.boiled_eggs > 0 or breakfast_item.has_lunch or breakfast_item.has_coffee
+            has_extras = breakfast_item.boiled_eggs > 0 or breakfast_item.fried_eggs > 0 or breakfast_item.has_lunch or breakfast_item.has_coffee
             
             if not has_rolls and not has_extras:
                 raise HTTPException(
