@@ -1758,7 +1758,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
     const hasRolls = totalHalves > 0;
     const hasValidRollOrder = hasRolls && toppingAssignments.length === totalHalves && 
                               !toppingAssignments.some(a => !a.topping);
-    const hasExtras = boiledEggs > 0 || hasLunch || hasCoffee;
+    const hasExtras = boiledEggs > 0 || friedEggs > 0 || hasLunch || hasCoffee;
     
     // Allow submission if user has:
     // 1. Valid roll order (rolls + toppings), OR
