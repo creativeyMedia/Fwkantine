@@ -725,6 +725,15 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             })}
                           </div>
                         )}
+                        
+                        {item.notes && item.notes.trim() !== '' && (
+                          <div className="mt-3 pt-3 border-t border-gray-300">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                              <span className="text-xs font-medium text-yellow-800 block mb-1">📝 Extras & Sonderwünsche:</span>
+                              <span className="text-sm text-yellow-700">{item.notes}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   } else if (item.order_type === 'deletion') {
