@@ -278,6 +278,7 @@ class OrderCreate(BaseModel):
     breakfast_items: Optional[List[BreakfastOrder]] = []
     drink_items: Optional[Dict[str, int]] = {}
     sweet_items: Optional[Dict[str, int]] = {}
+    notes: Optional[str] = None  # Free text field for special requests/notes
 
 class MenuItemUpdate(BaseModel):
     price: Optional[float] = None
