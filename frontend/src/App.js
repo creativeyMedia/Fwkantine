@@ -2934,9 +2934,10 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
           }).join(', ') : '';
         
         const rollsText = `${whiteHalves} Hell + ${seededHalves} Körner`;
-        const eggsText = boiledEggs > 0 ? ` + 🥚 ${boiledEggs} Eier` : '';
+        const boiledEggsText = boiledEggs > 0 ? ` + 🥚 ${boiledEggs} Gekochte Eier` : '';
+        const friedEggsText = friedEggs > 0 ? ` + 🍳 ${friedEggs} Spiegeleier` : '';
         
-        return `${rollsText}${eggsText}${toppingsText}${hasCoffee}${hasLunch}`;
+        return `${rollsText}${boiledEggsText}${friedEggsText}${toppingsText}${hasCoffee}${hasLunch}`;
       }).join('; ');
     } else if (order.order_type === 'drinks') {
       return Object.entries(order.drink_items || {}).map(([drinkId, qty]) => {
