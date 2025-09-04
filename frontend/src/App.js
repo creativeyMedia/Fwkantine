@@ -2052,7 +2052,7 @@ const DrinksOrderForm = ({ drinksMenu, onUpdateQuantity }) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Getränke auswählen</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {drinksMenu.map((drink) => (
           <div key={drink.id} className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
             <div>
