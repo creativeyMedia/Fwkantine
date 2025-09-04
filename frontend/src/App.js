@@ -4630,6 +4630,30 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                           </div>
                         );
                       })()}
+                      
+                      {/* Extras & Sonderwünsche Section - within shopping list */}
+                      {(() => {
+                        // Use the new notes_summary from backend if available  
+                        const notesEntries = dailySummary?.notes_summary ? 
+                          Object.entries(dailySummary.notes_summary) : [];
+
+                        if (notesEntries.length === 0) {
+                          return null;
+                        }
+
+                        return (
+                          <div className="pt-2 border-t border-gray-200">
+                            <div className="font-semibold text-gray-700 mb-2">Extras & Sonderwünsche:</div>
+                            <div className="ml-4 space-y-1">
+                              {notesEntries.map(([employeeName, notes], index) => (
+                                <div key={index} className="text-sm text-gray-600">
+                                  <span className="font-medium">{employeeName}:</span> {notes}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
