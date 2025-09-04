@@ -216,6 +216,13 @@ class DataResetTest:
         if reset_success_count != len(self.departments):
             self.error(f"Only {reset_success_count}/{len(self.departments)} departments reset successfully")
             return False
+        # Step 2: Reset data globally (affects all departments)
+        self.log("\n📋 Step 2: Performing global data reset")
+        self.log("-" * 50)
+        
+        if not self.reset_all_data():
+            self.error("Failed to perform global data reset - cannot proceed")
+            return False
             
         # Step 3: Verify reset for each department
         self.log("\n📋 Step 3: Verifying reset for each department")
@@ -253,40 +260,28 @@ class DataResetTest:
         total_depts = len(self.departments)
         
         self.log(f"📊 RESET STATISTICS:")
-        self.log(f"  - Departments processed: {reset_success_count}/{total_depts}")
+        self.log(f"  - Departments processed: {total_depts}/{total_depts}")
         self.log(f"  - Orders verification: {verification_results['orders_verified']}/{total_depts}")
         self.log(f"  - Balances verification: {verification_results['balances_verified']}/{total_depts}")
         self.log(f"  - Payment logs verification: {verification_results['payment_logs_verified']}/{total_depts}")
         
-        # Detailed cleanup statistics
+        # Detailed cleanup statistics (global stats applied to all departments)
         self.log(f"\n📈 DETAILED CLEANUP STATISTICS:")
-        total_orders_deleted = 0
-        total_employees_reset = 0
-        total_payment_logs_deleted = 0
         
-        for dept in self.departments:
-            dept_id = dept['id']
-            dept_name = dept['name']
-            stats = self.reset_results.get(dept_id, {})
-            
-            orders_deleted = stats.get('orders_deleted', 0)
-            employees_reset = stats.get('employees_reset', 0)
-            payment_logs_deleted = stats.get('payment_logs_deleted', 0)
-            
-            total_orders_deleted += orders_deleted
-            total_employees_reset += employees_reset
-            total_payment_logs_deleted += payment_logs_deleted
-            
-            self.log(f"  - {dept_name}: {orders_deleted} orders, {employees_reset} employees, {payment_logs_deleted} payment logs")
+        # Get global stats from any department (they're all the same)
+        global_stats = self.reset_results.get(self.departments[0]['id'], {}) if self.departments else {}
         
-        self.log(f"\n🎯 TOTAL CLEANUP ACROSS ALL DEPARTMENTS:")
+        total_orders_deleted = global_stats.get('deleted_orders', 0)
+        total_employees_reset = global_stats.get('reset_employee_balances', 0)
+        total_payment_logs_deleted = global_stats.get('deleted_payment_logs', 0)
+        
+        self.log(f"  - Global cleanup performed across all departments")
         self.log(f"  - Total orders deleted: {total_orders_deleted}")
-        self.log(f"  - Total employees reset: {total_employees_reset}")
+        self.log(f"  - Total employee balances reset: {total_employees_reset}")
         self.log(f"  - Total payment logs deleted: {total_payment_logs_deleted}")
         
         # Success criteria
         success = (
-            reset_success_count == total_depts and
             verification_results['orders_verified'] >= total_depts * 0.8 and  # Allow 80% success rate
             verification_results['balances_verified'] >= total_depts * 0.8 and
             verification_results['payment_logs_verified'] >= total_depts * 0.8
