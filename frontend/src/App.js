@@ -4871,33 +4871,6 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                   </div>
                 )}
               </div>
-
-              {/* Extras & Sonderwünsche Section */}
-              {(() => {
-                // Use the new notes_summary from backend if available
-                const notesEntries = dailySummary?.notes_summary ? 
-                  Object.entries(dailySummary.notes_summary) : [];
-
-                if (notesEntries.length === 0) {
-                  return null;
-                }
-
-                return (
-                  <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-4">📝 Extras & Sonderwünsche</h3>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="space-y-2">
-                        {notesEntries.map(([employeeName, notes], index) => (
-                          <div key={index} className="flex gap-2">
-                            <span className="font-medium text-gray-700 min-w-[120px]">{employeeName}:</span>
-                            <span className="text-gray-600">{notes}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           ) : (
             <div className="text-center py-8">
