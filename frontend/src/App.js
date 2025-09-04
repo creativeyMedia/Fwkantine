@@ -28,7 +28,8 @@ const calculateDisplayPrice = (item) => {
         if ((description.includes('Brötchen') || 
              description.includes('Helle') || 
              description.includes('Körner') || 
-             description.includes('Ei')) &&
+             description.includes('Gekochte Eier') ||
+             description.includes('Spiegeleier')) &&
             !description.includes('Kaffee')) {
           remainingCost -= itemPrice;
         }
