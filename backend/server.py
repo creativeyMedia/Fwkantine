@@ -1823,14 +1823,23 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         if item.get("has_coffee", False):
                             employee_orders[employee_key]["has_coffee"] = True
                     
-                    # Add notes from order level (combine multiple notes if needed)
+                    # Add notes from order level (combine multiple notes if needed, avoiding duplicates)
                     order_notes = order.get("notes", "")
                     if order_notes and order_notes.strip():
-                        if employee_orders[employee_key]["notes"]:
-                            # Combine notes if employee already has notes
-                            employee_orders[employee_key]["notes"] += f"; {order_notes}"
+                        existing_notes = employee_orders[employee_key]["notes"]
+                        if existing_notes:
+                            # Split existing notes and new notes by semicolon, combine and deduplicate
+                            existing_parts = [note.strip() for note in existing_notes.split(";") if note.strip()]
+                            new_parts = [note.strip() for note in order_notes.split(";") if note.strip()]
+                            all_parts = existing_parts + new_parts
+                            # Remove duplicates while preserving order
+                            unique_parts = list(dict.fromkeys(all_parts))
+                            employee_orders[employee_key]["notes"] = "; ".join(unique_parts)
                         else:
-                            employee_orders[employee_key]["notes"] = order_notes
+                            # Clean up potential duplicates in the initial notes too
+                            parts = [note.strip() for note in order_notes.split(";") if note.strip()]
+                            unique_parts = list(dict.fromkeys(parts))
+                            employee_orders[employee_key]["notes"] = "; ".join(unique_parts)
                         
                         # Update overall summary
                         if "weiss" not in breakfast_summary:
