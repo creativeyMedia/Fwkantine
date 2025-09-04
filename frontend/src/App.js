@@ -6708,7 +6708,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
         </div>
 
         {/* Spiegeleier */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           {editingItem === 'fried_eggs' ? (
             <div className="space-y-3">
               <div className="font-medium text-gray-700">🍳 Spiegeleier</div>
@@ -6745,7 +6745,7 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
               </div>
               <button
                 onClick={() => startEdit('fried_eggs', lunchSettings.fried_eggs_price || 0.50)}
-                className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
               >
                 Preis ändern
               </button>
