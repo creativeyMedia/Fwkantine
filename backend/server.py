@@ -2217,6 +2217,12 @@ async def get_daily_summary(department_id: str):
     # Calculate total fried eggs
     total_fried_eggs = sum(data["fried_eggs"] for data in employee_orders.values())
     
+    # Collect notes summary for frontend display
+    notes_summary = {}
+    for employee_name, data in employee_orders.items():
+        if data.get("notes") and data["notes"].strip():
+            notes_summary[employee_name] = data["notes"]
+    
     return {
         "date": today.isoformat(),
         "breakfast_summary": breakfast_summary,
@@ -2226,7 +2232,8 @@ async def get_daily_summary(department_id: str):
         "shopping_list": shopping_list,
         "total_toppings": total_toppings,
         "total_boiled_eggs": total_boiled_eggs,  # Add total boiled eggs
-        "total_fried_eggs": total_fried_eggs  # Add total fried eggs
+        "total_fried_eggs": total_fried_eggs,  # Add total fried eggs
+        "notes_summary": notes_summary  # Add notes summary for frontend
     }
 
 @api_router.get("/employee/{employee_id}/today-orders")
