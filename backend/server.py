@@ -2468,7 +2468,6 @@ async def get_employee_profile(employee_id: str):
                 # Add fried eggs as separate item if present
                 fried_eggs = item.get("fried_eggs", 0)
                 if fried_eggs > 0:
-                    fried_eggs_price = department_prices["fried_eggs_price"]
                     enriched_order["readable_items"].append({
                         "description": f"{fried_eggs}x Spiegeleier",
                         "unit_price": f"{fried_eggs_price:.2f} € pro Stück",
