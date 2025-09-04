@@ -77,28 +77,34 @@ class DataResetTest:
             self.error(f"Exception getting departments: {str(e)}")
             return False
             
-    def reset_department_data(self, department_id, department_name):
-        """Step 2: Call DELETE /api/department-admin/debug-cleanup/{department_id}"""
+    def reset_all_data(self):
+        """Step 2: Call POST /api/admin/cleanup-testing-data (global cleanup)"""
         try:
-            self.log(f"Resetting data for department: {department_name} ({department_id})")
+            self.log("Performing global data reset across all departments...")
             
-            response = requests.delete(f"{API_BASE}/department-admin/debug-cleanup/{department_id}")
+            response = requests.post(f"{API_BASE}/admin/cleanup-testing-data")
             
             if response.status_code == 200:
                 cleanup_stats = response.json()
-                self.reset_results[department_id] = cleanup_stats
                 
-                self.success(f"Data reset completed for {department_name}")
-                self.log(f"  - Orders deleted: {cleanup_stats.get('orders_deleted', 0)}")
-                self.log(f"  - Employees reset: {cleanup_stats.get('employees_reset', 0)}")
-                self.log(f"  - Payment logs deleted: {cleanup_stats.get('payment_logs_deleted', 0)}")
+                # Store results for all departments
+                for dept in self.departments:
+                    self.reset_results[dept['id']] = cleanup_stats
+                
+                self.success("Global data reset completed successfully")
+                self.log(f"  - Orders deleted: {cleanup_stats.get('deleted_orders', 0)}")
+                self.log(f"  - Employee balances reset: {cleanup_stats.get('reset_employee_balances', 0)}")
+                self.log(f"  - Payment logs deleted: {cleanup_stats.get('deleted_payment_logs', 0)}")
+                self.log(f"  - Remaining orders: {cleanup_stats.get('remaining_orders', 0)}")
+                self.log(f"  - Total employees: {cleanup_stats.get('total_employees', 0)}")
+                self.log(f"  - Total departments: {cleanup_stats.get('total_departments', 0)}")
                 
                 return True
             else:
-                self.error(f"Failed to reset {department_name}: {response.status_code} - {response.text}")
+                self.error(f"Failed to perform global reset: {response.status_code} - {response.text}")
                 return False
         except Exception as e:
-            self.error(f"Exception resetting {department_name}: {str(e)}")
+            self.error(f"Exception performing global reset: {str(e)}")
             return False
             
     def verify_orders_deleted(self, department_id, department_name):
