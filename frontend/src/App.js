@@ -1773,7 +1773,9 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         toppings: toppings,
         has_lunch: hasLunch,
         boiled_eggs: boiledEggs,
-        has_coffee: hasCoffee
+        fried_eggs: friedEggs,
+        has_coffee: hasCoffee,
+        notes: notes
       };
       onDirectSubmit(breakfastData);
     } else if (onDirectSubmit && totalHalves === 0 && !hasExtras) {
