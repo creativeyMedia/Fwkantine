@@ -1732,11 +1732,18 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                     # Calculate sponsored breakfast cost
                                     sponsored_breakfast_cost += (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price)
                                     
-                                    # Add eggs cost
+                                    # Add boiled eggs cost
                                     if boiled_eggs > 0:
                                         department_prices = await get_department_prices(department_id)
-                                        eggs_price = department_prices["boiled_eggs_price"]
-                                        sponsored_breakfast_cost += boiled_eggs * eggs_price
+                                        boiled_eggs_price = department_prices["boiled_eggs_price"]
+                                        sponsored_breakfast_cost += boiled_eggs * boiled_eggs_price
+                                    
+                                    # Add fried eggs cost
+                                    fried_eggs = item.get("fried_eggs", 0)
+                                    if fried_eggs > 0:
+                                        department_prices = await get_department_prices(department_id)
+                                        fried_eggs_price = department_prices["fried_eggs_price"]
+                                        sponsored_breakfast_cost += fried_eggs * fried_eggs_price
                                 
                                 remaining_cost -= sponsored_breakfast_cost
                             
