@@ -272,6 +272,7 @@ class AdminLogin(BaseModel):
 class EmployeeCreate(BaseModel):
     name: str
     department_id: str
+    is_guest: bool = False  # Optional guest marker for new employees
 
 class OrderCreate(BaseModel):
     employee_id: str
