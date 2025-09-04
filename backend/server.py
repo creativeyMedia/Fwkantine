@@ -2464,6 +2464,16 @@ async def get_employee_profile(employee_id: str):
                         "total_price": f"{(boiled_eggs * boiled_eggs_price):.2f} €"
                     })
                 
+                # Add fried eggs as separate item if present
+                fried_eggs = item.get("fried_eggs", 0)
+                if fried_eggs > 0:
+                    fried_eggs_price = department_prices["fried_eggs_price"]
+                    enriched_order["readable_items"].append({
+                        "description": f"{fried_eggs}x Spiegeleier",
+                        "unit_price": f"{fried_eggs_price:.2f} € pro Stück",
+                        "total_price": f"{(fried_eggs * fried_eggs_price):.2f} €"
+                    })
+                
                 # Add coffee as separate item if present
                 if item.get("has_coffee"):
                     enriched_order["readable_items"].append({
