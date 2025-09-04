@@ -2121,6 +2121,15 @@ async def get_daily_summary(department_id: str):
                 if show_coffee:
                     employee_orders[employee_name]["has_coffee"] = True
                 
+                # Add notes from order level (combine multiple notes if needed)
+                order_notes = order.get("notes", "")
+                if order_notes and order_notes.strip():
+                    if employee_orders[employee_name]["notes"]:
+                        # Combine notes if employee already has notes
+                        employee_orders[employee_name]["notes"] += f"; {order_notes}"
+                    else:
+                        employee_orders[employee_name]["notes"] = order_notes
+                
                 # Update overall summary only for visible items
                 if show_breakfast:
                     if "weiss" not in breakfast_summary:
