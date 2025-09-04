@@ -2151,6 +2151,21 @@ const NewEmployeeModal = ({ onCreate, onClose }) => {
               required
             />
           </div>
+          
+          <div className="mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isGuest}
+                onChange={(e) => setIsGuest(e.target.checked)}
+                className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <div>
+                <span className="text-sm font-medium">👤 Als Gast markieren</span>
+                <div className="text-xs text-gray-500">Gäste werden im Dashboard unten angezeigt</div>
+              </div>
+            </label>
+          </div>
           <div className="flex gap-4">
             <button
               type="submit"
