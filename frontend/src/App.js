@@ -1106,27 +1106,76 @@ const DepartmentDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 px-4">
-          {employees.map((employee) => (
-            <div
-              key={employee.id}
-              onClick={(event) => handleEmployeeClick(employee, event)}
-              className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800">{employee.name}</h3>
-              <div className="flex gap-2 sm:gap-3">
-                <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
-                     onClick={(event) => handleEmployeeClick(employee, event)}>
-                  Verlauf
-                </div>
-                <button
-                  onClick={(event) => handleEmployeeProfileClick(employee, event)}
-                  className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Bestellen
-                </button>
-              </div>
-            </div>
-          ))}
+          {(() => {
+            // Sort employees: regular employees first, then guests
+            const regularEmployees = employees.filter(emp => !emp.is_guest);
+            const guestEmployees = employees.filter(emp => emp.is_guest);
+            
+            return (
+              <>
+                {/* Regular employees */}
+                {regularEmployees.map((employee) => (
+                  <div
+                    key={employee.id}
+                    onClick={(event) => handleEmployeeClick(employee, event)}
+                    className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800">{employee.name}</h3>
+                    <div className="flex gap-2 sm:gap-3">
+                      <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
+                           onClick={(event) => handleEmployeeClick(employee, event)}>
+                        Verlauf
+                      </div>
+                      <button
+                        onClick={(event) => handleEmployeeProfileClick(employee, event)}
+                        className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Bestellen
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Visual separator if guests exist */}
+                {guestEmployees.length > 0 && (
+                  <div className="col-span-full">
+                    <div className="flex items-center my-6">
+                      <div className="flex-1 border-t-2 border-gray-300"></div>
+                      <div className="px-4 text-sm font-medium text-gray-500 bg-white">
+                        👤 Gäste
+                      </div>
+                      <div className="flex-1 border-t-2 border-gray-300"></div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Guest employees */}
+                {guestEmployees.map((employee) => (
+                  <div
+                    key={employee.id}
+                    onClick={(event) => handleEmployeeClick(employee, event)}
+                    className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 border-blue-400"
+                  >
+                    <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800">
+                      {employee.name} <span className="text-sm text-blue-600 font-normal">👤 Gast</span>
+                    </h3>
+                    <div className="flex gap-2 sm:gap-3">
+                      <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
+                           onClick={(event) => handleEmployeeClick(employee, event)}>
+                        Verlauf
+                      </div>
+                      <button
+                        onClick={(event) => handleEmployeeProfileClick(employee, event)}
+                        className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Bestellen
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            );
+          })()}
         </div>
 
         {/* Breakfast Summary Modal */}
