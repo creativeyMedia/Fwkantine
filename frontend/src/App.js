@@ -2150,19 +2150,23 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Süßes auswählen</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sweetsMenu.map((sweet) => (
-          <div key={sweet.id} className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
-            <div>
-              <span className="font-medium">{sweet.name}</span>
-              <span className="text-gray-600 ml-2">({sweet.price.toFixed(2)} €)</span>
+          <div key={sweet.id} className="border border-gray-300 rounded-lg p-4 bg-white">
+            <div className="flex flex-col space-y-3">
+              <div className="text-center">
+                <div className="font-medium text-gray-800">{sweet.name}</div>
+                <div className="text-sm text-gray-600">({sweet.price.toFixed(2)} €)</div>
+              </div>
+              <div className="flex justify-center">
+                <NumberSelector
+                  value={quantities[sweet.id] || 0}
+                  onChange={(value) => handleQuantityChange(sweet.id, value)}
+                  min={0}
+                  max={50}
+                />
+              </div>
             </div>
-            <NumberSelector
-              value={quantities[sweet.id] || 0}
-              onChange={(value) => handleQuantityChange(sweet.id, value)}
-              min={0}
-              max={50}
-            />
           </div>
         ))}
       </div>
