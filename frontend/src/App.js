@@ -2918,6 +2918,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
         const seededHalves = item.seeded_halves || 0;
         const toppings = item.toppings || [];
         const boiledEggs = item.boiled_eggs || 0;
+        const friedEggs = item.fried_eggs || 0;
         const hasLunch = item.has_lunch ? ' + 🍽️ Mittagessen' : '';
         const hasCoffee = item.has_coffee ? ' + ☕ Kaffee' : '';
         
