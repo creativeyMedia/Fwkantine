@@ -2107,6 +2107,10 @@ async def get_daily_summary(department_id: str):
                     # Add boiled eggs if present and breakfast is visible
                     boiled_eggs = item.get("boiled_eggs", 0)
                     employee_orders[employee_name]["boiled_eggs"] += boiled_eggs
+                    
+                    # Add fried eggs if present and breakfast is visible
+                    fried_eggs = item.get("fried_eggs", 0)
+                    employee_orders[employee_name]["fried_eggs"] += fried_eggs
                 
                 # Add lunch if present and visible
                 if show_lunch:
