@@ -3487,6 +3487,7 @@ async def sponsor_meal(meal_data: dict):
             # Get department-specific egg and coffee prices
             department_prices = await get_department_prices(department_id)
             egg_price = department_prices["boiled_eggs_price"]
+            fried_egg_price = department_prices["fried_eggs_price"]
             coffee_price = department_prices["coffee_price"]
         except:
             pass  # Use defaults if DB calls fail
