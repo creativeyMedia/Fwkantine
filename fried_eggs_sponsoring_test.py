@@ -215,7 +215,7 @@ class FriedEggsSponsoringTest:
             return False
             
     def test_breakfast_sponsoring(self):
-        """Test breakfast sponsoring using POST /api/sponsor-meal with meal_type: 'breakfast'"""
+        """Test breakfast sponsoring using POST /api/department-admin/sponsor-meal with meal_type: 'breakfast'"""
         try:
             # First, create a simple order for the sponsor to have some balance
             sponsor_order_data = {
@@ -240,35 +240,50 @@ class FriedEggsSponsoringTest:
             else:
                 self.log(f"Failed to create sponsor order: {response.status_code}")
             
-            # Now sponsor the breakfast for the test employee
+            # Now sponsor the breakfast for the test employee using correct endpoint and format
+            today = datetime.now().strftime('%Y-%m-%d')
             sponsor_data = {
+                "department_id": self.department_id,
+                "date": today,
+                "meal_type": "breakfast",  # CRITICAL: sponsor only breakfast, not lunch or coffee
                 "sponsor_employee_id": self.sponsor_employee_id,
-                "sponsored_employee_ids": [self.test_employee_id],
-                "meal_type": "breakfast"  # CRITICAL: sponsor only breakfast, not lunch or coffee
+                "sponsor_employee_name": self.sponsor_employee_name
             }
             
-            self.log("Sponsoring BREAKFAST (not lunch or coffee) for test employee...")
+            self.log("Sponsoring BREAKFAST (not lunch or coffee) for all employees today...")
             
-            response = requests.post(f"{API_BASE}/sponsor-meal", json=sponsor_data)
+            response = requests.post(f"{API_BASE}/department-admin/sponsor-meal", json=sponsor_data)
             if response.status_code == 200:
                 result = response.json()
                 self.success(f"Breakfast sponsoring successful: {result.get('message', 'No message')}")
                 
                 # Check sponsoring details
-                if 'sponsored_employees' in result:
-                    for sponsored in result['sponsored_employees']:
-                        if sponsored.get('employee_id') == self.test_employee_id:
-                            sponsored_amount = sponsored.get('sponsored_amount', 0)
-                            self.log(f"Sponsored amount for breakfast: €{sponsored_amount}")
-                            
-                            # Verify fried eggs are included in sponsored amount
-                            # Breakfast should include: roll + boiled eggs + fried eggs (NOT coffee or lunch)
-                            if sponsored_amount > 1.0:  # Should be more than just a roll
-                                self.success(f"Sponsored amount includes fried eggs: €{sponsored_amount}")
-                            else:
-                                self.error(f"Sponsored amount seems too low (may not include fried eggs): €{sponsored_amount}")
-                                return False
-                            break
+                total_cost = result.get('total_cost', 0)
+                sponsored_employees = result.get('sponsored_employees', [])
+                
+                self.log(f"Total sponsoring cost: €{total_cost}")
+                self.log(f"Number of sponsored employees: {len(sponsored_employees)}")
+                
+                # Look for our test employee in the sponsored list
+                found_test_employee = False
+                for sponsored in sponsored_employees:
+                    if sponsored.get('employee_name') == self.test_employee_name:
+                        sponsored_amount = sponsored.get('sponsored_amount', 0)
+                        self.log(f"Sponsored amount for test employee: €{sponsored_amount}")
+                        
+                        # Verify fried eggs are included in sponsored amount
+                        # Breakfast should include: roll + boiled eggs + fried eggs (NOT coffee or lunch)
+                        if sponsored_amount > 1.0:  # Should be more than just a roll
+                            self.success(f"Sponsored amount includes fried eggs: €{sponsored_amount}")
+                        else:
+                            self.error(f"Sponsored amount seems too low (may not include fried eggs): €{sponsored_amount}")
+                            return False
+                        found_test_employee = True
+                        break
+                
+                if not found_test_employee:
+                    self.error("Test employee not found in sponsored employees list")
+                    return False
                 
                 return True
             else:
