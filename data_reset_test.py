@@ -198,24 +198,6 @@ class DataResetTest:
             self.error("Failed to get departments - cannot proceed")
             return False
             
-        # Step 2: Reset data for each department
-        self.log("\n📋 Step 2: Resetting data for each department")
-        self.log("-" * 50)
-        
-        reset_success_count = 0
-        for dept in self.departments:
-            dept_id = dept['id']
-            dept_name = dept['name']
-            
-            if self.reset_department_data(dept_id, dept_name):
-                reset_success_count += 1
-            
-            # Small delay between resets
-            time.sleep(0.5)
-            
-        if reset_success_count != len(self.departments):
-            self.error(f"Only {reset_success_count}/{len(self.departments)} departments reset successfully")
-            return False
         # Step 2: Reset data globally (affects all departments)
         self.log("\n📋 Step 2: Performing global data reset")
         self.log("-" * 50)
