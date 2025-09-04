@@ -270,6 +270,18 @@ backend:
           agent: "testing"
           comment: "🎉 TOPPING ASSIGNMENT BUG FIX VERIFICATION COMPLETED SUCCESSFULLY! Comprehensive testing of the topping assignment bug fix completed with 100% success rate (5/5 tests passed): ✅ 1) EXACT BUG SCENARIO REPRODUCED - Created test order with 1x White roll half + 3x Seeded roll halves + toppings array ['Rührei', 'Spiegelei', 'Spiegelei', 'Spiegelei'] to test the exact bug that was fixed. ✅ 2) CRITICAL TOPPING ASSIGNMENT VERIFIED - Backend correctly assigns toppings based on array position: Rührei (position 0) assigned to White roll: {white: 1, seeded: 0}, Spiegelei (positions 1,2,3) assigned to Seeded rolls: {white: 0, seeded: 3}. The fix in lines 1761-1780 of server.py works perfectly. ✅ 3) NEW FORMAT STRUCTURE CONFIRMED - Backend returns topping data in new format {white: count, seeded: count} instead of proportional distribution, enabling frontend to display correct assignments without calculation errors. ✅ 4) WHOLE ROLL CALCULATION VERIFIED - Shopping list correctly calculates: 1 white half → 1 whole white roll, 3 seeded halves → 2 whole seeded rolls (proper rounding up from 1.5). ✅ 5) BREAKFAST-HISTORY ENDPOINT WORKING - GET /api/orders/breakfast-history/fw4abteilung2 returns correct topping breakdown with proper roll type assignment, confirming the fix is functional in production endpoints. CRITICAL VERIFICATION: The exact scenario from review request is working perfectly - Rührei correctly assigned ONLY to White rolls, Spiegelei correctly assigned ONLY to Seeded rolls, no cross-contamination between roll types. The topping assignment bug fix eliminates the incorrect display where toppings were shown on wrong roll types. Backend logic tracks proper roll type assignment based on array position, and frontend can process the new {white: count, seeded: count} format correctly."
 
+  - task: "Critical User-Reported Bug Verification: Total Calculation and Sponsor Messages"
+    implemented: true
+    working: "partial"
+    file: "frontend/src/App.js + backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: "partial"
+          agent: "testing"
+          comment: "🎯 CRITICAL USER-REPORTED BUG VERIFICATION COMPLETED! Comprehensive testing of exact user scenarios completed with mixed results (1/2 scenarios fixed): ✅ SCENARIO 1 - TOTAL CALCULATION BUG APPEARS FIXED: Tested existing sponsored employees (Mit1, Mit2, Mit3) and found ALL 3 show CORRECT coffee-only amounts (-1.50€) after breakfast sponsoring with NO instances of reported incorrect -3.25€ total. Total calculation logic correctly shows only non-sponsored items remaining. ❌ SCENARIO 2 - SPONSOR MESSAGE MISSING: Admin interface completely lacks expected sponsor acknowledgment message 'Frühstück wurde von dir ausgegeben, vielen Dank! (Ausgegeben für XX Mitarbeiter im Wert von X.XX€)'. All four message components missing: 'wurde von dir ausgegeben', 'vielen Dank', employee count pattern, amount pattern. Individual employee histories show sponsor messages correctly but admin acknowledgment missing. CRITICAL ASSESSMENT: Primary user complaint about incorrect total calculation appears resolved, but sponsor acknowledgment feature incomplete in admin interface."
+
 frontend:
   - task: "UI Changes - Separated Revenue Display in Admin Dashboard"
     implemented: true
