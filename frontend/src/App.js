@@ -2119,12 +2119,14 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
 // New Employee Modal
 const NewEmployeeModal = ({ onCreate, onClose }) => {
   const [name, setName] = useState('');
+  const [isGuest, setIsGuest] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name.trim()) {
-      onCreate(name.trim());
+      onCreate(name.trim(), isGuest);
       setName('');
+      setIsGuest(false);
     }
   };
 
