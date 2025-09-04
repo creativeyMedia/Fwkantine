@@ -4819,6 +4819,36 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                   </div>
                 )}
               </div>
+
+              {/* Extras & Sonderwünsche Section */}
+              {(() => {
+                // Check if any employee has notes
+                const employeeNotesEntries = dailySummary?.employee_orders ? 
+                  Object.entries(dailySummary.employee_orders)
+                    .filter(([employeeName, employeeData]) => employeeData.notes && employeeData.notes.trim() !== '')
+                    .map(([employeeName, employeeData]) => ({ name: employeeName, notes: employeeData.notes }))
+                  : [];
+
+                if (employeeNotesEntries.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold mb-4">📝 Extras & Sonderwünsche</h3>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="space-y-2">
+                        {employeeNotesEntries.map((entry, index) => (
+                          <div key={index} className="flex gap-2">
+                            <span className="font-medium text-gray-700 min-w-[120px]">{entry.name}:</span>
+                            <span className="text-gray-600">{entry.notes}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="text-center py-8">
