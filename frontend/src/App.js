@@ -1312,6 +1312,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         price: 0.0, // Lunch price handled separately 
         enabled: true,
         boiled_eggs_price: deptResponse.data.boiled_eggs_price,
+        fried_eggs_price: deptResponse.data.fried_eggs_price,
         coffee_price: deptResponse.data.coffee_price
       });
       
