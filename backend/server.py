@@ -3522,9 +3522,13 @@ async def sponsor_meal(meal_data: dict):
                 seeded_halves = item.get("seeded_halves", 0)
                 breakfast_cost += white_halves * white_roll_price + seeded_halves * seeded_roll_price
                 
-                # Eggs
+                # Boiled Eggs
                 boiled_eggs = item.get("boiled_eggs", 0)
                 breakfast_cost += boiled_eggs * egg_price
+                
+                # Fried Eggs
+                fried_eggs = item.get("fried_eggs", 0)
+                breakfast_cost += fried_eggs * fried_egg_price
                 
                 # Coffee
                 if item.get("has_coffee", False):
