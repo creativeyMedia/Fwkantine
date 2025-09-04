@@ -6551,16 +6551,26 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
 
     try {
       const price = parseFloat(editPrice);
-      const endpoint = editingItem === 'eggs' 
-        ? `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`
-        : `${API}/department-settings/${currentDepartment.department_id}/coffee-price`;
+      let endpoint;
+      let successMessage;
+      
+      if (editingItem === 'eggs') {
+        endpoint = `${API}/department-settings/${currentDepartment.department_id}/boiled-eggs-price`;
+        successMessage = 'Kochei-Preis erfolgreich aktualisiert';
+      } else if (editingItem === 'fried_eggs') {
+        endpoint = `${API}/department-settings/${currentDepartment.department_id}/fried-eggs-price`;
+        successMessage = 'Spiegelei-Preis erfolgreich aktualisiert';
+      } else {
+        endpoint = `${API}/department-settings/${currentDepartment.department_id}/coffee-price`;
+        successMessage = 'Kaffee-Preis erfolgreich aktualisiert';
+      }
       
       await axios.put(endpoint, null, { params: { price } });
       await fetchLunchSettings();
       setEditingItem(null);
       setEditPrice('');
       
-      setSuccessMessage(`${editingItem === 'eggs' ? 'Kochei' : 'Kaffee'}-Preis erfolgreich aktualisiert`);
+      setSuccessMessage(successMessage);
       setShowSuccessNotification(true);
     } catch (error) {
       console.error('Fehler beim Aktualisieren:', error);
