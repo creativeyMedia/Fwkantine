@@ -1386,6 +1386,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
   const handleBreakfastFormSubmit = useCallback((breakfastData) => {
     setBreakfastFormData(breakfastData);
   }, []);
+
+  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, boiledEggs, friedEggs, totalCost) => {
     const newItem = {
       total_halves: totalHalves,
       white_halves: whiteHalves,
