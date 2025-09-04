@@ -880,6 +880,34 @@ async def update_department_boiled_eggs_price(department_id: str, price: float):
     
     return {"message": "Abteilungsspezifischer Kochei-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
 
+@api_router.get("/department-settings/{department_id}/fried-eggs-price")
+async def get_department_fried_eggs_price(department_id: str):
+    """Get fried eggs price for a specific department"""
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        return {"department_id": department_id, "fried_eggs_price": dept_settings.get("fried_eggs_price", 0.50)}
+    else:
+        # Return default price if no department-specific settings exist
+        return {"department_id": department_id, "fried_eggs_price": 0.50}
+
+@api_router.put("/department-settings/{department_id}/fried-eggs-price")
+async def update_department_fried_eggs_price(department_id: str, price: float):
+    """Update fried eggs price for a specific department"""
+    if price < 0:
+        raise HTTPException(status_code=400, detail="Preis muss mindestens 0.00 € betragen")
+    
+    dept_settings = await db.department_settings.find_one({"department_id": department_id})
+    if dept_settings:
+        await db.department_settings.update_one(
+            {"department_id": department_id},
+            {"$set": {"fried_eggs_price": price}}
+        )
+    else:
+        new_settings = DepartmentSettings(department_id=department_id, fried_eggs_price=price)
+        await db.department_settings.insert_one(new_settings.dict())
+    
+    return {"message": "Abteilungsspezifischer Spiegelei-Preis erfolgreich aktualisiert", "department_id": department_id, "price": price}
+
 @api_router.get("/department-settings/{department_id}/coffee-price")
 async def get_department_coffee_price(department_id: str):
     """Get coffee price for a specific department"""
