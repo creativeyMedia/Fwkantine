@@ -1372,14 +1372,15 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
 
   const finalToppingLabels = Object.keys(toppingLabels).length > 0 ? toppingLabels : defaultToppingLabels;
 
-  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, totalCost) => {
+  const addBreakfastItem = (totalHalves, whiteHalves, seededHalves, selectedToppings, hasLunch, boiledEggs, friedEggs, totalCost) => {
     const newItem = {
       total_halves: totalHalves,
       white_halves: whiteHalves,
       seeded_halves: seededHalves,
       toppings: selectedToppings,
       has_lunch: hasLunch,
-      boiled_eggs: 0,
+      boiled_eggs: boiledEggs,
+      fried_eggs: friedEggs,
       has_coffee: false
     };
     setOrder(prev => ({
