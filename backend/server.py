@@ -1677,8 +1677,10 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "white_halves": 0, 
                             "seeded_halves": 0, 
                             "boiled_eggs": 0,  # Add boiled eggs tracking
+                            "fried_eggs": 0,  # Add fried eggs tracking
                             "has_lunch": False,  # Add lunch tracking
                             "has_coffee": False,  # Add coffee tracking
+                            "notes": order.get("notes", ""),  # Add notes from order level
                             "toppings": {}, 
                             "total_amount": 0,
                             "is_sponsored": False,  # Add sponsored status tracking
