@@ -174,6 +174,18 @@ backend:
           agent: "testing"
           comment: "✅ DEBUG CLEANUP FUNCTION VERIFIED WORKING! DELETE /api/department-admin/debug-cleanup/{department_id} endpoint tested successfully: ✅ 1) Successfully deletes today's orders for specified department. ✅ 2) Correctly resets all employee balances to €0.00. ✅ 3) Deletes today's payment logs. ✅ 4) Returns accurate statistics about cleanup operations. ✅ 5) Proper Berlin timezone handling for date boundaries. The debug cleanup function is FULLY FUNCTIONAL for testing purposes."
 
+  - task: "Complete Data Reset for User Testing Preparation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 COMPLETE DATA RESET FOR USER TESTING SUCCESSFULLY COMPLETED! Comprehensive testing of the complete data reset functionality completed with 100% success rate (4/4 departments verified): ✅ 1) DEPARTMENTS RETRIEVED: Successfully retrieved all 4 departments (fw4abteilung1, fw4abteilung2, fw4abteilung3, fw4abteilung4) from GET /api/departments endpoint. ✅ 2) GLOBAL DATA RESET EXECUTED: Successfully performed global data reset using POST /api/admin/cleanup-testing-data endpoint (Note: The department-specific debug-cleanup endpoint was removed as part of production cleanup). Reset statistics: 69 orders deleted, 38 employee balances reset, 11 payment logs deleted, 0 remaining orders, 155 total employees across 4 departments. ✅ 3) VERIFICATION COMPLETE: All 4 departments verified successfully - No orders found for any department, All employee balances confirmed at 0.0 (breakfast_balance = 0.0, drinks_sweets_balance = 0.0), Payment logs cleared across all departments, Complete clean slate achieved. ✅ 4) READY FOR USER TESTING: All departments are now in clean state with no orders, zero balances, no sponsoring history, and no payment logs. The system is ready for fresh user testing of all features. CRITICAL VERIFICATION: The exact scenario from review request has been completed - complete data reset across all departments (fw4abteilung1, fw4abteilung2, fw4abteilung3, fw4abteilung4) with comprehensive verification of cleanup results. The complete data reset functionality is FULLY FUNCTIONAL and ready for user testing preparation."
+
   - task: "Breakfast-History Duplicate Function Name Bug Fix"
     implemented: true
     working: true
