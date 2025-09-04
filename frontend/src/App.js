@@ -5907,6 +5907,9 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                 {employeeData.boiled_eggs > 0 && (
                                   <div>🥚 Gekochte Eier: {employeeData.boiled_eggs}</div>
                                 )}
+                                {employeeData.fried_eggs > 0 && (
+                                  <div>🍳 Spiegeleier: {employeeData.fried_eggs}</div>
+                                )}
                                 {employeeData.has_coffee && (
                                   <div>☕ Kaffee: Ja</div>
                                 )}
