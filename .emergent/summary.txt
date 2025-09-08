@@ -1,80 +1,66 @@
 <analysis>
-The trajectory details an iterative development process by the AI engineer focusing on a canteen management system. The engineer began by taking on a new set of user requirements covering mobile reload behavior, a sponsoring display bug, flexible payments (deposit/withdrawal), and app version display. This involved significant modifications to  and  to correctly handle state, API calls, and data persistence. Subsequent phases addressed new feature requests like PayPal integration (including backend models and frontend UI with URL normalization) and a daily lunch price reset. Throughout, the process was heavily bug-driven, with the engineer diagnosing and fixing issues such as React hook errors, backend API conflicts, incorrect data filtering in the frontend, and logic flaws in the sponsoring mechanism. The work culminated in a robust Doppel-Sponsoring-Schutz and comprehensive UI/UX refinements, with all features deemed production-ready, awaiting a user fork for further instructions.
+The AI engineer systematically addressed a comprehensive set of user requirements, transitioning the application from a bug-ridden MVP to a robust, feature-rich system. The work began with initial fixes for display issues, debug functionalities, and CSS loading, followed by the successful resolution of a complex breakfast topping assignment bug. Subsequently, the engineer implemented three major features: Fried Eggs (Spiegeleier), an Extras + Sonderwünsche (Notes) field, and an Is Guest marker for employees, along with a visual separation on employee dashboards. This development was characterized by an iterative full-stack approach, tackling numerous follow-up bugs, including React infinite loops, CORS issues, display formatting errors, duplication problems, and sponsoring calculation discrepancies. Each fix involved meticulous analysis, targeted code modifications in  and , and verification, ultimately leading to a stable and fully functional application as confirmed by extensive testing and user feedback.
 </analysis>
 
 <product_requirements>
-The application is a canteen management system for German fire department employees, streamlining meal, drink, and sweets ordering. Key functional requirements and implemented features include:
+The application is a canteen management system for German fire department employees, supporting meal, drink, and sweets ordering with administrative and financial controls. Key features include a master password, order cancellation, flexible payment, robust sponsoring logic, department-specific pricing, automatic UI updates, custom modals, a responsive landing page, mobile state retention, negative withdrawals in admin dashboards, app version display, and PayPal integration. Prior work fixed bugs in drinks/sweets order storage, breakfast topping assignments, debug features, and landing page CSS.
 
-1.  **Core Functionality**: Master Password, Order Cancellation Documentation, Flexible Payment System (with separate accounts and chronological history), Payment Protection, and UI/UX Refinements (e.g., consistent saldo colors, pagination, custom modals).
-2.  **Sponsoring Logic Correction**: Correctly credits sponsored employees and debits sponsors for all meal types, ensuring visibility of sponsored meals in the overview (not disappearing).
-3.  **Department-specific Pricing**: Ability for each department to set its own prices for items like eggs and coffee.
-4.  **Automatic UI Updates**: Prices and balances refresh automatically after changes.
-5.  **Custom Modals**: Replace  with custom success/error notifications.
-6.  **Landing Page**: A modern, responsive promotional website (creation initiated, but CSS loading issue pending).
-7.  **Mobile Reload Behavior**: Application should remember the last department/dashboard and not reset to the global start screen upon reload.
-8.  **Ein-/Auszahlung Extension**: Allow negative amounts for withdrawals in the admin dashboard, with corresponding display changes.
-9.  **App Version Display**: Show App-Version 1.1.2 in the Admin Dashboard under department information.
-10. **PayPal Integration**: Add Pay with PayPal buttons to the employee dashboard, configurable by admins with separate or combined links for breakfast/drinks, including URL normalization.
-11. **Daily Lunch Price Reset**: Initialize the daily lunch price to 0€ at the start of a new day, without affecting previous days.
-12. **UI/UX Refinements**: Körnerbrötchen crossed out on sponsoring, move Abteilungs-Information below PayPal settings, change Frühstück tab to Frühstück/Mittag, and auto-scroll to top on page/tab change.
-13. **Sponsoring Robustness**: Support for sponsors without own orders, prevent already sponsored message on failed attempts.
-14. **Database & Support Info**: Add daily backup details and support contact email to Abteilungs-Information.
-15. **Double Sponsoring Prevention**: Block Ausgeben buttons in the UI if a meal (breakfast/lunch) has already been sponsored for the day, showing who sponsored it.
+New requirements involved:
+1.  **Spiegeleier (Fried Eggs):** Introduce as an orderable item, mirroring Gekochte Frühstückseier in pricing, order modal, history, sponsoring, statistics, and admin price management.
+2.  **Extras + Sonderwünsche (Notes) Field:** A free-text field in the order modal, stored with the order, and displayed in the employee dashboard history, admin orders, and specifically at the bottom of the breakfast overview's shopping list, before detailed employee orders.
+3.  **Guest Marker for Employees:** A checkbox during new employee creation to mark them as a guest (). This marker is used to sort employees in the main employee dashboard (normal employees first, then a visual separator, then guests) and the admin dashboard, without affecting ordering or payment functionality.
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
--   **Environment Variables**: , , .
--   **API Routing**:  prefix for backend, handled by Kubernetes ingress.
--   **Frontend State Management**: , ,  for global state and persistence (localStorage).
--   **Backend Data Models**: Pydantic models for FastAPI, MongoDB collections.
--   **URL Normalization**: Frontend logic to ensure  prefix for external links.
+-   **Full-stack Architecture:** React (frontend), FastAPI (backend), MongoDB (database).
+-   **Data Models:** Pydantic for API request/response validation.
+-   **API Routing:**  prefix for backend,  for static assets.
+-   **Frontend State Management:** , ,  for optimized rendering.
+-   **CORS:** Cross-Origin Resource Sharing configuration for frontend-backend communication.
+-   **Financial Precision:** Python  for accurate currency calculations.
 </key_technical_concepts>
 
 <code_architecture>
 
 
 -   ****:
-    -   **Importance**: Core API logic, database interactions, business rules.
+    -   **Importance**: Handles all API endpoints, database interactions with MongoDB, and the core business logic.
     -   **Changes Summary**:
-        *   **Department-Specific Prices**: Added GET endpoints for  and  to fetch department-specific prices.
-        *   **Sponsoring Logic**: Corrected  variable definition to handle sponsors without personal orders. Modified  to create  entries and ensure  flags are updated atomically at the end of successful sponsorship.
-        *   **Flexible Payments**: Adjusted  creation for negative amounts to correctly display Auszahlung.
-        *   **Daily Lunch Price**: Modified  and order processing logic to default to 0€ if no specific price is set for the day.
-        *   **API Conflict Resolution**: Renamed  (admin version) to  to resolve a function name conflict.
-        *   **Sponsor Status API**: Added new endpoint  to retrieve sponsoring status.
-        *   **PayPal Settings**: Introduced  model and CRUD API endpoints () to manage department-specific PayPal links and activation flags.
-        *   **Breakfast History Logic**: Corrected logic in  to ensure  is  for sponsored meals for purchasing visibility.
+        -   **Data Models**: Extended  (),  (),  (),  (), and  ().
+        -   **API Endpoints**: Added GET/PUT endpoints for  at department and global levels. Modified  (POST/PUT) to process  and , including price calculation and  generation.
+        -   **Data Aggregation**: Updated  and  to correctly aggregate  and  per employee (with deduplication for notes).
+        -   **Sponsoring Logic**: Integrated  into sponsoring calculations.
+        -   **CORS**: Configured  in  to include  to resolve frontend access issues.
 -   ****:
-    -   **Importance**: Main React application, handles UI, state, and API calls.
+    -   **Importance**: The main React application file, responsible for the user interface, state management, and API calls.
     -   **Changes Summary**:
-        *   **Reload Behavior**: Implemented  to persist department/dashboard selection on reload. Removed overscroll-behavior.
-        *   **Sponsoring Display**: Modified  to include sponsored employees even if they have no other items. Ensured Körnerbrötchen are crossed out like other rolls.
-        *   **Flexible Payments UI**: Updated  to allow negative inputs and changed button text to Ein-/Auszahlung. Changed display of payment type in history (💰 Einzahlung / 💸 Auszahlung) with color coding.
-        *   **App Version**: Added App-Version 1.1.2 to department info and moved info block.
-        *   **PayPal Integration**: Created  for admin configuration (links, enable/disable per account, combined/separate links). Added  utility. Integrated PayPal buttons into  with conditional rendering and live URL preview. Corrected API usage for  constant.
-        *   **Daily Lunch Price UI**: Updated  to display Nicht gesetzt when lunch price is 0€ or not set.
-        *   **Tab Renaming**: Changed Frühstück tab to Frühstück/Mittag in the order mask.
-        *   **Auto-Scroll**: Added  on page/tab changes for better UX.
-        *   **Sponsoring UI Blocking**: Implemented logic in , , and  to fetch sponsor status and block sponsoring dropdowns/buttons with an orange warning if a meal is already sponsored, showing the sponsor's name.
-        *   **Department Info**: Extended  with Backup and Support details.
-        *   **Bug Fix**: Corrected React Hook error in  by using  outside the function body.
+        -   **BreakfastOrderForm**: Added  state and UI elements, integrated Extras + Sonderwünsche text area. Refined cost calculation and addressed React infinite loop issues using  and  dependency management.
+        -   **Admin Dashboard**: Added UI for managing . Implemented employee sorting (normal vs. guest) with a visual separator and blue border styling, maintaining Drag & Drop.
+        -   **Employee Dashboard**: Applied the same guest sorting and visual separation logic.
+        -   **Display Logic**: Updated , employee history, and admin order management to display  and . Fixed  bug in topping display.
+        -   **Styling**: Adjusted  background color to yellow and added blue border/label for guest employees.
+        -   **Sponsoring**: Extended strikethrough logic to include  and ensured sponsor messages are displayed for the sponsoring employee.
+        -   **UI/Display Fixes**: Corrected  error with fallbacks, resolved overlapping buttons/text in  and , and removed duplicate minus signs from transaction displays in employee history.
 -   ****:
-    -   **Importance**: New directory for a promotional one-page landing site.
-    -   **Files**: , , , .
-    -   **Changes**: Initial creation, but a CSS loading issue ( MIME type error) was pending from before this trajectory.
+    -   **Importance**: Stores frontend environment variables.
+    -   **Changes Summary**: Updated  to explicitly allow .
 </code_architecture>
 
 <pending_tasks>
--   **Landing Page CSS Loading**: The  for the newly created landing page is not loading due to a MIME type error, indicating a server configuration or file path issue. This task was pending before the current development cycle and was not addressed within this trajectory.
+-   None. All previously identified features, improvements, and reported bugs within this trajectory have been successfully addressed, implemented, and verified by testing or user confirmation.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer successfully implemented and verified the Doppel-Sponsoring-Schutz feature across all relevant administration dashboards. This feature prevents accidental double-sponsoring of meals by dynamically checking the sponsoring status for a given date and meal type. If a meal (breakfast or lunch) has already been sponsored, the UI elements (dropdowns, buttons) for sponsoring that specific meal are blocked, and an informative message is displayed, including the name of the employee who already sponsored it. This was implemented in the , , and the .
+Immediately prior to this summary request, the AI engineer successfully resolved a UI display bug reported by the user concerning duplicate minus signs ( instead of ) in the employee transaction history.
 
-The backend was extended with a new API endpoint () to provide this status. The frontend now fetches this status dynamically and uses conditional rendering to update the UI accordingly. After resolving an issue where the  buttons were not initially blocked, the feature is now fully functional and provides immediate visual feedback to the administrator. The user has acknowledged that the application is in a gut funktionierende verson mti noch kleinen bug und anpassungen and plans to fork the repository before giving new instructions. All features requested within this trajectory have been implemented and validated by the AI engineer through backend testing.
+The issue was identified within the  function in . Specifically, line 619 was manually prepending a minus sign to a value that was already correctly formatted as negative for debit transactions (e.g., ). This resulted in the redundant double minus ().
+
+The fix involved updating the display logic in  at line 619:
+**Original:** 
+**Corrected:** 
+This modification ensures that the output of  (which already provides the correct sign) is displayed directly. The frontend service was restarted, and subsequent testing confirmed the bug was fully eliminated across all transaction types, providing a clean and professional display of financial values in the employee history.
 </current_work>
 
 <optional_next_step>
-Wait for the user to perform the fork and provide new instructions for any remaining bugs or future enhancements.
+The last task was concluded and verified. The system is ready for the user to perform comprehensive acceptance testing or to provide new development instructions.
 </optional_next_step>
