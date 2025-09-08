@@ -48,6 +48,18 @@
 ##   run_ui: false
 ##
 backend:
+  - task: "Critical Drinks/Sweets Cancellation Logic Bug Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL DRINKS/SWEETS CANCELLATION LOGIC BUG FIX FULLY VERIFIED! Comprehensive testing of the exact user-reported scenario completed with 100% success rate (6/6 tests passed): ✅ 1) DRINKS ORDER TEST PASSED - Created test employee and ordered Cola €1.20, confirmed balance correctly becomes -€1.20 (negative debt as expected). ✅ 2) DRINKS CANCELLATION FIX VERIFIED - Cancelled Cola order via employee endpoint, balance correctly restored to €0.00 (BEFORE FIX: would have been -€2.40). ✅ 3) SWEETS ORDER TEST PASSED - Ordered Schokoriegel €1.50, confirmed balance correctly becomes -€1.50 (negative debt as expected). ✅ 4) SWEETS CANCELLATION FIX VERIFIED - Cancelled Schokoriegel order via admin endpoint, balance correctly restored to €0.00 (BEFORE FIX: would have been -€3.00). ✅ 5) ROOT CAUSE FIX CONFIRMED - Lines ~2327 and ~3069 in server.py now correctly use subtraction instead of addition for drinks/sweets cancellation because total_price is stored as negative value. ✅ 6) REGRESSION TEST PASSED - Breakfast order cancellation continues to work correctly without any issues. CRITICAL SUCCESS: The exact scenario reported by user (Getränkedose 1,20€ causing -2,40€ instead of 0€ after cancellation) has been completely FIXED. The double-negative effect is eliminated and balance calculations are now mathematically correct for all order types."
+
   - task: "Remove Debug Tab and Functions from Admin Dashboard"
     implemented: true
     working: true
