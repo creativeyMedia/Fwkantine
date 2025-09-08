@@ -3067,7 +3067,8 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
                 )
             else:
                 # Admin cancellation = refund = balance increases
-                new_drinks_sweets_balance = employee["drinks_sweets_balance"] + order["total_price"]
+                # FIXED: Subtract total_price because drinks/sweets are stored as negative amounts
+                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
                 await db.employees.update_one(
                     {"id": order["employee_id"]},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
