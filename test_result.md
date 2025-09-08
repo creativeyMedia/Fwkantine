@@ -312,6 +312,21 @@ backend:
           agent: "testing"
           comment: "🎉 FINAL VERIFICATION: SPONSOR MESSAGE FIX SUCCESSFULLY IMPLEMENTED! Comprehensive testing on preview instance https://canteen-fix.preview.emergentagent.com/ completed with 100% success rate (4/4 required components verified): ✅ 1) COMPLETE SPONSOR ACKNOWLEDGMENT MESSAGE FOUND: Located exact message format 'Frühstück wurde von dir ausgegeben, vielen Dank! (Ausgegeben für 3 Mitarbeiter im Wert von 3.30€)' in Mit1 employee history as expected. ✅ 2) ALL REQUIRED COMPONENTS VERIFIED: Found all 4 critical message components: 'wurde von dir ausgegeben' ✓, 'vielen Dank' ✓, 'Ausgegeben für' ✓, 'Mitarbeiter im Wert von' ✓. ✅ 3) EMPLOYEE COUNT AND AMOUNT DISPLAY WORKING: Message correctly shows '3 Mitarbeiter' (employee count) and '3.30€' (sponsored amount) as required by user specification. ✅ 4) SPONSOR ORDER DETECTION WORKING: System correctly identifies sponsor orders (is_sponsor_order: true) and displays acknowledgment messages to sponsors in their individual employee histories. CRITICAL SUCCESS: The sponsor message fix is FULLY FUNCTIONAL on the preview instance. Sponsors now see the expected acknowledgment message 'Frühstück wurde von dir ausgegeben, vielen Dank!' with proper employee count and amount display exactly as requested by the user."
 
+  - task: "Critical Drinks/Sweets Cancellation Logic Bug Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed critical drinks/sweets cancellation logic bug. Changed lines ~2327 and ~3069 to use subtraction instead of addition for cancellation of drinks/sweets orders. Reason: drinks/sweets total_price is already stored as negative amounts, so cancellation (refund) requires subtracting the negative amount to restore balance to zero."
+        - working: true
+          agent: "testing"
+          comment: "🎉 CRITICAL DRINKS/SWEETS CANCELLATION BUG FIX VERIFICATION COMPLETED SUCCESSFULLY! Comprehensive testing of the exact user-reported bug scenario completed with 100% success rate (7/7 tests passed): ✅ 1) EXACT BUG SCENARIO TESTED: Order drink (Cola €1.20) → balance correctly goes to -€1.20, cancel order via employee endpoint → balance correctly returns to €0.00 (NOT -€2.40 as was the bug). ✅ 2) SWEET CANCELLATION VERIFIED: Order sweet (Schokoriegel €1.50) → balance correctly goes to -€1.50, cancel order via admin endpoint → balance correctly returns to €0.00 (NOT -€3.00 as was the bug). ✅ 3) EMPLOYEE CANCELLATION ENDPOINT WORKING: DELETE /api/employee/{employee_id}/orders/{order_id} correctly uses subtraction for drinks/sweets refunds (line ~2327 fix verified). ✅ 4) ADMIN CANCELLATION ENDPOINT WORKING: DELETE /api/department-admin/orders/{order_id} correctly uses subtraction for drinks/sweets refunds (line ~3069 fix verified). ✅ 5) NEGATIVE STORAGE CONFIRMED: Drinks and sweets orders correctly stored with negative total_price values (Cola: €-1.20, Schokoriegel: €-1.50) representing employee debt. ✅ 6) BALANCE CALCULATION LOGIC VERIFIED: Order creation uses addition of negative amounts (creates debt), cancellation uses subtraction of negative amounts (removes debt), resulting in correct balance restoration. ✅ 7) REGRESSION TEST PASSED: Breakfast orders still work correctly with positive amounts and addition for cancellation refunds. CRITICAL VERIFICATION: The exact scenario from user report is working perfectly - drinks/sweets orders create correct negative balances, cancellations restore balance to zero without double-negative effect, both employee and admin cancellation endpoints use correct subtraction logic. The drinks/sweets cancellation logic bug fix is FULLY FUNCTIONAL."
+
 frontend:
   - task: "Critical Display Bug Fix - Double Minus Signs in Employee History"
     implemented: true
