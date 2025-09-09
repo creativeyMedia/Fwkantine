@@ -1184,6 +1184,62 @@ const DepartmentDashboard = () => {
             {currentDepartment.department_name}
           </h1>
           <div className="flex flex-wrap gap-2 sm:gap-4 justify-center sm:justify-end">
+            {/* ERWEITERT: Temporäre Mitarbeiter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowTemporaryDropdown(!showTemporaryDropdown)}
+                className="bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base whitespace-nowrap"
+              >
+                👥 Gastmitarbeiter +
+              </button>
+              
+              {showTemporaryDropdown && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
+                  <div className="p-3 border-b bg-gray-50">
+                    <h3 className="font-semibold text-gray-800">Mitarbeiter anderer Abteilungen hinzufügen</h3>
+                    <p className="text-xs text-gray-600">Nur für heute bis 23:59 Uhr</p>
+                  </div>
+                  
+                  {Object.keys(otherDepartmentEmployees).length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      Keine anderen Mitarbeiter verfügbar
+                    </div>
+                  ) : (
+                    Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => (
+                      <div key={deptId} className="border-b border-gray-100 last:border-b-0">
+                        <div className="px-3 py-2 bg-gray-50 text-sm font-medium text-gray-700">
+                          {employees[0]?.department_name}
+                        </div>
+                        {employees.map((employee) => (
+                          <button
+                            key={employee.id}
+                            onClick={() => addTemporaryEmployee(employee)}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-b-0"
+                            disabled={temporaryEmployees.find(emp => emp.id === employee.id)}
+                          >
+                            <div className="font-medium text-gray-800">{employee.name}</div>
+                            <div className="text-xs text-gray-500">{employee.department_name}</div>
+                            {temporaryEmployees.find(emp => emp.id === employee.id) && (
+                              <div className="text-xs text-green-600">✓ Bereits hinzugefügt</div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                  
+                  <div className="p-3 border-t bg-gray-50">
+                    <button
+                      onClick={() => setShowTemporaryDropdown(false)}
+                      className="w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition-colors text-sm"
+                    >
+                      Schließen
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <button
               onClick={() => setShowBreakfastSummary(true)}
               className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base whitespace-nowrap"
@@ -1194,6 +1250,8 @@ const DepartmentDashboard = () => {
               onClick={() => setShowAdminLogin(true)}
               className="bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
+              Admin Login
+            </button>
               Admin Login
             </button>
             <button
