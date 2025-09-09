@@ -32,6 +32,83 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Helper functions for Multi-Department Balance Management
+def initialize_subaccount_balances(employee_data):
+    """Initialize subaccount_balances for new employees or existing ones without it"""
+    if not employee_data.get('subaccount_balances'):
+        # Initialize with all 4 departments, all balances at 0.0
+        employee_data['subaccount_balances'] = {
+            "fw4abteilung1": {"breakfast": 0.0, "drinks": 0.0},
+            "fw4abteilung2": {"breakfast": 0.0, "drinks": 0.0}, 
+            "fw4abteilung3": {"breakfast": 0.0, "drinks": 0.0},
+            "fw4abteilung4": {"breakfast": 0.0, "drinks": 0.0}
+        }
+    return employee_data
+
+def get_employee_balance(employee_data, department_id, balance_type):
+    """Get balance for specific department and type, with fallback to main balances"""
+    # Ensure subaccount_balances exists
+    employee_data = initialize_subaccount_balances(employee_data)
+    
+    # For main department, use main balance fields (RÜCKWÄRTSKOMPATIBILITÄT)
+    if department_id == employee_data.get('department_id'):
+        if balance_type == 'breakfast':
+            return employee_data.get('breakfast_balance', 0.0)
+        elif balance_type in ['drinks', 'drinks_sweets']:
+            return employee_data.get('drinks_sweets_balance', 0.0)
+    
+    # For other departments, use subaccount balances
+    subaccounts = employee_data.get('subaccount_balances', {})
+    dept_balances = subaccounts.get(department_id, {"breakfast": 0.0, "drinks": 0.0})
+    
+    if balance_type == 'breakfast':
+        return dept_balances.get('breakfast', 0.0)
+    elif balance_type in ['drinks', 'drinks_sweets']:
+        return dept_balances.get('drinks', 0.0)
+    
+    return 0.0
+
+async def update_employee_balance(employee_id, department_id, balance_type, amount_change):
+    """Update employee balance for specific department and type"""
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Initialize subaccounts if not exists
+    employee = initialize_subaccount_balances(employee)
+    
+    # For main department, update main balance fields (RÜCKWÄRTSKOMPATIBILITÄT)
+    if department_id == employee.get('department_id'):
+        update_fields = {}
+        if balance_type == 'breakfast':
+            new_balance = employee.get('breakfast_balance', 0.0) + amount_change
+            update_fields['breakfast_balance'] = new_balance
+            # Also update subaccount for consistency
+            employee['subaccount_balances'][department_id]['breakfast'] = new_balance
+        elif balance_type in ['drinks', 'drinks_sweets']:
+            new_balance = employee.get('drinks_sweets_balance', 0.0) + amount_change
+            update_fields['drinks_sweets_balance'] = new_balance  
+            # Also update subaccount for consistency
+            employee['subaccount_balances'][department_id]['drinks'] = new_balance
+        
+        update_fields['subaccount_balances'] = employee['subaccount_balances']
+        
+        await db.employees.update_one(
+            {"id": employee_id},
+            {"$set": update_fields}
+        )
+    else:
+        # For other departments, only update subaccount balances
+        if balance_type == 'breakfast':
+            employee['subaccount_balances'][department_id]['breakfast'] += amount_change
+        elif balance_type in ['drinks', 'drinks_sweets']:
+            employee['subaccount_balances'][department_id]['drinks'] += amount_change
+            
+        await db.employees.update_one(
+            {"id": employee_id},
+            {"$set": {"subaccount_balances": employee['subaccount_balances']}}
+        )
+
 # Helper functions for MongoDB date serialization
 def prepare_for_mongo(data):
     """Convert date/time objects to ISO strings for MongoDB storage"""
