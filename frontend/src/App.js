@@ -315,6 +315,7 @@ const normalizeUrl = (url) => {
 // Individual Employee Profile Component with Combined Chronological History
 const IndividualEmployeeProfile = ({ employee, onClose }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
+  const [allBalances, setAllBalances] = useState(null); // ERWEITERT für Subkonten
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -332,8 +333,18 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
 
   useEffect(() => {
     fetchEmployeeProfile();
+    fetchAllBalances(); // ERWEITERT: Lade auch alle Subkonten
     fetchPayPalSettings();
   }, [employee.id]);
+
+  const fetchAllBalances = async () => {
+    try {
+      const response = await axios.get(`${API}/employees/${employee.id}/all-balances`);
+      setAllBalances(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Subkonten:', error);
+    }
+  };
 
   const fetchPayPalSettings = async () => {
     try {
