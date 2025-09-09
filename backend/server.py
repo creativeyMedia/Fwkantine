@@ -3362,7 +3362,7 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
         employee = await db.employees.find_one({"id": order["employee_id"]})
         employee_name = employee["name"] if employee else "Unbekannt"
         
-        # CORRECTED: Adjust employee balance before cancelling the order (refund)
+        # CORRECTED: Adjust employee balance before cancelling the order (refund) + ERWEITERT für Subkonten
         if employee:
             if order["order_type"] == "breakfast":
                 # Admin cancellation = refund = balance increases
@@ -3371,6 +3371,10 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
                     {"id": order["employee_id"]},
                     {"$set": {"breakfast_balance": new_breakfast_balance}}
                 )
+                
+                # ERWEITERT: Also update subaccount balance
+                await update_employee_balance(order["employee_id"], order["department_id"], 'breakfast', order["total_price"])
+                
             else:
                 # Admin cancellation = refund = balance increases
                 # FIXED: Subtract total_price because drinks/sweets are stored as negative amounts
@@ -3379,6 +3383,9 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
                     {"id": order["employee_id"]},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
                 )
+                
+                # ERWEITERT: Also update subaccount balance
+                await update_employee_balance(order["employee_id"], order["department_id"], 'drinks', -order["total_price"])
         
         # Mark order as cancelled instead of deleting
         cancellation_data = {
