@@ -46,12 +46,13 @@ BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
 class TimeCancellationTest:
     def __init__(self):
-        self.department_id = "fw4abteilung1"
-        self.admin_credentials = {"department_name": "1. Wachabteilung", "admin_password": "admin1"}
+        self.department_id = "fw4abteilung2"  # Use different department to avoid conflicts
+        self.admin_credentials = {"department_name": "2. Wachabteilung", "admin_password": "admin2"}
         self.test_employee_id = None
         self.test_employee_name = f"TimeTest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self.today_order_id = None
-        self.old_order_id = None
+        self.breakfast_order_id = None
+        self.drinks_order_id = None
+        self.sweets_order_id = None
         
     def log(self, message):
         """Log test progress"""
