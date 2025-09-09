@@ -379,6 +379,23 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
     }
   };
 
+  const isOrderCancellable = (order) => {
+    // Check if already cancelled
+    if (order.is_cancelled) {
+      return false;
+    }
+    
+    // Check if order is from today (Berlin timezone)
+    const orderDate = new Date(order.timestamp);
+    const today = new Date();
+    
+    // Convert to Berlin timezone for comparison (approximation)
+    const orderDateString = orderDate.toLocaleDateString('de-DE');
+    const todayString = today.toLocaleDateString('de-DE');
+    
+    return orderDateString === todayString;
+  };
+
   // Combine and sort orders and payments chronologically
   const getCombinedHistory = () => {
     if (!employeeProfile) return [];
