@@ -2788,6 +2788,7 @@ const DepartmentAdminDashboard = () => {
         <div className="flex flex-wrap mb-6 gap-1 sm:gap-2">
           {[
             { id: 'employees', label: 'Mitarbeiter' },
+            { id: 'statistics', label: 'Statistik' },
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'breakfast-history', label: 'Bestellverlauf' },
             { id: 'settings', label: 'Einstellungen' }
