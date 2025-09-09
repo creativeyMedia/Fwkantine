@@ -635,8 +635,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             <div className="text-right">
                               <p className={`font-semibold ${isCancelled ? 'text-red-600' : 'text-red-600'}`}>{calculateDisplayPrice(item).toFixed(2)} €</p>
                             </div>
-                            {/* Delete button only for non-cancelled orders */}
-                            {!isCancelled && (
+                            {/* Delete button only for cancellable orders */}
+                            {!isCancelled && isOrderCancellable(item) && (
                               <button
                                 onClick={() => handleDeleteOrder(item.id, item.order_type, item.total_price)}
                                 className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 flex-shrink-0"
