@@ -6260,40 +6260,38 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
   };
 
   const EmployeeStatCard = ({ employee }) => (
-    <div key={employee.id} className={`bg-white border-2 rounded-lg p-4 ${employee.is_guest ? 'border-l-blue-400' : 'border-gray-200'} hover:shadow-md transition-shadow`}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+    <div key={employee.id} className={`bg-white border rounded-lg p-2 ${employee.is_guest ? 'border-l-4 border-l-blue-400' : 'border-gray-200'} hover:shadow-sm transition-shadow`}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-medium text-gray-800 text-sm flex items-center gap-1">
           {employee.name}
           {employee.is_guest && (
-            <span className="text-blue-600 text-sm">👤 Gast</span>
+            <span className="text-blue-600 text-xs">👤</span>
           )}
         </h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-1">
         {/* Breakfast Balance */}
-        <div className={`p-3 rounded-lg ${getBalanceColor(employee.breakfast_balance)}`}>
-          <div className="text-sm font-medium">Frühstück/Mittag Saldo</div>
-          <div className="text-lg font-bold">
-            {formatBalance(employee.breakfast_balance)} €
+        <div className={`p-1.5 rounded text-center ${getBalanceColor(employee.breakfast_balance)}`}>
+          <div className="text-xs font-medium">F/M</div>
+          <div className="text-sm font-bold">
+            {formatBalance(employee.breakfast_balance)}€
           </div>
         </div>
         
         {/* Drinks/Sweets Balance */}
-        <div className={`p-3 rounded-lg ${getBalanceColor(employee.drinks_sweets_balance)}`}>
-          <div className="text-sm font-medium">Getränke/Süßes Saldo</div>
-          <div className="text-lg font-bold">
-            {formatBalance(employee.drinks_sweets_balance)} €
+        <div className={`p-1.5 rounded text-center ${getBalanceColor(employee.drinks_sweets_balance)}`}>
+          <div className="text-xs font-medium">G/S</div>
+          <div className="text-sm font-bold">
+            {formatBalance(employee.drinks_sweets_balance)}€
           </div>
         </div>
-      </div>
-      
-      {/* Total Balance */}
-      <div className="mt-3 pt-3 border-t border-gray-200">
-        <div className={`text-center p-2 rounded-lg ${getBalanceColor(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}`}>
-          <div className="text-sm font-medium">Gesamt Saldo</div>
-          <div className="text-xl font-bold">
-            {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))} €
+        
+        {/* Total Balance */}
+        <div className={`p-1.5 rounded text-center ${getBalanceColor(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}`}>
+          <div className="text-xs font-medium">∑</div>
+          <div className="text-sm font-bold">
+            {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
           </div>
         </div>
       </div>
