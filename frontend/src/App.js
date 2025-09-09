@@ -6425,6 +6425,165 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   );
 };
 
+// ERWEITERT: Other Departments Tab (Andere Touren)
+const OtherDepartmentsTab = ({ currentDepartment }) => {
+  const [otherEmployeesWithBalances, setOtherEmployeesWithBalances] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
+
+  useEffect(() => {
+    fetchOtherEmployeesWithBalances();
+  }, [currentDepartment]);
+
+  const fetchOtherEmployeesWithBalances = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Alle Mitarbeiter anderer Abteilungen holen
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/other-employees`);
+      const otherEmployeesByDept = response.data;
+      
+      // Für jeden Mitarbeiter die Subkonto-Balance in der aktuellen Abteilung prüfen
+      const employeesWithBalances = [];
+      
+      for (const [deptId, employees] of Object.entries(otherEmployeesByDept)) {
+        for (const employee of employees) {
+          try {
+            // Hole alle Balances des Mitarbeiters
+            const balanceResponse = await axios.get(`${API}/employees/${employee.id}/all-balances`);
+            const allBalances = balanceResponse.data;
+            
+            // Prüfe ob Mitarbeiter Subkonto-Balance in aktueller Abteilung hat
+            const currentDeptBalance = allBalances.subaccount_balances[currentDepartment.department_id];
+            
+            if (currentDeptBalance && (currentDeptBalance.breakfast !== 0 || currentDeptBalance.drinks !== 0)) {
+              employeesWithBalances.push({
+                ...employee,
+                subaccount_balance: currentDeptBalance,
+                main_department_name: allBalances.main_department_name
+              });
+            }
+          } catch (error) {
+            console.error(`Fehler beim Laden der Balance für ${employee.name}:`, error);
+          }
+        }
+      }
+      
+      setOtherEmployeesWithBalances(employeesWithBalances);
+    } catch (error) {
+      console.error('Fehler beim Laden der anderen Mitarbeiter:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEmployeeClick = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEmployeeProfile(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p>Lade Mitarbeiter anderer Abteilungen...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">👥 Andere Touren</h2>
+        <p className="text-gray-600">
+          Mitarbeiter anderer Wachabteilungen mit Subkonto-Buchungen in {currentDepartment.department_name}
+        </p>
+      </div>
+
+      {otherEmployeesWithBalances.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-6xl mb-4">👥</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">Keine Gastbuchungen vorhanden</h3>
+          <p className="text-gray-500">
+            Mitarbeiter anderer Abteilungen erscheinen hier, sobald sie Bestellungen in {currentDepartment.department_name} getätigt haben.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {otherEmployeesWithBalances.map((employee) => (
+            <div
+              key={employee.id}
+              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => handleEmployeeClick(employee)}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">{employee.name}</h3>
+                  <p className="text-sm text-purple-600 mb-2">👥 {employee.main_department_name}</p>
+                </div>
+                <div className="text-right">
+                  <div className={`text-lg font-bold ${employee.subaccount_balance.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {employee.subaccount_balance.total.toFixed(2)}€
+                  </div>
+                  <div className="text-xs text-gray-500">Gesamt</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="text-center p-3 bg-blue-50 rounded">
+                  <div className={`text-sm font-semibold ${employee.subaccount_balance.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {employee.subaccount_balance.breakfast.toFixed(2)}€
+                  </div>
+                  <div className="text-xs text-gray-600">Frühstück</div>
+                </div>
+                <div className="text-center p-3 bg-purple-50 rounded">
+                  <div className={`text-sm font-semibold ${employee.subaccount_balance.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {employee.subaccount_balance.drinks.toFixed(2)}€
+                  </div>
+                  <div className="text-xs text-gray-600">Getränke</div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEmployeeClick(employee);
+                  }}
+                  className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Verlauf anzeigen
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alert('Saldo-Verwaltung folgt in nächster Version');
+                  }}
+                  className="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-colors"
+                >
+                  Saldo verwalten
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Employee Profile Modal */}
+      {showEmployeeProfile && selectedEmployee && (
+        <IndividualEmployeeProfile
+          employee={selectedEmployee}
+          onClose={() => {
+            setShowEmployeeProfile(false);
+            setSelectedEmployee(null);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 // Statistics Tab Component
 const StatisticsTab = ({ employees, currentDepartment }) => {
   if (!employees) {
