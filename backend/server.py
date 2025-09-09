@@ -780,7 +780,21 @@ async def get_departments():
 async def get_department_employees(department_id: str):
     """Get all employees for a specific department, sorted by sort_order"""
     employees = await db.employees.find({"department_id": department_id}).sort("sort_order", 1).to_list(100)
-    return [Employee(**emp) for emp in employees]
+    
+    # Initialize subaccount balances for existing employees that don't have them
+    updated_employees = []
+    for emp in employees:
+        emp = initialize_subaccount_balances(emp)
+        updated_employees.append(emp)
+        
+        # Update database if subaccount_balances was missing
+        if 'subaccount_balances' not in emp or emp['subaccount_balances'] is None:
+            await db.employees.update_one(
+                {"id": emp["id"]},
+                {"$set": {"subaccount_balances": emp['subaccount_balances']}}
+            )
+    
+    return [Employee(**emp) for emp in updated_employees]
 
 @api_router.put("/departments/{department_id}/employees/sort-order")
 async def update_employees_sort_order(department_id: str, employee_ids: List[str]):
