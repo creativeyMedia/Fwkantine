@@ -802,10 +802,15 @@ async def update_employees_sort_order(department_id: str, employee_ids: List[str
 
 @api_router.post("/employees", response_model=Employee)
 async def create_employee(employee_data: EmployeeCreate):
-    """Create a new employee"""
+    """Create a new employee with initialized subaccount balances"""
     employee = Employee(**employee_data.dict())
-    await db.employees.insert_one(employee.dict())
-    return employee
+    
+    # Initialize subaccount balances for new employee
+    employee_dict = employee.dict()
+    employee_dict = initialize_subaccount_balances(employee_dict)
+    
+    await db.employees.insert_one(employee_dict)
+    return Employee(**employee_dict)
 
 @api_router.get("/lunch-settings")
 async def get_lunch_settings():
