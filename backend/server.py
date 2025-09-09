@@ -2280,6 +2280,51 @@ async def get_employee_today_orders(employee_id: str):
     
     return [parse_from_mongo({k: v for k, v in order.items() if k != '_id'}) for order in orders]
 
+@api_router.get("/employee/{employee_id}/orders/{order_id}/cancellable")
+async def check_order_cancellable(employee_id: str, order_id: str):
+    """Check if an order can be cancelled by the employee"""
+    # Check if order belongs to employee
+    order = await db.orders.find_one({"id": order_id, "employee_id": employee_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Bestellung nicht gefunden")
+    
+    # Check if already cancelled
+    if order.get("is_cancelled"):
+        return {"cancellable": False, "reason": "Bestellung bereits storniert"}
+    
+    # Check payment protection
+    try:
+        await check_order_payment_protection(employee_id, order)
+    except HTTPException as e:
+        return {"cancellable": False, "reason": e.detail}
+    
+    # Check time restriction (same day in Berlin timezone)
+    order_timestamp = datetime.fromisoformat(order["timestamp"].replace('Z', '+00:00'))
+    order_date_berlin = order_timestamp.astimezone(BERLIN_TZ).date()
+    today_berlin = get_berlin_date()
+    
+    if order_date_berlin != today_berlin:
+        return {
+            "cancellable": False, 
+            "reason": f"Bestellungen können nur am gleichen Tag bis 23:59 Uhr storniert werden. Diese Bestellung ist vom {order_date_berlin.strftime('%d.%m.%Y')}."
+        }
+    
+    # Check if breakfast is closed (for breakfast orders)
+    if order["order_type"] == "breakfast":
+        today = datetime.now(timezone.utc).date().isoformat()
+        breakfast_status = await db.breakfast_settings.find_one({
+            "department_id": order["department_id"],
+            "date": today
+        })
+        
+        if breakfast_status and breakfast_status["is_closed"]:
+            return {
+                "cancellable": False, 
+                "reason": "Frühstück ist geschlossen. Nur Admins können noch Änderungen vornehmen."
+            }
+    
+    return {"cancellable": True, "reason": ""}
+
 @api_router.delete("/employee/{employee_id}/orders/{order_id}")
 async def delete_employee_order(employee_id: str, order_id: str):
     """Allow employee to cancel their own order (with payment protection)"""
