@@ -826,6 +826,52 @@ async def create_employee(employee_data: EmployeeCreate):
     await db.employees.insert_one(employee_dict)
     return Employee(**employee_dict)
 
+@api_router.post("/admin/migrate-subaccounts")
+async def migrate_employee_subaccounts():
+    """EINMALIGE MIGRATION: Initialize subaccount_balances for all existing employees
+    
+    ⚠️ SICHERHEITSWARNUNG: Dieser Endpoint sollte nur einmal ausgeführt werden!
+    Er initialisiert das neue Subkonto-System für bestehende Mitarbeiter.
+    """
+    
+    try:
+        # Find all employees without subaccount_balances
+        employees_to_migrate = await db.employees.find({
+            "$or": [
+                {"subaccount_balances": {"$exists": False}},
+                {"subaccount_balances": None}
+            ]
+        }).to_list(1000)
+        
+        migration_count = 0
+        
+        for employee in employees_to_migrate:
+            # Initialize subaccount balances
+            employee = initialize_subaccount_balances(employee)
+            
+            # For the main department, copy existing balances to subaccount
+            main_dept = employee.get('department_id')
+            if main_dept:
+                employee['subaccount_balances'][main_dept]['breakfast'] = employee.get('breakfast_balance', 0.0)
+                employee['subaccount_balances'][main_dept]['drinks'] = employee.get('drinks_sweets_balance', 0.0)
+            
+            # Update employee in database
+            await db.employees.update_one(
+                {"id": employee["id"]},
+                {"$set": {"subaccount_balances": employee['subaccount_balances']}}
+            )
+            
+            migration_count += 1
+        
+        return {
+            "message": f"✅ Migration erfolgreich abgeschlossen!",
+            "migrated_employees": migration_count,
+            "details": f"{migration_count} Mitarbeiter mit Subkonto-System ausgestattet"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Migration fehlgeschlagen: {str(e)}")
+
 # NEW: Multi-Department Employee Management Endpoints
 
 @api_router.get("/departments/{department_id}/other-employees")
