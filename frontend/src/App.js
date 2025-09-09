@@ -520,96 +520,138 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
         </div>
 
         <div className="p-6">
-          {/* Balance Overview - Simplified 50/50 Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className={`border border-gray-300 rounded-lg p-4 ${
-              employeeProfile.breakfast_total >= 0 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
-              <h3 className={`font-semibold ${
-                employeeProfile.breakfast_total >= 0 
-                  ? 'text-green-800' 
-                  : 'text-red-800'
-              }`}>Frühstück/Mittag Saldo</h3>
-              <p className={`text-2xl font-bold ${
-                employeeProfile.breakfast_total >= 0 
-                  ? 'text-green-600' 
-                  : 'text-red-600'
-              }`}>{employeeProfile.breakfast_total.toFixed(2)} €</p>
-              
-              {/* PayPal Button for Breakfast */}
-              {paypalSettings.enabled && paypalSettings.breakfast_enabled && employeeProfile.breakfast_total < 0 && (
-                <div className="mt-3">
-                  {(() => {
-                    let link = '';
-                    if (paypalSettings.use_separate_links) {
-                      link = paypalSettings.breakfast_link;
-                    } else {
-                      link = paypalSettings.combined_link;
-                    }
-                    
-                    if (link && link.trim()) {
-                      return (
-                        <a
-                          href={normalizeUrl(link)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                        >
-                          💳 Bezahlen mit PayPal
-                        </a>
-                      );
-                    }
-                    return null;
-                  })()}
+          {/* ERWEITERTE Balance Overview mit Subkonten */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">💰 Kontostände</h3>
+            
+            {/* Hauptabteilung (groß) */}
+            <div className="mb-4">
+              <h4 className="text-md font-medium text-blue-800 mb-3">
+                🏠 Stammabteilung: {allBalances?.main_department_name || currentDepartment?.department_name}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`border border-gray-300 rounded-lg p-4 ${
+                  employeeProfile.breakfast_total >= 0 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <h3 className={`font-semibold ${
+                    employeeProfile.breakfast_total >= 0 
+                      ? 'text-green-800' 
+                      : 'text-red-800'
+                  }`}>Frühstück/Mittag Saldo</h3>
+                  <p className={`text-2xl font-bold ${
+                    employeeProfile.breakfast_total >= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>{employeeProfile.breakfast_total.toFixed(2)} €</p>
+                  
+                  {/* PayPal Button for Breakfast */}
+                  {paypalSettings.enabled && paypalSettings.breakfast_enabled && employeeProfile.breakfast_total < 0 && (
+                    <div className="mt-3">
+                      {(() => {
+                        let link = '';
+                        if (paypalSettings.use_separate_links) {
+                          link = paypalSettings.breakfast_link;
+                        } else {
+                          link = paypalSettings.combined_link;
+                        }
+                        
+                        if (link && link.trim()) {
+                          return (
+                            <a
+                              href={normalizeUrl(link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              💳 Bezahlen mit PayPal
+                            </a>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className={`border border-gray-300 rounded-lg p-4 ${
-              employeeProfile.drinks_sweets_total >= 0 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
-              <h3 className={`font-semibold ${
-                employeeProfile.drinks_sweets_total >= 0 
-                  ? 'text-green-800' 
-                  : 'text-red-800'
-              }`}>Getränke/Süßes Saldo</h3>
-              <p className={`text-2xl font-bold ${
-                employeeProfile.drinks_sweets_total >= 0 
-                  ? 'text-green-600' 
-                  : 'text-red-600'
-              }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
-              
-              {/* PayPal Button for Drinks */}
-              {paypalSettings.enabled && paypalSettings.drinks_enabled && employeeProfile.drinks_sweets_total < 0 && (
-                <div className="mt-3">
-                  {(() => {
-                    let link = '';
-                    if (paypalSettings.use_separate_links) {
-                      link = paypalSettings.drinks_link;
-                    } else {
-                      link = paypalSettings.combined_link;
-                    }
-                    
-                    if (link && link.trim()) {
-                      return (
-                        <a
-                          href={normalizeUrl(link)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                        >
-                          💳 Bezahlen mit PayPal
-                        </a>
-                      );
-                    }
-                    return null;
-                  })()}
+                <div className={`border border-gray-300 rounded-lg p-4 ${
+                  employeeProfile.drinks_sweets_total >= 0 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <h3 className={`font-semibold ${
+                    employeeProfile.drinks_sweets_total >= 0 
+                      ? 'text-green-800' 
+                      : 'text-red-800'
+                  }`}>Getränke/Süßes Saldo</h3>
+                  <p className={`text-2xl font-bold ${
+                    employeeProfile.drinks_sweets_total >= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>{employeeProfile.drinks_sweets_total.toFixed(2)} €</p>
+                  
+                  {/* PayPal Button for Drinks */}
+                  {paypalSettings.enabled && paypalSettings.drinks_enabled && employeeProfile.drinks_sweets_total < 0 && (
+                    <div className="mt-3">
+                      {(() => {
+                        let link = '';
+                        if (paypalSettings.use_separate_links) {
+                          link = paypalSettings.drinks_link;
+                        } else {
+                          link = paypalSettings.combined_link;
+                        }
+                        
+                        if (link && link.trim()) {
+                          return (
+                            <a
+                              href={normalizeUrl(link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                            >
+                              💳 Bezahlen mit PayPal
+                            </a>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
+
+            {/* Gastkonten (klein) */}
+            {allBalances && allBalances.subaccount_balances && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">👥 Gastkonten (andere Wachabteilungen):</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {Object.entries(allBalances.subaccount_balances).map(([deptId, balances]) => {
+                    // Skip main department (already shown above)
+                    if (deptId === allBalances.main_department_id) return null;
+                    
+                    return (
+                      <div key={deptId} className="border border-gray-200 rounded p-2 bg-gray-50">
+                        <div className="text-xs text-gray-600 mb-1 truncate" title={balances.department_name}>
+                          {balances.department_name}
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className={`${balances.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            F: {balances.breakfast.toFixed(2)}€
+                          </span>
+                          <span className={`${balances.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            G: {balances.drinks.toFixed(2)}€
+                          </span>
+                        </div>
+                        <div className={`text-xs font-semibold text-center mt-1 ${balances.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ∑ {balances.total.toFixed(2)}€
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Combined Chronological History */}
