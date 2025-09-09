@@ -826,6 +826,86 @@ async def create_employee(employee_data: EmployeeCreate):
     await db.employees.insert_one(employee_dict)
     return Employee(**employee_dict)
 
+# NEW: Multi-Department Employee Management Endpoints
+
+@api_router.get("/departments/{department_id}/other-employees")
+async def get_other_department_employees(department_id: str):
+    """Get employees from OTHER departments for temporary assignment dropdown"""
+    try:
+        # Get all employees NOT from this department
+        other_employees = await db.employees.find({
+            "department_id": {"$ne": department_id},
+            "is_guest": False  # Only regular employees, not guests
+        }).sort("name", 1).to_list(1000)
+        
+        # Group by department for easier frontend handling
+        employees_by_dept = {}
+        for emp in other_employees:
+            dept_id = emp["department_id"]
+            if dept_id not in employees_by_dept:
+                employees_by_dept[dept_id] = []
+            
+            # Get department name for display
+            dept = await db.departments.find_one({"id": dept_id})
+            dept_name = dept["name"] if dept else dept_id
+            
+            employees_by_dept[dept_id].append({
+                "id": emp["id"],
+                "name": emp["name"],
+                "department_id": dept_id,
+                "department_name": dept_name
+            })
+        
+        return employees_by_dept
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Mitarbeiter: {str(e)}")
+
+@api_router.get("/employees/{employee_id}/all-balances")
+async def get_employee_all_balances(employee_id: str):
+    """Get all balances (main + subaccounts) for an employee"""
+    try:
+        employee = await db.employees.find_one({"id": employee_id})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        
+        # Initialize subaccounts if needed
+        employee = initialize_subaccount_balances(employee)
+        
+        # Prepare response with all balances
+        result = {
+            "employee_id": employee_id,
+            "employee_name": employee["name"],
+            "main_department_id": employee["department_id"],
+            "main_department_name": "",  # Will be filled below
+            "main_balances": {
+                "breakfast": employee.get("breakfast_balance", 0.0),
+                "drinks_sweets": employee.get("drinks_sweets_balance", 0.0)
+            },
+            "subaccount_balances": {}
+        }
+        
+        # Get all department names
+        departments = await db.departments.find().to_list(100)
+        dept_names = {dept["id"]: dept["name"] for dept in departments}
+        
+        result["main_department_name"] = dept_names.get(employee["department_id"], employee["department_id"])
+        
+        # Add all subaccount balances with department names
+        for dept_id, balances in employee["subaccount_balances"].items():
+            result["subaccount_balances"][dept_id] = {
+                "department_name": dept_names.get(dept_id, dept_id),
+                "breakfast": balances.get("breakfast", 0.0),
+                "drinks": balances.get("drinks", 0.0),
+                "total": balances.get("breakfast", 0.0) + balances.get("drinks", 0.0)
+            }
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Kontostände: {str(e)}")
+
+# Lunch settings routes (UNVERÄNDERT - bestehende Kompatibilität)
 @api_router.get("/lunch-settings")
 async def get_lunch_settings():
     """Get current lunch settings"""
