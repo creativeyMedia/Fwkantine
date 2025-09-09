@@ -1263,7 +1263,7 @@ const DepartmentDashboard = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 px-4">
           {(() => {
-            // Sort employees: regular employees first, then guests
+            // Sort employees: regular employees first, then temporary employees, then guests
             const regularEmployees = employees.filter(emp => !emp.is_guest);
             const guestEmployees = employees.filter(emp => emp.is_guest);
             
@@ -1287,6 +1287,54 @@ const DepartmentDashboard = () => {
                         className="flex-1 bg-blue-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                       >
                         Bestellen
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* ERWEITERT: Temporäre Mitarbeiter */}
+                {temporaryEmployees.length > 0 && (
+                  <div className="col-span-full">
+                    <div className="flex items-center my-6">
+                      <div className="flex-1 border-t-2 border-purple-300"></div>
+                      <div className="px-4 text-sm font-medium text-purple-600 bg-white">
+                        👥 Gastmitarbeiter (andere Abteilungen) - bis 23:59 Uhr
+                      </div>
+                      <div className="flex-1 border-t-2 border-purple-300"></div>
+                    </div>
+                  </div>
+                )}
+                
+                {temporaryEmployees.map((employee) => (
+                  <div
+                    key={`temp-${employee.id}`}
+                    onClick={(event) => handleEmployeeClick(employee, event)}
+                    className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 border-purple-400"
+                  >
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-800">
+                      {employee.name} 
+                      <span className="text-sm text-purple-600 font-normal block">👥 {employee.department_name}</span>
+                    </h3>
+                    <div className="flex gap-2 sm:gap-3 mt-4">
+                      <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
+                           onClick={(event) => handleEmployeeClick(employee, event)}>
+                        Verlauf
+                      </div>
+                      <button
+                        onClick={(event) => handleEmployeeProfileClick(employee, event)}
+                        className="flex-1 bg-purple-600 text-white text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                      >
+                        Bestellen
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTemporaryEmployee(employee.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 px-2 py-2 text-xs"
+                        title="Gastmitarbeiter entfernen"
+                      >
+                        ✗
                       </button>
                     </div>
                   </div>
