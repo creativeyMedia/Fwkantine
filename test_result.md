@@ -48,6 +48,18 @@
 ##   run_ui: false
 ##
 backend:
+  - task: "Time-Based Employee Cancellation Logic (24h -> Same Day)"
+    implemented: true
+    working: true
+    file: "backend/server.py + frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 TIME-BASED CANCELLATION LOGIC VERIFICATION COMPLETED SUCCESSFULLY! Comprehensive testing of the new time-based cancellation logic completed with 100% success rate (14/14 tests passed): ✅ 1) BACKEND IMPLEMENTATION VERIFIED - GET /api/employee/{id}/orders/{order_id}/cancellable endpoint working correctly, checking Berlin timezone for same-day restriction. Employee DELETE /api/employee/{employee_id}/orders/{order_id} endpoint enforces time restrictions with proper HTTP 403 responses. ✅ 2) TODAY'S ORDERS CANCELLABLE - Successfully created and tested breakfast, drinks, and sweets orders for today. All orders correctly identified as cancellable by employees with proper endpoint responses (cancellable: true, reason: ''). ✅ 3) EMPLOYEE CANCELLATION WORKING - Employee successfully cancelled today's breakfast order (€2.75) and drinks order (€-4.0) with proper German success message 'Bestellung erfolgreich storniert'. Balance adjustments working correctly for both positive and negative order amounts. ✅ 4) ADMIN UNLIMITED ACCESS VERIFIED - Admin can cancel any order via DELETE /api/department-admin/orders/{order_id} without time restrictions. Successfully cancelled sweets order (€-2.0) with same success message, confirming admin bypass of employee time restrictions. ✅ 5) ERROR HANDLING VERIFIED - Non-existent orders return proper HTTP 404 with German error message 'Bestellung nicht gefunden'. Already cancelled orders correctly return cancellable: false with reason 'Bestellung bereits storniert'. ✅ 6) GERMAN ERROR MESSAGES IMPLEMENTED - All error messages use proper German text as specified: 'nur am gleichen Tag bis 23:59 Uhr', 'Diese Bestellung ist vom DD.MM.YYYY', proper date formatting (DD.MM.YYYY). ✅ 7) BERLIN TIMEZONE LOGIC WORKING - Time restriction logic correctly uses Berlin timezone (BERLIN_TZ = pytz.timezone('Europe/Berlin')) for same-day comparison. Order timestamps converted to Berlin time for accurate date comparison. CRITICAL VERIFICATION: The exact scenario from review request is working perfectly - employees can cancel today's orders (breakfast, drinks, sweets), time restriction prevents old order cancellation with proper German error messages, admin cancellation works without restrictions, and all endpoints use Berlin timezone for accurate time-based logic. The time-based cancellation feature is FULLY FUNCTIONAL."
+
   - task: "Critical Drinks/Sweets Cancellation Logic Bug Fix"
     implemented: true
     working: true
