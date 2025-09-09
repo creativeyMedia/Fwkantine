@@ -1252,8 +1252,6 @@ const DepartmentDashboard = () => {
             >
               Admin Login
             </button>
-              Admin Login
-            </button>
             <button
               onClick={logout}
               className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base whitespace-nowrap"
