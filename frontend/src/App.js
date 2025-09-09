@@ -3016,6 +3016,10 @@ const DepartmentAdminDashboard = () => {
             />
           )}
 
+          {activeTab === 'other-departments' && (
+            <OtherDepartmentsTab currentDepartment={currentDepartment} />
+          )}
+
           {activeTab === 'menu-management' && (
             <UnifiedMenuManagementTab 
               breakfastMenu={breakfastMenu}
