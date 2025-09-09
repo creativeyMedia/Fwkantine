@@ -835,38 +835,48 @@ async def migrate_employee_subaccounts():
     """
     
     try:
-        # Find all employees without subaccount_balances
-        employees_to_migrate = await db.employees.find({
-            "$or": [
-                {"subaccount_balances": {"$exists": False}},
-                {"subaccount_balances": None}
-            ]
-        }).to_list(1000)
+        # Find all employees 
+        all_employees = await db.employees.find().to_list(1000)
         
         migration_count = 0
+        updated_count = 0
         
-        for employee in employees_to_migrate:
-            # Initialize subaccount balances
-            employee = initialize_subaccount_balances(employee)
+        for employee in all_employees:
+            needs_update = False
             
-            # For the main department, copy existing balances to subaccount
+            # Initialize subaccount balances if not exists
+            if not employee.get('subaccount_balances'):
+                employee = initialize_subaccount_balances(employee)
+                needs_update = True
+                migration_count += 1
+            
+            # Sync main balances with subaccount balances for main department
             main_dept = employee.get('department_id')
-            if main_dept:
-                employee['subaccount_balances'][main_dept]['breakfast'] = employee.get('breakfast_balance', 0.0)
-                employee['subaccount_balances'][main_dept]['drinks'] = employee.get('drinks_sweets_balance', 0.0)
+            if main_dept and main_dept in employee['subaccount_balances']:
+                main_breakfast = employee.get('breakfast_balance', 0.0)
+                main_drinks = employee.get('drinks_sweets_balance', 0.0)
+                
+                # Update subaccount to match main balances
+                if (employee['subaccount_balances'][main_dept]['breakfast'] != main_breakfast or 
+                    employee['subaccount_balances'][main_dept]['drinks'] != main_drinks):
+                    
+                    employee['subaccount_balances'][main_dept]['breakfast'] = main_breakfast
+                    employee['subaccount_balances'][main_dept]['drinks'] = main_drinks
+                    needs_update = True
+                    updated_count += 1
             
-            # Update employee in database
-            await db.employees.update_one(
-                {"id": employee["id"]},
-                {"$set": {"subaccount_balances": employee['subaccount_balances']}}
-            )
-            
-            migration_count += 1
+            # Update employee in database if needed
+            if needs_update:
+                await db.employees.update_one(
+                    {"id": employee["id"]},
+                    {"$set": {"subaccount_balances": employee['subaccount_balances']}}
+                )
         
         return {
             "message": f"✅ Migration erfolgreich abgeschlossen!",
             "migrated_employees": migration_count,
-            "details": f"{migration_count} Mitarbeiter mit Subkonto-System ausgestattet"
+            "synchronized_balances": updated_count,
+            "details": f"{migration_count} neue Subkonten erstellt, {updated_count} Balances synchronisiert"
         }
         
     except Exception as e:
