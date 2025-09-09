@@ -116,14 +116,14 @@ class TimeCancellationTest:
             self.error(f"Exception creating test employee: {str(e)}")
             return False
             
-    def create_today_order(self):
+    def create_breakfast_order(self):
         """Create a breakfast order for today"""
         try:
             order_data = {
                 "employee_id": self.test_employee_id,
                 "department_id": self.department_id,
                 "order_type": "breakfast",
-                "notes": "Test order for today - should be cancellable",
+                "notes": "Test breakfast order - should be cancellable today",
                 "breakfast_items": [{
                     "total_halves": 2,
                     "white_halves": 1,
@@ -136,67 +136,61 @@ class TimeCancellationTest:
                 }]
             }
             
-            self.log("Creating today's order (should be cancellable by employee)")
+            self.log("Creating breakfast order (should be cancellable by employee today)")
             
             response = requests.post(f"{API_BASE}/orders", json=order_data)
             if response.status_code == 200:
                 order = response.json()
-                self.today_order_id = order["id"]
-                self.success(f"Created today's order (ID: {order['id']}, Total: €{order['total_price']})")
+                self.breakfast_order_id = order["id"]
+                self.success(f"Created breakfast order (ID: {order['id']}, Total: €{order['total_price']})")
                 return True
             else:
-                self.error(f"Failed to create today's order: {response.status_code} - {response.text}")
+                self.error(f"Failed to create breakfast order: {response.status_code} - {response.text}")
                 return False
         except Exception as e:
-            self.error(f"Exception creating today's order: {str(e)}")
+            self.error(f"Exception creating breakfast order: {str(e)}")
             return False
             
-    def create_old_order_simulation(self):
-        """Create an order and simulate it being from yesterday by modifying timestamp"""
+    def create_drinks_order(self):
+        """Create a drinks order for today"""
         try:
-            # First create a normal order
+            # First get available drinks
+            drinks_response = requests.get(f"{API_BASE}/menu/drinks/{self.department_id}")
+            if drinks_response.status_code != 200:
+                self.error(f"Failed to get drinks menu: {drinks_response.status_code}")
+                return False
+                
+            drinks = drinks_response.json()
+            if not drinks:
+                self.error("No drinks available in menu")
+                return False
+                
+            # Use first available drink
+            drink_id = drinks[0]["id"]
+            drink_name = drinks[0]["name"]
+            
             order_data = {
                 "employee_id": self.test_employee_id,
                 "department_id": self.department_id,
-                "order_type": "breakfast",
-                "notes": "Test order from yesterday - should NOT be cancellable by employee",
-                "breakfast_items": [{
-                    "total_halves": 1,
-                    "white_halves": 1,
-                    "seeded_halves": 0,
-                    "toppings": ["Butter"],
-                    "has_lunch": False,
-                    "boiled_eggs": 0,
-                    "fried_eggs": 0,
-                    "has_coffee": False
-                }]
+                "order_type": "drinks",
+                "drink_items": {
+                    drink_id: 2  # Order 2 of the first drink
+                }
             }
             
-            self.log("Creating order for old date simulation")
+            self.log(f"Creating drinks order (2x {drink_name}) - should be cancellable by employee today")
             
             response = requests.post(f"{API_BASE}/orders", json=order_data)
             if response.status_code == 200:
                 order = response.json()
-                self.old_order_id = order["id"]
-                
-                # Now modify the timestamp to yesterday (Berlin timezone)
-                yesterday_berlin = datetime.now(BERLIN_TZ) - timedelta(days=1)
-                yesterday_utc = yesterday_berlin.astimezone(timezone.utc)
-                old_timestamp = yesterday_utc.isoformat()
-                
-                # Direct database update to simulate old order
-                # Note: This is a simulation - in real scenario we would have actual old orders
-                self.log(f"Simulating old order by setting timestamp to: {yesterday_berlin.strftime('%d.%m.%Y %H:%M')} Berlin time")
-                
-                # We'll use the order as-is for now since we can't directly modify the database
-                # The test will focus on the endpoint behavior
-                self.success(f"Created order for old date simulation (ID: {order['id']})")
+                self.drinks_order_id = order["id"]
+                self.success(f"Created drinks order (ID: {order['id']}, Total: €{order['total_price']})")
                 return True
             else:
-                self.error(f"Failed to create order for simulation: {response.status_code} - {response.text}")
+                self.error(f"Failed to create drinks order: {response.status_code} - {response.text}")
                 return False
         except Exception as e:
-            self.error(f"Exception creating old order simulation: {str(e)}")
+            self.error(f"Exception creating drinks order: {str(e)}")
             return False
             
     def test_today_order_cancellable_check(self):
