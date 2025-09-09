@@ -1060,6 +1060,9 @@ const LoginModal = ({ title, onLogin, onClose }) => {
 // Department Dashboard with Admin Login Inside
 const DepartmentDashboard = () => {
   const [employees, setEmployees] = useState([]);
+  const [temporaryEmployees, setTemporaryEmployees] = useState([]); // ERWEITERT für temporäre Mitarbeiter  
+  const [otherDepartmentEmployees, setOtherDepartmentEmployees] = useState({}); // ERWEITERT für Dropdown
+  const [showTemporaryDropdown, setShowTemporaryDropdown] = useState(false); // ERWEITERT
   const [showNewEmployee, setShowNewEmployee] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
@@ -1075,8 +1078,35 @@ const DepartmentDashboard = () => {
   useEffect(() => {
     if (currentDepartment) {
       fetchEmployees();
+      fetchOtherDepartmentEmployees(); // ERWEITERT: Lade Mitarbeiter anderer Abteilungen
     }
   }, [currentDepartment]);
+
+  const fetchOtherDepartmentEmployees = async () => {
+    try {
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/other-employees`);
+      setOtherDepartmentEmployees(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der anderen Mitarbeiter:', error);
+    }
+  };
+
+  const addTemporaryEmployee = (employee) => {
+    // Prüfe ob Mitarbeiter bereits temporär hinzugefügt wurde
+    const exists = temporaryEmployees.find(emp => emp.id === employee.id);
+    if (!exists) {
+      setTemporaryEmployees([...temporaryEmployees, {
+        ...employee,
+        isTemporary: true,
+        addedAt: new Date().toISOString()
+      }]);
+    }
+    setShowTemporaryDropdown(false);
+  };
+
+  const removeTemporaryEmployee = (employeeId) => {
+    setTemporaryEmployees(temporaryEmployees.filter(emp => emp.id !== employeeId));
+  };
 
   const fetchEmployees = async () => {
     try {
