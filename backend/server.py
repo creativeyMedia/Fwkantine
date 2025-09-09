@@ -2295,6 +2295,17 @@ async def delete_employee_order(employee_id: str, order_id: str):
     # NEW: Check if order is protected by payment timestamp
     await check_order_payment_protection(employee_id, order)
     
+    # NEW: Check if employee can still cancel (only same day in Berlin timezone)
+    order_timestamp = datetime.fromisoformat(order["timestamp"].replace('Z', '+00:00'))
+    order_date_berlin = order_timestamp.astimezone(BERLIN_TZ).date()
+    today_berlin = get_berlin_date()
+    
+    if order_date_berlin != today_berlin:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Sie können diese Bestellung nicht mehr stornieren. Bestellungen können nur am gleichen Tag bis 23:59 Uhr storniert werden. Diese Bestellung ist vom {order_date_berlin.strftime('%d.%m.%Y')}."
+        )
+    
     # For breakfast orders, check if breakfast is closed
     if order["order_type"] == "breakfast":
         today = datetime.now(timezone.utc).date().isoformat()
