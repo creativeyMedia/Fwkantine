@@ -6301,30 +6301,30 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
 
       {/* Mobile: List Layout */}
       <div className="sm:hidden p-3">
-        <div className="flex items-center justify-between">
+        <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-gray-800">
+            <h3 className="font-medium text-gray-800 text-sm truncate flex-1">
               {employee.name}
             </h3>
             {employee.is_guest && (
-              <span className="text-blue-600 text-sm">👤</span>
+              <span className="text-blue-600 text-sm flex-shrink-0">👤</span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-sm">
-            <div className="text-center">
-              <div className="text-xs text-gray-500">F/M</div>
+          <div className="flex justify-between text-xs">
+            <div className="text-center flex-1">
+              <div className="text-gray-500 mb-1">Frühstück/Mittag</div>
               <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatBalance(employee.breakfast_balance)}€
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-500">G/S</div>
+            <div className="text-center flex-1">
+              <div className="text-gray-500 mb-1">Getränke/Süßes</div>
               <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatBalance(employee.drinks_sweets_balance)}€
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-500">Gesamt</div>
+            <div className="text-center flex-1">
+              <div className="text-gray-500 mb-1">Gesamt</div>
               <div className={`font-bold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
               </div>
