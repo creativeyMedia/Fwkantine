@@ -2821,6 +2821,13 @@ const DepartmentAdminDashboard = () => {
             />
           )}
 
+          {activeTab === 'statistics' && (
+            <StatisticsTab 
+              employees={employees}
+              currentDepartment={currentDepartment}
+            />
+          )}
+
           {activeTab === 'menu-management' && (
             <UnifiedMenuManagementTab 
               breakfastMenu={breakfastMenu}
