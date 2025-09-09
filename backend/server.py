@@ -147,11 +147,14 @@ class Department(BaseModel):
 class Employee(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    department_id: str
+    department_id: str  # Stamm-Wachabteilung
     breakfast_balance: float = 0.0
     drinks_sweets_balance: float = 0.0
     sort_order: int = 0  # For drag & drop sorting
     is_guest: bool = False  # Guest marker for employee dashboard sorting
+    # ERWEITERT: Multi-Abteilungs-Subkonten (JSON-Struktur)
+    # Format: {"fw4abteilung1": {"breakfast": 0.0, "drinks": 0.0}, "fw4abteilung2": {...}, ...}
+    subaccount_balances: Optional[Dict[str, Dict[str, float]]] = None
     
 class MenuItemBreakfast(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
