@@ -6306,8 +6306,8 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
       
       {/* Regular Employees */}
       {regularEmployees.length > 0 && (
-        <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
             {regularEmployees.map(employee => (
               <EmployeeStatCard key={employee.id} employee={employee} />
             ))}
@@ -6318,15 +6318,15 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
       {/* Guest Employees */}
       {guestEmployees.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-4 mt-8">
+          <div className="flex items-center gap-2 mb-3 mt-6">
             <div className="flex-grow border-t border-gray-300"></div>
-            <span className="text-blue-600 font-semibold bg-blue-50 px-3 py-1 rounded-full text-sm">
+            <span className="text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full text-xs">
               👤 Gäste
             </span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
             {guestEmployees.map(employee => (
               <EmployeeStatCard key={employee.id} employee={employee} />
             ))}
