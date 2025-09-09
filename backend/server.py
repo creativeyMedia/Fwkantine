@@ -2612,7 +2612,7 @@ async def delete_employee_order(employee_id: str, order_id: str):
     employee = await db.employees.find_one({"id": employee_id})
     employee_name = employee["name"] if employee else "Unbekannt"
     
-    # CORRECTED: Adjust employee balance (add back the order amount)
+    # CORRECTED: Adjust employee balance (add back the order amount) + ERWEITERT für Subkonten
     if employee:
         if order["order_type"] == "breakfast":
             # Order cancellation = refund = balance increases
@@ -2621,6 +2621,10 @@ async def delete_employee_order(employee_id: str, order_id: str):
                 {"id": employee_id},
                 {"$set": {"breakfast_balance": new_breakfast_balance}}
             )
+            
+            # ERWEITERT: Also update subaccount balance
+            await update_employee_balance(employee_id, order["department_id"], 'breakfast', order["total_price"])
+            
         else:
             # Order cancellation = refund = balance increases  
             # FIXED: Subtract total_price because drinks/sweets are stored as negative amounts
@@ -2629,6 +2633,9 @@ async def delete_employee_order(employee_id: str, order_id: str):
                 {"id": employee_id},
                 {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
             )
+            
+            # ERWEITERT: Also update subaccount balance  
+            await update_employee_balance(employee_id, order["department_id"], 'drinks', -order["total_price"])
     
     # Mark order as cancelled instead of deleting
     cancellation_data = {
