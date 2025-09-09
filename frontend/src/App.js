@@ -6260,74 +6260,33 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
   };
 
   const EmployeeStatCard = ({ employee }) => (
-    <div key={employee.id} className={`bg-white border rounded-lg ${employee.is_guest ? 'border-l-4 border-l-blue-400' : 'border-gray-200'} hover:shadow-sm transition-shadow`}>
-      {/* Desktop/Tablet: Compact Card Layout */}
-      <div className="hidden sm:block p-2">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-gray-800 text-sm flex items-center gap-1">
+    <div key={employee.id} className={`bg-white border rounded-lg p-3 ${employee.is_guest ? 'border-l-4 border-l-blue-400' : 'border-gray-200'} hover:shadow-sm transition-shadow`}>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-gray-800 text-sm truncate flex-1">
             {employee.name}
-            {employee.is_guest && (
-              <span className="text-blue-600 text-xs">👤</span>
-            )}
           </h3>
+          {employee.is_guest && (
+            <span className="text-blue-600 text-sm flex-shrink-0">👤</span>
+          )}
         </div>
-        
-        <div className="grid grid-cols-3 gap-1">
-          {/* Breakfast Balance */}
-          <div className={`p-1.5 rounded text-center ${getBalanceColor(employee.breakfast_balance)}`}>
-            <div className="text-xs font-medium">F/M</div>
-            <div className="text-sm font-bold">
+        <div className="flex justify-between text-xs">
+          <div className="text-center flex-1">
+            <div className="text-gray-500 mb-1">F/M</div>
+            <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(employee.breakfast_balance)}€
             </div>
           </div>
-          
-          {/* Drinks/Sweets Balance */}
-          <div className={`p-1.5 rounded text-center ${getBalanceColor(employee.drinks_sweets_balance)}`}>
-            <div className="text-xs font-medium">G/S</div>
-            <div className="text-sm font-bold">
+          <div className="text-center flex-1">
+            <div className="text-gray-500 mb-1">G/S</div>
+            <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(employee.drinks_sweets_balance)}€
             </div>
           </div>
-          
-          {/* Total Balance */}
-          <div className={`p-1.5 rounded text-center ${getBalanceColor(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}`}>
-            <div className="text-xs font-medium">∑</div>
-            <div className="text-sm font-bold">
+          <div className="text-center flex-1">
+            <div className="text-gray-500 mb-1">Gesamt</div>
+            <div className={`font-bold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile: List Layout */}
-      <div className="sm:hidden p-3">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-gray-800 text-sm truncate flex-1">
-              {employee.name}
-            </h3>
-            {employee.is_guest && (
-              <span className="text-blue-600 text-sm flex-shrink-0">👤</span>
-            )}
-          </div>
-          <div className="flex justify-between text-xs">
-            <div className="text-center flex-1">
-              <div className="text-gray-500 mb-1">Frühstück/Mittag</div>
-              <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatBalance(employee.breakfast_balance)}€
-              </div>
-            </div>
-            <div className="text-center flex-1">
-              <div className="text-gray-500 mb-1">Getränke/Süßes</div>
-              <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatBalance(employee.drinks_sweets_balance)}€
-              </div>
-            </div>
-            <div className="text-center flex-1">
-              <div className="text-gray-500 mb-1">Gesamt</div>
-              <div className={`font-bold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
-              </div>
             </div>
           </div>
         </div>
