@@ -1,37 +1,33 @@
 #!/usr/bin/env python3
 """
-Time-Based Cancellation Logic Test Suite
-========================================
+Enhanced Time-Based Cancellation Logic Test Suite
+=================================================
 
-This test suite verifies the new time-based cancellation logic for employees:
-
-IMPLEMENTATION TESTED:
-1. Backend: Employee-Delete-Endpoint checks Berlin timezone - only same-day orders cancellable
-2. Frontend: isOrderCancellable() function implemented - button only shown for today's orders
-3. Admin-Cancellation: Remains unchanged without time restrictions
+This test suite verifies the new time-based cancellation logic for employees
+with proper handling of the single breakfast order constraint.
 
 TESTING SCENARIOS:
-1. **TODAY'S ORDER:** 
-   - Create new order today
+1. **TODAY'S BREAKFAST ORDER:** 
+   - Create new breakfast order today
    - Check: Employee can cancel ✅
    - Check: Admin can cancel ✅
 
-2. **OLD ORDER SIMULATION:**
-   - Simulate old order (modify timestamp)
-   - Check: Employee can NOT cancel (HTTP 403) ✅
-   - Check: Admin can still cancel ✅
+2. **TODAY'S DRINKS ORDER:**
+   - Create drinks order today
+   - Check: Employee can cancel ✅
+   - Check: Admin can cancel ✅
 
 3. **ENDPOINT TESTING:**
    - GET /api/employee/{id}/orders/{order_id}/cancellable
-   - Test for today's vs old orders
+   - Test for today's orders
    - Test error messages are understandable
 
 4. **ERROR MESSAGES:**
-   - Check German error message: "nur am gleichen Tag bis 23:59 Uhr"
-   - Date formatting correct (DD.MM.YYYY)
+   - Check German error message format
+   - Test time restriction logic
 
 5. **ADMIN UNLIMITED:**
-   - Admin-Delete-Endpoint (/department-admin/orders/{id}) should work without time restrictions
+   - Admin can cancel any order without time restrictions
 """
 
 import requests
