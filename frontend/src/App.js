@@ -694,37 +694,37 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                   </div>
                 </div>
 
-                {/* Subkonten (andere Wachabteilungen) - Volle Breite für Stammmitarbeiter */}
+                {/* Subkonten (andere Wachabteilungen) - Nebeneinander auf gleicher Breite wie Stammsaldos */}
                 {allBalances && allBalances.subaccount_balances && (
                   <div className="mb-4">
                     <h4 className="text-sm font-medium text-gray-600 mb-3">👥 Subkonten (andere Wachabteilungen):</h4>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {Object.entries(allBalances.subaccount_balances).map(([deptId, balances]) => {
                         // Skip main department (already shown above)
                         if (deptId === allBalances.main_department_id) return null;
                         
                         return (
-                          <div key={deptId} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <div className="flex justify-between items-center mb-3">
-                              <h5 className="font-medium text-gray-800" title={balances.department_name}>
+                          <div key={deptId} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div className="text-center mb-2">
+                              <h5 className="text-sm font-medium text-gray-700 truncate" title={balances.department_name}>
                                 {balances.department_name}
                               </h5>
-                              <div className={`text-lg font-bold ${balances.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              <div className={`text-sm font-semibold ${balances.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 Gesamt: {balances.total.toFixed(2)}€
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="text-center p-3 bg-white rounded border">
-                                <div className={`text-lg font-semibold ${balances.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <div className="space-y-2">
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className={`text-sm font-medium ${balances.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {balances.breakfast.toFixed(2)}€
                                 </div>
-                                <div className="text-sm text-gray-600">Frühstück</div>
+                                <div className="text-xs text-gray-600">Frühstück</div>
                               </div>
-                              <div className="text-center p-3 bg-white rounded border">
-                                <div className={`text-lg font-semibold ${balances.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              <div className="text-center p-2 bg-white rounded border">
+                                <div className={`text-sm font-medium ${balances.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {balances.drinks.toFixed(2)}€
                                 </div>
-                                <div className="text-sm text-gray-600">Getränke</div>
+                                <div className="text-xs text-gray-600">Getränke</div>
                               </div>
                             </div>
                           </div>
