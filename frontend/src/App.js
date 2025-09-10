@@ -7735,18 +7735,26 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
     const parsedAmount = parseFloat(amount);
     
     if (amount && !isNaN(parsedAmount)) {
+      // Check if account type is selected for subaccounts
+      if (needsAccountTypeSelection && !selectedAccountType) {
+        alert('Bitte wählen Sie einen Kontotyp aus.');
+        return;
+      }
+      
       // Check if this is a withdrawal and notes are required
       if (parsedAmount < 0 && !notes.trim()) {
         alert('Bei Auszahlungen ist eine Notiz erforderlich.');
         return;
       }
       
+      const currentPaymentType = selectedAccountType || paymentType;
+      
       if (isSubaccount) {
         // Subaccount payment - includes department info
         onPayment({
           employee_id: employee.id,
-          balance_type: paymentType, // For subaccounts use balance_type
-          payment_type: paymentType, // Keep for compatibility
+          balance_type: currentPaymentType, // For subaccounts use balance_type
+          payment_type: currentPaymentType, // Keep for compatibility
           amount: parsedAmount,
           payment_method: 'cash', // Default method
           notes: notes.trim(),
@@ -7756,7 +7764,7 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
         // Normal payment - existing logic
         onPayment({
           employee_id: employee.id,
-          payment_type: paymentType,
+          payment_type: currentPaymentType,
           amount: parsedAmount,
           notes: notes.trim()
         });
