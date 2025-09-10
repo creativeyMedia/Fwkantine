@@ -1380,6 +1380,7 @@ async def update_lunch_settings(price: float, department_id: str = None):
                 
                 # Update employee balance with the difference
                 balance_diff = new_total - old_total
+                print(f"DEBUG: Order {order['id'][:8]}: old_total={old_total}, new_total={new_total}, balance_diff={balance_diff}")
                 if balance_diff != 0:
                     # KORRIGIERT: Invert balance_diff because when order price decreases, 
                     # employee should owe LESS money (balance improves)
