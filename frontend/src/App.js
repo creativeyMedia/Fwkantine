@@ -1169,42 +1169,16 @@ const DepartmentDashboard = () => {
     if (currentDepartment) {
       fetchEmployees();
       fetchOtherDepartmentEmployees(); // ERWEITERT: Lade Mitarbeiter anderer Abteilungen
-      loadTemporaryEmployeesFromStorage(); // ERWEITERT: Lade temporäre Mitarbeiter aus localStorage
+      fetchTemporaryEmployees(); // ERWEITERT: Lade temporäre Mitarbeiter (geräteübergreifend)
     }
   }, [currentDepartment]);
 
-  const loadTemporaryEmployeesFromStorage = () => {
+  const fetchTemporaryEmployees = async () => {
     try {
-      const today = new Date().toDateString();
-      const storageKey = `temporaryEmployees_${currentDepartment.department_id}_${today}`;
-      const stored = localStorage.getItem(storageKey);
-      
-      if (stored) {
-        const parsedEmployees = JSON.parse(stored);
-        // Validate that employees were added today
-        const validEmployees = parsedEmployees.filter(emp => {
-          const addedDate = new Date(emp.addedAt).toDateString();
-          return addedDate === today;
-        });
-        setTemporaryEmployees(validEmployees);
-        
-        // Clean up storage if date changed
-        if (validEmployees.length !== parsedEmployees.length) {
-          localStorage.setItem(storageKey, JSON.stringify(validEmployees));
-        }
-      }
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/temporary-employees`);
+      setTemporaryEmployees(response.data);
     } catch (error) {
       console.error('Fehler beim Laden temporärer Mitarbeiter:', error);
-    }
-  };
-
-  const saveTemporaryEmployeesToStorage = (employees) => {
-    try {
-      const today = new Date().toDateString();
-      const storageKey = `temporaryEmployees_${currentDepartment.department_id}_${today}`;
-      localStorage.setItem(storageKey, JSON.stringify(employees));
-    } catch (error) {
-      console.error('Fehler beim Speichern temporärer Mitarbeiter:', error);
     }
   };
 
