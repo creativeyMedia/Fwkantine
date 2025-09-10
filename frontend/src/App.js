@@ -3139,12 +3139,14 @@ const DepartmentAdminDashboard = () => {
           />
         )}
 
-      {/* NEW: Flexible Payment Modal */}
+      {/* ERWEITERT: Flexible Payment Modal (inkl. Subkonto-Support) */}
       {showPaymentModal && paymentEmployeeData && (
         <FlexiblePaymentModal
           employee={paymentEmployeeData.employee}
           paymentType={paymentEmployeeData.paymentType}
           accountLabel={paymentEmployeeData.accountLabel}
+          isSubaccount={paymentEmployeeData.isSubaccount || false}
+          currentDepartment={currentDepartment}
           onClose={() => {
             setShowPaymentModal(false);
             setPaymentEmployeeData(null);
