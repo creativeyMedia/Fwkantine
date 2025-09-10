@@ -4367,6 +4367,16 @@ const AdminDashboard = () => {
     setShowEmployeeProfile(true);
   };
 
+  const handleBalanceManagement = (employee) => {
+    setSelectedEmployee(employee);
+    setShowBalanceModal(true);
+  };
+
+  const handleBalanceUpdated = () => {
+    // Refresh the employee list after balance update
+    fetchOtherEmployeesWithBalances();
+  };
+
   const handleSponsorMeal = async (mealType) => {
     try {
       const sponsorEmployee = allEmployees.find(emp => emp.id === sponsorEmployeeId);
