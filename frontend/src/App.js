@@ -1260,62 +1260,58 @@ const DepartmentDashboard = () => {
               </button>
               
               {showTemporaryDropdown && (
-                <>
-                  {/* ERWEITERT: Overlay zum Schließen durch Klick außerhalb */}
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                  onClick={() => setShowTemporaryDropdown(false)}
+                >
                   <div 
-                    className="fixed inset-0 z-10" 
-                    onClick={() => setShowTemporaryDropdown(false)}
-                  />
-                  
-                  {/* ERWEITERT: Responsive Modal statt Dropdown */}
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 p-4">
-                    <div className="bg-white border border-gray-300 rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
-                      <div className="p-4 border-b bg-gray-50 sticky top-0">
-                        <h3 className="font-semibold text-gray-800 text-lg">Mitarbeiter anderer Wachabteilungen hinzufügen</h3>
-                        <p className="text-sm text-gray-600">Nur für heute bis 23:59 Uhr - erscheinen als Gastmitarbeiter</p>
-                      </div>
-                      
-                      <div className="overflow-y-auto max-h-[60vh]">
-                        {Object.keys(otherDepartmentEmployees).length === 0 ? (
-                          <div className="p-4 text-center text-gray-500">
-                            Keine anderen Mitarbeiter verfügbar
-                          </div>
-                        ) : (
-                          Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => (
-                            <div key={deptId} className="border-b border-gray-100 last:border-b-0">
-                              <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
-                                {employees[0]?.department_name}
-                              </div>
-                              {employees.map((employee) => (
-                                <button
-                                  key={employee.id}
-                                  onClick={() => addTemporaryEmployee(employee)}
-                                  className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-b-0"
-                                  disabled={temporaryEmployees.find(emp => emp.id === employee.id)}
-                                >
-                                  <div className="font-medium text-gray-800">{employee.name}</div>
-                                  <div className="text-xs text-gray-500">{employee.department_name}</div>
-                                  {temporaryEmployees.find(emp => emp.id === employee.id) && (
-                                    <div className="text-xs text-green-600 mt-1">✓ Bereits hinzugefügt</div>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      
-                      <div className="p-4 border-t bg-gray-50">
+                    className="bg-white rounded-lg max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="p-4 border-b">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-gray-800">Mitarbeiter anderer Wachabteilungen hinzufügen</h3>
                         <button
                           onClick={() => setShowTemporaryDropdown(false)}
-                          className="w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition-colors text-sm"
+                          className="text-gray-500 hover:text-gray-700 text-xl"
                         >
-                          Schließen
+                          ×
                         </button>
                       </div>
+                      <p className="text-sm text-gray-600 mt-2">Nur für heute bis 23:59 Uhr - erscheinen als Gastmitarbeiter</p>
+                    </div>
+                    
+                    <div className="overflow-y-auto max-h-[60vh]">
+                      {Object.keys(otherDepartmentEmployees).length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">
+                          Keine anderen Mitarbeiter verfügbar
+                        </div>
+                      ) : (
+                        Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => (
+                          <div key={deptId} className="border-b border-gray-100 last:border-b-0">
+                            <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
+                              {employees[0]?.department_name}
+                            </div>
+                            {employees.map((employee) => (
+                              <button
+                                key={employee.id}
+                                onClick={() => addTemporaryEmployee(employee)}
+                                className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-b-0"
+                                disabled={temporaryEmployees.find(emp => emp.id === employee.id)}
+                              >
+                                <div className="font-medium text-gray-800">{employee.name}</div>
+                                <div className="text-xs text-gray-500">{employee.department_name}</div>
+                                {temporaryEmployees.find(emp => emp.id === employee.id) && (
+                                  <div className="text-xs text-green-600 mt-1">✓ Bereits hinzugefügt</div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
             
