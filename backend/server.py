@@ -946,6 +946,132 @@ async def complete_system_reset():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Reset fehlgeschlagen: {str(e)}")
 
+# ERWEITERT: Temporary Employee Assignments (Geräteübergreifend)
+class TemporaryAssignment(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employee_id: str  # Mitarbeiter der temporär hinzugefügt wird
+    target_department_id: str  # Ziel-Wachabteilung wo der Mitarbeiter temporär arbeitet
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    expires_at: str  # Läuft um 23:59 Berlin Zeit ab
+
+@api_router.post("/departments/{department_id}/temporary-employees")
+async def add_temporary_employee(department_id: str, employee_data: dict):
+    """Add an employee from another department as temporary worker until 23:59 Berlin time"""
+    try:
+        employee_id = employee_data.get("employee_id")
+        if not employee_id:
+            raise HTTPException(status_code=400, detail="employee_id ist erforderlich")
+        
+        # Prüfe ob Mitarbeiter existiert
+        employee = await db.employees.find_one({"id": employee_id})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        
+        # Prüfe ob bereits temporär hinzugefügt (heute)
+        today = datetime.now(timezone.utc).date()
+        existing = await db.temporary_assignments.find_one({
+            "employee_id": employee_id,
+            "target_department_id": department_id,
+            "expires_at": {"$gte": datetime.now(timezone.utc).isoformat()}
+        })
+        
+        if existing:
+            return {"message": "Mitarbeiter bereits temporär hinzugefügt", "assignment_id": existing["id"]}
+        
+        # Erstelle temporäre Zuordnung bis 23:59 Berlin Zeit
+        berlin_tz = zoneinfo.ZoneInfo("Europe/Berlin")
+        now_berlin = datetime.now(berlin_tz)
+        expires_today = now_berlin.replace(hour=23, minute=59, second=0, microsecond=0)
+        expires_utc = expires_today.astimezone(timezone.utc)
+        
+        assignment = TemporaryAssignment(
+            employee_id=employee_id,
+            target_department_id=department_id,
+            expires_at=expires_utc.isoformat()
+        )
+        
+        # Speichere in Datenbank
+        await db.temporary_assignments.insert_one(assignment.dict())
+        
+        return {
+            "message": "Mitarbeiter temporär hinzugefügt",
+            "assignment_id": assignment.id,
+            "employee_name": employee["name"],
+            "expires_at": expires_utc.isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Hinzufügen: {str(e)}")
+
+@api_router.get("/departments/{department_id}/temporary-employees")
+async def get_temporary_employees(department_id: str):
+    """Get all temporary employees for a department (geräteübergreifend)"""
+    try:
+        # Finde alle aktiven temporären Zuordnungen
+        now = datetime.now(timezone.utc).isoformat()
+        assignments = await db.temporary_assignments.find({
+            "target_department_id": department_id,
+            "expires_at": {"$gte": now}
+        }).to_list(100)
+        
+        # Lade Mitarbeiter-Details
+        temporary_employees = []
+        for assignment in assignments:
+            employee = await db.employees.find_one({"id": assignment["employee_id"]})
+            if employee:
+                # Lade Abteilungs-Details
+                dept = await db.departments.find_one({"id": employee["department_id"]})
+                dept_name = dept["name"] if dept else employee["department_id"]
+                
+                temporary_employees.append({
+                    "id": employee["id"],
+                    "name": employee["name"],
+                    "department_id": employee["department_id"],
+                    "department_name": dept_name,
+                    "assignment_id": assignment["id"],
+                    "expires_at": assignment["expires_at"],
+                    "isTemporary": True
+                })
+        
+        return temporary_employees
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden: {str(e)}")
+
+@api_router.delete("/departments/{department_id}/temporary-employees/{assignment_id}")
+async def remove_temporary_employee(department_id: str, assignment_id: str):
+    """Remove temporary employee assignment"""
+    try:
+        result = await db.temporary_assignments.delete_one({
+            "id": assignment_id,
+            "target_department_id": department_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Temporäre Zuordnung nicht gefunden")
+        
+        return {"message": "Temporäre Zuordnung entfernt"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Entfernen: {str(e)}")
+
+@api_router.post("/admin/cleanup-expired-assignments")
+async def cleanup_expired_assignments():
+    """Cleanup expired temporary assignments (Cron-Job)"""
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+        result = await db.temporary_assignments.delete_many({
+            "expires_at": {"$lt": now}
+        })
+        
+        return {
+            "message": "Abgelaufene Zuordnungen bereinigt",
+            "deleted_count": result.deleted_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler bei der Bereinigung: {str(e)}")
+
 # ERWEITERT: Subaccount Balance Management für Multi-Department System
 
 @api_router.post("/department-admin/subaccount-payment/{employee_id}")
