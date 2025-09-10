@@ -4286,6 +4286,7 @@ const AdminDashboard = () => {
     breakfast_sponsored: null,
     lunch_sponsored: null
   });
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
   
   const { logout } = React.useContext(AuthContext);
 
