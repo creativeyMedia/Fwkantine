@@ -882,6 +882,124 @@ async def migrate_employee_subaccounts():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Migration fehlgeschlagen: {str(e)}")
 
+# ERWEITERT: Subaccount Balance Management für Multi-Department System
+
+@api_router.post("/department-admin/subaccount-payment/{employee_id}")
+async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePaymentRequest, admin_department: str):
+    """Department Admin: Process flexible payment for employee's subaccount in admin's department
+    
+    This allows admins to manage balance for employees from other departments who have
+    orders/balances in the admin's department (subaccount management).
+    """
+    try:
+        employee = await db.employees.find_one({"id": employee_id})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        
+        # Initialize subaccounts if needed
+        employee = initialize_subaccount_balances(employee)
+        
+        # Check if employee has subaccount balance in admin's department
+        if admin_department not in employee.get('subaccount_balances', {}):
+            raise HTTPException(status_code=400, detail="Mitarbeiter hat kein Subkonto in dieser Abteilung")
+        
+        # Get current subaccount balance for this department and balance type
+        current_balance = get_employee_balance(employee, admin_department, payment_data.balance_type)
+        
+        # Payment INCREASES balance (reduces debt or adds credit)
+        new_balance = current_balance + payment_data.amount
+        
+        # Update ONLY the subaccount balance for this department
+        await update_employee_balance(employee_id, admin_department, payment_data.balance_type, payment_data.amount)
+        
+        # Create payment log with subaccount tracking
+        payment_log = PaymentLog(
+            employee_id=employee_id,
+            department_id=admin_department,  # The admin's department (subaccount)
+            amount=payment_data.amount,
+            balance_type=payment_data.balance_type,
+            payment_method=payment_data.payment_method,
+            notes=f"Subkonto-Zahlung in {admin_department} - {payment_data.notes or ''}",
+            balance_before=current_balance,
+            balance_after=new_balance
+        )
+        
+        # Save payment log
+        payment_dict = prepare_for_mongo(payment_log.dict())
+        await db.payment_logs.insert_one(payment_dict)
+        
+        # Get updated employee data for response
+        updated_employee = await db.employees.find_one({"id": employee_id})
+        updated_employee = initialize_subaccount_balances(updated_employee)
+        updated_balance = get_employee_balance(updated_employee, admin_department, payment_data.balance_type)
+        
+        return {
+            "message": f"Subkonto-Zahlung erfolgreich verbucht",
+            "employee_name": employee["name"],
+            "department": admin_department,
+            "balance_type": payment_data.balance_type,
+            "amount": payment_data.amount,
+            "balance_before": current_balance,
+            "balance_after": updated_balance,
+            "payment_method": payment_data.payment_method
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler bei der Subkonto-Zahlung: {str(e)}")
+
+@api_router.post("/department-admin/reset-subaccount-balance/{employee_id}")
+async def reset_subaccount_balance(employee_id: str, balance_type: str, admin_department: str):
+    """Admin: Reset employee's subaccount balance for specific department and balance type"""
+    try:
+        employee = await db.employees.find_one({"id": employee_id})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        
+        # Initialize subaccounts if needed
+        employee = initialize_subaccount_balances(employee)
+        
+        # Check if employee has subaccount balance in admin's department
+        if admin_department not in employee.get('subaccount_balances', {}):
+            raise HTTPException(status_code=400, detail="Mitarbeiter hat kein Subkonto in dieser Abteilung")
+        
+        if balance_type not in ['breakfast', 'drinks', 'drinks_sweets']:
+            raise HTTPException(status_code=400, detail="Ungültiger Saldo-Typ. Verwenden Sie: breakfast, drinks, drinks_sweets")
+        
+        # Get current balance
+        current_balance = get_employee_balance(employee, admin_department, balance_type)
+        
+        # Reset only the subaccount balance (set to 0)
+        reset_amount = -current_balance  # Amount needed to bring balance to 0
+        await update_employee_balance(employee_id, admin_department, balance_type, reset_amount)
+        
+        # Create payment log for the reset
+        payment_log = PaymentLog(
+            employee_id=employee_id,
+            department_id=admin_department,
+            amount=reset_amount,
+            balance_type=balance_type,
+            payment_method="admin_reset",
+            notes=f"Subkonto-Saldo zurückgesetzt in {admin_department}",
+            balance_before=current_balance,
+            balance_after=0.0
+        )
+        
+        # Save payment log
+        payment_dict = prepare_for_mongo(payment_log.dict())
+        await db.payment_logs.insert_one(payment_dict)
+        
+        return {
+            "message": f"Subkonto-Saldo erfolgreich zurückgesetzt",
+            "employee_name": employee["name"],
+            "department": admin_department,
+            "balance_type": balance_type,
+            "balance_before": current_balance,
+            "balance_after": 0.0
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Zurücksetzen des Subkonto-Saldos: {str(e)}")
+
 # NEW: Multi-Department Employee Management Endpoints
 
 @api_router.get("/departments/{department_id}/other-employees")
