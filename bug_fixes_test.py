@@ -386,19 +386,32 @@ class BugFixesTest:
                 for order in order_history:
                     readable_items = order.get("readable_items", [])
                     if readable_items:
+                        # Check if readable_items is a list of dictionaries (new format)
                         for item in readable_items:
-                            if item_name in item:
-                                # BUG 2 VERIFICATION: Check if details are properly formatted
-                                expected_format = f"1x {item_name} ({expected_price:.2f} €)"
-                                if expected_format in item or (item_name in item and f"{expected_price:.2f}" in item):
+                            if isinstance(item, dict):
+                                # New format: [{'description': '1x Cola', 'unit_price': '1.20 €'}]
+                                description = item.get("description", "")
+                                unit_price = item.get("unit_price", "")
+                                
+                                if item_name in description and f"{expected_price:.2f}" in unit_price:
                                     self.success(f"✅ BUG 2 FIX VERIFIED: Guest order details correctly displayed")
-                                    self.success(f"   Found: '{item}' (contains product name and price)")
+                                    self.success(f"   Found: description='{description}', unit_price='{unit_price}'")
+                                    self.success(f"   Complete details with product name and price are present")
                                     return True
-                                else:
-                                    self.error(f"❌ BUG 2 STILL EXISTS: Order details incomplete")
-                                    self.error(f"   Expected format like: '1x {item_name} ({expected_price:.2f} €)'")
-                                    self.error(f"   Found: '{item}'")
-                                    return False
+                            elif isinstance(item, str):
+                                # Old format: string items
+                                if item_name in item:
+                                    # BUG 2 VERIFICATION: Check if details are properly formatted
+                                    expected_format = f"1x {item_name} ({expected_price:.2f} €)"
+                                    if expected_format in item or (item_name in item and f"{expected_price:.2f}" in item):
+                                        self.success(f"✅ BUG 2 FIX VERIFIED: Guest order details correctly displayed")
+                                        self.success(f"   Found: '{item}' (contains product name and price)")
+                                        return True
+                                    else:
+                                        self.error(f"❌ BUG 2 STILL EXISTS: Order details incomplete")
+                                        self.error(f"   Expected format like: '1x {item_name} ({expected_price:.2f} €)'")
+                                        self.error(f"   Found: '{item}'")
+                                        return False
                 
                 self.error(f"❌ BUG 2 VERIFICATION FAILED: Could not find order with {item_name} in readable_items")
                 self.log(f"Available order history: {len(order_history)} orders")
