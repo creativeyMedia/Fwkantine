@@ -3216,6 +3216,7 @@ const DepartmentAdminDashboard = () => {
           paymentType={paymentEmployeeData.paymentType}
           accountLabel={paymentEmployeeData.accountLabel}
           isSubaccount={paymentEmployeeData.isSubaccount || false}
+          needsAccountTypeSelection={paymentEmployeeData.needsAccountTypeSelection || false}
           currentDepartment={currentDepartment}
           onClose={() => {
             setShowPaymentModal(false);
