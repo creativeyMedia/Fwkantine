@@ -376,7 +376,7 @@ class MinusSignDisplayTest:
                 return False
                 
             profile = response.json()
-            orders = profile.get("orders", [])
+            orders = profile.get("order_history", [])
             
             self.log("📊 FRONTEND DISPLAY VERIFICATION:")
             self.log("Backend Data → Frontend Should Display")
