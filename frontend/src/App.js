@@ -6718,7 +6718,7 @@ const SubaccountBalanceModal = ({ employee, currentDepartment, onClose, onBalanc
 };
 
 // ERWEITERT: Other Departments Tab (Andere WA)
-const OtherDepartmentsTab = ({ currentDepartment }) => {
+const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setShowPaymentModal }) => {
   const [otherEmployeesWithBalances, setOtherEmployeesWithBalances] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
