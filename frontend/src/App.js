@@ -1194,10 +1194,10 @@ const DepartmentDashboard = () => {
               </button>
               
               {showTemporaryDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
-                  <div className="p-3 border-b bg-gray-50">
-                    <h3 className="font-semibold text-gray-800">Mitarbeiter anderer Abteilungen hinzufügen</h3>
-                    <p className="text-xs text-gray-600">Nur für heute bis 23:59 Uhr</p>
+                <div className="absolute right-0 mt-2 w-96 sm:w-[32rem] bg-white border border-gray-300 rounded-lg shadow-xl z-20 max-h-[28rem] overflow-y-auto">
+                  <div className="p-4 border-b bg-gray-50 sticky top-0">
+                    <h3 className="font-semibold text-gray-800 text-lg">Mitarbeiter anderer Wachabteilungen hinzufügen</h3>
+                    <p className="text-sm text-gray-600">Nur für heute bis 23:59 Uhr - erscheinen als Gastmitarbeiter</p>
                   </div>
                   
                   {Object.keys(otherDepartmentEmployees).length === 0 ? (
