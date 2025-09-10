@@ -1978,25 +1978,27 @@ async def create_order(order_data: OrderCreate):
         
         if order_data.order_type == OrderType.BREAKFAST:
             if is_home_department:
-                # STAMMBESTELLUNG: Update main balance und subaccount balance
+                # STAMMBESTELLUNG: Update NUR main balance (subaccount wird in update_employee_balance automatisch synchronisiert)
                 new_breakfast_balance = employee["breakfast_balance"] - total_price
                 await db.employees.update_one(
                     {"id": order_data.employee_id},
                     {"$set": {"breakfast_balance": new_breakfast_balance}}
                 )
-            # IMMER: Update subaccount balance (für Stamm- und Gastbestellungen)
-            await update_employee_balance(order_data.employee_id, order_data.department_id, 'breakfast', -total_price)
+            else:
+                # GASTBESTELLUNG: Update NUR subaccount balance
+                await update_employee_balance(order_data.employee_id, order_data.department_id, 'breakfast', -total_price)
                 
         else:  # DRINKS or SWEETS
             if is_home_department:
-                # STAMMBESTELLUNG: Update main balance und subaccount balance
+                # STAMMBESTELLUNG: Update NUR main balance (subaccount wird in update_employee_balance automatisch synchronisiert)
                 new_drinks_sweets_balance = employee["drinks_sweets_balance"] + total_price
                 await db.employees.update_one(
                     {"id": order_data.employee_id},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
                 )
-            # IMMER: Update subaccount balance (für Stamm- und Gastbestellungen)
-            await update_employee_balance(order_data.employee_id, order_data.department_id, 'drinks', total_price)
+            else:
+                # GASTBESTELLUNG: Update NUR subaccount balance
+                await update_employee_balance(order_data.employee_id, order_data.department_id, 'drinks', total_price)
     
     return order
 
