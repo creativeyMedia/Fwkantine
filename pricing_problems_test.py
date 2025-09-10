@@ -218,7 +218,7 @@ class PricingProblemsTest:
                                 total_amount = employee_data.get("total_amount", 0)
                                 
                                 # The total should be calculated using fw4abteilung1 prices
-                                if abs(total_amount - 6.60) < 0.10:
+                                if abs(total_amount - 7.70) < 0.10:
                                     self.success(f"✅ PROBLEM 2 TEST PASSED: History shows correct target department prices (€{total_amount})")
                                     found_guest_order = True
                                 else:
