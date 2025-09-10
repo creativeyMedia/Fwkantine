@@ -4383,7 +4383,7 @@ const AdminDashboard = () => {
   });
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   
-  const { logout } = React.useContext(AuthContext);
+  const { logout, currentDepartment } = React.useContext(AuthContext);
 
   useEffect(() => {
     fetchAllEmployees();
