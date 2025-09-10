@@ -330,6 +330,9 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   });
 
   const { currentDepartment } = React.useContext(AuthContext);
+  
+  // ERWEITERT: Prüfe ob es sich um einen temporären Gastmitarbeiter handelt
+  const isTemporaryGuest = employee.isTemporary || (employee.department_id !== currentDepartment?.department_id);
 
   useEffect(() => {
     fetchEmployeeProfile();
