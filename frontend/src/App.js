@@ -6772,6 +6772,16 @@ const OtherDepartmentsTab = ({ currentDepartment }) => {
     setShowEmployeeProfile(true);
   };
 
+  const handleBalanceManagement = (employee) => {
+    setSelectedEmployee(employee);
+    setShowBalanceModal(true);
+  };
+
+  const handleBalanceUpdated = () => {
+    // Refresh the employee list after balance update
+    fetchOtherEmployeesWithBalances();
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-8">
