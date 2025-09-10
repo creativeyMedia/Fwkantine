@@ -2976,7 +2976,7 @@ const DepartmentAdminDashboard = () => {
           {[
             { id: 'employees', label: 'Mitarbeiter' },
             { id: 'statistics', label: 'Statistik' },
-            { id: 'other-departments', label: 'Andere Touren' }, // ERWEITERT
+            { id: 'other-departments', label: 'Andere WA' }, // ERWEITERT
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'breakfast-history', label: 'Bestellverlauf' },
             { id: 'settings', label: 'Einstellungen' }
