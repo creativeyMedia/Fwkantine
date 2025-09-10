@@ -1392,14 +1392,17 @@ async def update_lunch_settings(price: float, department_id: str = None):
                         employee_home_dept = employee.get("department_id")
                         order_dept = order.get("department_id")
                         
+                        print(f"DEBUG: Employee {order['employee_id'][:8]}: home_dept={employee_home_dept}, order_dept={order_dept}, balance_improvement={balance_improvement}")
                         if employee_home_dept == order_dept:
                             # HOME DEPARTMENT ORDER: Update main balance
+                            print(f"DEBUG: Updating main balance for home department order")
                             await db.employees.update_one(
                                 {"id": order["employee_id"]},
                                 {"$inc": {"breakfast_balance": balance_improvement}}
                             )
                         else:
                             # GUEST DEPARTMENT ORDER: Update subaccount balance
+                            print(f"DEBUG: Updating subaccount balance for guest department order")
                             await update_employee_balance(order["employee_id"], order_dept, 'breakfast', balance_improvement)
                 
                 updated_orders += 1
