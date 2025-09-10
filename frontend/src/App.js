@@ -6532,7 +6532,6 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
-  const [showBalanceModal, setShowBalanceModal] = useState(false); // ERWEITERT
 
   useEffect(() => {
     fetchOtherEmployeesWithBalances();
