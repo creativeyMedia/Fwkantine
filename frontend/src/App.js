@@ -437,11 +437,11 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
       timestamp: payment.timestamp
     }));
     
-    // ERWEITERT: Filterung basierend auf Mitarbeiter-Typ
+    // ERWEITERT: Unterschiedliche Filterung je nach Mitarbeiter-Typ
     let filteredOrders = orders;
     
-    if (employee.isTemporary) {
-      // Für temporäre Mitarbeiter: Nur Bestellungen der aktuellen Gast-Abteilung anzeigen
+    if (isTemporaryGuest) {
+      // Für temporäre Gastmitarbeiter: Nur Bestellungen der aktuellen Gast-Wachabteilung anzeigen
       filteredOrders = orders.filter(order => order.department_id === currentDepartment?.department_id);
     }
     // Für Stammmitarbeiter: Alle Bestellungen anzeigen (keine Filterung)
