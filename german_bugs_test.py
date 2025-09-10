@@ -379,7 +379,8 @@ class GermanBugFixesTest:
                 return False
                 
             updated_profile = response.json()
-            updated_breakfast_balance = updated_profile.get("breakfast_balance", 0.0)
+            updated_employee_data = updated_profile.get("employee", {})
+            updated_breakfast_balance = updated_employee_data.get("breakfast_balance", 0.0)
             
             self.log(f"Aktualisierter Saldo nach €5.00 Mittagspreis-Änderung: €{updated_breakfast_balance}")
             
