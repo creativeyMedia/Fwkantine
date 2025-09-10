@@ -176,8 +176,8 @@ class BugFixesTest:
             response = requests.get(f"{API_BASE}/employees/{employee_id}/profile")
             if response.status_code == 200:
                 profile = response.json()
-                breakfast_balance = profile.get("breakfast_balance", 0.0)
-                drinks_balance = profile.get("drinks_sweets_balance", 0.0)
+                breakfast_balance = profile.get("breakfast_total", 0.0)
+                drinks_balance = profile.get("drinks_sweets_total", 0.0)
                 self.log(f"Employee balance before order - Breakfast: €{breakfast_balance}, Drinks/Sweets: €{drinks_balance}")
                 return breakfast_balance, drinks_balance
             else:
