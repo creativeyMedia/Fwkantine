@@ -691,6 +691,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                             <span className={`inline-block ${isCancelled ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} text-xs font-semibold mr-2 px-2.5 py-0.5 rounded`}>
                               {isCancelled ? 'Storniert' : getOrderTypeLabel(item.order_type)}
                             </span>
+                            {/* ERWEITERT: Abteilungsmarkierung für Stammmitarbeiter */}
+                            {!employee.isTemporary && item.department_id && item.department_id !== employee.department_id && (
+                              <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                                {getDepartmentName(item.department_id)}
+                              </span>
+                            )}
                             <span className="text-sm text-gray-600">{formatDate(item.timestamp)}</span>
                           </div>
                           <div className="flex items-center gap-2">
