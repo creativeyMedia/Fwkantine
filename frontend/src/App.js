@@ -1364,7 +1364,7 @@ const DepartmentDashboard = () => {
                     <div className="flex items-center my-6">
                       <div className="flex-1 border-t-2 border-purple-300"></div>
                       <div className="px-4 text-sm font-medium text-purple-600 bg-white">
-                        👥 Gastmitarbeiter (andere Abteilungen) - bis 23:59 Uhr
+                        👥 Gastmitarbeiter (andere WA) - bis 23:59 Uhr
                       </div>
                       <div className="flex-1 border-t-2 border-purple-300"></div>
                     </div>
