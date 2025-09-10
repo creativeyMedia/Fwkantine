@@ -910,7 +910,8 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
             raise HTTPException(status_code=400, detail="Mitarbeiter hat kein Subkonto in dieser Abteilung")
         
         # Get current subaccount balance for this department and balance type
-        current_balance = get_employee_balance(employee, admin_department, payment_data.balance_type)
+        balance_type = payment_data.get_balance_type()
+        current_balance = get_employee_balance(employee, admin_department, balance_type)
         
         # Payment INCREASES balance (reduces debt or adds credit)
         new_balance = current_balance + payment_data.amount
