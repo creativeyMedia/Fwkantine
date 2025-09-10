@@ -938,13 +938,13 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
         # Get updated employee data for response
         updated_employee = await db.employees.find_one({"id": employee_id})
         updated_employee = initialize_subaccount_balances(updated_employee)
-        updated_balance = get_employee_balance(updated_employee, admin_department, payment_data.balance_type)
+        updated_balance = get_employee_balance(updated_employee, admin_department, balance_type)
         
         return {
             "message": f"Subkonto-Zahlung erfolgreich verbucht",
             "employee_name": employee["name"],
             "department": admin_department,
-            "balance_type": payment_data.balance_type,
+            "balance_type": balance_type,
             "amount": payment_data.amount,
             "balance_before": current_balance,
             "balance_after": updated_balance,
