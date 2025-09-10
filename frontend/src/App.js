@@ -6666,12 +6666,13 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
 
   const handleBalanceManagement = (employee) => {
     setSelectedEmployee(employee);
-    // Set payment data for subaccount management
+    // Erstelle ein erweiterte Balance-Management Modal das zwischen den Kontotypen unterscheidet
     setPaymentEmployeeData({
       employee: employee,
-      paymentType: 'breakfast', // Default to breakfast
+      paymentType: null, // Wird später vom Benutzer ausgewählt
       accountLabel: 'Subkonto-Verwaltung',
-      isSubaccount: true
+      isSubaccount: true,
+      needsAccountTypeSelection: true // Flag für erweiterte Auswahl
     });
     setShowPaymentModal(true);
   };
