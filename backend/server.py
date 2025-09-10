@@ -1746,6 +1746,60 @@ async def get_drinks_menu(department_id: str):
     items = await db.menu_drinks.find({"department_id": department_id}).to_list(100)
     return [MenuItemDrink(**item) for item in items]
 
+@api_router.get("/departments/{department_id}/employees-with-subaccount-balances")
+async def get_employees_with_subaccount_balances(department_id: str):
+    """OPTIMIERT: Get all employees with non-zero subaccount balances in the specified department in one API call"""
+    try:
+        # Find all employees who have non-zero subaccount balances in the specified department
+        pipeline = [
+            {
+                "$match": {
+                    f"subaccount_balances.{department_id}": {"$exists": True}
+                }
+            },
+            {
+                "$addFields": {
+                    "current_dept_balance": f"$subaccount_balances.{department_id}",
+                    "has_balance": {
+                        "$or": [
+                            {"$ne": [f"$subaccount_balances.{department_id}.breakfast", 0]},
+                            {"$ne": [f"$subaccount_balances.{department_id}.drinks", 0]}
+                        ]
+                    }
+                }
+            },
+            {
+                "$match": {
+                    "has_balance": True,
+                    "department_id": {"$ne": department_id}  # Exclude employees from the same department
+                }
+            }
+        ]
+        
+        employees = await db.employees.aggregate(pipeline).to_list(None)
+        
+        # Get department names for display
+        departments = await db.departments.find({}).to_list(100)
+        dept_names = {dept["id"]: dept["name"] for dept in departments}
+        
+        # Format response
+        result = []
+        for employee in employees:
+            current_dept_balance = employee.get("current_dept_balance", {"breakfast": 0, "drinks": 0})
+            result.append({
+                "id": employee["id"],
+                "name": employee["name"],
+                "department_id": employee["department_id"],
+                "department_name": dept_names.get(employee["department_id"], "Unbekannt"),
+                "main_department_name": dept_names.get(employee["department_id"], "Unbekannt"),
+                "subaccount_balance": current_dept_balance
+            })
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Mitarbeiter: {str(e)}")
+
 @api_router.get("/menu/sweets/{department_id}", response_model=List[MenuItemSweet])
 async def get_sweets_menu(department_id: str):
     """Get sweet menu items for a specific department"""
