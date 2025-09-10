@@ -34,13 +34,15 @@ def test_retroactive_lunch_price():
         return False
     success("Authenticated successfully")
     
-    # Step 2: Set lunch price to 6.00€ FIRST
-    log("Setting lunch price to €6.00")
-    response = requests.put(f"{API_BASE}/lunch-settings?price=6.0&department_id={department_id}")
+    # Step 2: Set daily lunch price to 6.00€ FIRST
+    from datetime import datetime
+    today = datetime.now().strftime('%Y-%m-%d')
+    log(f"Setting daily lunch price to €6.00 for {today}")
+    response = requests.put(f"{API_BASE}/daily-lunch-settings/{department_id}/{today}?lunch_price=6.0")
     if response.status_code != 200:
-        error(f"Failed to set lunch price to 6.00: {response.status_code}")
+        error(f"Failed to set daily lunch price to 6.00: {response.status_code}")
         return False
-    success("Set lunch price to €6.00")
+    success(f"Set daily lunch price to €6.00 for {today}")
     
     # Step 3: Create test employee
     employee_name = f"RetroTest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
