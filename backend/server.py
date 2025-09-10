@@ -1305,14 +1305,20 @@ async def update_lunch_settings(price: float, department_id: str = None):
     start_of_day = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
     end_of_day = datetime.combine(today, datetime.max.time()).replace(tzinfo=timezone.utc)
     
-    # Find all today's breakfast orders with lunch
-    todays_orders = await db.orders.find({
+    # Find all today's breakfast orders with lunch (optionally filtered by department)
+    query = {
         "order_type": "breakfast",
         "timestamp": {
             "$gte": start_of_day.isoformat(),
             "$lte": end_of_day.isoformat()
         }
-    }).to_list(1000)
+    }
+    
+    # If department_id is provided, only update orders from that department
+    if department_id:
+        query["department_id"] = department_id
+    
+    todays_orders = await db.orders.find(query).to_list(1000)
     
     updated_orders = 0
     for order in todays_orders:
