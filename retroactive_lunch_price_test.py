@@ -188,11 +188,22 @@ class RetroactiveLunchPriceTest:
             return False
             
     def set_initial_lunch_price(self):
-        """Set initial lunch price to 6.00€ for fw4abteilung1"""
+        """Set initial lunch price to 6.00€ globally (affects all departments)"""
         try:
-            response = requests.put(f"{API_BASE}/lunch-settings?price={self.initial_lunch_price}&department_id={self.dept1_id}")
+            # First check current lunch price
+            response = requests.get(f"{API_BASE}/lunch-settings")
             if response.status_code == 200:
-                self.success(f"Set initial lunch price to €{self.initial_lunch_price} for {self.dept1_id}")
+                current_settings = response.json()
+                current_price = current_settings.get("price", 0.0)
+                self.debug(f"Current global lunch price: €{current_price}")
+            
+            # Set new lunch price globally
+            response = requests.put(f"{API_BASE}/lunch-settings?price={self.initial_lunch_price}")
+            if response.status_code == 200:
+                result = response.json()
+                updated_orders = result.get("updated_orders", 0)
+                self.success(f"Set initial lunch price to €{self.initial_lunch_price} globally")
+                self.debug(f"Updated {updated_orders} existing orders")
                 return True
             else:
                 self.error(f"Failed to set initial lunch price: {response.status_code} - {response.text}")
