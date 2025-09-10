@@ -358,7 +358,8 @@ class GermanBugFixesTest:
                 return False
                 
             initial_profile = response.json()
-            initial_breakfast_balance = initial_profile.get("breakfast_balance", 0.0)  # Main department balance
+            initial_employee_data = initial_profile.get("employee", {})
+            initial_breakfast_balance = initial_employee_data.get("breakfast_balance", 0.0)  # Main department balance
             
             self.log(f"Anfangs-Saldo nach €6.00 Mittagessen-Bestellung: €{initial_breakfast_balance}")
             
