@@ -108,8 +108,8 @@ def debug_balance_update():
             continue
             
         updated_profile = response.json()
-        breakfast_balance = updated_profile.get("breakfast_balance", "MISSING")
-        drinks_balance = updated_profile.get("drinks_sweets_balance", "MISSING")
+        breakfast_balance = updated_profile.get("breakfast_total", "MISSING")
+        drinks_balance = updated_profile.get("drinks_sweets_total", "MISSING")
         
         log(f"Breakfast balance: {breakfast_balance}")
         log(f"Drinks/Sweets balance: {drinks_balance}")
