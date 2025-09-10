@@ -7713,24 +7713,28 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
         
         {/* Current Balance Display for Subaccounts */}
         {isSubaccount && employee.subaccount_balance && (
-          <div className="mb-4 p-3 bg-gray-50 rounded">
-            <h3 className="text-sm font-medium mb-2">Aktueller Subkonto-Saldo:</h3>
-            <div className="text-sm">
-              <span className="text-gray-600">Frühstück:</span>
-              <span className={`ml-1 font-semibold ${employee.subaccount_balance.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {employee.subaccount_balance.breakfast.toFixed(2)}€
-              </span>
-              <span className="ml-4 text-gray-600">Getränke:</span>
-              <span className={`ml-1 font-semibold ${employee.subaccount_balance.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {employee.subaccount_balance.drinks.toFixed(2)}€
-              </span>
+          <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded">
+            <h3 className="text-xs sm:text-sm font-medium mb-2">Aktueller Subkonto-Saldo:</h3>
+            <div className="text-xs sm:text-sm grid grid-cols-2 gap-2">
+              <div>
+                <span className="text-gray-600">Frühstück:</span>
+                <span className={`ml-1 font-semibold ${employee.subaccount_balance.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {employee.subaccount_balance.breakfast.toFixed(2)}€
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Getränke:</span>
+                <span className={`ml-1 font-semibold ${employee.subaccount_balance.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {employee.subaccount_balance.drinks.toFixed(2)}€
+                </span>
+              </div>
             </div>
           </div>
         )}
         
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div>
+            <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">
               Betrag (€) 
               <span className="text-xs text-gray-500 block mt-1">
                 Positiv für Einzahlung, negativ für Auszahlung (z.B. -10.00)
@@ -7741,40 +7745,40 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm sm:text-base"
               required
               autoFocus
               placeholder="10.00 oder -10.00"
             />
           </div>
           
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
+          <div>
+            <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">
               Notizen {parseFloat(amount) < 0 ? '(erforderlich bei Auszahlungen)' : '(optional)'}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              rows="3"
+              className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm sm:text-base"
+              rows="2"
               placeholder={parseFloat(amount) < 0 ? "Grund für Auszahlung angeben..." : "Zusätzliche Informationen..."}
               required={parseFloat(amount) < 0}
             />
           </div>
           
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
-            >
-              {isSubaccount ? 'Subkonto-Buchung verbuchen' : 'Ein-/Auszahlung verbuchen'}
-            </button>
+          <div className="flex gap-2 sm:gap-4 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+              className="flex-1 bg-gray-500 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-gray-600 text-sm sm:text-base"
             >
               Abbrechen
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 text-sm sm:text-base"
+            >
+              {isSubaccount ? 'Subkonto-Buchung verbuchen' : 'Ein-/Auszahlung verbuchen'}
             </button>
           </div>
         </form>
