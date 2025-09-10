@@ -158,7 +158,7 @@ class PricingProblemsTest:
                 "department_id": self.dept1_id,  # Ordering in fw4abteilung1 (target department)
                 "order_type": "breakfast",
                 "breakfast_items": [{
-                    "total_halves": 4,
+                    "total_halves": 2,
                     "white_halves": 1,  # 1x Helles Brötchen
                     "seeded_halves": 1,  # 1x Körnerbrötchen  
                     "toppings": ["Rührei", "Spiegelei"],
