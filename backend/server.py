@@ -3135,11 +3135,13 @@ async def get_employee_profile(employee_id: str):
                 white_toppings_str = ", ".join(white_toppings) if white_toppings else "Ohne Belag"
                 seeded_toppings_str = ", ".join(seeded_toppings) if seeded_toppings else "Ohne Belag"
                 
-                # Create breakfast prices dictionary for this context
-                breakfast_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+                # KORRIGIERT: Use order department's menu prices, not employee's home department
+                order_department_id = order.get("department_id", employee_department_id)
+                order_dept_menu = department_menus.get(order_department_id, default_dept_menu)
                 
-                # Get department-specific prices
-                department_prices = await get_department_prices(order["department_id"])
+                # Get department-specific prices for this order
+                order_breakfast_prices = order_dept_menu.get("breakfast_prices", breakfast_prices)
+                department_prices = await get_department_prices(order_department_id)
                 boiled_eggs_price = department_prices["boiled_eggs_price"]
                 fried_eggs_price = department_prices["fried_eggs_price"]
                 coffee_price = department_prices["coffee_price"]
@@ -3151,7 +3153,7 @@ async def get_employee_profile(employee_id: str):
                 seeded_halves = item.get("seeded_halves", 0)
                 
                 if white_halves > 0:
-                    white_roll_price = breakfast_prices.get("weiss", 0.50)  # Get actual price from menu
+                    white_roll_price = order_breakfast_prices.get("weiss", 0.50)  # Use ORDER department's price
                     enriched_order["readable_items"].append({
                         "description": f"{white_halves}x Helles Brötchen (Hälften)",
                         "unit_price": f"{white_roll_price:.2f} € pro Hälfte",
@@ -3160,7 +3162,7 @@ async def get_employee_profile(employee_id: str):
                     })
                 
                 if seeded_halves > 0:
-                    seeded_roll_price = breakfast_prices.get("koerner", 0.50)  # Get actual price from menu
+                    seeded_roll_price = order_breakfast_prices.get("koerner", 0.60)  # Use ORDER department's price
                     enriched_order["readable_items"].append({
                         "description": f"{seeded_halves}x Körnerbrötchen (Hälften)", 
                         "unit_price": f"{seeded_roll_price:.2f} € pro Hälfte",
