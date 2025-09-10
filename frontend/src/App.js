@@ -7725,9 +7725,10 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
 };
 
 // ERWEITERT: Flexible Payment Modal Component (inkl. Subkonto-Support)
-const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, onPayment, isSubaccount = false, currentDepartment = null }) => {
+const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, onPayment, isSubaccount = false, currentDepartment = null, needsAccountTypeSelection = false }) => {
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedAccountType, setSelectedAccountType] = useState(paymentType || (needsAccountTypeSelection ? '' : 'breakfast'));
 
   const handleSubmit = (e) => {
     e.preventDefault();
