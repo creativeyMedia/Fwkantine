@@ -6495,7 +6495,7 @@ const OtherDepartmentsTab = ({ currentDepartment }) => {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">👥 Andere Touren</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">👥 Andere WA</h2>
         <p className="text-gray-600">
           Mitarbeiter anderer Wachabteilungen mit Subkonto-Buchungen in {currentDepartment.department_name}
         </p>
