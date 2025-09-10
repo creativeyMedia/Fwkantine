@@ -223,7 +223,7 @@ class BugFixesTest:
                 self.success(f"Created breakfast order (ID: {order['id']}, Total: €{total_price})")
                 
                 # Wait a moment for balance update
-                time.sleep(1)
+                time.sleep(2)
                 
                 # Get balance after order
                 balance_after_breakfast, balance_after_drinks = self.get_employee_balance_before_order(self.test_employee_1_id)
@@ -235,14 +235,22 @@ class BugFixesTest:
                 expected_change = -total_price  # Should be negative (debt)
                 
                 self.log(f"Balance change: €{balance_change} (expected: €{expected_change})")
+                self.log(f"Balance before: €{balance_before_breakfast}, Balance after: €{balance_after_breakfast}")
                 
                 # BUG 1 VERIFICATION: Check that balance was deducted only once
+                # For breakfast orders, the balance should be negative (debt)
                 if abs(balance_change - expected_change) < 0.01:
                     self.success(f"✅ BUG 1 FIX VERIFIED: Balance correctly deducted once (€{balance_change})")
                     self.success(f"   Order total: €{total_price}, Balance change: €{balance_change}")
                     return True
                 elif abs(balance_change - (2 * expected_change)) < 0.01:
                     self.error(f"❌ BUG 1 STILL EXISTS: Balance deducted twice! Expected: €{expected_change}, Got: €{balance_change}")
+                    return False
+                elif balance_change == 0:
+                    # Check if the order was processed but balance update failed
+                    self.error(f"❌ BUG 1 ISSUE: Order created but balance not updated. This might be a different issue.")
+                    self.log(f"   Order was created successfully with total €{total_price}")
+                    self.log(f"   But employee balance remained at €{balance_after_breakfast}")
                     return False
                 else:
                     self.error(f"❌ BUG 1 UNEXPECTED: Balance change doesn't match expected pattern. Expected: €{expected_change}, Got: €{balance_change}")
