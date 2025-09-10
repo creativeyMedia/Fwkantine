@@ -407,7 +407,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
     return orderDateString === todayString;
   };
 
-  // Combine and sort orders and payments chronologically
+  // ERWEITERT: Combine and sort orders and payments chronologically mit Department-Filterung
   const getCombinedHistory = () => {
     if (!employeeProfile) return [];
     
@@ -423,8 +423,17 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
       timestamp: payment.timestamp
     }));
     
+    // ERWEITERT: Filterung basierend auf Mitarbeiter-Typ
+    let filteredOrders = orders;
+    
+    if (employee.isTemporary) {
+      // Für temporäre Mitarbeiter: Nur Bestellungen der aktuellen Gast-Abteilung anzeigen
+      filteredOrders = orders.filter(order => order.department_id === currentDepartment?.department_id);
+    }
+    // Für Stammmitarbeiter: Alle Bestellungen anzeigen (keine Filterung)
+    
     // Combine and sort by timestamp (newest first)
-    const combined = [...orders, ...payments];
+    const combined = [...filteredOrders, ...payments];
     combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     return combined;
