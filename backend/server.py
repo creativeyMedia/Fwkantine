@@ -888,6 +888,63 @@ async def migrate_employee_subaccounts():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Migration fehlgeschlagen: {str(e)}")
 
+@api_router.post("/admin/complete-system-reset")
+async def complete_system_reset():
+    """ADMIN: Complete system reset - DELETE ALL orders, payment logs and reset all balances to 0€
+    
+    ⚠️ WARNING: This will delete ALL data and reset ALL balances!
+    Only use for testing purposes.
+    """
+    
+    try:
+        # Count current data before deletion
+        orders_count = await db.orders.count_documents({})
+        payment_logs_count = await db.payment_logs.count_documents({})
+        employees_count = await db.employees.count_documents({})
+        
+        # 1. DELETE ALL ORDERS
+        delete_orders_result = await db.orders.delete_many({})
+        
+        # 2. DELETE ALL PAYMENT LOGS  
+        delete_payments_result = await db.payment_logs.delete_many({})
+        
+        # 3. RESET ALL EMPLOYEE BALANCES TO 0€
+        reset_employees_result = await db.employees.update_many(
+            {},
+            {
+                "$set": {
+                    "breakfast_balance": 0.0,
+                    "drinks_sweets_balance": 0.0,
+                    "subaccount_balances": {
+                        "fw4abteilung1": {"breakfast": 0.0, "drinks": 0.0},
+                        "fw4abteilung2": {"breakfast": 0.0, "drinks": 0.0}, 
+                        "fw4abteilung3": {"breakfast": 0.0, "drinks": 0.0},
+                        "fw4abteilung4": {"breakfast": 0.0, "drinks": 0.0}
+                    }
+                }
+            }
+        )
+        
+        return {
+            "message": "🗑️ KOMPLETTER SYSTEM-RESET ERFOLGREICH!",
+            "summary": {
+                "orders_deleted": delete_orders_result.deleted_count,
+                "payment_logs_deleted": delete_payments_result.deleted_count,
+                "employees_reset": reset_employees_result.modified_count,
+                "total_employees": employees_count
+            },
+            "details": {
+                "orders_before": orders_count,
+                "payment_logs_before": payment_logs_count,
+                "all_balances_set_to": "0.00€",
+                "subaccounts_reset": "All 4 departments set to 0.00€"
+            },
+            "warning": "ALL order history and payment logs have been permanently deleted!"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Reset fehlgeschlagen: {str(e)}")
+
 # ERWEITERT: Subaccount Balance Management für Multi-Department System
 
 @api_router.post("/department-admin/subaccount-payment/{employee_id}")
