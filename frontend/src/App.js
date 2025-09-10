@@ -6723,8 +6723,8 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
                   <p className="text-sm text-purple-600 mb-2">👥 {employee.main_department_name}</p>
                 </div>
                 <div className="text-right">
-                  <div className={`text-lg font-bold ${employee.subaccount_balance.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {employee.subaccount_balance.total.toFixed(2)}€
+                  <div className={`text-lg font-bold ${(employee.subaccount_balance?.total || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(employee.subaccount_balance?.total || 0).toFixed(2)}€
                   </div>
                   <div className="text-xs text-gray-500">Gesamt</div>
                 </div>
@@ -6732,14 +6732,14 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
               
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center p-3 bg-blue-50 rounded">
-                  <div className={`text-sm font-semibold ${employee.subaccount_balance.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {employee.subaccount_balance.breakfast.toFixed(2)}€
+                  <div className={`text-sm font-semibold ${(employee.subaccount_balance?.breakfast || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(employee.subaccount_balance?.breakfast || 0).toFixed(2)}€
                   </div>
                   <div className="text-xs text-gray-600">Frühstück</div>
                 </div>
                 <div className="text-center p-3 bg-purple-50 rounded">
-                  <div className={`text-sm font-semibold ${employee.subaccount_balance.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {employee.subaccount_balance.drinks.toFixed(2)}€
+                  <div className={`text-sm font-semibold ${(employee.subaccount_balance?.drinks || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(employee.subaccount_balance?.drinks || 0).toFixed(2)}€
                   </div>
                   <div className="text-xs text-gray-600">Getränke</div>
                 </div>
