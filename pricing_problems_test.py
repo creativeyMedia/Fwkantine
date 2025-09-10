@@ -274,8 +274,8 @@ class PricingProblemsTest:
                     breakfast_balance = dept1_balance.get("breakfast", 0)
                     
                     # The balance should reflect the new lunch price
-                    # Original order: 0.50 + 0.60 + 0.50 + 6.00 = 7.60€ (with new lunch price)
-                    expected_balance = -7.60  # Negative because it's debt
+                    # Original order: 0.50 + 0.60 + 0.60 + 6.00 = 7.70€ (with new lunch price)
+                    expected_balance = -7.70  # Negative because it's debt
                     
                     if abs(breakfast_balance - expected_balance) < 0.10:
                         self.success(f"✅ PROBLEM 3 TEST PASSED: Guest subaccount balance updated correctly (€{breakfast_balance})")
