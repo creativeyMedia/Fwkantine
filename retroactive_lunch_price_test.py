@@ -276,6 +276,7 @@ class RetroactiveLunchPriceTest:
                 order = response.json()
                 self.regular_order_id = order["id"]
                 total_price = order["total_price"]
+                self.regular_order_initial_total = total_price
                 
                 self.success(f"Created regular employee order (ID: {order['id']}, Total: €{total_price})")
                 self.debug(f"Regular order details: {json.dumps(order, indent=2)}")
