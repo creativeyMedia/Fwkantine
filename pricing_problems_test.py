@@ -222,7 +222,7 @@ class PricingProblemsTest:
                                     self.success(f"✅ PROBLEM 2 TEST PASSED: History shows correct target department prices (€{total_amount})")
                                     found_guest_order = True
                                 else:
-                                    self.error(f"❌ PROBLEM 2 TEST FAILED: History shows incorrect price €{total_amount}, expected €6.60")
+                                    self.error(f"❌ PROBLEM 2 TEST FAILED: History shows incorrect price €{total_amount}, expected €7.70")
                                     found_guest_order = True
                                 break
                         if found_guest_order:
