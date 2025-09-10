@@ -385,9 +385,15 @@ class MenuItemCreateToppings(BaseModel):
 
 # NEW: Flexible Payment Request Models
 class FlexiblePaymentRequest(BaseModel):
-    payment_type: str  # "breakfast" or "drinks_sweets"
+    payment_type: str  # "breakfast" or "drinks_sweets" (legacy)
+    balance_type: Optional[str] = None  # "breakfast" or "drinks" (new subaccount system)
     amount: float      # Beliebiger Einzahlungsbetrag
+    payment_method: Optional[str] = "cash"  # "cash", "bank_transfer", "adjustment", "other"
     notes: Optional[str] = ""  # Optionale Notizen (z.B. "Barzahlung 50€")
+    
+    def get_balance_type(self):
+        """Helper to get the correct balance type (backward compatibility)"""
+        return self.balance_type or self.payment_type
 
 # Initialize default data
 def get_department_data():
