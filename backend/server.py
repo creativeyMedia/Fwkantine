@@ -3999,6 +3999,9 @@ async def sponsor_meal(meal_data: dict):
                         {"id": employee_id},
                         {"$set": {"breakfast_balance": new_balance}}
                     )
+                    
+                    # ERWEITERT: Also update subaccount balance for department consistency
+                    await update_employee_balance(employee_id, department_id, 'breakfast', sponsored_amount)
                 
                 # Store order update for later
                 sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
