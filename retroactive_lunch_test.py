@@ -97,16 +97,16 @@ def test_retroactive_lunch_price():
     initial_balance = initial_profile["employee"]["breakfast_balance"]
     log(f"Initial balance after €6.00 lunch order: €{initial_balance}")
     
-    # Step 6: Change lunch price to 5.00€ (retroactive)
-    log("Changing lunch price to €5.00 (retroactive)")
-    response = requests.put(f"{API_BASE}/lunch-settings?price=5.0&department_id={department_id}")
+    # Step 6: Change daily lunch price to 5.00€ (retroactive)
+    log(f"Changing daily lunch price to €5.00 (retroactive) for {today}")
+    response = requests.put(f"{API_BASE}/daily-lunch-settings/{department_id}/{today}?lunch_price=5.0")
     if response.status_code != 200:
-        error(f"Failed to change lunch price: {response.status_code}")
+        error(f"Failed to change daily lunch price: {response.status_code}")
         return False
     
     result = response.json()
     updated_orders = result.get("updated_orders", 0)
-    success(f"Changed lunch price to €5.00 (retroactive) - Updated {updated_orders} orders")
+    success(f"Changed daily lunch price to €5.00 (retroactive) for {today} - Updated {updated_orders} orders")
     
     # Step 7: Wait and check updated balance
     time.sleep(2)
