@@ -3145,13 +3145,29 @@ async def get_employee_profile(employee_id: str):
         elif order["order_type"] in ["drinks", "sweets"]:
             enriched_order["readable_items"] = []
             items_dict = order.get("drink_items", {}) if order["order_type"] == "drinks" else order.get("sweet_items", {})
-            names_dict = drink_names if order["order_type"] == "drinks" else sweet_names
+            
+            # KORRIGIERT: Lade Department-spezifisches Menü für jede Bestellung
+            order_department_id = order.get("department_id", employee_department_id)
+            if order["order_type"] == "drinks":
+                # Lade Getränkemenü für das spezifische Department
+                order_drinks_menu = await db.menu_drinks.find({"department_id": order_department_id}).to_list(100)
+                names_dict = {item["id"]: {"name": item["name"], "price": item["price"]} for item in order_drinks_menu}
+            else:  # sweets
+                # Lade Süßigkeitenmenü für das spezifische Department
+                order_sweets_menu = await db.menu_sweets.find({"department_id": order_department_id}).to_list(100)
+                names_dict = {item["id"]: {"name": item["name"], "price": item["price"]} for item in order_sweets_menu}
             
             for item_id, quantity in items_dict.items():
                 if item_id in names_dict and quantity > 0:
                     enriched_order["readable_items"].append({
                         "description": f"{quantity}x {names_dict[item_id]['name']}",
                         "unit_price": f"{names_dict[item_id]['price']:.2f} €"
+                    })
+                else:
+                    # FALLBACK: Wenn Item nicht im Menü gefunden wird, zeige trotzdem Details
+                    enriched_order["readable_items"].append({
+                        "description": f"{quantity}x Unbekanntes Item (ID: {item_id})",
+                        "unit_price": "N/A"
                     })
         
         enriched_orders.append(enriched_order)
