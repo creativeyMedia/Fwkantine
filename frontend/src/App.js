@@ -1131,17 +1131,21 @@ const DepartmentDashboard = () => {
     // Prüfe ob Mitarbeiter bereits temporär hinzugefügt wurde
     const exists = temporaryEmployees.find(emp => emp.id === employee.id);
     if (!exists) {
-      setTemporaryEmployees([...temporaryEmployees, {
+      const newTemporaryEmployees = [...temporaryEmployees, {
         ...employee,
         isTemporary: true,
         addedAt: new Date().toISOString()
-      }]);
+      }];
+      setTemporaryEmployees(newTemporaryEmployees);
+      saveTemporaryEmployeesToStorage(newTemporaryEmployees); // ERWEITERT: Speichere in localStorage
     }
     setShowTemporaryDropdown(false);
   };
 
   const removeTemporaryEmployee = (employeeId) => {
-    setTemporaryEmployees(temporaryEmployees.filter(emp => emp.id !== employeeId));
+    const newTemporaryEmployees = temporaryEmployees.filter(emp => emp.id !== employeeId);
+    setTemporaryEmployees(newTemporaryEmployees);
+    saveTemporaryEmployeesToStorage(newTemporaryEmployees); // ERWEITERT: Speichere in localStorage
   };
 
   const fetchEmployees = async () => {
