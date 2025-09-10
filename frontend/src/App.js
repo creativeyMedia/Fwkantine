@@ -7820,6 +7820,49 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
         )}
         
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          {/* ERWEITERT: Account Type Selection für Subkonten */}
+          {needsAccountTypeSelection && isSubaccount && (
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+                Kontotyp auswählen
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedAccountType('breakfast')}
+                  className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                    selectedAccountType === 'breakfast'
+                      ? 'bg-blue-100 border-blue-500 text-blue-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  🍽️ Frühstück/Mittag
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAccountType('drinks')}
+                  className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+                    selectedAccountType === 'drinks'
+                      ? 'bg-blue-100 border-blue-500 text-blue-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  🥤 Getränke/Süßes
+                </button>
+              </div>
+              {selectedAccountType && (
+                <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                  {selectedAccountType === 'breakfast' && 
+                    `Aktueller Saldo: ${employee.subaccount_balance?.breakfast?.toFixed(2) || '0.00'}€`
+                  }
+                  {selectedAccountType === 'drinks' && 
+                    `Aktueller Saldo: ${employee.subaccount_balance?.drinks?.toFixed(2) || '0.00'}€`
+                  }
+                </div>
+              )}
+            </div>
+          )}
+          
           <div>
             <label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">
               Betrag (€) 
