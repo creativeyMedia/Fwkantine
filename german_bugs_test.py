@@ -363,13 +363,13 @@ class GermanBugFixesTest:
             
             self.log(f"Anfangs-Saldo nach €6.00 Mittagessen-Bestellung: €{initial_breakfast_balance}")
             
-            # Step 5: Change lunch price to 5.00€ (retroactive)
-            self.log("Step 3: Ändere Mittagspreis auf €5.00 (rückwirkend)")
-            response = requests.put(f"{API_BASE}/lunch-settings?price=5.0&department_id={self.target_department_id}")
+            # Step 5: Change daily lunch price to 5.00€ (retroactive)
+            self.log(f"Step 3: Ändere täglichen Mittagspreis auf €5.00 (rückwirkend) für {today}")
+            response = requests.put(f"{API_BASE}/daily-lunch-settings/{self.target_department_id}/{today}?lunch_price=5.0")
             if response.status_code != 200:
-                self.error(f"Failed to change lunch price: {response.status_code}")
+                self.error(f"Failed to change daily lunch price: {response.status_code}")
                 return False
-            self.success("Mittagspreis auf €5.00 geändert (rückwirkend)")
+            self.success(f"Täglicher Mittagspreis auf €5.00 geändert (rückwirkend) für {today}")
             
             # Step 6: Verify balance was updated retroactively
             time.sleep(2)  # Give time for retroactive update
