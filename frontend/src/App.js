@@ -6847,12 +6847,11 @@ const OtherDepartmentsTab = ({ currentDepartment }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    alert('Saldo-Verwaltung folgt in nächster Version');
+                    handleBalanceManagement(employee);
                   }}
-                  className="flex-1 bg-gray-400 text-white py-2 px-3 rounded text-sm cursor-not-allowed"
-                  disabled
+                  className="flex-1 bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-colors"
                 >
-                  Saldo verwalten (kommt noch)
+                  Saldo verwalten
                 </button>
               </div>
             </div>
