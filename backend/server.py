@@ -1722,10 +1722,26 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
             
             # Update employee balance (lunch goes to breakfast_balance)
             # If price increases (+price_difference), balance should decrease (-price_difference)
-            await db.employees.update_one(
-                {"id": order["employee_id"]},
-                {"$inc": {"breakfast_balance": -price_difference}}
-            )
+            
+            # KORRIGIERT: Check if this is a home department order or guest order
+            employee = await db.employees.find_one({"id": order["employee_id"]})
+            if employee:
+                employee_home_dept = employee.get("department_id")
+                order_dept = order.get("department_id", department_id)
+                
+                print(f"DEBUG DAILY: Order {order['id'][:8]}: employee_home={employee_home_dept}, order_dept={order_dept}, price_diff={price_difference}")
+                
+                if employee_home_dept == order_dept:
+                    # HOME DEPARTMENT ORDER: Update main balance
+                    print(f"DEBUG DAILY: Updating main balance by {-price_difference}")
+                    await db.employees.update_one(
+                        {"id": order["employee_id"]},
+                        {"$inc": {"breakfast_balance": -price_difference}}
+                    )
+                else:
+                    # GUEST DEPARTMENT ORDER: Update subaccount balance
+                    print(f"DEBUG DAILY: Updating subaccount balance by {-price_difference}")
+                    await update_employee_balance(order["employee_id"], order_dept, 'breakfast', -price_difference)
             
             updated_orders += 1
     
