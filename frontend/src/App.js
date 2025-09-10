@@ -6778,7 +6778,14 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
 
   const handleBalanceManagement = (employee) => {
     setSelectedEmployee(employee);
-    setShowBalanceModal(true);
+    // Set payment data for subaccount management
+    setPaymentEmployeeData({
+      employee: employee,
+      paymentType: 'breakfast', // Default to breakfast
+      accountLabel: 'Subkonto-Verwaltung',
+      isSubaccount: true
+    });
+    setShowPaymentModal(true);
   };
 
   const handleBalanceUpdated = () => {
