@@ -7837,8 +7837,8 @@ const CoffeeAndEggsManagement = ({ currentDepartment }) => {
   );
 };
 
-// Flexible Payment Modal Component
-const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, onPayment }) => {
+// ERWEITERT: Flexible Payment Modal Component (inkl. Subkonto-Support)
+const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, onPayment, isSubaccount = false, currentDepartment = null }) => {
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -7853,21 +7853,60 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
         return;
       }
       
-      onPayment({
-        employee_id: employee.id,
-        payment_type: paymentType,
-        amount: parsedAmount,
-        notes: notes.trim()
-      });
+      if (isSubaccount) {
+        // Subaccount payment - includes department info
+        onPayment({
+          employee_id: employee.id,
+          balance_type: paymentType, // For subaccounts use balance_type
+          payment_type: paymentType, // Keep for compatibility
+          amount: parsedAmount,
+          payment_method: 'cash', // Default method
+          notes: notes.trim(),
+          admin_department: currentDepartment?.department_id
+        });
+      } else {
+        // Normal payment - existing logic
+        onPayment({
+          employee_id: employee.id,
+          payment_type: paymentType,
+          amount: parsedAmount,
+          notes: notes.trim()
+        });
+      }
       onClose();
     }
   };
 
+  const modalTitle = isSubaccount 
+    ? `Subkonto-Verwaltung für ${employee.name}`
+    : `Ein-/Auszahlung für ${employee.name}`;
+    
+  const accountInfo = isSubaccount 
+    ? `${accountLabel} in ${currentDepartment?.department_name || 'Andere Abteilung'}`
+    : accountLabel;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4">Ein-/Auszahlung für {employee.name}</h2>
-        <p className="text-sm text-gray-600 mb-4">Konto: {accountLabel}</p>
+        <h2 className="text-xl font-bold mb-4">{modalTitle}</h2>
+        <p className="text-sm text-gray-600 mb-4">Konto: {accountInfo}</p>
+        
+        {/* Current Balance Display for Subaccounts */}
+        {isSubaccount && employee.subaccount_balance && (
+          <div className="mb-4 p-3 bg-gray-50 rounded">
+            <h3 className="text-sm font-medium mb-2">Aktueller Subkonto-Saldo:</h3>
+            <div className="text-sm">
+              <span className="text-gray-600">Frühstück:</span>
+              <span className={`ml-1 font-semibold ${employee.subaccount_balance.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {employee.subaccount_balance.breakfast.toFixed(2)}€
+              </span>
+              <span className="ml-4 text-gray-600">Getränke:</span>
+              <span className={`ml-1 font-semibold ${employee.subaccount_balance.drinks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {employee.subaccount_balance.drinks.toFixed(2)}€
+              </span>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -7908,7 +7947,7 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
               type="submit"
               className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
             >
-              Ein-/Auszahlung verbuchen
+              {isSubaccount ? 'Subkonto-Buchung verbuchen' : 'Ein-/Auszahlung verbuchen'}
             </button>
             <button
               type="button"
