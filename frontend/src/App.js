@@ -1538,12 +1538,12 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       const response = await axios.get(`${API}/employees/${employee.id}/orders`);
       const orders = response.data.orders || [];
       
-      // Filter orders for today
+      // Filter orders for today AND current department (ERWEITERT: Abteilungsbasierte Filterung)
       const today = new Date().toDateString();
       // Get all today's orders (including cancelled ones) for display purposes
       const allTodaysOrders = orders.filter(order => {
         const orderDate = new Date(order.timestamp).toDateString();
-        return orderDate === today;
+        return orderDate === today && order.department_id === currentDepartment.department_id; // ERWEITERT: Nur aktuelle Abteilung
       });
 
       // Get only non-cancelled orders for form pre-filling
