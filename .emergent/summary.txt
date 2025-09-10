@@ -1,68 +1,78 @@
 <analysis>
-The AI engineer systematically addressed a series of critical bug fixes and new feature implementations, progressing the application significantly. Initially, the focus was on rectifying a severe bug in the cancellation logic for drinks and sweets, where negative balances were incorrectly compounded. This involved precise code analysis and modification within . Following this, a significant feature for time-based order cancellation was implemented, restricting employee cancellations to the order day while maintaining unlimited admin rights, requiring both backend validation and frontend UI adjustments. The next major task involved building a new Statistik tab in the admin dashboard for a comprehensive balance overview. This feature underwent several iterations, starting with basic implementation, then compaction, followed by responsive design fixes for mobile overlaps, addressing long names, and finally unifying the layout across all screen sizes for consistency and improved readability. Each step involved iterative development, testing, and direct user feedback, showcasing an adaptive full-stack development approach.
+The AI engineer has demonstrated a comprehensive full-stack development capability, iteratively addressing complex requirements and bug fixes. The work began with critical bug resolutions, including a negative balance cancellation issue and time-based order cancellations. The primary focus then shifted to a significant new feature: a multi-department sub-account system for canteen employees. This involved extensive backend modifications to data models, API endpoints for order creation, deletion, and payment, ensuring sub-account balances are correctly managed and isolated. Concurrently, the frontend was adapted with new UI elements, differentiated employee profile views, and responsive modal designs. Several rounds of user feedback led to continuous refinements in UI consistency, data filtering (e.g., history views, breakfast orders), and critical bug fixes in balance calculations and sponsoring logic. The most recent task involves moving the temporary employee persistence from client-side  to a server-side solution to enable cross-device functionality, which is currently in progress.
 </analysis>
 
 <product_requirements>
-The application is a canteen management system for German fire department employees, facilitating meal, drink, and sweets ordering with administrative and financial controls. Key existing features include master password, order cancellation, flexible payment, robust sponsoring, department-specific pricing, automatic UI updates, custom modals, responsive landing page, mobile state retention, negative withdrawals in admin dashboards, app version display, and PayPal integration.
+The application is a canteen management system for German fire department employees, managing meal, drink, and sweets orders with administrative controls. The system needs to evolve to support a multi-department model where employees belong to a Stamm-Wachabteilung (home department) but can also order as temporary members in other departments.
 
-The work within this trajectory involved:
-1.  **Cancellation Logic Bug Fix:** Resolve an issue where cancelling drinks or sweets orders resulted in the balance becoming more negative (e.g., -1.20€ becoming -2.40€) instead of being restored to 0€.
-2.  **Time-Based Cancellation:** Implement a restriction allowing employees to cancel their orders only until 23:59 Berlin time on the same day the order was placed. Administrators retain the ability to cancel orders without any time restrictions. This requires frontend (button visibility) and backend (validation) changes.
-3.  **Statistics Tab:** Create a new Statistik tab in the admin dashboard. This tab should display a read-only overview of all employees' current balances (Breakfast/Lunch, Drinks/Sweets, Total), sorted by normal employees then guests, with visual separation, and without any action buttons. This tab's layout needed to be compact, responsive across devices (initially list-like for mobile, then unified vertical layout for all), and handle long employee names gracefully.
+Key requirements and implemented features include:
+1.  **Unified Employee ID:** A single database entry per person, usable across all four Wachabteilungen.
+2.  **Four Separate Accounts per Employee:** Each employee will have a main account for their home department and three sub-accounts, one for each of the other departments. These accounts track Breakfast/Lunch and Drinks/Sweets balances separately.
+3.  **Temporary Employee Feature:**
+    *   Department admins can temporarily add employees from other departments via a dropdown for the current day (until 23:59 Berlin time).
+    *   These Gastabteilung-Mitarbeiter can place orders, which are booked to their respective sub-accounts.
+    *   Orders placed by temporary employees can be cancelled on the same day.
+    *   Temporary employees automatically disappear from the list after the day ends.
+    *   The feature needs to work across devices (server-side persistence).
+4.  **Differentiated UI Display:**
+    *   **Employee Profile (Stamm-Wachabteilung):** Shows main balances prominently and all sub-account balances compactly in a single row with full labels (Frühstück, Getränke, Gesamt). History shows all orders with department markings.
+    *   **Employee Profile (Gast-Wachabteilung):** Only shows the sub-account saldo for the current guest department. History only shows orders made in that specific guest tour.
+    *   All four department balances are displayed separately.
+5.  **Admin Dashboard Andere WA Tab:** A new tab to overview and manage temporary employees' sub-account bookings, including a balance overview per sub-account and the ability to manage (add/deduct) balances. Only Stamm-Tour-admins can delete.
+6.  **Full Booking & Sponsoring Functionality:** All existing booking features (Breakfast, Lunch, toppings) and the sponsoring system must fully integrate and function with the new sub-account structure, ensuring bookings and sponsorships correctly affect the designated main or sub-accounts.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack Development:** React (frontend), FastAPI (backend), MongoDB (database).
--   **Pydantic:** Data validation for API models.
--   **CORS Configuration:** For cross-origin requests.
--   **Tailwind CSS:** For responsive UI styling and layout.
--   **Datetime/Timezone Handling:** For time-based logic.
--   **State Management:** ,  in React.
+-   **Pydantic:** Data validation for API request/response models.
+-   **Tailwind CSS:** For responsive and consistent UI styling.
+-   **Datetime/Timezone Handling:** Crucial for time-based order cancellations and temporary employee expiry.
+-   **State Management:** React's  and  for UI state and side effects.
+-   **Client-side Persistence:**  for temporary data (being replaced by server-side).
 </key_technical_concepts>
 
 <code_architecture>
 
 
 -   ****:
-    -   **Importance**: Central API logic, database operations, and business rules.
+    -   **Importance**: Contains all API logic, database interactions, and core business rules.
     -   **Changes Summary**:
-        -   **Cancellation Bug Fix**: Corrected the logic in DELETE routes (lines ~2327 and ~3069) for employee and department admin order cancellations. The  for drinks/sweets was stored as negative, so the fix changed addition () to subtraction () to correctly restore the balance.
-        -   **Time-Based Cancellation**: Added time validation logic to the employee-specific  endpoint. Introduced  helper function (around line 3245) to check if an order's creation time is before 23:59 Berlin time on the current day.
-        -   **New API Endpoint**: Added a GET endpoint  (around line 3282) to expose the cancellation status to the frontend.
+        -   **Employee Model Update**:  Pydantic model extended with  to store balances for other departments (JSON-based).
+        -   **Balance Update Logic**: Modified , , and  to conditionally update either main balances (for home department orders) or only specific sub-account balances (for guest department orders).
+        -   **Sponsoring Logic Update**: Modified  to update the relevant sub-account balance in addition to main balances for sponsored orders.
+        -   **Sub-account Management Endpoints**: Added  and  for flexible balance adjustments and resets specific to sub-accounts.
+        -   **Pydantic Model Enhancements**:  extended to handle  and  for sub-account payments.  model adjusted for new fields.
+        -   **System Reset Endpoint**: Added  to clear all orders, payment logs, and reset all employee balances (main and sub-accounts) to 0.
+        -   **Temporary Employee Persistence (In Progress)**: New logic and endpoints are being added to manage temporary employee associations in the database for cross-device functionality.
 -   ****:
-    -   **Importance**: Main React application, UI, state management, API calls.
+    -   **Importance**: Main React application, managing UI, state, and API calls.
     -   **Changes Summary**:
-        -   **UI Bug Fix ()**: Corrected  function (line 619) to remove redundant minus sign.
-        -   **Time-Based Cancellation**: Implemented  function (around line 382) to determine if a delete button should be displayed based on the order's creation time and the backend's helper function. The Löschen button in employee history (around lines 610-639) is now conditionally rendered.
-        -   **Statistics Tab Implementation**:
-            -   Added a new Statistik tab (around line 2780) in the Admin Dashboard navigation.
-            -   Created and integrated the  component (defined around line 6250) to display employee balances.
-            -   Implemented employee sorting (normal vs. guest), guest styling, and color-coded balances (green/red/gray).
-            -   **Layout Iterations**:
-                -   Initially, a compact grid layout was implemented.
-                -   Adjusted card sizing, font, and spacing for greater density (lines ~6250-6290).
-                -   Modified grid classes () to display more cards per row on larger screens.
-                -   Fixed mobile layout overlaps by changing to a list-like, vertical display for individual employee statistics (name on top, balances below).
-                -   Resolved long name display issues on mobile using  for names and ensuring vertical separation of name and balances.
-                -   **Unified Layout**: Applied the vertical layout (name with truncation, labels, balances) consistently across all screen sizes, while retaining responsive grid for the number of cards per row.
--   ****:
-    -   **Importance**: Frontend environment variables.
-    -   **Changes Summary**: No recent changes in the trajectory, but previously updated .
+        -   **Individual Employee Profile ()**: Enhanced to fetch and display main balances prominently and all sub-account balances compactly, differentiated for Stammwachabteilung (home) vs. Gastwachabteilung (guest) views. Layout was refined for three sub-accounts in a row and compact Frühstück / Getränke display.
+        -   **History Filtering**:  function was adapted to filter order history based on whether the employee is viewed as a temporary guest (only guest department orders) or a home employee (all orders with department tags).
+        -   **Andere WA + Modal (Temporary Employee Addition)**: Transformed from a simple dropdown to a full-fledged, responsive modal with an 'X' button, overlay close functionality, and improved mobile display. It now fetches other department employees.
+        -   **Admin Dashboard ()**: New Andere WA tab added to the navigation.
+        -   ** Component**: Created to display employees with sub-account bookings. Integrated with the unified  for balance management and  (now being replaced by server-side) for temporary employee persistence.
+        -   **Unified Payment Modal ()**: Extended to handle both main account and sub-account balance management, replacing a separate .
+        -   **Breakfast Order Bug Fix**: Modified  and  to filter breakfast orders by the *current department ID*, preventing guest breakfast orders from appearing in the home department's modal.
+        -   **Naming Consistency**: Renamed Stammabteilung to Stammwachabteilung and Gastmitarbeiter + button to 👥 Andere WA +, Andere Touren tab to Andere WA.
+-   ****: No recent changes in the trajectory, but used for .
 </code_architecture>
 
 <pending_tasks>
--   None. All previously identified features, improvements, and reported bugs within this trajectory have been successfully addressed, implemented, and verified by testing or user confirmation by the AI engineer. The user's manual verification for the time-based cancellation logic is pending for tomorrow.
+-   Complete the implementation of the server-side solution for temporary employee persistence to ensure cross-device functionality.
+-   Test the newly implemented server-side temporary employee persistence (including daily expiry).
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary request, the AI engineer was working on refining the display of employee balances within the newly implemented Statistik tab of the Admin Dashboard. The user reported issues with the previously implemented compact card layout on mobile devices, specifically concerning overlaps and suggesting a list-like display.
+Immediately prior to this summary request, the AI engineer was addressing the user's report that temporarily added guest employees were not persistent across devices. The previous implementation used , which is client-side only.
 
-The AI engineer addressed this in several stages:
-1.  Initially, the mobile layout was adjusted to be a single-column list-like structure, moving away from compact cards on small screens.
-2.  Following this, the user reported that longer employee names still caused display problems. The engineer then implemented a vertical layout for each employee's statistics entry, placing the name (with truncation to handle long names) at the top and the three balance types below, uniformly distributed.
-3.  Finally, the user requested this improved vertical layout to be applied consistently across *all* screen sizes, not just mobile. The AI engineer unified the design within the  component in  (lines ~6250-6310), ensuring that each employee's statistics are displayed with their (truncated) name above their three balance types, regardless of screen size. The responsive grid still adjusts the *number* of these employee entries per row (from 1 on mobile up to 8 on XL screens). This ensures clear readability and proper handling of long names across all devices.
+The current work involves:
+1.  **Backend Changes ():** The AI engineer has initiated changes to create a server-side solution for temporary employee persistence. This includes adding new backend endpoints and logic to manage the association of temporary employees with departments in the database.
+2.  **Frontend Changes ():** The next step, after backend changes, will be to update the frontend to use these new server-side APIs for adding, retrieving, and removing temporary employees, replacing the  approach.
+
+The AI engineer has already made initial edits to  to support this, and then  to start integrating the new server-side logic, and the last action was to begin testing both solutions. This is a critical step to ensure that the temporary employee feature works reliably and consistently, regardless of the device used by the administrator.
 </current_work>
 
 <optional_next_step>
-Verify the unified layout for the Statistik tab across all screen sizes to confirm the fix for long names and consistent display.
+Test the newly implemented server-side solution for temporary employee persistence.
 </optional_next_step>
