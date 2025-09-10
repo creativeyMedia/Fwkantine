@@ -6611,39 +6611,49 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
     try {
       setIsLoading(true);
       
-      // Alle Mitarbeiter anderer Abteilungen holen
-      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/other-employees`);
-      const otherEmployeesByDept = response.data;
+      // OPTIMIERT: Eine einzige API-Anfrage für alle Mitarbeiter mit Subkonto-Balances
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/employees-with-subaccount-balances`);
+      setOtherEmployeesWithBalances(response.data);
       
-      // Für jeden Mitarbeiter die Subkonto-Balance in der aktuellen Abteilung prüfen
-      const employeesWithBalances = [];
-      
-      for (const [deptId, employees] of Object.entries(otherEmployeesByDept)) {
-        for (const employee of employees) {
-          try {
-            // Hole alle Balances des Mitarbeiters
-            const balanceResponse = await axios.get(`${API}/employees/${employee.id}/all-balances`);
-            const allBalances = balanceResponse.data;
-            
-            // Prüfe ob Mitarbeiter Subkonto-Balance in aktueller Abteilung hat
-            const currentDeptBalance = allBalances.subaccount_balances[currentDepartment.department_id];
-            
-            if (currentDeptBalance && (currentDeptBalance.breakfast !== 0 || currentDeptBalance.drinks !== 0)) {
-              employeesWithBalances.push({
-                ...employee,
-                subaccount_balance: currentDeptBalance,
-                main_department_name: allBalances.main_department_name
-              });
-            }
-          } catch (error) {
-            console.error(`Fehler beim Laden der Balance für ${employee.name}:`, error);
-          }
-        }
-      }
-      
-      setOtherEmployeesWithBalances(employeesWithBalances);
     } catch (error) {
       console.error('Fehler beim Laden der anderen Mitarbeiter:', error);
+      
+      // FALLBACK: Alte Methode falls neuer Endpoint nicht verfügbar
+      try {
+        // Alle Mitarbeiter anderer Abteilungen holen
+        const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/other-employees`);
+        const otherEmployeesByDept = response.data;
+        
+        // Für jeden Mitarbeiter die Subkonto-Balance in der aktuellen Abteilung prüfen
+        const employeesWithBalances = [];
+        
+        for (const [deptId, employees] of Object.entries(otherEmployeesByDept)) {
+          for (const employee of employees) {
+            try {
+              // Hole alle Balances des Mitarbeiters
+              const balanceResponse = await axios.get(`${API}/employees/${employee.id}/all-balances`);
+              const allBalances = balanceResponse.data;
+              
+              // Prüfe ob Mitarbeiter Subkonto-Balance in aktueller Abteilung hat
+              const currentDeptBalance = allBalances.subaccount_balances[currentDepartment.department_id];
+              
+              if (currentDeptBalance && (currentDeptBalance.breakfast !== 0 || currentDeptBalance.drinks !== 0)) {
+                employeesWithBalances.push({
+                  ...employee,
+                  subaccount_balance: currentDeptBalance,
+                  main_department_name: allBalances.main_department_name
+                });
+              }
+            } catch (error) {
+              console.error(`Fehler beim Laden der Balance für ${employee.name}:`, error);
+            }
+          }
+        }
+        
+        setOtherEmployeesWithBalances(employeesWithBalances);
+      } catch (fallbackError) {
+        console.error('Auch Fallback-Methode fehlgeschlagen:', fallbackError);
+      }
     } finally {
       setIsLoading(false);
     }
