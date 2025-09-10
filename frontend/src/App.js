@@ -3141,8 +3141,8 @@ const DepartmentAdminDashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-t-lg text-xs sm:text-sm lg:text-base whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-white border-t border-l border-r text-blue-600 font-semibold'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? (tab.id === 'system-reset' ? 'bg-red-50 border-t border-l border-r text-red-700 font-semibold' : 'bg-white border-t border-l border-r text-blue-600 font-semibold')
+                  : (tab.className || 'bg-gray-200 text-gray-700 hover:bg-gray-300')
               }`}
             >
               {tab.label}
