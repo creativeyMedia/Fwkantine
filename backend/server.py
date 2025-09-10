@@ -3054,27 +3054,34 @@ async def get_employee_profile(employee_id: str):
     # Get order history with menu details
     orders = await db.orders.find({"employee_id": employee_id}).sort("timestamp", -1).to_list(1000)
     
-    # Get menu items for reference (use employee's department)
+    # KORRIGIERT: Menu items should be loaded per order department, not employee's home department
     employee_department_id = employee.get("department_id")
-    if employee_department_id:
-        breakfast_menu = await db.menu_breakfast.find({"department_id": employee_department_id}).to_list(100)
-        toppings_menu = await db.menu_toppings.find({"department_id": employee_department_id}).to_list(100)
-        drinks_menu = await db.menu_drinks.find({"department_id": employee_department_id}).to_list(100)
-        sweets_menu = await db.menu_sweets.find({"department_id": employee_department_id}).to_list(100)
-    else:
-        # Fallback to first department's menu if employee department not found
-        first_dept = await db.departments.find_one()
-        dept_id = first_dept["id"] if first_dept else None
-        breakfast_menu = await db.menu_breakfast.find({"department_id": dept_id}).to_list(100) if dept_id else []
-        toppings_menu = await db.menu_toppings.find({"department_id": dept_id}).to_list(100) if dept_id else []
-        drinks_menu = await db.menu_drinks.find({"department_id": dept_id}).to_list(100) if dept_id else []
-        sweets_menu = await db.menu_sweets.find({"department_id": dept_id}).to_list(100) if dept_id else []
     
-    # Create lookup dictionaries
-    roll_names = {item["roll_type"]: f"€{item['price']:.2f}" for item in breakfast_menu}
-    topping_names = {item["topping_type"]: f"€{item['price']:.2f}" for item in toppings_menu}
-    drink_names = {item["id"]: {"name": item["name"], "price": item["price"]} for item in drinks_menu}
-    sweet_names = {item["id"]: {"name": item["name"], "price": item["price"]} for item in sweets_menu}
+    # Get all departments for menu loading
+    all_departments = await db.departments.find({}).to_list(100)
+    department_menus = {}
+    
+    # Pre-load menus for all departments to handle cross-department orders
+    for dept in all_departments:
+        dept_id = dept["id"]
+        breakfast_menu = await db.menu_breakfast.find({"department_id": dept_id}).to_list(100)
+        toppings_menu = await db.menu_toppings.find({"department_id": dept_id}).to_list(100)
+        drinks_menu = await db.menu_drinks.find({"department_id": dept_id}).to_list(100)
+        sweets_menu = await db.menu_sweets.find({"department_id": dept_id}).to_list(100)
+        
+        department_menus[dept_id] = {
+            "breakfast_prices": {item["roll_type"]: item["price"] for item in breakfast_menu},
+            "topping_prices": {item["topping_type"]: item["price"] for item in toppings_menu},
+            "drink_names": {item["id"]: {"name": item["name"], "price": item["price"]} for item in drinks_menu},
+            "sweet_names": {item["id"]: {"name": item["name"], "price": item["price"]} for item in sweets_menu}
+        }
+    
+    # Fallback menus (use employee's home department as default)
+    default_dept_menu = department_menus.get(employee_department_id, {})
+    breakfast_prices = default_dept_menu.get("breakfast_prices", {})
+    topping_prices = default_dept_menu.get("topping_prices", {})
+    drink_names = default_dept_menu.get("drink_names", {})
+    sweet_names = default_dept_menu.get("sweet_names", {})
     
     # Enrich orders with readable names
     enriched_orders = []
