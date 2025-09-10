@@ -390,6 +390,17 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
     }
   };
 
+  const getDepartmentName = (departmentId) => {
+    // Helper function um Abteilungs-Namen aus ID zu bestimmen
+    const departmentNames = {
+      'fw4abteilung1': '1. WA',
+      'fw4abteilung2': '2. WA', 
+      'fw4abteilung3': '3. WA',
+      'fw4abteilung4': '4. WA'
+    };
+    return departmentNames[departmentId] || departmentId;
+  };
+
   const isOrderCancellable = (order) => {
     // Check if already cancelled
     if (order.is_cancelled) {
