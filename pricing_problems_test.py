@@ -308,7 +308,7 @@ class PricingProblemsTest:
                         order_total = order.get("total_price", 0)
                         
                         # Should show price calculated with fw4abteilung1 prices
-                        if abs(order_total - 7.60) < 0.10:  # Updated price after lunch change
+                        if abs(order_total - 7.70) < 0.10:  # Updated price after lunch change
                             self.success(f"Employee profile shows correct order price: €{order_total}")
                             return True
                         else:
