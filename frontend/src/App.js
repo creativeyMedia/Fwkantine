@@ -1260,10 +1260,10 @@ const DepartmentDashboard = () => {
               </button>
               
               {showTemporaryDropdown && (
-                <div className="absolute right-0 mt-2 w-96 sm:w-[32rem] bg-white border border-gray-300 rounded-lg shadow-xl z-20 max-h-[28rem] overflow-y-auto">
-                  <div className="p-4 border-b bg-gray-50 sticky top-0">
-                    <h3 className="font-semibold text-gray-800 text-lg">Mitarbeiter anderer Wachabteilungen hinzufügen</h3>
-                    <p className="text-sm text-gray-600">Nur für heute bis 23:59 Uhr - erscheinen als Gastmitarbeiter</p>
+                <div className="absolute right-0 mt-2 w-[95vw] sm:w-96 md:w-[32rem] bg-white border border-gray-300 rounded-lg shadow-xl z-20 max-h-[70vh] sm:max-h-[28rem] overflow-y-auto">
+                  <div className="p-3 sm:p-4 border-b bg-gray-50 sticky top-0">
+                    <h3 className="font-semibold text-gray-800 text-base sm:text-lg">Mitarbeiter anderer Wachabteilungen hinzufügen</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Nur für heute bis 23:59 Uhr - erscheinen als Gastmitarbeiter</p>
                   </div>
                   
                   {Object.keys(otherDepartmentEmployees).length === 0 ? (
