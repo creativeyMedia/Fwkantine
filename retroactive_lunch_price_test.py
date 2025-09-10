@@ -326,6 +326,7 @@ class RetroactiveLunchPriceTest:
         try:
             self.log(f"Applying retroactive lunch price change: €{self.initial_lunch_price} → €{self.new_lunch_price}")
             
+            # Apply to specific department to test department-specific retroactive updates
             response = requests.put(f"{API_BASE}/lunch-settings?price={self.new_lunch_price}&department_id={self.dept1_id}")
             if response.status_code == 200:
                 result = response.json()
@@ -333,6 +334,12 @@ class RetroactiveLunchPriceTest:
                 
                 self.success(f"Applied retroactive lunch price change: €{self.new_lunch_price}")
                 self.success(f"Updated {updated_orders} orders retroactively")
+                
+                # Verify the actual price difference
+                expected_new_guest_total = self.guest_order_initial_total + self.expected_difference
+                expected_new_regular_total = self.regular_order_initial_total + self.expected_difference
+                
+                self.debug(f"Expected new totals: Guest €{expected_new_guest_total}, Regular €{expected_new_regular_total}")
                 return True
             else:
                 self.error(f"Failed to apply retroactive lunch price change: {response.status_code} - {response.text}")
