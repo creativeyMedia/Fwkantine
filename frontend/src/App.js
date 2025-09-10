@@ -1190,7 +1190,7 @@ const DepartmentDashboard = () => {
                 onClick={() => setShowTemporaryDropdown(!showTemporaryDropdown)}
                 className="bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
-                👥 Gastmitarbeiter +
+                👥 Andere WA +
               </button>
               
               {showTemporaryDropdown && (
