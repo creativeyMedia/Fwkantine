@@ -260,7 +260,7 @@ class MinusSignDisplayTest:
             response = requests.get(f"{API_BASE}/employees/{self.test_employee_id}/profile")
             if response.status_code == 200:
                 profile = response.json()
-                orders = profile.get("orders", [])
+                orders = profile.get("order_history", [])
                 
                 self.success(f"Retrieved employee profile with {len(orders)} orders")
                 
