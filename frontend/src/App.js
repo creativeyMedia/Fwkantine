@@ -1774,11 +1774,14 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
           const existingOrdersResponse = await axios.get(`${API}/employees/${employee.id}/orders`);
           const orders = existingOrdersResponse.data.orders || [];
           
-          // Filter orders for today
+          // Filter orders for today AND current department (ERWEITERT: Abteilungsbasierte Filterung)
           const today = new Date().toDateString();
           const todaysBreakfastOrders = orders.filter(order => {
             const orderDate = new Date(order.timestamp).toDateString();
-            return orderDate === today && order.order_type === 'breakfast' && !order.is_cancelled;
+            return orderDate === today && 
+                   order.order_type === 'breakfast' && 
+                   !order.is_cancelled &&
+                   order.department_id === currentDepartment.department_id; // ERWEITERT: Nur aktuelle Abteilung
           });
 
           if (todaysBreakfastOrders.length > 0) {
