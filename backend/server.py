@@ -1288,8 +1288,8 @@ async def get_lunch_settings():
     return clean_settings
 
 @api_router.put("/lunch-settings")
-async def update_lunch_settings(price: float):
-    """Update lunch price and retroactively apply to all today's lunch orders"""
+async def update_lunch_settings(price: float, department_id: str = None):
+    """Update lunch price and retroactively apply to all today's lunch orders for specific department"""
     lunch_settings = await db.lunch_settings.find_one()
     if lunch_settings:
         await db.lunch_settings.update_one(
