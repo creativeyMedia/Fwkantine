@@ -62,6 +62,10 @@ class RetroactiveLunchPriceTest:
         self.new_lunch_price = 5.00
         self.expected_difference = -1.00  # Price reduction
         
+        # Track actual order prices
+        self.guest_order_initial_total = None
+        self.regular_order_initial_total = None
+        
     def log(self, message):
         """Log test progress"""
         print(f"🧪 {message}")
