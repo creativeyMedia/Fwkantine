@@ -2800,27 +2800,29 @@ async def delete_employee_order(employee_id: str, order_id: str):
     
     # CORRECTED: Adjust employee balance (add back the order amount) + ERWEITERT für Subkonten
     if employee:
+        # KORRIGIERT: Unterscheide zwischen Stammbestellung und Gastbestellung bei Stornierung
+        is_home_department = (order["department_id"] == employee.get("department_id"))
+        
         if order["order_type"] == "breakfast":
-            # Order cancellation = refund = balance increases
-            new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
-            await db.employees.update_one(
-                {"id": employee_id},
-                {"$set": {"breakfast_balance": new_breakfast_balance}}
-            )
-            
-            # ERWEITERT: Also update subaccount balance
+            if is_home_department:
+                # STAMMBESTELLUNG-STORNIERUNG: Restore main balance
+                new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
+                await db.employees.update_one(
+                    {"id": employee_id},
+                    {"$set": {"breakfast_balance": new_breakfast_balance}}
+                )
+            # IMMER: Restore subaccount balance (für Stamm- und Gastbestellungen)
             await update_employee_balance(employee_id, order["department_id"], 'breakfast', order["total_price"])
             
         else:
-            # Order cancellation = refund = balance increases  
-            # FIXED: Subtract total_price because drinks/sweets are stored as negative amounts
-            new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
-            await db.employees.update_one(
-                {"id": employee_id},
-                {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
-            )
-            
-            # ERWEITERT: Also update subaccount balance  
+            if is_home_department:
+                # STAMMBESTELLUNG-STORNIERUNG: Restore main balance  
+                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                await db.employees.update_one(
+                    {"id": employee_id},
+                    {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
+                )
+            # IMMER: Restore subaccount balance (für Stamm- und Gastbestellungen)
             await update_employee_balance(employee_id, order["department_id"], 'drinks', -order["total_price"])
     
     # Mark order as cancelled instead of deleting
