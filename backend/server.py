@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from enum import Enum
 import pytz
+import zoneinfo
 
 # Berlin timezone
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
