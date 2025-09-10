@@ -268,15 +268,16 @@ class CriticalIssuesTest:
                 profile = response.json()
                 
                 # Check main department balance (should be unchanged)
-                main_breakfast_balance = profile.get("breakfast_total", 0)  # or breakfast_balance
-                main_drinks_balance = profile.get("drinks_sweets_total", 0)  # or drinks_sweets_balance
+                employee_data = profile.get("employee", {})
+                main_breakfast_balance = employee_data.get("breakfast_balance", 0)
+                main_drinks_balance = employee_data.get("drinks_sweets_balance", 0)
                 
                 self.log(f"Guest employee main department balances:")
                 self.log(f"  - Breakfast balance: €{main_breakfast_balance}")
                 self.log(f"  - Drinks/Sweets balance: €{main_drinks_balance}")
                 
                 # Check if subaccount balances are available
-                subaccount_balances = profile.get("subaccount_balances", {})
+                subaccount_balances = employee_data.get("subaccount_balances", {})
                 if subaccount_balances and self.target_department_id in subaccount_balances:
                     target_dept_balances = subaccount_balances[self.target_department_id]
                     target_breakfast_balance = target_dept_balances.get("breakfast", 0)
@@ -289,7 +290,29 @@ class CriticalIssuesTest:
                     # Verify the balance reflects the order total (should be negative)
                     if target_breakfast_balance < -6.0 and target_breakfast_balance > -8.0:
                         self.success(f"Guest employee subaccount balance correctly updated: €{target_breakfast_balance}")
-                        return True
+                        
+                        # Also verify the order details in the profile
+                        order_history = profile.get("order_history", [])
+                        if order_history:
+                            latest_order = order_history[0]  # Most recent order
+                            total_price = latest_order.get("total_price", 0)
+                            has_lunch = latest_order.get("has_lunch", False)
+                            lunch_price = latest_order.get("lunch_price", 0)
+                            
+                            self.log(f"Order verification:")
+                            self.log(f"  - Total price: €{total_price}")
+                            self.log(f"  - Has lunch: {has_lunch}")
+                            self.log(f"  - Lunch price: €{lunch_price}")
+                            
+                            if has_lunch and lunch_price == 5.0:
+                                self.success(f"Lunch price correctly included: €{lunch_price}")
+                                return True
+                            else:
+                                self.error(f"Lunch price not correctly included: has_lunch={has_lunch}, lunch_price={lunch_price}")
+                                return False
+                        else:
+                            self.error("No order history found in profile")
+                            return False
                     else:
                         self.error(f"Guest employee subaccount balance incorrect: €{target_breakfast_balance} (expected around -€7.10)")
                         return False
