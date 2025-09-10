@@ -2986,20 +2986,38 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
-  // NEW: Flexible Payment Function
+  // ERWEITERT: Flexible Payment Function (inkl. Subkonto-Support)
   const processFlexiblePayment = async (paymentData) => {
     try {
-      const response = await axios.post(
-        `${API}/department-admin/flexible-payment/${paymentData.employee_id}?admin_department=${currentDepartment.department_name}`,
-        {
-          payment_type: paymentData.payment_type,
-          amount: parseFloat(paymentData.amount),
-          notes: paymentData.notes || ''
-        }
-      );
+      let response;
+      
+      if (paymentData.isSubaccount) {
+        // Subaccount payment
+        response = await axios.post(
+          `${API}/department-admin/subaccount-payment/${paymentData.employee_id}?admin_department=${paymentData.admin_department}`,
+          {
+            payment_type: paymentData.payment_type,
+            balance_type: paymentData.balance_type,
+            amount: parseFloat(paymentData.amount),
+            payment_method: paymentData.payment_method || 'cash',
+            notes: paymentData.notes || ''
+          }
+        );
+      } else {
+        // Normal payment (existing logic)
+        response = await axios.post(
+          `${API}/department-admin/flexible-payment/${paymentData.employee_id}?admin_department=${currentDepartment.department_name}`,
+          {
+            payment_type: paymentData.payment_type,
+            amount: parseFloat(paymentData.amount),
+            notes: paymentData.notes || ''
+          }
+        );
+      }
       
       const paymentAction = paymentData.amount >= 0 ? 'Einzahlung' : 'Auszahlung';
-      setSuccessMessage(`✅ ${paymentAction} erfolgreich verbucht!\n${response.data.result_description}`);
+      const accountType = paymentData.isSubaccount ? 'Subkonto' : 'Hauptkonto';
+      setSuccessMessage(`✅ ${accountType}-${paymentAction} erfolgreich verbucht!\n${response.data.message || response.data.result_description}`);
       setShowSuccessNotification(true);
       
       // Refresh employee data
