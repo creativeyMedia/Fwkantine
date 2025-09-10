@@ -3083,7 +3083,11 @@ const DepartmentAdminDashboard = () => {
           )}
 
           {activeTab === 'other-departments' && (
-            <OtherDepartmentsTab currentDepartment={currentDepartment} />
+            <OtherDepartmentsTab 
+              currentDepartment={currentDepartment}
+              setPaymentEmployeeData={setPaymentEmployeeData}
+              setShowPaymentModal={setShowPaymentModal}
+            />
           )}
 
           {activeTab === 'menu-management' && (
