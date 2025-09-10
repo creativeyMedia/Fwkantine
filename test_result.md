@@ -1916,10 +1916,12 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Retroactive Lunch Price Adjustment Bug for Guest Employees"
     - "CRITICAL BUG FIXES VERIFICATION - Admin Dashboard & Brötchen Labels"
     - "Flexible Payment System Frontend Implementation"
     - "UI IMPROVEMENTS - Better price display and breakfast overview layout"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Retroactive Lunch Price Adjustment Bug for Guest Employees"
   test_all: false
   test_priority: "critical_first"
 
