@@ -4447,7 +4447,9 @@ const AdminDashboard = () => {
 
   const updateLunchPrice = async (newPrice) => {
     try {
-      await axios.put(`${API}/lunch-settings?price=${newPrice}`);
+      // Include department_id for department-specific lunch price updates
+      const departmentParam = currentDepartment?.department_id ? `&department_id=${currentDepartment.department_id}` : '';
+      await axios.put(`${API}/lunch-settings?price=${newPrice}${departmentParam}`);
       setLunchSettings(prev => ({ ...prev, price: newPrice }));
       setSuccessMessage('Mittagessen-Preis erfolgreich aktualisiert');
       setShowSuccessNotification(true);
