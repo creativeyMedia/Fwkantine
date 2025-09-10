@@ -924,7 +924,7 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
             employee_id=employee_id,
             department_id=admin_department,  # The admin's department (subaccount)
             amount=payment_data.amount,
-            balance_type=payment_data.balance_type,
+            balance_type=balance_type,
             payment_method=payment_data.payment_method,
             notes=f"Subkonto-Zahlung in {admin_department} - {payment_data.notes or ''}",
             balance_before=current_balance,
