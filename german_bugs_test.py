@@ -257,7 +257,8 @@ class GermanBugFixesTest:
             profile = response.json()
             
             # Check subaccount balances for target department (this represents "Andere WA" tab)
-            subaccount_balances = profile.get("subaccount_balances", {})
+            employee_data = profile.get("employee", {})
+            subaccount_balances = employee_data.get("subaccount_balances", {})
             target_dept_balances = subaccount_balances.get(self.target_department_id, {})
             
             breakfast_balance = target_dept_balances.get("breakfast", 0.0)
