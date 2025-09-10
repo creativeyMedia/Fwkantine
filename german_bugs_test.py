@@ -299,13 +299,14 @@ class GermanBugFixesTest:
     def test_retroactive_lunch_price_change(self):
         """Test retroactive lunch price change affects both history and balance (BUG 2)"""
         try:
-            # Step 1: Set initial lunch price to 6.00€ for target department
-            self.log("Step 1: Setze Mittagspreis für fw4abteilung1 auf €6.00")
-            response = requests.put(f"{API_BASE}/lunch-settings?price=6.0&department_id={self.target_department_id}")
+            # Step 1: Set initial daily lunch price to 6.00€ for target department
+            today = datetime.now().strftime('%Y-%m-%d')
+            self.log(f"Step 1: Setze täglichen Mittagspreis für fw4abteilung1 auf €6.00 für {today}")
+            response = requests.put(f"{API_BASE}/daily-lunch-settings/{self.target_department_id}/{today}?lunch_price=6.0")
             if response.status_code != 200:
-                self.error(f"Failed to set initial lunch price: {response.status_code}")
+                self.error(f"Failed to set initial daily lunch price: {response.status_code}")
                 return False
-            self.success("Mittagspreis auf €6.00 gesetzt")
+            self.success(f"Täglicher Mittagspreis auf €6.00 gesetzt für {today}")
             
             # Step 2: Create new employee for this test to avoid interference
             lunch_test_employee_name = f"LunchTest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
