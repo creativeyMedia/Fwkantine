@@ -6879,6 +6879,19 @@ const OtherDepartmentsTab = ({ currentDepartment }) => {
           }}
         />
       )}
+
+      {/* Balance Management Modal */}
+      {showBalanceModal && selectedEmployee && (
+        <SubaccountBalanceModal
+          employee={selectedEmployee}
+          currentDepartment={currentDepartment}
+          onClose={() => {
+            setShowBalanceModal(false);
+            setSelectedEmployee(null);
+          }}
+          onBalanceUpdated={handleBalanceUpdated}
+        />
+      )}
     </div>
   );
 };
