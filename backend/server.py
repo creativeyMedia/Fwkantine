@@ -917,7 +917,7 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
         new_balance = current_balance + payment_data.amount
         
         # Update ONLY the subaccount balance for this department
-        await update_employee_balance(employee_id, admin_department, payment_data.balance_type, payment_data.amount)
+        await update_employee_balance(employee_id, admin_department, balance_type, payment_data.amount)
         
         # Create payment log with subaccount tracking
         payment_log = PaymentLog(
