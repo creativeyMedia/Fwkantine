@@ -1191,25 +1191,43 @@ const DepartmentDashboard = () => {
     }
   };
 
-  const addTemporaryEmployee = (employee) => {
-    // Prüfe ob Mitarbeiter bereits temporär hinzugefügt wurde
-    const exists = temporaryEmployees.find(emp => emp.id === employee.id);
-    if (!exists) {
-      const newTemporaryEmployees = [...temporaryEmployees, {
-        ...employee,
-        isTemporary: true,
-        addedAt: new Date().toISOString()
-      }];
-      setTemporaryEmployees(newTemporaryEmployees);
-      saveTemporaryEmployeesToStorage(newTemporaryEmployees); // ERWEITERT: Speichere in localStorage
+  const addTemporaryEmployee = async (employee) => {
+    try {
+      const response = await axios.post(`${API}/departments/${currentDepartment.department_id}/temporary-employees`, {
+        employee_id: employee.id
+      });
+      
+      alert(`✅ ${employee.name} wurde als Gastmitarbeiter hinzugefügt!\n\nGültig bis 23:59 Uhr Berlin Zeit`);
+      
+      // Lade temporäre Mitarbeiter neu
+      await fetchTemporaryEmployees();
+      
+    } catch (error) {
+      console.error('Fehler beim Hinzufügen:', error);
+      const errorMessage = error.response?.data?.detail || 'Fehler beim Hinzufügen des Gastmitarbeiters';
+      alert(`❌ Fehler: ${errorMessage}`);
     }
     setShowTemporaryDropdown(false);
   };
 
-  const removeTemporaryEmployee = (employeeId) => {
-    const newTemporaryEmployees = temporaryEmployees.filter(emp => emp.id !== employeeId);
-    setTemporaryEmployees(newTemporaryEmployees);
-    saveTemporaryEmployeesToStorage(newTemporaryEmployees); // ERWEITERT: Speichere in localStorage
+  const removeTemporaryEmployee = async (employeeId) => {
+    try {
+      // Finde die Assignment-ID des temporären Mitarbeiters
+      const tempEmployee = temporaryEmployees.find(emp => emp.id === employeeId);
+      if (!tempEmployee?.assignment_id) {
+        alert('Fehler: Assignment-ID nicht gefunden');
+        return;
+      }
+      
+      await axios.delete(`${API}/departments/${currentDepartment.department_id}/temporary-employees/${tempEmployee.assignment_id}`);
+      
+      // Lade temporäre Mitarbeiter neu
+      await fetchTemporaryEmployees();
+      
+    } catch (error) {
+      console.error('Fehler beim Entfernen:', error);
+      alert('Fehler beim Entfernen des Gastmitarbeiters');
+    }
   };
 
   const fetchEmployees = async () => {
