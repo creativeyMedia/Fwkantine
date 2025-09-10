@@ -1381,6 +1381,10 @@ async def update_lunch_settings(price: float, department_id: str = None):
                 # Update employee balance with the difference
                 balance_diff = new_total - old_total
                 if balance_diff != 0:
+                    # KORRIGIERT: Invert balance_diff because when order price decreases, 
+                    # employee should owe LESS money (balance improves)
+                    balance_improvement = -balance_diff
+                    
                     # Check if this is a home department order or guest order
                     employee = await db.employees.find_one({"id": order["employee_id"]})
                     if employee:
@@ -1391,11 +1395,11 @@ async def update_lunch_settings(price: float, department_id: str = None):
                             # HOME DEPARTMENT ORDER: Update main balance
                             await db.employees.update_one(
                                 {"id": order["employee_id"]},
-                                {"$inc": {"breakfast_balance": balance_diff}}
+                                {"$inc": {"breakfast_balance": balance_improvement}}
                             )
                         else:
                             # GUEST DEPARTMENT ORDER: Update subaccount balance
-                            await update_employee_balance(order["employee_id"], order_dept, 'breakfast', balance_diff)
+                            await update_employee_balance(order["employee_id"], order_dept, 'breakfast', balance_improvement)
                 
                 updated_orders += 1
     
