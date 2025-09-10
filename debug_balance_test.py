@@ -59,8 +59,8 @@ def debug_balance_update():
         return False
         
     profile = response.json()
-    log(f"Initial profile breakfast_balance: {profile.get('breakfast_balance', 'MISSING')}")
-    log(f"Initial profile drinks_sweets_balance: {profile.get('drinks_sweets_balance', 'MISSING')}")
+    log(f"Initial profile breakfast_total: {profile.get('breakfast_total', 'MISSING')}")
+    log(f"Initial profile drinks_sweets_total: {profile.get('drinks_sweets_total', 'MISSING')}")
     
     # Create a simple breakfast order
     order_data = {
