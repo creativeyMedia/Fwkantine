@@ -705,7 +705,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         
                         return (
                           <div key={deptId} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                            <div className="text-center mb-2">
+                            <div className="text-center mb-3">
                               <h5 className="text-sm font-medium text-gray-700 truncate" title={balances.department_name}>
                                 {balances.department_name}
                               </h5>
@@ -713,7 +713,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                 Gesamt: {balances.total.toFixed(2)}€
                               </div>
                             </div>
-                            <div className="space-y-2">
+                            {/* KORRIGIERT: Frühstück und Getränke nebeneinander in einer Zeile */}
+                            <div className="grid grid-cols-2 gap-2">
                               <div className="text-center p-2 bg-white rounded border">
                                 <div className={`text-sm font-medium ${balances.breakfast >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {balances.breakfast.toFixed(2)}€
