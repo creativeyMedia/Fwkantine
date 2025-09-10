@@ -3552,27 +3552,29 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
         
         # CORRECTED: Adjust employee balance before cancelling the order (refund) + ERWEITERT für Subkonten
         if employee:
+            # KORRIGIERT: Unterscheide zwischen Stammbestellung und Gastbestellung bei Admin-Stornierung
+            is_home_department = (order["department_id"] == employee.get("department_id"))
+            
             if order["order_type"] == "breakfast":
-                # Admin cancellation = refund = balance increases
-                new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
-                await db.employees.update_one(
-                    {"id": order["employee_id"]},
-                    {"$set": {"breakfast_balance": new_breakfast_balance}}
-                )
-                
-                # ERWEITERT: Also update subaccount balance
+                if is_home_department:
+                    # STAMMBESTELLUNG-STORNIERUNG: Admin refund main balance
+                    new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
+                    await db.employees.update_one(
+                        {"id": order["employee_id"]},
+                        {"$set": {"breakfast_balance": new_breakfast_balance}}
+                    )
+                # IMMER: Admin refund subaccount balance (für Stamm- und Gastbestellungen)
                 await update_employee_balance(order["employee_id"], order["department_id"], 'breakfast', order["total_price"])
                 
             else:
-                # Admin cancellation = refund = balance increases
-                # FIXED: Subtract total_price because drinks/sweets are stored as negative amounts
-                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
-                await db.employees.update_one(
-                    {"id": order["employee_id"]},
-                    {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
-                )
-                
-                # ERWEITERT: Also update subaccount balance
+                if is_home_department:
+                    # STAMMBESTELLUNG-STORNIERUNG: Admin refund main balance
+                    new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                    await db.employees.update_one(
+                        {"id": order["employee_id"]},
+                        {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
+                    )
+                # IMMER: Admin refund subaccount balance (für Stamm- und Gastbestellungen)
                 await update_employee_balance(order["employee_id"], order["department_id"], 'drinks', -order["total_price"])
         
         # Mark order as cancelled instead of deleting
