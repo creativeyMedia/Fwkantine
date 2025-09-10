@@ -4375,7 +4375,7 @@ const AdminDashboard = () => {
 
   const handleBalanceUpdated = () => {
     // Refresh the employee list after balance update
-    fetchOtherEmployeesWithBalances();
+    fetchAllEmployees();
   };
 
   const handleSponsorMeal = async (mealType) => {
