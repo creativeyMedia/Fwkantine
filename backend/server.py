@@ -4086,6 +4086,9 @@ async def sponsor_meal(meal_data: dict):
                 {"$set": {"breakfast_balance": new_sponsor_balance}}
             )
             
+            # ERWEITERT: Also update subaccount balance for department consistency
+            await update_employee_balance(sponsor_employee_id, department_id, 'breakfast', -sponsor_additional_cost)
+            
             # NOTE: No PaymentLog needed for sponsoring - the sponsor order serves as the record
         
         # 4. Apply all order updates (after all other operations are complete)
