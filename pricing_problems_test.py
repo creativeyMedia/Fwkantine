@@ -180,11 +180,11 @@ class PricingProblemsTest:
                 # Expected price calculation using fw4abteilung1 prices:
                 # 1x white roll half: 0.50€
                 # 1x seeded roll half: 0.60€  
-                # 1x boiled egg: 0.50€ (default)
-                # 1x lunch: 5.00€ (default)
-                # Expected total: 0.50 + 0.60 + 0.50 + 5.00 = 6.60€
+                # 1x boiled egg: 0.60€ (fw4abteilung1 specific price)
+                # 1x lunch: 6.00€ (current price)
+                # Expected total: 0.50 + 0.60 + 0.60 + 6.00 = 7.70€
                 
-                expected_price = 6.60
+                expected_price = 7.70
                 if abs(total_price - expected_price) < 0.10:
                     self.success(f"✅ PROBLEM 1 TEST PASSED: Guest order uses target department prices (€{total_price})")
                     return True
