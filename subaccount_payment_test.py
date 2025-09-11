@@ -474,6 +474,7 @@ class SubaccountPaymentBugFixTest:
             ("Test NEW API Format (Should Work)", self.test_subaccount_drinks_payment_new_api),
             ("Test Subaccount Breakfast Payment", self.test_subaccount_breakfast_payment),
             ("Test payment_type Mapping", self.test_payment_type_mapping_compatibility),
+            ("Test Invalid payment_type Validation", self.test_invalid_payment_type),
             ("Test Auto-Refresh Functionality", self.test_auto_refresh_simulation),
         ]
         
