@@ -6235,17 +6235,25 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
 
     try {
       setUpdatingLunchPrice(date);
-      await axios.put(`${API}/daily-lunch-settings/${currentDepartment.department_id}/${date}?lunch_price=${newPrice}`);
+      // NEU: Include lunch_name parameter
+      const lunchName = lunchNameInput.trim();
+      const params = new URLSearchParams();
+      params.append('lunch_price', newPrice.toString());
+      if (lunchName) {
+        params.append('lunch_name', lunchName);
+      }
       
-      // Refresh ALL data after lunch price change
+      await axios.put(`${API}/daily-lunch-settings/${currentDepartment.department_id}/${date}?${params.toString()}`);
       await fetchBreakfastHistory();
       await fetchSeparatedRevenue();
       
       // Clear editing state
       setEditingLunchPrice(null);
       setLunchPriceInput('');
+      setLunchNameInput(''); // NEU: Clear name input
       
-      alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf ${newPrice.toFixed(2)} € aktualisiert`);
+      const nameInfo = lunchName ? ` ("${lunchName}")` : '';
+      alert(`Mittagessen-Preis für ${formatDate(date)} erfolgreich auf ${newPrice.toFixed(2)} €${nameInfo} aktualisiert`);
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Mittagessen-Preises:', error);
       alert('Fehler beim Aktualisieren des Mittagessen-Preises');
