@@ -6214,9 +6214,10 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
     });
   };
 
-  const startEditingLunchPrice = (date, currentPrice) => {
+  const startEditingLunchPrice = (date, currentPrice, currentName = '') => {
     setEditingLunchPrice(date);
     setLunchPriceInput(currentPrice.toFixed(2));
+    setLunchNameInput(currentName); // NEU: Set current name
   };
 
   const cancelEditingLunchPrice = () => {
