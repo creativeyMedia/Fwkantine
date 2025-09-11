@@ -3263,8 +3263,22 @@ async def get_employee_profile(employee_id: str):
                 # Add lunch as separate item if present
                 if item.get("has_lunch"):
                     lunch_price = order.get("lunch_price", 0.0)  # Get actual lunch price from order level
+                    
+                    # NEU: Get lunch name from daily lunch price
+                    lunch_name = "Mittagessen"  # Default
+                    order_department_id = order.get("department_id", employee_department_id)
+                    order_date = order.get("timestamp", "")[:10]  # Extract YYYY-MM-DD
+                    
+                    if order_date:
+                        daily_lunch = await db.daily_lunch_prices.find_one({
+                            "department_id": order_department_id,
+                            "date": order_date
+                        })
+                        if daily_lunch and daily_lunch.get("lunch_name"):
+                            lunch_name = daily_lunch["lunch_name"]
+                    
                     enriched_order["readable_items"].append({
-                        "description": "1x Mittagessen",
+                        "description": f"1x {lunch_name}",
                         "unit_price": "",  # Remove price display as requested by user
                         "total_price": f"{lunch_price:.2f} €"
                     })
