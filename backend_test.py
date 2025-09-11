@@ -1,35 +1,32 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Fried Eggs and Notes Field Functionality
-===============================================================
+Backend Test Suite for getDepartmentName ReferenceError Fix
+==========================================================
 
-This test suite tests the newly implemented fried eggs functionality and notes field functionality.
+This test suite tests the backend API endpoints that provide data to the frontend
+BreakfastHistoryTab component, specifically verifying that the getDepartmentName
+ReferenceError has been fixed.
 
-NEW FEATURES TESTED:
-1. NEW API ENDPOINTS FOR FRIED EGGS:
-   - GET /api/department-settings/{department_id}/fried-eggs-price
-   - PUT /api/department-settings/{department_id}/fried-eggs-price with price=0.75
-   - Verify price is stored and retrieved correctly
+CRITICAL FRONTEND FIX TESTED:
+- User reported: "ReferenceError: getDepartmentName is not defined at BreakfastHistoryTab"
+- Fix implemented: getDepartmentName replaced with inline Department-Name-Mapping
+- Local departmentNames lookup table added in BreakfastHistoryTab component
 
-2. ORDER CREATION WITH FRIED EGGS:
-   - Create a breakfast order with fried_eggs: 2 in breakfast_items
-   - Verify the order is created successfully 
-   - Verify the total_price includes fried eggs cost
+BACKEND API ENDPOINTS TESTED:
+1. GET /api/orders/breakfast-history/{department_id}
+   - Verify API returns employee_department_id and order_department_id data
+   - This data is used by frontend to display guest employee markers
+   - Frontend now uses inline mapping: {'fw4abteilung1': '1. WA', ...}
 
-3. NOTES FIELD FUNCTIONALITY:
-   - Create an order with notes: "Keine Butter auf das Brötchen"
-   - Verify the notes field is stored in the order
-   - Verify notes are returned when retrieving the order
+2. GET /api/departments
+   - Basic connectivity test
+   - Verify department structure is correct
 
-4. DAILY SUMMARY WITH FRIED EGGS:
-   - Create orders with fried eggs and test GET /api/orders/daily-summary/{department_id}
-   - Verify total_fried_eggs is included in the response
-   - Verify employee_orders contain fried_eggs data
-
-5. BASIC FUNCTIONALITY TEST:
-   - First initialize data with GET /api/init-data to ensure departments exist
-   - Test that departments are returned by GET /api/departments
-   - Create test employee for department fw4abteilung1
+EXPECTED FRONTEND RESULTS AFTER FIX:
+- ✅ Order history tab loads without errors
+- ✅ Guest employee markers displayed: "👥 Gast aus 1. WA", "👥 Gast aus 2. WA", etc.
+- ✅ No ReferenceError: getDepartmentName is not defined
+- ✅ Backend integration works correctly
 """
 
 import requests
