@@ -6436,7 +6436,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                startEditingLunchPrice(day.date, day.daily_lunch_price || 0);
+                                startEditingLunchPrice(day.date, day.daily_lunch_price || 0, day.lunch_name || '');
                               }}
                               className={`px-2 py-1 text-white text-xs rounded hover:opacity-90 ${
                                 day.daily_lunch_price > 0 
