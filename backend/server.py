@@ -1104,6 +1104,10 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
         # Update ONLY the subaccount balance for this department
         await update_employee_balance(employee_id, admin_department, balance_type, payment_data.amount)
         
+        # Get readable department name
+        department_doc = await db.departments.find_one({"id": admin_department})
+        department_name = department_doc["name"] if department_doc else admin_department
+        
         # Create payment log with subaccount tracking
         payment_log = PaymentLog(
             employee_id=employee_id,
@@ -1112,7 +1116,7 @@ async def subaccount_flexible_payment(employee_id: str, payment_data: FlexiblePa
             payment_type=balance_type,  # Required field
             action="payment",  # Required field  
             admin_user=admin_department,  # Required field
-            notes=f"Subkonto-Zahlung ({payment_data.payment_method}) in {admin_department} - {payment_data.notes or ''}",
+            notes=f"Zahlung in {department_name} ({payment_data.payment_method}) - {payment_data.notes or ''}".strip(' -'),
             balance_before=current_balance,
             balance_after=new_balance
         )
