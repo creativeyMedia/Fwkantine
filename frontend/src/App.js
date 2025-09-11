@@ -782,7 +782,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                   if (displayPrice === 0) {
                                     return '0.00 €';
                                   }
-                                  return `-${displayPrice.toFixed(2)} €`;
+                                  // KORRIGIERT: Minus nur hinzufügen wenn displayPrice positiv ist
+                                  if (displayPrice > 0) {
+                                    return `-${displayPrice.toFixed(2)} €`;
+                                  } else {
+                                    return `${displayPrice.toFixed(2)} €`;
+                                  }
                                 })()}
                               </p>
                             </div>
