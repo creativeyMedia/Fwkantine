@@ -6415,16 +6415,24 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                           </div>
                         ) : (
                           <div className="flex items-center space-x-1">
-                            <span className={`font-semibold ${
-                              day.daily_lunch_price > 0 
-                                ? 'text-orange-600' 
-                                : 'text-gray-500'
-                            }`}>
-                              {day.daily_lunch_price > 0 
-                                ? `${day.daily_lunch_price.toFixed(2)} €`
-                                : 'Nicht gesetzt'
-                              }
-                            </span>
+                            <div className="flex flex-col">
+                              <span className={`font-semibold ${
+                                day.daily_lunch_price > 0 
+                                  ? 'text-orange-600' 
+                                  : 'text-gray-500'
+                              }`}>
+                                {day.daily_lunch_price > 0 
+                                  ? `${day.daily_lunch_price.toFixed(2)} €`
+                                  : 'Nicht gesetzt'
+                                }
+                              </span>
+                              {/* NEU: Show lunch name if available */}
+                              {day.lunch_name && (
+                                <span className="text-xs text-orange-500 italic">
+                                  "{day.lunch_name}"
+                                </span>
+                              )}
+                            </div>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
