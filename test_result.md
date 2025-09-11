@@ -443,7 +443,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "getDepartmentName ReferenceError Fix in BreakfastHistoryTab"
+    - "User-Friendly Hint Display for Subaccount Payments"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
