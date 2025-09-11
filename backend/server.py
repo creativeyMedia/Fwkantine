@@ -1670,7 +1670,7 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
         # Update existing
         await db.daily_lunch_prices.update_one(
             {"department_id": department_id, "date": date},
-            {"$set": {"lunch_price": lunch_price}}
+            {"$set": {"lunch_price": lunch_price, "lunch_name": lunch_name}}
         )
     else:
         # Create new
