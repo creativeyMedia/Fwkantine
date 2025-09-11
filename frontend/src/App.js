@@ -6763,9 +6763,6 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
   const handleBalanceUpdated = async () => {
     // Refresh employee list after balance update
     fetchOtherEmployeesWithBalances();
-    
-    // KORRIGIERT: Force page refresh to show updated balances immediately
-    window.location.reload();
   };
 
   if (isLoading) {
