@@ -379,6 +379,14 @@ backend:
     stuck_count: 0
     priority: "critical"
     needs_retesting: false
+
+  - task: "getDepartmentName ReferenceError Fix in BreakfastHistoryTab"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
