@@ -2314,7 +2314,16 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             ]
         }).to_list(1000)
         
-        if orders:  # Only include dates with orders
+        # KORRIGIERT: Include ALL dates, even those without orders (Frontend expects them)
+        # Get daily lunch price and name for ALL dates
+        daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+            "department_id": department_id,
+            "date": current_date.isoformat()
+        })
+        daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
+        lunch_name = daily_lunch_price_doc.get("lunch_name", "") if daily_lunch_price_doc else ""
+        
+        if orders:  # Process orders if they exist
             # CORRECTED: Filter out sponsor orders from statistics (they're not real food orders)
             real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
             
