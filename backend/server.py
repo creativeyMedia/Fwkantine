@@ -291,6 +291,7 @@ class DailyLunchPrice(BaseModel):
     department_id: str
     date: str  # YYYY-MM-DD format
     lunch_price: float
+    lunch_name: str = ""  # NEU: Name/Titel des Mittagessens
 
 class BreakfastSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
