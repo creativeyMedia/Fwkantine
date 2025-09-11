@@ -1180,8 +1180,8 @@ async def reset_subaccount_balance(employee_id: str, balance_type: str, admin_de
             amount=reset_amount,
             payment_type=balance_type,  # Required field
             action="reset",  # Required field
-            admin_user=admin_department,  # Required field  
-            notes=f"Subkonto-Saldo zurückgesetzt in {admin_department}",
+            admin_user=department_name,  # KORRIGIERT: Benutzerfreundlicher Name statt ID
+            notes=f"Subkonto-Saldo zurückgesetzt in {department_name}",
             balance_before=current_balance,
             balance_after=0.0
         )
