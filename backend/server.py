@@ -3067,25 +3067,27 @@ async def delete_employee_order(employee_id: str, order_id: str):
         
         if order["order_type"] == "breakfast":
             if is_home_department:
-                # STAMMBESTELLUNG-STORNIERUNG: Restore main balance
+                # STAMMBESTELLUNG-STORNIERUNG: Restore NUR main balance
                 new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
                 await db.employees.update_one(
                     {"id": employee_id},
                     {"$set": {"breakfast_balance": new_breakfast_balance}}
                 )
-            # IMMER: Restore subaccount balance (für Stamm- und Gastbestellungen)
-            await update_employee_balance(employee_id, order["department_id"], 'breakfast', order["total_price"])
+            else:
+                # GASTBESTELLUNG-STORNIERUNG: Restore NUR subaccount balance
+                await update_employee_balance(employee_id, order["department_id"], 'breakfast', order["total_price"])
             
-        else:
+        else:  # DRINKS or SWEETS
             if is_home_department:
-                # STAMMBESTELLUNG-STORNIERUNG: Restore main balance  
+                # STAMMBESTELLUNG-STORNIERUNG: Restore NUR main balance  
                 new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
                 await db.employees.update_one(
                     {"id": employee_id},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
                 )
-            # IMMER: Restore subaccount balance (für Stamm- und Gastbestellungen)
-            await update_employee_balance(employee_id, order["department_id"], 'drinks', -order["total_price"])
+            else:
+                # GASTBESTELLUNG-STORNIERUNG: Restore NUR subaccount balance
+                await update_employee_balance(employee_id, order["department_id"], 'drinks', -order["total_price"])
     
     # Mark order as cancelled instead of deleting
     cancellation_data = {
