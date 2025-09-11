@@ -6223,6 +6223,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const cancelEditingLunchPrice = () => {
     setEditingLunchPrice(null);
     setLunchPriceInput('');
+    setLunchNameInput(''); // NEU: Clear name input
   };
 
   const updateLunchPrice = async (date) => {
