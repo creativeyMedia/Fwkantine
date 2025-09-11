@@ -1751,6 +1751,7 @@ async def set_daily_lunch_price(department_id: str, date: str, lunch_price: floa
         "message": "Tages-Mittagessen-Preis erfolgreich gesetzt",
         "date": date,
         "lunch_price": lunch_price,
+        "lunch_name": lunch_name,
         "updated_orders": updated_orders
     }
 
