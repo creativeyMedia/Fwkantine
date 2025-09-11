@@ -3736,7 +3736,7 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
         amount=amount,
         payment_type=payment_type,
         action="payment",
-        admin_user=admin_department,
+        admin_user=department_name,  # KORRIGIERT: Benutzerfreundlicher Name statt ID
         notes=f"Schulden als bezahlt markiert: {amount:.2f} € (LEGACY)",
         balance_before=employee.get(f"{payment_type}_balance", 0.0),
         balance_after=0.0
