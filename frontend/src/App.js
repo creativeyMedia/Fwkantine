@@ -2,9 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import axios from "axios";
 
-// Application Version
-const APP_VERSION = "1.2.1";
-
 // Use environment variable for backend URL
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
