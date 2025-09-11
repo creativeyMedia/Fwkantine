@@ -5998,6 +5998,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [deleting, setDeleting] = useState(null);
   const [editingLunchPrice, setEditingLunchPrice] = useState(null); // date being edited
   const [lunchPriceInput, setLunchPriceInput] = useState(''); // temporary input value
+  const [lunchNameInput, setLunchNameInput] = useState(''); // NEU: temporary name input value
   const [updatingLunchPrice, setUpdatingLunchPrice] = useState(null); // date being updated
   const [separatedRevenue, setSeparatedRevenue] = useState({
     breakfast_revenue: 0,
