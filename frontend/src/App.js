@@ -3144,8 +3144,7 @@ const DepartmentAdminDashboard = () => {
             { id: 'other-departments', label: 'Andere WA' }, // ERWEITERT
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'breakfast-history', label: 'Bestellverlauf' },
-            { id: 'settings', label: 'Einstellungen' },
-            { id: 'system-reset', label: '🧹 System Reset (NUR FÜR TESTING)', className: 'bg-red-100 text-red-700 border-red-300' }
+            { id: 'settings', label: 'Einstellungen' }
           ].map((tab) => (
             <button
               key={tab.id}
