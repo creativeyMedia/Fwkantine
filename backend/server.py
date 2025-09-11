@@ -2746,6 +2746,18 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 "daily_lunch_price": daily_lunch_price,  # Add daily lunch price
                 "lunch_name": lunch_name  # NEU: Add lunch name
             })
+        else:
+            # KORRIGIERT: Add empty day structure for frontend consistency
+            history.append({
+                "date": current_date.isoformat(),
+                "total_orders": 0,
+                "total_amount": 0.0,
+                "breakfast_summary": {"weiss": {"halves": 0, "toppings": {}}, "koerner": {"halves": 0, "toppings": {}}},
+                "employee_orders": {},
+                "shopping_list": {"weiss": {"halves": 0, "whole_rolls": 0}, "koerner": {"halves": 0, "whole_rolls": 0}},
+                "daily_lunch_price": daily_lunch_price,  # Include daily lunch price even for empty days
+                "lunch_name": lunch_name  # Include lunch name even for empty days
+            })
         
         current_date += timedelta(days=1)
     
