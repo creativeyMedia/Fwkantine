@@ -358,6 +358,18 @@ backend:
           agent: "testing"
           comment: "🎉 FINAL VERIFICATION: SPONSOR MESSAGE FIX SUCCESSFULLY IMPLEMENTED! Comprehensive testing on preview instance https://canteen-accounts.preview.emergentagent.com/ completed with 100% success rate (4/4 required components verified): ✅ 1) COMPLETE SPONSOR ACKNOWLEDGMENT MESSAGE FOUND: Located exact message format 'Frühstück wurde von dir ausgegeben, vielen Dank! (Ausgegeben für 3 Mitarbeiter im Wert von 3.30€)' in Mit1 employee history as expected. ✅ 2) ALL REQUIRED COMPONENTS VERIFIED: Found all 4 critical message components: 'wurde von dir ausgegeben' ✓, 'vielen Dank' ✓, 'Ausgegeben für' ✓, 'Mitarbeiter im Wert von' ✓. ✅ 3) EMPLOYEE COUNT AND AMOUNT DISPLAY WORKING: Message correctly shows '3 Mitarbeiter' (employee count) and '3.30€' (sponsored amount) as required by user specification. ✅ 4) SPONSOR ORDER DETECTION WORKING: System correctly identifies sponsor orders (is_sponsor_order: true) and displays acknowledgment messages to sponsors in their individual employee histories. CRITICAL SUCCESS: The sponsor message fix is FULLY FUNCTIONAL on the preview instance. Sponsors now see the expected acknowledgment message 'Frühstück wurde von dir ausgegeben, vielen Dank!' with proper employee count and amount display exactly as requested by the user."
 
+  - task: "Three Critical Bug Fixes Verification - User-Reported Issues"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 THREE CRITICAL BUG FIXES VERIFICATION COMPLETED SUCCESSFULLY! Comprehensive testing of the three critical user-reported bugs completed with 100% success rate (4/4 tests passed): ✅ BUG 1 - DOPPELTE STORNIERUNG FIXED: Tested drinks order (Kaffee €1.0) and sweets order (Schokoriegel €1.5) - both create correct negative balances and when cancelled, balance correctly returns to €0.00 (NOT positive values like +€0.80 as was the bug). Double deduction eliminated completely. ✅ BUG 2 - SUBKONTO-BUCHUNG FIXED: Admin from Dept 2 making payment for employee from Dept 1 correctly goes to employee's subaccount for Dept 2 (+€10.0) and NOT to main account (€0.0 change). Subaccount payment endpoint working correctly with admin_department parameter. ✅ BUG 3 - GASTMITARBEITER BESTELLUNGEN FIXED: Employee from Dept 1 added as temporary worker in Dept 3 can successfully create breakfast orders (€2.85 total) without 'Fehler beim Speichern der Bestellung' error. Guest employee ordering functionality working correctly. ✅ DETAILED BALANCE VERIFICATION: Confirmed drinks/sweets orders create negative balances (-€1.0, -€1.5) in main account, cancellation restores to €0.0, no double-positive bug detected. All three critical bugs reported by user are COMPLETELY FIXED and working as expected."
+
   - task: "Critical Drinks/Sweets Cancellation Logic Bug Fix"
     implemented: true
     working: true
