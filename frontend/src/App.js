@@ -6579,7 +6579,17 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {Object.entries(day.employee_orders).map(([employeeName, employeeData]) => (
                             <div key={employeeName} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                              <h6 className="font-medium text-gray-800">{employeeName}</h6>
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                                <h6 className="font-medium text-gray-800">{employeeName}</h6>
+                                {/* NEU: Gastmitarbeiter-Marker */}
+                                {employeeData.employee_department_id && 
+                                 employeeData.order_department_id && 
+                                 employeeData.employee_department_id !== employeeData.order_department_id && (
+                                  <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded mt-1 sm:mt-0">
+                                    👥 Gast aus {getDepartmentName(employeeData.employee_department_id)}
+                                  </span>
+                                )}
+                              </div>
                               <div className="mt-2 space-y-1 text-sm text-gray-600">
                                 <div>Helle Hälften: {employeeData.white_halves}</div>
                                 <div>Körner Hälften: {employeeData.seeded_halves}</div>
