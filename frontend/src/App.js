@@ -6586,7 +6586,16 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                                  employeeData.order_department_id && 
                                  employeeData.employee_department_id !== employeeData.order_department_id && (
                                   <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded mt-1 sm:mt-0">
-                                    👥 Gast aus {getDepartmentName(employeeData.employee_department_id)}
+                                    👥 Gast aus {(() => {
+                                      // Inline Department-Name-Mapping
+                                      const departmentNames = {
+                                        'fw4abteilung1': '1. WA',
+                                        'fw4abteilung2': '2. WA', 
+                                        'fw4abteilung3': '3. WA',
+                                        'fw4abteilung4': '4. WA'
+                                      };
+                                      return departmentNames[employeeData.employee_department_id] || employeeData.employee_department_id;
+                                    })()}
                                   </span>
                                 )}
                               </div>
