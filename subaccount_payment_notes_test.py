@@ -121,7 +121,7 @@ class SubaccountPaymentNotesTest:
         """Verify that payment log contains user-friendly department names"""
         try:
             # Get payment logs for the test employee
-            response = requests.get(f"{API_BASE}/employees/{self.test_employee_id}/payment-logs")
+            response = requests.get(f"{API_BASE}/department-admin/payment-logs/{self.test_employee_id}")
             
             if response.status_code == 200:
                 payment_logs = response.json()
