@@ -2438,7 +2438,11 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     
                     # ALWAYS add employee to statistics regardless of sponsoring status
                     # This ensures shopping list includes all employees
+                    # KORRIGIERT: Use calculated order_amount (which includes sponsoring deductions)
                     employee_orders[employee_key]["total_amount"] += order_amount
+                    
+                    # DEBUG: Log the calculation for troubleshooting
+                    print(f"DEBUG BREAKFAST HISTORY: Employee {employee_key[:20]}... adding {order_amount} (sponsored: {order.get('is_sponsored', False)}, meal_type: {order.get('sponsored_meal_type', 'None')})")
                     
                     for item in order["breakfast_items"]:
                         # Handle new format (total_halves, white_halves, seeded_halves)
