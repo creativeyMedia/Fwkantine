@@ -7841,14 +7841,17 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
       
       if (isSubaccount) {
         // Subaccount payment - includes department info
+        // KORRIGIERT: Map 'drinks' to 'drinks_sweets' for backend compatibility
+        const backendPaymentType = currentPaymentType === 'drinks' ? 'drinks_sweets' : currentPaymentType;
         onPayment({
           employee_id: employee.id,
-          balance_type: currentPaymentType, // For subaccounts use balance_type
-          payment_type: currentPaymentType, // Keep for compatibility
+          balance_type: currentPaymentType, // Keep original for subaccount logic (breakfast/drinks)
+          payment_type: backendPaymentType, // Use backend-compatible format
           amount: parsedAmount,
           payment_method: 'cash', // Default method
           notes: notes.trim(),
-          admin_department: currentDepartment?.department_id
+          admin_department: currentDepartment?.department_id,
+          isSubaccount: true  // KORRIGIERT: Explicit flag hinzufügen
         });
       } else {
         // Normal payment - existing logic
