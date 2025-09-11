@@ -3211,9 +3211,7 @@ const DepartmentAdminDashboard = () => {
             <AdminSettingsTab currentDepartment={currentDepartment} />
           )}
 
-          {activeTab === 'system-reset' && (
-            <SystemResetTab currentDepartment={currentDepartment} />
-          )}
+
         </div>
 
         {/* New Employee Modal */}
