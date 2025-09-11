@@ -470,7 +470,7 @@ class SubaccountPaymentBugFixTest:
             ("Authenticate Dept 1 Admin", self.authenticate_dept1_admin),
             ("Authenticate Dept 2 Admin", self.authenticate_dept2_admin),
             ("Create Test Employee (Dept 1)", self.create_test_employee),
-            ("Test OLD API Format (Should Fail)", self.test_subaccount_drinks_payment_old_api),
+            ("Test OLD API Format (Should Work with Mapping)", self.test_subaccount_drinks_payment_old_api),
             ("Test NEW API Format (Should Work)", self.test_subaccount_drinks_payment_new_api),
             ("Test Subaccount Breakfast Payment", self.test_subaccount_breakfast_payment),
             ("Test payment_type Mapping", self.test_payment_type_mapping_compatibility),
