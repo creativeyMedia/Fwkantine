@@ -3671,6 +3671,10 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
     # Payment INCREASES balance (reduces debt or adds credit)
     new_balance = current_balance + payment_data.amount
     
+    # Get readable department name
+    department_doc = await db.departments.find_one({"id": admin_department})
+    department_name = department_doc["name"] if department_doc else admin_department
+    
     # Create payment log with balance tracking
     payment_log = PaymentLog(
         employee_id=employee_id,
