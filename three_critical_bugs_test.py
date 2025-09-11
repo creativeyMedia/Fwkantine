@@ -357,6 +357,7 @@ class ThreeCriticalBugsTest:
             
             # Step 2: Admin from Dept 2 makes subaccount payment for employee from Dept 1
             payment_data = {
+                "payment_type": "breakfast",  # Required field
                 "balance_type": "breakfast",
                 "amount": 10.0,
                 "payment_method": "cash",
