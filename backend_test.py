@@ -39,12 +39,12 @@ import uuid
 BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://canteen-accounts.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class FriedEggsAndNotesTest:
+class GetDepartmentNameFixTest:
     def __init__(self):
         self.department_id = "fw4abteilung1"
         self.admin_credentials = {"department_name": "1. Wachabteilung", "admin_password": "admin1"}
         self.test_employee_id = None
-        self.test_employee_name = f"FriedEggsTest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.test_employee_name = f"GetDeptNameTest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.test_order_id = None
         
     def log(self, message):
