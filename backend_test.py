@@ -393,18 +393,20 @@ class GetDepartmentNameFixTest:
 
 def main():
     """Main test execution"""
-    print("🧪 Backend Test Suite - Fried Eggs and Notes Field Functionality")
+    print("🧪 Backend Test Suite - getDepartmentName ReferenceError Fix Verification")
     print("=" * 70)
     
     # Initialize and run test
-    test_suite = FriedEggsAndNotesTest()
+    test_suite = GetDepartmentNameFixTest()
     success = test_suite.run_comprehensive_test()
     
     if success:
-        print("\n🎉 ALL TESTS PASSED - FRIED EGGS AND NOTES FUNCTIONALITY IS WORKING!")
+        print("\n🎉 ALL TESTS PASSED - getDepartmentName REFERENCEERROR FIX IS WORKING!")
+        print("✅ Frontend should now load without JavaScript errors")
+        print("✅ Guest employee markers should display correctly")
         exit(0)
     else:
-        print("\n❌ SOME TESTS FAILED - FRIED EGGS AND NOTES FUNCTIONALITY NEEDS ATTENTION!")
+        print("\n❌ SOME TESTS FAILED - getDepartmentName REFERENCEERROR FIX NEEDS ATTENTION!")
         exit(1)
 
 if __name__ == "__main__":
