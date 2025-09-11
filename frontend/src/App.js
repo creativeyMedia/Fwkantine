@@ -7243,7 +7243,7 @@ const AdminSettingsTab = ({ currentDepartment }) => {
             </div>
             <div>
               <span className="font-medium">App-Version:</span>
-              <span className="ml-2 text-xs text-blue-600 font-semibold">1.1.2</span>
+              <span className="ml-2 text-xs text-blue-600 font-semibold">1.2.1</span>
             </div>
           </div>
           
