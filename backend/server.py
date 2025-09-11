@@ -2494,6 +2494,17 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         # Add lunch if present
                         if item.get("has_lunch", False):
                             employee_orders[employee_key]["has_lunch"] = True
+                            
+                            # NEU: Add lunch name from daily lunch price
+                            if not employee_orders[employee_key].get("lunch_name"):
+                                daily_lunch = await db.daily_lunch_prices.find_one({
+                                    "department_id": department_id,
+                                    "date": current_date.isoformat()
+                                })
+                                if daily_lunch and daily_lunch.get("lunch_name"):
+                                    employee_orders[employee_key]["lunch_name"] = daily_lunch["lunch_name"]
+                                else:
+                                    employee_orders[employee_key]["lunch_name"] = "Mittagessen"
                         
                         # Add coffee if present
                         if item.get("has_coffee", False):
