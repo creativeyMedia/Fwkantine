@@ -2580,15 +2580,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 whole_rolls = (data["halves"] + 1) // 2
                 shopping_list[roll_type] = {"halves": data["halves"], "whole_rolls": whole_rolls}
             
-            # Get daily lunch price for this date
-            date_str = current_date.isoformat()
-            daily_price = await db.daily_lunch_prices.find_one({
-                "department_id": department_id,
-                "date": date_str
-            })
-            
-            # NEW: Always use 0.0 if no price set for this day - admin must set price manually each day
-            daily_lunch_price = daily_price["lunch_price"] if daily_price else 0.0
+            # Daily lunch price already loaded above
             
             # Add sponsoring information for each employee
             for employee_name, employee_data in employee_orders.items():
