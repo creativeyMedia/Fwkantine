@@ -1169,6 +1169,10 @@ async def reset_subaccount_balance(employee_id: str, balance_type: str, admin_de
         reset_amount = -current_balance  # Amount needed to bring balance to 0
         await update_employee_balance(employee_id, admin_department, balance_type, reset_amount)
         
+        # Get readable department name
+        department_doc = await db.departments.find_one({"id": admin_department})
+        department_name = department_doc["name"] if department_doc else admin_department
+        
         # Create payment log for the reset
         payment_log = PaymentLog(
             employee_id=employee_id,
