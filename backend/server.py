@@ -2241,7 +2241,12 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
                 eggs_price = 0.50
                 coffee_price = 1.50
             
-            # Daily lunch price and name already loaded above
+            # Get daily lunch price for this date
+            daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
+                "department_id": department_id,
+                "date": current_date.isoformat()
+            })
+            daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
             
             for order in orders:
                 # IMPORTANT: Sponsored orders should COUNT toward revenue!
