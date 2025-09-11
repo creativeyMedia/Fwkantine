@@ -159,9 +159,9 @@ class SubaccountPaymentBugFixTest:
             return None
             
     def test_subaccount_drinks_payment_old_api(self):
-        """Test BUG FIX 1 & 2: Subaccount drinks payment using old payment_type format (should fail with proper error)"""
+        """Test BUG FIX 1 & 2: Subaccount drinks payment using old payment_type format (should now work with mapping)"""
         try:
-            self.log("Testing OLD API format that should cause 'Invalid payment_type' error...")
+            self.log("Testing OLD API format with backward compatibility mapping...")
             
             # Get initial balances
             initial_balances = self.get_employee_balances()
@@ -171,12 +171,15 @@ class SubaccountPaymentBugFixTest:
             initial_main_drinks = initial_balances['main_balances']['drinks_sweets']
             initial_subaccount_drinks = initial_balances['subaccount_balances'][self.dept2_id]['drinks']
             
-            # Try old format that should fail
+            self.log(f"Initial main account drinks balance: €{initial_main_drinks}")
+            self.log(f"Initial Dept 2 subaccount drinks balance: €{initial_subaccount_drinks}")
+            
+            # Try old format that should now work with mapping
             payment_data = {
-                "payment_type": "drinks",  # OLD FORMAT - should cause error
+                "payment_type": "drinks",  # OLD FORMAT - should now work with mapping
                 "amount": 10.0,
                 "payment_method": "cash",
-                "notes": "Test subaccount drinks payment - old format"
+                "notes": "Test subaccount drinks payment - old format with mapping"
             }
             
             response = requests.post(
@@ -184,17 +187,45 @@ class SubaccountPaymentBugFixTest:
                 json=payment_data
             )
             
-            if response.status_code == 400:
-                error_text = response.text
-                if "Invalid payment_type" in error_text:
-                    self.success("OLD API format correctly returns 'Invalid payment_type' error")
-                    self.log(f"Error message: {error_text}")
-                    return True
+            if response.status_code == 200:
+                result = response.json()
+                self.success("OLD API format now works with backward compatibility!")
+                self.log(f"Payment result: {result['message']}")
+                self.log(f"Balance type mapped to: {result['balance_type']}")
+                
+                # Verify the mapping worked correctly
+                if result['balance_type'] == 'drinks':
+                    self.success("✅ BUG FIX VERIFIED: 'drinks' payment_type correctly mapped to 'drinks' balance_type")
                 else:
-                    self.error(f"Expected 'Invalid payment_type' error, got: {error_text}")
+                    self.error(f"❌ Mapping issue: expected 'drinks', got '{result['balance_type']}'")
                     return False
+                
+                # Verify balances after payment
+                updated_balances = self.get_employee_balances()
+                if not updated_balances:
+                    return False
+                    
+                updated_main_drinks = updated_balances['main_balances']['drinks_sweets']
+                updated_subaccount_drinks = updated_balances['subaccount_balances'][self.dept2_id]['drinks']
+                
+                # CRITICAL TEST: Main account should be UNCHANGED
+                if abs(updated_main_drinks - initial_main_drinks) < 0.01:
+                    self.success(f"✅ BUG FIX VERIFIED: Main account unchanged (€{initial_main_drinks} → €{updated_main_drinks})")
+                else:
+                    self.error(f"❌ BUG NOT FIXED: Main account changed (€{initial_main_drinks} → €{updated_main_drinks})")
+                    return False
+                    
+                # CRITICAL TEST: Subaccount should be INCREASED by payment amount
+                expected_subaccount = initial_subaccount_drinks + 10.0
+                if abs(updated_subaccount_drinks - expected_subaccount) < 0.01:
+                    self.success(f"✅ BUG FIX VERIFIED: Subaccount correctly updated (€{initial_subaccount_drinks} → €{updated_subaccount_drinks})")
+                else:
+                    self.error(f"❌ BUG NOT FIXED: Subaccount incorrect (expected €{expected_subaccount}, got €{updated_subaccount_drinks})")
+                    return False
+                    
+                return True
             else:
-                self.error(f"Expected 400 Bad Request for old format, got: {response.status_code} - {response.text}")
+                self.error(f"OLD API format failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
