@@ -2341,6 +2341,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "boiled_eggs": 0,  # Add boiled eggs tracking
                             "fried_eggs": 0,  # Add fried eggs tracking
                             "has_lunch": False,  # Add lunch tracking
+                            "lunch_name": "",  # NEU: Name des Mittagessens
                             "has_coffee": False,  # Add coffee tracking
                             "notes": "",  # Initialize empty - will be populated during processing
                             "toppings": {}, 
