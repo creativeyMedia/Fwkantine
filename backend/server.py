@@ -3725,6 +3725,10 @@ async def mark_payment(employee_id: str, payment_type: str, amount: float, admin
     if not employee:
         raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
     
+    # Get readable department name
+    department_doc = await db.departments.find_one({"id": admin_department})
+    department_name = department_doc["name"] if department_doc else admin_department
+    
     # Create payment log
     payment_log = PaymentLog(
         employee_id=employee_id,
