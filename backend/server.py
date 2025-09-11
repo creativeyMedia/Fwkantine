@@ -2734,7 +2734,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                 "breakfast_summary": breakfast_summary,
                 "employee_orders": employee_orders,
                 "shopping_list": shopping_list,
-                "daily_lunch_price": daily_lunch_price  # Add daily lunch price
+                "daily_lunch_price": daily_lunch_price,  # Add daily lunch price
+                "lunch_name": lunch_name  # NEU: Add lunch name
             })
         
         current_date += timedelta(days=1)
