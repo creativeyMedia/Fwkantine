@@ -6355,37 +6355,63 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                         <div className="flex items-center space-x-2 bg-orange-50 px-3 py-1 rounded border border-orange-200">
                         <span className="font-medium text-orange-800">Mittagessen:</span>
                         {editingLunchPrice === day.date ? (
-                          <div className="flex items-center space-x-1">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={lunchPriceInput}
-                              onChange={(e) => setLunchPriceInput(e.target.value)}
-                              className="w-16 px-2 py-1 text-xs border border-orange-300 rounded focus:outline-none focus:border-orange-500"
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  updateLunchPrice(day.date);
-                                } else if (e.key === 'Escape') {
-                                  cancelEditingLunchPrice();
-                                }
-                              }}
-                              autoFocus
-                            />
-                            <span className="text-orange-600">€</span>
-                            <button
-                              onClick={() => updateLunchPrice(day.date)}
-                              disabled={updatingLunchPrice === day.date}
-                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-400"
-                            >
-                              {updatingLunchPrice === day.date ? '...' : '✓'}
-                            </button>
-                            <button
-                              onClick={cancelEditingLunchPrice}
-                              className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
-                            >
-                              ✕
-                            </button>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-1">
+                            {/* Preis Input */}
+                            <div className="flex items-center space-x-1">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={lunchPriceInput}
+                                onChange={(e) => setLunchPriceInput(e.target.value)}
+                                className="w-16 px-2 py-1 text-xs border border-orange-300 rounded focus:outline-none focus:border-orange-500"
+                                placeholder="Preis"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateLunchPrice(day.date);
+                                  } else if (e.key === 'Escape') {
+                                    cancelEditingLunchPrice();
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <span className="text-orange-600">€</span>
+                            </div>
+                            
+                            {/* NEU: Name Input */}
+                            <div className="flex items-center space-x-1">
+                              <input
+                                type="text"
+                                value={lunchNameInput}
+                                onChange={(e) => setLunchNameInput(e.target.value)}
+                                className="w-32 px-2 py-1 text-xs border border-orange-300 rounded focus:outline-none focus:border-orange-500"
+                                placeholder="z.B. Schnitzel mit Pommes"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateLunchPrice(day.date);
+                                  } else if (e.key === 'Escape') {
+                                    cancelEditingLunchPrice();
+                                  }
+                                }}
+                              />
+                            </div>
+                            
+                            {/* Buttons */}
+                            <div className="flex items-center space-x-1">
+                              <button
+                                onClick={() => updateLunchPrice(day.date)}
+                                disabled={updatingLunchPrice === day.date}
+                                className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:bg-gray-400"
+                              >
+                                {updatingLunchPrice === day.date ? '...' : '✓'}
+                              </button>
+                              <button
+                                onClick={cancelEditingLunchPrice}
+                                className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex items-center space-x-1">
