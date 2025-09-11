@@ -221,7 +221,7 @@ class SubaccountPaymentNotesTest:
                     self.success(f"Payment successful for {test_case['admin_dept']}")
                     
                     # Verify notes
-                    logs_response = requests.get(f"{API_BASE}/employees/{self.test_employee_id}/payment-logs")
+                    logs_response = requests.get(f"{API_BASE}/department-admin/payment-logs/{self.test_employee_id}")
                     if logs_response.status_code == 200:
                         payment_logs = logs_response.json()
                         latest_log = payment_logs[0]
