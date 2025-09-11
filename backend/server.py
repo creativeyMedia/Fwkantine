@@ -2411,11 +2411,23 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                                             "department_id": department_id,
                                             "date": current_date.isoformat()
                                         })
+                                        lunch_price_to_subtract = 0.0
                                         if daily_lunch_price_doc:
-                                            remaining_cost -= daily_lunch_price_doc["lunch_price"]
+                                            lunch_price_to_subtract = daily_lunch_price_doc["lunch_price"]
                                         else:
-                                            # NEW: Default to 0.0 for new days - admin must set price manually each day
-                                            remaining_cost -= 0.0
+                                            # KORRIGIERT: Use original order lunch price as fallback
+                                            # This ensures sponsored lunch is properly deducted even if daily price missing
+                                            order_lunch_price = item.get("lunch_price", 0.0)
+                                            if order_lunch_price > 0:
+                                                lunch_price_to_subtract = order_lunch_price
+                                            else:
+                                                # Last fallback: Use global lunch settings
+                                                lunch_settings = await db.lunch_settings.find_one()
+                                                if lunch_settings:
+                                                    lunch_price_to_subtract = lunch_settings.get("price", 0.0)
+                                        
+                                        print(f"DEBUG LUNCH SPONSORING: Subtracting lunch price: {lunch_price_to_subtract}")
+                                        remaining_cost -= lunch_price_to_subtract
                                         break
                             
                             # Employee pays only the remaining cost (e.g., coffee)
