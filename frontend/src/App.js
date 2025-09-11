@@ -779,8 +779,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               <p className={`font-semibold ${isCancelled ? 'text-red-600' : 'text-red-600'}`}>
                                 {(() => {
                                   const displayPrice = calculateDisplayPrice(item);
-                                  const formattedPrice = Math.abs(displayPrice).toFixed(2);
-                                  return displayPrice > 0 ? `-${formattedPrice} €` : formattedPrice === '0.00' ? '0.00 €' : `-${formattedPrice} €`;
+                                  if (displayPrice === 0) {
+                                    return '0.00 €';
+                                  }
+                                  return `-${displayPrice.toFixed(2)} €`;
                                 })()}
                               </p>
                             </div>
