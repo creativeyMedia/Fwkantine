@@ -6760,9 +6760,13 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
     setShowPaymentModal(true);
   };
 
-  const handleBalanceUpdated = () => {
-    // Refresh the employee list after balance update
-    fetchOtherEmployeesWithBalances();
+  const handleBalanceUpdated = async () => {
+    // ERWEITERT: Refresh all relevant data after balance update
+    await fetchOtherEmployeesWithBalances();
+    // KORRIGIERT: Auto-refresh auch die aktuelle Ansicht updaten
+    if (typeof fetchBreakfastHistory === 'function') {
+      await fetchBreakfastHistory();
+    }
   };
 
   if (isLoading) {
