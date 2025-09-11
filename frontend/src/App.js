@@ -777,7 +777,11 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                           <div className="flex items-center gap-2">
                             <div className="text-right">
                               <p className={`font-semibold ${isCancelled ? 'text-red-600' : 'text-red-600'}`}>
-                                -{Math.abs(calculateDisplayPrice(item)).toFixed(2)} €
+                                {(() => {
+                                  const displayPrice = calculateDisplayPrice(item);
+                                  const formattedPrice = Math.abs(displayPrice).toFixed(2);
+                                  return displayPrice > 0 ? `-${formattedPrice} €` : formattedPrice === '0.00' ? '0.00 €' : `-${formattedPrice} €`;
+                                })()}
                               </p>
                             </div>
                             {/* Delete button only for cancellable orders */}
