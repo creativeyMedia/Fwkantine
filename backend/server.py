@@ -1650,7 +1650,7 @@ async def get_daily_lunch_settings(department_id: str):
     return {"daily_prices": daily_prices}
 
 @api_router.put("/daily-lunch-settings/{department_id}/{date}")
-async def set_daily_lunch_price(department_id: str, date: str, lunch_price: float):
+async def set_daily_lunch_price(department_id: str, date: str, lunch_price: float, lunch_name: str = ""):
     """Set lunch price for a specific day and department"""
     
     # Validate date format
