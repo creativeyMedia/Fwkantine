@@ -336,6 +336,120 @@ class GuestEmployeeOrderTester:
         
         return test_results
     
+    async def test_problematic_employee_scenarios(self):
+        """Test specific scenarios that might cause 400 errors"""
+        print(f"\n{'='*60}")
+        print(f"🚨 TESTING PROBLEMATIC EMPLOYEE SCENARIOS")
+        print(f"{'='*60}")
+        
+        problematic_scenarios = []
+        
+        # Scenario 1: Try to create order with employee that might have missing subaccount_balances
+        print(f"\n🧪 SCENARIO 1: Testing order with potentially incomplete employee data")
+        
+        # Get existing employees to test with
+        response, status = await self.make_request('GET', '/departments/fw4abteilung1/employees')
+        if status == 200 and response:
+            existing_employees = response
+            print(f"Found {len(existing_employees)} existing employees in fw4abteilung1")
+            
+            # Test with first few existing employees
+            for i, employee in enumerate(existing_employees[:3]):
+                employee_id = employee.get('id')
+                employee_name = employee.get('name', f'Employee_{i}')
+                
+                print(f"\n🔍 Testing existing employee: {employee_name}")
+                
+                # Check their data structure
+                data_ok = await self.test_employee_data_structure(employee_id, employee_name)
+                
+                # Try to create order as guest in another department
+                print(f"🧪 Testing guest order for existing employee {employee_name}")
+                
+                # Add as temporary employee to department 2
+                assignment = await self.create_temporary_assignment('fw4abteilung2', employee_id)
+                
+                if assignment:
+                    # Try to create order
+                    order_response, order_success = await self.create_breakfast_order(
+                        employee_id, 
+                        'fw4abteilung2', 
+                        f"Existing employee guest order test - {employee_name}"
+                    )
+                    
+                    scenario_result = {
+                        'employee_name': employee_name,
+                        'employee_id': employee_id,
+                        'data_structure_ok': data_ok,
+                        'temporary_assignment_ok': True,
+                        'order_success': order_success,
+                        'error_details': [] if order_success else [str(order_response)]
+                    }
+                    
+                    if not order_success:
+                        print(f"🚨 FOUND PROBLEMATIC SCENARIO!")
+                        print(f"   Employee: {employee_name}")
+                        print(f"   Error: {order_response}")
+                        
+                    problematic_scenarios.append(scenario_result)
+                else:
+                    print(f"❌ Could not create temporary assignment for {employee_name}")
+        
+        # Scenario 2: Test with employees from different departments
+        print(f"\n🧪 SCENARIO 2: Cross-department testing with existing employees")
+        
+        for dept in self.departments[:2]:  # Test first 2 departments
+            dept_id = dept['id']
+            dept_name = dept['name']
+            
+            response, status = await self.make_request('GET', f'/departments/{dept_id}/employees')
+            if status == 200 and response and len(response) > 0:
+                # Test with first employee from this department
+                employee = response[0]
+                employee_id = employee.get('id')
+                employee_name = employee.get('name', 'Unknown')
+                
+                print(f"\n🔍 Testing {dept_name} employee: {employee_name}")
+                
+                # Try to create order in their home department first
+                home_order_response, home_order_success = await self.create_breakfast_order(
+                    employee_id, 
+                    dept_id, 
+                    f"Home department order - {employee_name}"
+                )
+                
+                # Try to create order as guest in another department
+                target_dept_id = 'fw4abteilung3' if dept_id != 'fw4abteilung3' else 'fw4abteilung4'
+                
+                assignment = await self.create_temporary_assignment(target_dept_id, employee_id)
+                if assignment:
+                    guest_order_response, guest_order_success = await self.create_breakfast_order(
+                        employee_id, 
+                        target_dept_id, 
+                        f"Guest order from {dept_name} - {employee_name}"
+                    )
+                    
+                    scenario_result = {
+                        'employee_name': employee_name,
+                        'employee_id': employee_id,
+                        'home_department': dept_id,
+                        'target_department': target_dept_id,
+                        'home_order_success': home_order_success,
+                        'guest_order_success': guest_order_success,
+                        'home_error': [] if home_order_success else [str(home_order_response)],
+                        'guest_error': [] if guest_order_success else [str(guest_order_response)]
+                    }
+                    
+                    if not guest_order_success:
+                        print(f"🚨 FOUND GUEST ORDER FAILURE!")
+                        print(f"   Employee: {employee_name} from {dept_name}")
+                        print(f"   Target: {target_dept_id}")
+                        print(f"   Error: {guest_order_response}")
+                    
+                    problematic_scenarios.append(scenario_result)
+        
+        return problematic_scenarios
+    
     async def test_regular_employee_orders(self, dept_info):
         """Test regular employee orders to establish baseline"""
         dept_id = dept_info["id"]
