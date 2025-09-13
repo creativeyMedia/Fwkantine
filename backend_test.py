@@ -214,123 +214,124 @@ class GuestEmployeeOrderTester:
             print(f"   Error: {response}")
             return response, False
     
-    async def test_reset_subaccount_balance(self, employee_id, admin_department, expected_dept_name):
-        """Test reset subaccount balance and verify admin display"""
-        print(f"\n🧪 Testing reset_subaccount_balance for {admin_department}")
+    async def test_employee_data_structure(self, employee_id, employee_name):
+        """Test employee data structure to identify missing fields"""
+        print(f"\n🔍 Analyzing employee data structure for {employee_name}")
         
-        response, status = await self.make_request(
-            'POST', 
-            f'/department-admin/reset-subaccount-balance/{employee_id}',
-            params={
-                "balance_type": "breakfast",
-                "admin_department": admin_department
-            }
-        )
-        
-        if status == 200:
-            print(f"✅ Reset subaccount balance successful")
-            return True
-        else:
-            print(f"❌ Reset subaccount balance failed: {response}")
+        profile = await self.get_employee_profile(employee_id)
+        if not profile:
+            print("❌ Could not get employee profile")
             return False
-    
-    async def test_flexible_payment(self, employee_id, admin_department, expected_dept_name):
-        """Test flexible payment and verify admin display"""
-        print(f"\n🧪 Testing flexible_payment for {admin_department}")
         
-        payment_data = {
-            "payment_type": "breakfast",
-            "amount": 15.0,
-            "payment_method": "cash",
-            "notes": "Test flexible payment for admin display verification"
+        # Check critical fields that might cause 400 errors
+        critical_fields = {
+            'id': profile.get('id'),
+            'name': profile.get('name'),
+            'department_id': profile.get('department_id'),
+            'breakfast_balance': profile.get('breakfast_balance'),
+            'drinks_sweets_balance': profile.get('drinks_sweets_balance'),
+            'subaccount_balances': profile.get('subaccount_balances')
         }
         
-        response, status = await self.make_request(
-            'POST', 
-            f'/department-admin/flexible-payment/{employee_id}',
-            payment_data,
-            params={"admin_department": admin_department}
+        print("📋 Employee Data Structure:")
+        missing_fields = []
+        for field, value in critical_fields.items():
+            if value is None:
+                print(f"   ❌ {field}: MISSING (None)")
+                missing_fields.append(field)
+            else:
+                print(f"   ✅ {field}: {value}")
+        
+        # Check subaccount_balances structure
+        subaccounts = profile.get('subaccount_balances')
+        if subaccounts:
+            print("📋 Subaccount Balances Structure:")
+            for dept_id, balances in subaccounts.items():
+                breakfast_bal = balances.get('breakfast', 'MISSING')
+                drinks_bal = balances.get('drinks', 'MISSING')
+                print(f"   {dept_id}: breakfast={breakfast_bal}, drinks={drinks_bal}")
+        else:
+            print("❌ subaccount_balances: COMPLETELY MISSING")
+            missing_fields.append('subaccount_balances')
+        
+        if missing_fields:
+            print(f"⚠️  POTENTIAL ISSUE: Missing fields could cause 400 errors: {missing_fields}")
+            return False
+        else:
+            print("✅ Employee data structure appears complete")
+            return True
+    
+    async def test_guest_employee_scenario(self, home_dept, target_dept):
+        """Test the exact guest employee scenario that causes 400 errors"""
+        print(f"\n{'='*60}")
+        print(f"🎯 CRITICAL TEST: Guest Employee Ordering")
+        print(f"   Home Department: {home_dept['name']}")
+        print(f"   Target Department: {target_dept['name']}")
+        print(f"{'='*60}")
+        
+        test_results = {
+            'employee_creation': False,
+            'data_structure_check': False,
+            'temporary_assignment': False,
+            'guest_order_creation': False,
+            'error_details': []
+        }
+        
+        # Step 1: Create employee in home department
+        employee_name = f"GuestTest_{home_dept['id']}_to_{target_dept['id']}"
+        employee = await self.create_test_employee(home_dept['id'], employee_name, is_guest=False)
+        
+        if not employee:
+            test_results['error_details'].append("Failed to create test employee")
+            return test_results
+        
+        test_results['employee_creation'] = True
+        employee_id = employee['id']
+        
+        # Step 2: Check employee data structure
+        data_structure_ok = await self.test_employee_data_structure(employee_id, employee_name)
+        test_results['data_structure_check'] = data_structure_ok
+        
+        # Step 3: Add as temporary employee to target department
+        assignment = await self.create_temporary_assignment(target_dept['id'], employee_id)
+        if assignment:
+            test_results['temporary_assignment'] = True
+            print(f"✅ Employee successfully added as guest worker")
+        else:
+            test_results['error_details'].append("Failed to create temporary assignment")
+            print(f"❌ Failed to add employee as guest worker")
+        
+        # Step 4: Try to create order in target department (THE CRITICAL TEST)
+        print(f"\n🚨 CRITICAL TEST: Creating order as guest employee...")
+        order_response, order_success = await self.create_breakfast_order(
+            employee_id, 
+            target_dept['id'], 
+            f"Guest order from {home_dept['name']} to {target_dept['name']}"
         )
         
-        if status == 200:
-            print(f"✅ Flexible payment successful")
-            return True
-        else:
-            print(f"❌ Flexible payment failed: {response}")
-            return False
-    
-    async def test_mark_payment(self, employee_id, admin_department, expected_dept_name):
-        """Test mark payment and verify admin display"""
-        print(f"\n🧪 Testing mark_payment for {admin_department}")
+        test_results['guest_order_creation'] = order_success
         
-        response, status = await self.make_request(
-            'POST', 
-            f'/department-admin/mark-payment/{employee_id}',
-            params={
-                "payment_type": "breakfast",
-                "amount": 20.0,
-                "admin_department": admin_department
-            }
-        )
-        
-        if status == 200:
-            print(f"✅ Mark payment successful")
-            return True
-        else:
-            print(f"❌ Mark payment failed: {response}")
-            return False
-    
-    async def get_payment_logs(self, employee_id):
-        """Get payment logs for an employee to verify admin display"""
-        response, status = await self.make_request('GET', f'/employees/{employee_id}/payment-logs')
-        
-        if status == 200:
-            return response
-        else:
-            print(f"❌ Failed to get payment logs: {response}")
-            return None
-    
-    async def verify_admin_display_in_logs(self, employee_id, expected_dept_name):
-        """Verify that payment logs show correct admin display"""
-        print(f"\n🔍 Verifying admin display in payment logs...")
-        
-        logs = await self.get_payment_logs(employee_id)
-        if not logs:
-            print("❌ No payment logs found")
-            return False
-        
-        success_count = 0
-        total_logs = len(logs) if isinstance(logs, list) else 0
-        
-        if total_logs == 0:
-            print("❌ No payment logs to verify")
-            return False
-        
-        for log in logs:
-            admin_user = log.get('admin_user', '')
-            notes = log.get('notes', '')
+        if not order_success:
+            # This is the critical failure we're debugging
+            print(f"🚨 CRITICAL FAILURE DETECTED!")
+            print(f"   Status: {order_response}")
+            test_results['error_details'].append(f"Guest order failed: {order_response}")
             
-            print(f"📋 Payment Log:")
-            print(f"   Admin: {admin_user}")
-            print(f"   Notes: {notes}")
-            
-            # Check if admin field shows user-friendly name instead of technical ID
-            if expected_dept_name in admin_user:
-                print(f"   ✅ Admin field correct: Shows '{expected_dept_name}' (user-friendly)")
-                success_count += 1
-            else:
-                print(f"   ❌ Admin field incorrect: Shows '{admin_user}' instead of '{expected_dept_name}'")
-            
-            # Check if notes field shows user-friendly department name
-            if f"Zahlung in {expected_dept_name}" in notes:
-                print(f"   ✅ Notes field correct: Contains 'Zahlung in {expected_dept_name}'")
-            else:
-                print(f"   ⚠️  Notes field: '{notes}' (may not contain expected text)")
+            # Additional debugging
+            if isinstance(order_response, dict):
+                error_detail = order_response.get('detail', 'No detail provided')
+                print(f"   Error Detail: {error_detail}")
+                
+                # Check for specific error patterns
+                if "Fehler beim Prüfen bestehender Bestellungen" in str(error_detail):
+                    print("🔍 ERROR PATTERN: 'Fehler beim Prüfen bestehender Bestellungen'")
+                    test_results['error_details'].append("Error checking existing orders")
+                
+                if "Fehler beim Speichern der Bestellung" in str(error_detail):
+                    print("🔍 ERROR PATTERN: 'Fehler beim Speichern der Bestellung'")
+                    test_results['error_details'].append("Error saving order")
         
-        success_rate = (success_count / total_logs) * 100
-        print(f"\n📊 Admin Display Verification: {success_count}/{total_logs} logs correct ({success_rate:.1f}%)")
-        
-        return success_count == total_logs
+        return test_results
     
     async def test_department(self, dept_info):
         """Test all payment functions for a specific department"""
