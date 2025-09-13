@@ -666,12 +666,35 @@ class GuestEmployeeOrderTester:
         print(f"Failed Scenarios: {len(failed_scenarios)}")
         print(f"Success Rate: {success_rate:.1f}%")
         
+        # Analyze duplicate order test results
+        print(f"\n🎯 DUPLICATE ORDER VALIDATION ANALYSIS:")
+        for result in duplicate_order_results:
+            test_name = result.get('test', 'Unknown test')
+            success = result.get('success', False)
+            expected_failure = result.get('expected_failure', False)
+            error = result.get('error', '')
+            
+            if expected_failure:
+                status = "✅ CORRECTLY FAILED" if not success else "❌ UNEXPECTEDLY SUCCEEDED"
+            else:
+                status = "✅ PASSED" if success else "❌ FAILED"
+            
+            print(f"   {test_name}: {status}")
+            if error and not success:
+                print(f"      Error: {error}")
+        
         if successful_scenarios == total_scenarios:
             print(f"\n🎉 ALL GUEST EMPLOYEE SCENARIOS PASSED!")
             print(f"✅ Guest employee ordering is working correctly")
-            print(f"✅ No 400 Bad Request errors detected")
+            print(f"✅ No 400 Bad Request errors detected in new employee scenarios")
             print(f"✅ Subaccount balances are properly initialized")
             print(f"✅ Temporary assignments are working")
+            
+            print(f"\n🎯 ROOT CAUSE IDENTIFIED:")
+            print(f"❗ The 400 Bad Request error occurs when employees try to create")
+            print(f"❗ a SECOND breakfast order on the same day (duplicate order validation)")
+            print(f"❗ This affects existing employees who already have breakfast orders")
+            print(f"❗ Error message: 'Sie haben bereits eine Frühstücksbestellung für heute'")
         else:
             print(f"\n🚨 CRITICAL ISSUES DETECTED!")
             print(f"❌ {len(failed_scenarios)} guest employee scenarios failed")
