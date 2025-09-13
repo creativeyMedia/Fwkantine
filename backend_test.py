@@ -526,6 +526,9 @@ class GuestEmployeeOrderTester:
         # Run cross-department testing
         scenario_results = await self.test_cross_department_scenarios()
         
+        # Run problematic employee scenarios testing
+        problematic_results = await self.test_problematic_employee_scenarios()
+        
         # Analyze results
         total_scenarios = len(scenario_results)
         successful_scenarios = 0
