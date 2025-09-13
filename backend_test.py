@@ -488,13 +488,13 @@ class GuestEmployeeOrderTester:
 
 async def main():
     """Main test execution"""
-    async with PaymentLogTester() as tester:
+    async with GuestEmployeeOrderTester() as tester:
         success = await tester.run_comprehensive_test()
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Admin Display Fix in Payment Logs")
-    print("=" * 60)
+    print("Backend Test Suite: Critical Guest Employee Ordering Bug Debug")
+    print("=" * 70)
     
     try:
         result = asyncio.run(main())
