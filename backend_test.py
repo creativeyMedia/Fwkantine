@@ -92,6 +92,21 @@ class GuestEmployeeOrderTester:
             print(f"❌ Admin authentication failed for {department_name}: {response}")
             return None
     
+    async def authenticate_department(self, department_name, password):
+        """Authenticate as department user"""
+        auth_data = {
+            "department_name": department_name,
+            "password": password
+        }
+        
+        response, status = await self.make_request('POST', '/login/department', auth_data)
+        if status == 200:
+            print(f"✅ Department authentication successful for {department_name}")
+            return response
+        else:
+            print(f"❌ Department authentication failed for {department_name}: {response}")
+            return None
+    
     async def create_test_employee(self, department_id, name):
         """Create a test employee for payment testing"""
         employee_data = {
