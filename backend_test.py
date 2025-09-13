@@ -107,20 +107,52 @@ class GuestEmployeeOrderTester:
             print(f"❌ Department authentication failed for {department_name}: {response}")
             return None
     
-    async def create_test_employee(self, department_id, name):
-        """Create a test employee for payment testing"""
+    async def create_test_employee(self, department_id, name, is_guest=False):
+        """Create a test employee for ordering testing"""
         employee_data = {
             "name": name,
             "department_id": department_id,
-            "is_guest": False
+            "is_guest": is_guest
         }
         
         response, status = await self.make_request('POST', '/employees', employee_data)
         if status == 200:
-            print(f"✅ Created test employee: {name} in {department_id}")
+            print(f"✅ Created test employee: {name} in {department_id} (guest: {is_guest})")
             return response
         else:
             print(f"❌ Failed to create employee {name}: {response}")
+            return None
+    
+    async def get_employee_profile(self, employee_id):
+        """Get employee profile to check data structure"""
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
+        if status == 200:
+            return response
+        else:
+            print(f"❌ Failed to get employee profile: {response}")
+            return None
+    
+    async def create_temporary_assignment(self, department_id, employee_id):
+        """Add employee as temporary worker to another department"""
+        assignment_data = {
+            "employee_id": employee_id
+        }
+        
+        response, status = await self.make_request('POST', f'/departments/{department_id}/temporary-employees', assignment_data)
+        if status == 200:
+            print(f"✅ Created temporary assignment for employee {employee_id} in {department_id}")
+            return response
+        else:
+            print(f"❌ Failed to create temporary assignment: {response}")
+            return None
+    
+    async def get_temporary_employees(self, department_id):
+        """Get temporary employees for a department"""
+        response, status = await self.make_request('GET', f'/departments/{department_id}/temporary-employees')
+        if status == 200:
+            return response
+        else:
+            print(f"❌ Failed to get temporary employees: {response}")
             return None
     
     async def test_subaccount_flexible_payment(self, employee_id, admin_department, expected_dept_name):
