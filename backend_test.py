@@ -397,44 +397,94 @@ class GuestEmployeeOrderTester:
         return scenario_results
     
     async def run_comprehensive_test(self):
-        """Run comprehensive test of admin display fix across all departments"""
-        print("🚀 STARTING COMPREHENSIVE ADMIN DISPLAY TEST")
+        """Run comprehensive test of guest employee ordering issue"""
+        print("🚀 STARTING CRITICAL GUEST EMPLOYEE ORDERING DEBUG TEST")
         print("=" * 80)
-        print("Testing corrected admin display in payment_logs:")
-        print("- BEFORE: Admin: fw4abteilung1 (technical ID)")
-        print("- AFTER:  Admin: 1. Wachabteilung (user-friendly name)")
+        print("DEBUGGING: 400 Bad Request beim Bestellen als Gastmitarbeiter")
+        print("- Error: 'Fehler beim Prüfen bestehender Bestellungen'")
+        print("- Error: 'Fehler beim Speichern der Bestellung'")
+        print("- Issue: Only affects certain employees, not all")
         print("=" * 80)
         
-        department_results = []
+        # Run cross-department testing
+        scenario_results = await self.test_cross_department_scenarios()
         
-        # Test each department
-        for dept_info in self.departments:
-            dept_result = await self.test_department(dept_info)
-            department_results.append(dept_result)
-        
-        # Final summary
-        successful_depts = sum(department_results)
-        total_depts = len(department_results)
+        # Analyze results
+        total_scenarios = len(scenario_results)
+        successful_scenarios = 0
+        failed_scenarios = []
         
         print(f"\n{'='*80}")
-        print(f"🎯 FINAL TEST RESULTS")
+        print(f"🎯 DETAILED TEST RESULTS ANALYSIS")
         print(f"{'='*80}")
-        print(f"Departments Tested: {total_depts}")
-        print(f"Departments Passed: {successful_depts}")
-        print(f"Success Rate: {(successful_depts/total_depts)*100:.1f}%")
         
-        if successful_depts == total_depts:
-            print(f"\n🎉 ALL TESTS PASSED!")
-            print(f"✅ Admin display fix is working correctly across all departments")
-            print(f"✅ Admin field shows user-friendly names like '1. Wachabteilung'")
-            print(f"✅ Notes field shows 'Zahlung in X. Wachabteilung'")
-            print(f"✅ System is ready for live testing!")
+        for scenario in scenario_results:
+            home_dept = scenario['home_dept']
+            target_dept = scenario['target_dept']
+            results = scenario['results']
+            
+            print(f"\n📋 SCENARIO: {home_dept} → {target_dept}")
+            print(f"   Employee Creation: {'✅' if results['employee_creation'] else '❌'}")
+            print(f"   Data Structure: {'✅' if results['data_structure_check'] else '❌'}")
+            print(f"   Temporary Assignment: {'✅' if results['temporary_assignment'] else '❌'}")
+            print(f"   Guest Order Creation: {'✅' if results['guest_order_creation'] else '❌'}")
+            
+            if results['error_details']:
+                print(f"   🚨 ERRORS:")
+                for error in results['error_details']:
+                    print(f"      - {error}")
+            
+            # Count as successful if guest order creation worked
+            if results['guest_order_creation']:
+                successful_scenarios += 1
+                print(f"   ✅ SCENARIO PASSED")
+            else:
+                failed_scenarios.append(scenario)
+                print(f"   ❌ SCENARIO FAILED")
+        
+        # Final analysis
+        success_rate = (successful_scenarios / total_scenarios) * 100 if total_scenarios > 0 else 0
+        
+        print(f"\n{'='*80}")
+        print(f"🎯 FINAL ANALYSIS")
+        print(f"{'='*80}")
+        print(f"Total Scenarios Tested: {total_scenarios}")
+        print(f"Successful Scenarios: {successful_scenarios}")
+        print(f"Failed Scenarios: {len(failed_scenarios)}")
+        print(f"Success Rate: {success_rate:.1f}%")
+        
+        if successful_scenarios == total_scenarios:
+            print(f"\n🎉 ALL GUEST EMPLOYEE SCENARIOS PASSED!")
+            print(f"✅ Guest employee ordering is working correctly")
+            print(f"✅ No 400 Bad Request errors detected")
+            print(f"✅ Subaccount balances are properly initialized")
+            print(f"✅ Temporary assignments are working")
         else:
-            failed_depts = total_depts - successful_depts
-            print(f"\n❌ {failed_depts} DEPARTMENT(S) FAILED")
-            print(f"❌ Admin display fix needs attention")
+            print(f"\n🚨 CRITICAL ISSUES DETECTED!")
+            print(f"❌ {len(failed_scenarios)} guest employee scenarios failed")
+            print(f"❌ This explains the user-reported 400 Bad Request errors")
+            
+            # Identify patterns in failures
+            print(f"\n🔍 FAILURE PATTERN ANALYSIS:")
+            error_patterns = {}
+            for scenario in failed_scenarios:
+                for error in scenario['results']['error_details']:
+                    error_patterns[error] = error_patterns.get(error, 0) + 1
+            
+            for error, count in error_patterns.items():
+                print(f"   - '{error}': {count} occurrences")
+            
+            print(f"\n💡 RECOMMENDED FIXES:")
+            if any("Error checking existing orders" in error for scenario in failed_scenarios for error in scenario['results']['error_details']):
+                print(f"   1. Fix 'Fehler beim Prüfen bestehender Bestellungen' validation logic")
+            if any("Error saving order" in error for scenario in failed_scenarios for error in scenario['results']['error_details']):
+                print(f"   2. Fix 'Fehler beim Speichern der Bestellung' save logic")
+            if any("subaccount_balances" in str(scenario['results']) for scenario in failed_scenarios):
+                print(f"   3. Ensure initialize_subaccount_balances is called for all employees")
+            if any("temporary assignment" in str(scenario['results']) for scenario in failed_scenarios):
+                print(f"   4. Fix temporary employee assignment logic")
         
-        return successful_depts == total_depts
+        return successful_scenarios == total_scenarios
 
 async def main():
     """Main test execution"""
