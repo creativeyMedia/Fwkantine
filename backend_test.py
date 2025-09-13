@@ -1,17 +1,30 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Admin Display Fix in Payment Logs
+Backend Test Suite for Critical Guest Employee Ordering Bug
 
-Tests the corrected admin display in payment_logs where admin field should show
-user-friendly names like "1. Wachabteilung" instead of technical IDs like "fw4abteilung1".
+CRITICAL LIVE PROBLEM:
+User reports: "400 Bad Request beim Bestellen als Gastmitarbeiter - betrifft nur manche Mitarbeiter, bei anderen geht es"
+
+ERROR DETAILS:
+- POST /api/orders 400 (Bad Request) 
+- "Fehler beim Prüfen bestehender Bestellungen"
+- "Fehler beim Speichern der Bestellung"
+- Only affects certain employees, not all
+
+SUSPECTED DATA INCONSISTENCIES:
+The problem points to different data structures between old/new employees:
+1. Missing subaccount_balances: Old employees may not have Sub-Account structure
+2. Null/undefined fields: Critical fields could be missing
+3. Temporary Assignment Problems: Guest employee assignment fails
+4. Validation errors: Backend validation fails for certain employee data
 
 Test Focus:
-- subaccount_flexible_payment function
-- reset_subaccount_balance function  
-- flexible_payment function
-- mark_payment function
-- Verify admin_user field uses department_name instead of admin_department
-- Test all 4 departments (1. WA, 2. WA, 3. WA, 4. WA)
+- Test create_order endpoint with different employee data structures
+- Test employees with/without subaccount_balances
+- Test temporary employee assignments (guest workers)
+- Identify exact cause of 400 Bad Request errors
+- Test initialize_subaccount_balances functionality
+- Test backend validation logic
 """
 
 import asyncio
