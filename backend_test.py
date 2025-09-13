@@ -619,6 +619,9 @@ class GuestEmployeeOrderTester:
         # Run problematic employee scenarios testing
         problematic_results = await self.test_problematic_employee_scenarios()
         
+        # Run the critical duplicate order validation test
+        duplicate_order_results = await self.test_duplicate_order_validation()
+        
         # Analyze results
         total_scenarios = len(scenario_results)
         successful_scenarios = 0
