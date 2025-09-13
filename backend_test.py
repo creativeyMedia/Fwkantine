@@ -333,63 +333,68 @@ class GuestEmployeeOrderTester:
         
         return test_results
     
-    async def test_department(self, dept_info):
-        """Test all payment functions for a specific department"""
+    async def test_regular_employee_orders(self, dept_info):
+        """Test regular employee orders to establish baseline"""
         dept_id = dept_info["id"]
         dept_name = dept_info["name"]
-        admin_password = dept_info["admin_password"]
         
-        print(f"\n{'='*60}")
-        print(f"🏢 TESTING DEPARTMENT: {dept_name} ({dept_id})")
-        print(f"{'='*60}")
+        print(f"\n🧪 Testing regular employee orders in {dept_name}")
         
-        # Authenticate as admin
-        auth_result = await self.authenticate_admin(dept_name, admin_password)
-        if not auth_result:
-            print(f"❌ Cannot test {dept_name} - authentication failed")
+        # Create regular employee
+        regular_employee = await self.create_test_employee(dept_id, f"RegularEmployee_{dept_id}")
+        if not regular_employee:
             return False
         
-        # Create test employee for this department
-        test_employee_name = f"TestEmployee_{dept_id}"
-        employee = await self.create_test_employee(dept_id, test_employee_name)
-        if not employee:
-            print(f"❌ Cannot test {dept_name} - employee creation failed")
+        employee_id = regular_employee['id']
+        
+        # Test data structure
+        data_ok = await self.test_employee_data_structure(employee_id, f"RegularEmployee_{dept_id}")
+        
+        # Test regular order creation
+        order_response, order_success = await self.create_breakfast_order(employee_id, dept_id, "Regular employee order")
+        
+        if order_success:
+            print(f"✅ Regular employee order successful in {dept_name}")
+            return True
+        else:
+            print(f"❌ Regular employee order failed in {dept_name}: {order_response}")
             return False
+    
+    async def test_cross_department_scenarios(self):
+        """Test all cross-department guest employee scenarios"""
+        print(f"\n{'='*80}")
+        print(f"🎯 COMPREHENSIVE GUEST EMPLOYEE TESTING")
+        print(f"{'='*80}")
         
-        employee_id = employee["id"]
-        self.test_employees[dept_id] = employee_id
+        scenario_results = []
         
-        # Test all 4 payment functions
-        test_results = []
+        # Test regular employees first (baseline)
+        print(f"\n📋 BASELINE TEST: Regular Employee Orders")
+        for dept in self.departments:
+            regular_result = await self.test_regular_employee_orders(dept)
+            if not regular_result:
+                print(f"⚠️  Baseline test failed for {dept['name']} - may indicate broader issues")
         
-        # 1. Test subaccount_flexible_payment
-        result1 = await self.test_subaccount_flexible_payment(employee_id, dept_id, dept_name)
-        test_results.append(result1)
+        # Test guest employee scenarios (the critical issue)
+        print(f"\n📋 CRITICAL TEST: Guest Employee Cross-Department Orders")
         
-        # 2. Test flexible_payment
-        result2 = await self.test_flexible_payment(employee_id, dept_id, dept_name)
-        test_results.append(result2)
+        # Test key scenarios that are most likely to fail
+        critical_scenarios = [
+            (self.departments[0], self.departments[1]),  # Dept 1 -> Dept 2
+            (self.departments[1], self.departments[0]),  # Dept 2 -> Dept 1
+            (self.departments[0], self.departments[2]),  # Dept 1 -> Dept 3
+            (self.departments[2], self.departments[0]),  # Dept 3 -> Dept 1
+        ]
         
-        # 3. Test mark_payment
-        result3 = await self.test_mark_payment(employee_id, dept_id, dept_name)
-        test_results.append(result3)
+        for home_dept, target_dept in critical_scenarios:
+            scenario_result = await self.test_guest_employee_scenario(home_dept, target_dept)
+            scenario_results.append({
+                'home_dept': home_dept['name'],
+                'target_dept': target_dept['name'],
+                'results': scenario_result
+            })
         
-        # 4. Test reset_subaccount_balance (after creating some balance)
-        result4 = await self.test_reset_subaccount_balance(employee_id, dept_id, dept_name)
-        test_results.append(result4)
-        
-        # Verify admin display in payment logs
-        admin_display_correct = await self.verify_admin_display_in_logs(employee_id, dept_name)
-        
-        # Summary for this department
-        successful_tests = sum(test_results)
-        total_tests = len(test_results)
-        
-        print(f"\n📊 DEPARTMENT {dept_name} SUMMARY:")
-        print(f"   Payment Functions: {successful_tests}/{total_tests} successful")
-        print(f"   Admin Display: {'✅ CORRECT' if admin_display_correct else '❌ INCORRECT'}")
-        
-        return successful_tests == total_tests and admin_display_correct
+        return scenario_results
     
     async def run_comprehensive_test(self):
         """Run comprehensive test of admin display fix across all departments"""
