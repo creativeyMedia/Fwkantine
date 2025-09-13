@@ -450,6 +450,96 @@ class GuestEmployeeOrderTester:
         
         return problematic_scenarios
     
+    async def test_duplicate_order_validation(self):
+        """Test the specific duplicate order validation that causes 400 errors"""
+        print(f"\n{'='*60}")
+        print(f"🎯 CRITICAL FINDING: DUPLICATE ORDER VALIDATION TEST")
+        print(f"{'='*60}")
+        print(f"Found the root cause: 400 Bad Request occurs when employee")
+        print(f"tries to create a SECOND breakfast order on the same day!")
+        print(f"Error: 'Sie haben bereits eine Frühstücksbestellung für heute'")
+        
+        test_results = []
+        
+        # Test 1: Create employee and first order (should succeed)
+        print(f"\n🧪 TEST 1: First breakfast order (should succeed)")
+        employee = await self.create_test_employee('fw4abteilung1', 'DuplicateOrderTest')
+        if not employee:
+            return [{'error': 'Could not create test employee'}]
+        
+        employee_id = employee['id']
+        
+        # First order should succeed
+        first_order, first_success = await self.create_breakfast_order(
+            employee_id, 
+            'fw4abteilung1', 
+            "First breakfast order of the day"
+        )
+        
+        test_results.append({
+            'test': 'First breakfast order in home department',
+            'success': first_success,
+            'error': None if first_success else str(first_order)
+        })
+        
+        # Test 2: Try second order in same department (should fail)
+        print(f"\n🧪 TEST 2: Second breakfast order in same department (should fail)")
+        second_order, second_success = await self.create_breakfast_order(
+            employee_id, 
+            'fw4abteilung1', 
+            "Second breakfast order attempt - same department"
+        )
+        
+        test_results.append({
+            'test': 'Second breakfast order in same department',
+            'success': second_success,
+            'expected_failure': True,
+            'error': None if second_success else str(second_order)
+        })
+        
+        # Test 3: Try order as guest in different department (THE CRITICAL TEST)
+        print(f"\n🧪 TEST 3: Guest order in different department (THE CRITICAL SCENARIO)")
+        print(f"This is the exact scenario causing user issues!")
+        
+        # Add as temporary employee to department 2
+        assignment = await self.create_temporary_assignment('fw4abteilung2', employee_id)
+        
+        if assignment:
+            guest_order, guest_success = await self.create_breakfast_order(
+                employee_id, 
+                'fw4abteilung2', 
+                "Guest order attempt after having breakfast order in home department"
+            )
+            
+            test_results.append({
+                'test': 'Guest breakfast order in different department',
+                'success': guest_success,
+                'expected_failure': True,  # This should fail due to existing order
+                'error': None if guest_success else str(guest_order)
+            })
+            
+            if not guest_success:
+                print(f"🎯 CONFIRMED: This is the exact issue users are experiencing!")
+                print(f"   Employee has breakfast order in home department")
+                print(f"   Employee tries to order as guest in different department")
+                print(f"   System blocks it with 400 Bad Request")
+                print(f"   Error: {guest_order}")
+        
+        # Test 4: Test with drinks order (should work)
+        print(f"\n🧪 TEST 4: Drinks order as guest (should work)")
+        drinks_order, drinks_success = await self.create_drinks_order(
+            employee_id, 
+            'fw4abteilung2'
+        )
+        
+        test_results.append({
+            'test': 'Drinks order as guest',
+            'success': drinks_success,
+            'error': None if drinks_success else str(drinks_order)
+        })
+        
+        return test_results
+    
     async def test_regular_employee_orders(self, dept_info):
         """Test regular employee orders to establish baseline"""
         dept_id = dept_info["id"]
