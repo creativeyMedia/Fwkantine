@@ -155,30 +155,64 @@ class GuestEmployeeOrderTester:
             print(f"❌ Failed to get temporary employees: {response}")
             return None
     
-    async def test_subaccount_flexible_payment(self, employee_id, admin_department, expected_dept_name):
-        """Test subaccount flexible payment and verify admin display"""
-        print(f"\n🧪 Testing subaccount_flexible_payment for {admin_department}")
+    async def create_breakfast_order(self, employee_id, department_id, notes="Test order"):
+        """Create a breakfast order to test the critical 400 Bad Request issue"""
+        print(f"\n🧪 Testing breakfast order creation for employee {employee_id} in {department_id}")
         
-        payment_data = {
-            "balance_type": "breakfast",
-            "amount": 10.0,
-            "payment_method": "cash",
-            "notes": "Test payment for admin display verification"
+        order_data = {
+            "employee_id": employee_id,
+            "department_id": department_id,
+            "order_type": "breakfast",
+            "breakfast_items": [
+                {
+                    "total_halves": 2,
+                    "white_halves": 1,
+                    "seeded_halves": 1,
+                    "toppings": ["ruehrei", "butter"],
+                    "has_lunch": True,
+                    "boiled_eggs": 1,
+                    "fried_eggs": 0,
+                    "has_coffee": True
+                }
+            ],
+            "notes": notes
         }
         
-        response, status = await self.make_request(
-            'POST', 
-            f'/department-admin/subaccount-payment/{employee_id}',
-            payment_data,
-            params={"admin_department": admin_department}
-        )
+        response, status = await self.make_request('POST', '/orders', order_data)
         
         if status == 200:
-            print(f"✅ Subaccount payment successful")
-            return True
+            print(f"✅ Breakfast order created successfully")
+            print(f"   Order ID: {response.get('id', 'N/A')}")
+            print(f"   Total Price: €{response.get('total_price', 'N/A')}")
+            return response, True
         else:
-            print(f"❌ Subaccount payment failed: {response}")
-            return False
+            print(f"❌ Breakfast order FAILED with status {status}")
+            print(f"   Error: {response}")
+            return response, False
+    
+    async def create_drinks_order(self, employee_id, department_id):
+        """Create a drinks order to test ordering functionality"""
+        print(f"\n🧪 Testing drinks order creation for employee {employee_id} in {department_id}")
+        
+        order_data = {
+            "employee_id": employee_id,
+            "department_id": department_id,
+            "order_type": "drinks",
+            "drink_items": {
+                "kaffee": 1,
+                "cola": 1
+            }
+        }
+        
+        response, status = await self.make_request('POST', '/orders', order_data)
+        
+        if status == 200:
+            print(f"✅ Drinks order created successfully")
+            return response, True
+        else:
+            print(f"❌ Drinks order FAILED with status {status}")
+            print(f"   Error: {response}")
+            return response, False
     
     async def test_reset_subaccount_balance(self, employee_id, admin_department, expected_dept_name):
         """Test reset subaccount balance and verify admin display"""
