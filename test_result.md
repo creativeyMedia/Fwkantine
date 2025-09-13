@@ -455,10 +455,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "User-Friendly Hint Display for Subaccount Payments"
+    - "Critical Guest Employee Ordering Bug - 400 Bad Request Debug"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 agent_communication:
     - agent: "testing"
