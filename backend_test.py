@@ -223,14 +223,17 @@ class GuestEmployeeOrderTester:
             print("❌ Could not get employee profile")
             return False
         
+        # Extract employee data from nested structure
+        employee_data = profile.get('employee', {})
+        
         # Check critical fields that might cause 400 errors
         critical_fields = {
-            'id': profile.get('id'),
-            'name': profile.get('name'),
-            'department_id': profile.get('department_id'),
-            'breakfast_balance': profile.get('breakfast_balance'),
-            'drinks_sweets_balance': profile.get('drinks_sweets_balance'),
-            'subaccount_balances': profile.get('subaccount_balances')
+            'id': employee_data.get('id'),
+            'name': employee_data.get('name'),
+            'department_id': employee_data.get('department_id'),
+            'breakfast_balance': employee_data.get('breakfast_balance'),
+            'drinks_sweets_balance': employee_data.get('drinks_sweets_balance'),
+            'subaccount_balances': employee_data.get('subaccount_balances')
         }
         
         print("📋 Employee Data Structure:")
@@ -243,7 +246,7 @@ class GuestEmployeeOrderTester:
                 print(f"   ✅ {field}: {value}")
         
         # Check subaccount_balances structure
-        subaccounts = profile.get('subaccount_balances')
+        subaccounts = employee_data.get('subaccount_balances')
         if subaccounts:
             print("📋 Subaccount Balances Structure:")
             for dept_id, balances in subaccounts.items():
