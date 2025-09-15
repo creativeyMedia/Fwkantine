@@ -820,9 +820,9 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               `Dieses ${item.order_type === 'breakfast' ? 'Frühstück' : 'Mittagessen'} wurde von ${item.sponsored_by_name} ausgegeben, bedanke dich bei ihm!`
                             )}
                             {/* Show detailed sponsoring breakdown for sponsor orders */}
-                            {item.is_sponsor_order && item.sponsor_cost_breakdown && (
+                            {item.is_sponsor_order && item.readable_items && item.readable_items.length > 0 && (
                               <div className="mt-1 text-xs text-green-600">
-                                Ausgegeben: {item.sponsor_cost_breakdown} für {item.sponsor_employee_count} Mitarbeiter
+                                {item.readable_items[0].description}
                               </div>
                             )}
                           </div>
