@@ -4550,7 +4550,8 @@ async def sponsor_meal(meal_data: dict):
             if others_count > 0:
                 # Remove the incorrect "á X.XX€" calculation - just show total
                 detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} für {total_others_cost:.2f}€"
-                unit_price_text = f"{others_count} × {total_others_cost:.2f}€"
+                unit_price_per_person = total_others_cost / others_count
+                unit_price_text = f"{others_count} × {unit_price_per_person:.2f}€"
             else:
                 detailed_breakdown = f"Keine Mitarbeiter gesponsert"
                 unit_price_text = ""
