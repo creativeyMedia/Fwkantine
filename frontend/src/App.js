@@ -4129,7 +4129,7 @@ const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteM
         {/* Sweets Management */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-md font-semibold text-gray-700">Süßwaren</h4>
+            <h4 className="text-md font-semibold text-gray-700">Snacks</h4>
             <button
               onClick={() => setShowNewSweet(true)}
               className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
