@@ -2686,7 +2686,7 @@ const EmployeeProfileDetail = ({ profile, onBack, onClose }) => {
     switch (orderType) {
       case 'breakfast': return 'Frühstück';
       case 'drinks': return 'Getränke';
-      case 'sweets': return 'Süßes';
+      case 'sweets': return 'Snacks';
       default: return orderType;
     }
   };
