@@ -657,7 +657,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         employeeProfile.drinks_sweets_total >= 0 
                           ? 'text-green-800' 
                           : 'text-red-800'
-                      }`}>Getränke/Süßes Saldo</h3>
+                      }`}>Getränke/Snacks Saldo</h3>
                       <p className={`text-2xl font-bold ${
                         employeeProfile.drinks_sweets_total >= 0 
                           ? 'text-green-600' 
