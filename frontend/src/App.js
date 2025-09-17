@@ -581,7 +581,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
                           ? 'text-green-800' 
                           : 'text-red-800'
-                      }`}>Getränke/Süßes Saldo</h3>
+                      }`}>Getränke/Snacks Saldo</h3>
                       <p className={`text-2xl font-bold ${
                         allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
                           ? 'text-green-600' 
