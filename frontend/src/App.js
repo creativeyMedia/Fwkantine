@@ -1964,7 +1964,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               >
                 {category === 'breakfast' && 'Frühstück/Mittag'}
                 {category === 'drinks' && 'Getränke'}
-                {category === 'sweets' && 'Süßes'}
+                {category === 'sweets' && 'Snacks'}
               </button>
             ))}
           </div>
