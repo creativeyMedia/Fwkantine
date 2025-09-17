@@ -5878,7 +5878,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
 
       {showNewSweet && (
         <NewMenuItemModal
-          title="Neue Süßware hinzufügen"
+          title="Neuen Snack hinzufügen"
           onCreateItem={(name, price) => onCreateMenuItem('sweets', name, price)}
           onClose={() => setShowNewSweet(false)}
         />
