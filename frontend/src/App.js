@@ -5798,7 +5798,7 @@ const UnifiedMenuManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, swe
         {/* Sweets */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Süßwaren</h4>
+            <h4 className="text-md font-semibold text-gray-700 border-b pb-2">Snacks</h4>
             <button
               onClick={() => setShowNewSweet(true)}
               className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
