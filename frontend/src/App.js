@@ -1831,7 +1831,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       
       // For breakfast category, check if breakfast is closed first
       if (activeCategory === 'breakfast' && breakfastStatus.is_closed) {
-        alert('Frühstück ist für heute geschlossen. Nur Getränke und Süßigkeiten können bestellt werden.');
+        alert('Frühstück ist für heute geschlossen. Nur Getränke und Snacks können bestellt werden.');
         return;
       }
       
