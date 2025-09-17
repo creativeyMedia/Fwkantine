@@ -953,7 +953,7 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                         </div>
                         
                         <div className="text-sm text-gray-700">
-                          <p><strong>Art:</strong> {item.payment_type === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes'}</p>
+                          <p><strong>Art:</strong> {item.payment_type === 'breakfast' ? 'Frühstück' : 'Getränke/Snacks'}</p>
                           <p><strong>Admin:</strong> {item.admin_user}</p>
                           {item.notes && <p><strong>Hinweise:</strong> {item.notes}</p>}
                         </div>
