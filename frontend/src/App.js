@@ -4066,7 +4066,7 @@ const PriceManagementTab = ({ breakfastMenu, toppingsMenu, drinksMenu, sweetsMen
 
         {/* Sweets */}
         <div>
-          <h4 className="text-md font-semibold mb-3 text-gray-700">Süßwaren</h4>
+          <h4 className="text-md font-semibold mb-3 text-gray-700">Snacks</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sweetsMenu.map((item) => (
               <div key={item.id} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
