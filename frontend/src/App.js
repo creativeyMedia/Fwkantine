@@ -4169,7 +4169,7 @@ const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteM
 
       {showNewSweet && (
         <NewMenuItemModal
-          title="Neue Süßware hinzufügen"
+          title="Neuen Snack hinzufügen"
           onCreateItem={(name, price) => onCreateMenuItem('sweets', name, price)}
           onClose={() => setShowNewSweet(false)}
         />
