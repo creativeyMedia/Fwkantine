@@ -6911,21 +6911,21 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
           )}
         </div>
         <div className="flex justify-between text-xs">
-          <div className="text-center flex-1">
-            <div className="text-gray-500 mb-1">F/M</div>
-            <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">F/M</div>
+            <div className={`font-semibold text-xs ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(employee.breakfast_balance)}€
             </div>
           </div>
-          <div className="text-center flex-1">
-            <div className="text-gray-500 mb-1">G/S</div>
-            <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">G/S</div>
+            <div className={`font-semibold text-xs ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(employee.drinks_sweets_balance)}€
             </div>
           </div>
-          <div className="text-center flex-1">
-            <div className="text-gray-500 mb-1">Gesamt</div>
-            <div className={`font-bold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">Gesamt</div>
+            <div className={`font-bold text-xs ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
             </div>
           </div>
