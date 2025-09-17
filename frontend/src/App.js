@@ -1421,7 +1421,7 @@ const DepartmentDashboard = () => {
                     onClick={(event) => handleEmployeeClick(employee, event)}
                     className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
-                    <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800">{employee.name}</h3>
+                    <h3 className="text-base md:text-lg lg:text-xl font-semibold mb-3 md:mb-4 lg:mb-6 text-gray-800 truncate" title={employee.name}>{employee.name}</h3>
                     <div className="flex gap-2 sm:gap-3">
                       <div className="flex-1 text-center text-xs sm:text-sm text-gray-700 py-2 sm:py-3 cursor-pointer hover:text-gray-900 verlauf-text rounded-lg hover:bg-gray-100 transition-colors"
                            onClick={(event) => handleEmployeeClick(employee, event)}>
