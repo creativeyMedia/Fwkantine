@@ -4842,7 +4842,7 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
     switch (orderType) {
       case 'breakfast': return 'Frühstück';
       case 'drinks': return 'Getränke';
-      case 'sweets': return 'Süßes';
+      case 'sweets': return 'Snacks';
       default: return orderType;
     }
   };
