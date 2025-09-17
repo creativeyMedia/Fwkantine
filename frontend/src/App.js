@@ -6943,7 +6943,7 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
       {/* Regular Employees */}
       {regularEmployees.length > 0 && (
         <div className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
             {regularEmployees.map(employee => (
               <EmployeeStatCard key={employee.id} employee={employee} />
             ))}
