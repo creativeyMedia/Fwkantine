@@ -5385,7 +5385,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                     
                                     if (toppingCount === 0 || (typeof toppingCount === 'object' && (toppingCount.white || 0) + (toppingCount.seeded || 0) === 0)) {
                                       return (
-                                        <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm text-gray-400">
+                                        <td key={topping} className="border border-gray-300 px-1 py-1 text-center text-xs text-gray-400">
                                           -
                                         </td>
                                       );
