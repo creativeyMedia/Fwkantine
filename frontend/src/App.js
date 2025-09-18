@@ -1211,8 +1211,6 @@ const DepartmentDashboard = () => {
         employee_id: employee.id
       });
       
-      alert(`✅ ${employee.name} wurde als Gastmitarbeiter hinzugefügt!\n\nGültig bis 23:59 Uhr Berlin Zeit`);
-      
       // Lade temporäre Mitarbeiter neu
       await fetchTemporaryEmployees();
       
