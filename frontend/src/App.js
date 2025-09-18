@@ -3761,7 +3761,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                     {/* Drinks/Sweets Balance */}
                     <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Getränke/Süßes:</span>
+                        <span className="text-sm font-medium">Getränke/Snacks:</span>
                         <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
                         </span>
@@ -3887,7 +3887,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
                     {/* Drinks/Sweets Balance */}
                     <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Getränke/Süßes:</span>
+                        <span className="text-sm font-medium">Getränke/Snacks:</span>
                         <span className={`font-bold ${employee.drinks_sweets_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {employee.drinks_sweets_balance >= 0 ? '+' : ''}{employee.drinks_sweets_balance.toFixed(2)} €
                         </span>
