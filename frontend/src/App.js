@@ -5445,10 +5445,10 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                               
                               {/* Totals Row */}
                               <tr className="bg-gray-100 font-bold">
-                                <td className="border border-gray-300 px-3 py-2">
+                                <td className="border border-gray-300 px-2 py-1 text-sm">
                                   <strong>Gesamt</strong>
                                 </td>
-                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-100 font-bold">
+                                <td className="border border-gray-300 px-1 py-1 text-center text-xs bg-purple-100 font-bold">
                                   {totalLunchCount}
                                 </td>
                                 {toppingsList.map(topping => {
