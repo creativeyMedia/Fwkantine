@@ -2655,7 +2655,7 @@ const EmployeeProfileList = ({ employees, onClose }) => {
                 <h3 className="text-lg font-semibold mb-2">{employee.name}</h3>
                 <div className="text-sm text-gray-600">
                   <p>Frühstück: {employee.breakfast_balance.toFixed(2)} €</p>
-                  <p>Getränke/Süßes: {employee.drinks_sweets_balance.toFixed(2)} €</p>
+                  <p>Getränke/Snacks: {employee.drinks_sweets_balance.toFixed(2)} €</p>
                   <p className="text-blue-600 mt-2">Klicken für Verlauf →</p>
                 </div>
               </div>
