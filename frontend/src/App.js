@@ -3642,7 +3642,7 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
   // LEGACY: Keep old function for backward compatibility (but mark as deprecated)
   const markAsPaid = async (employee, balanceType) => {
     const balanceAmount = balanceType === 'breakfast' ? employee.breakfast_balance : employee.drinks_sweets_balance;
-    const balanceLabel = balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes';
+    const balanceLabel = balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Snacks';
     
     if (balanceAmount <= 0) {
       alert('Kein Saldo zum Zurücksetzen vorhanden');
