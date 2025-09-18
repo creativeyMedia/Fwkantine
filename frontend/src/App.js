@@ -4812,7 +4812,7 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
   };
 
   const resetBalance = async (balanceType) => {
-    if (window.confirm(`${balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Süßes'}-Saldo wirklich zurücksetzen?`)) {
+    if (window.confirm(`${balanceType === 'breakfast' ? 'Frühstück' : 'Getränke/Snacks'}-Saldo wirklich zurücksetzen?`)) {
       try {
         await axios.post(`${API}/admin/reset-balance/${employee.id}?balance_type=${balanceType}`);
         alert('Saldo erfolgreich zurückgesetzt');
@@ -7444,7 +7444,7 @@ const PayPalSettings = ({ currentDepartment }) => {
                         onChange={(e) => setPaypalSettings(prev => ({ ...prev, drinks_enabled: e.target.checked }))}
                         className="mr-3 h-4 w-4 text-green-600"
                       />
-                      <span>Getränke/Süßes PayPal-Button</span>
+                      <span>Getränke/Snacks PayPal-Button</span>
                     </label>
                   </div>
                 </div>
@@ -7947,7 +7947,7 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
                       : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  🥤 Getränke/Süßes
+                  🥤 Getränke/Snacks
                 </button>
               </div>
               {selectedAccountType && (
