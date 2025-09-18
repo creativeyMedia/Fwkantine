@@ -5351,23 +5351,23 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                       
                       return (
                         <div className="overflow-x-auto">
-                          <table className="w-full border-collapse border border-gray-300">
+                          <table className="w-full border-collapse border border-gray-300 table-fixed">
                             <thead>
                               <tr className="bg-blue-100">
-                                <th className="border border-gray-300 px-3 py-2 text-left font-semibold">Mitarbeiter</th>
-                                <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-purple-50">
-                                  🍽️ Mittagessen
+                                <th className="border border-gray-300 px-3 py-2 text-left font-semibold w-32">Mitarbeiter</th>
+                                <th className="border border-gray-300 px-1 py-2 text-center font-semibold text-xs bg-purple-50 w-20">
+                                  🍽️ Mittag
                                 </th>
                                 {toppingsList.map(topping => (
-                                  <th key={topping} className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm">
+                                  <th key={topping} className="border border-gray-300 px-1 py-2 text-center font-semibold text-xs w-20">
                                     {String(finalToppingLabels[topping] || topping)}
                                   </th>
                                 ))}
-                                <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-yellow-50">
-                                  🥚 Gekochte Eier
+                                <th className="border border-gray-300 px-1 py-2 text-center font-semibold text-xs bg-yellow-50 w-20">
+                                  🥚 Gekocht
                                 </th>
-                                <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-yellow-50">
-                                  🍳 Extra Spiegeleier
+                                <th className="border border-gray-300 px-1 py-2 text-center font-semibold text-xs bg-yellow-50 w-20">
+                                  🍳 Extra
                                 </th>
                               </tr>
                             </thead>
