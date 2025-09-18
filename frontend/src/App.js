@@ -5429,7 +5429,7 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                     if (whiteCount > 0) parts.push(`${whiteCount}xN`);
                                     
                                     return (
-                                      <td key={topping} className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">
+                                      <td key={topping} className="border border-gray-300 px-1 py-1 text-center text-xs font-semibold">
                                         {parts.join(' ') || totalCount.toString()}
                                       </td>
                                     );
