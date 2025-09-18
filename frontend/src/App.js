@@ -5377,6 +5377,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   <td className="border border-gray-300 px-3 py-2 font-semibold">
                                     {String(employeeName)}
                                   </td>
+                                  <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-50 font-semibold">
+                                    {(employeeData && employeeData.has_lunch) ? 'X' : '-'}
+                                  </td>
                                   {toppingsList.map(topping => {
                                     const toppingCount = (employeeData && employeeData.toppings && employeeData.toppings[topping]) || 0;
                                     
