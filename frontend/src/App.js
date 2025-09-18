@@ -5355,6 +5355,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                             <thead>
                               <tr className="bg-blue-100">
                                 <th className="border border-gray-300 px-3 py-2 text-left font-semibold">Mitarbeiter</th>
+                                <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-purple-50">
+                                  🍽️ Mittagessen
+                                </th>
                                 {toppingsList.map(topping => (
                                   <th key={topping} className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm">
                                     {String(finalToppingLabels[topping] || topping)}
@@ -5366,8 +5369,6 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                 <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-yellow-50">
                                   🍳 Extra Spiegeleier
                                 </th>
-                                <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-purple-50">
-                                  🍽️ Mittagessen
                                 </th>
                               </tr>
                             </thead>
