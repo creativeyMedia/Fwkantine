@@ -14,7 +14,28 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: {problem_statement}
+##   - task: "Daily Overview and Shopping List Roll Count Bug Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py + frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed critical bug where daily overview and shopping list showed '0 Brötchen' instead of actual roll counts, and 'Gesamt' row in breakfast overview table showed '-' instead of totals. ROOT CAUSE: breakfast_summary was only updated within toppings loop, causing roll counts to be missed when no toppings present. BACKEND FIX: Moved breakfast_summary update to always execute after white_halves/seeded_halves calculation. FRONTEND FIX: Updated totals calculation in BreakfastSummaryTable to use new backend format {white: count, seeded: count} instead of proportional distribution. Both roll counts in daily overview and toppings totals in table now display correctly."
+
+user_problem_statement: {
+  "original": "Admin dashboard - Bestellverlauf - Tägliche Übersicht shows roll count as 0 instead of actual amounts, and shopping list shows no content. Gesamt row in breakfast overview table shows '-' instead of aggregated toppings/roll quantities.",
+  "symptoms": [
+    "Daily overview shows 'Helle: 0 Brötchen' and 'Körner: 0 Brötchen' instead of actual counts",
+    "Shopping list appears empty", 
+    "Breakfast overview table shows '-' in 'Gesamt' row for toppings instead of totals like '2xN 2xK'",
+    "Problem likely introduced by recent updates/renaming"
+  ],
+  "working_example": "Previous working example: 'Samstag, 13.09.2025 - Helle: 5 Brötchen, Körner: 5 Brötchen' with populated shopping list"
+}
 ## backend:
 ##   - task: "Task name"
 ##     implemented: true
