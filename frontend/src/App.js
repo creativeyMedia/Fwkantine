@@ -1076,14 +1076,14 @@ const Homepage = () => {
           Feuerwache Lichterfelde Kantine
         </h1>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-8 mb-8 px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 xl:gap-8 mb-8 px-4">
           {departments.map((department) => (
             <div
               key={department.id}
               onClick={() => handleDepartmentClick(department)}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-4 sm:p-6 md:p-8 lg:p-10 flex items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px]"
+              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-4 sm:p-6 md:p-8 xl:p-10 flex items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px] xl:min-h-[180px]"
             >
-              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center text-blue-800 leading-tight px-2">
+              <h2 className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-semibold text-center text-blue-800 leading-tight px-2">
                 {department.name}
               </h2>
             </div>
