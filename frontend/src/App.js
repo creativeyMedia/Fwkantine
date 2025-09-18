@@ -5374,10 +5374,10 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                             <tbody>
                               {employeesWithBookings.map(([employeeName, employeeData]) => (
                                 <tr key={employeeName} className="hover:bg-gray-50">
-                                  <td className="border border-gray-300 px-3 py-2 font-semibold">
+                                  <td className="border border-gray-300 px-2 py-1 font-semibold text-sm truncate" title={String(employeeName)}>
                                     {String(employeeName)}
                                   </td>
-                                  <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-50 font-semibold">
+                                  <td className="border border-gray-300 px-1 py-1 text-center text-sm bg-purple-50 font-semibold">
                                     {(employeeData && employeeData.has_lunch) ? 'X' : '-'}
                                   </td>
                                   {toppingsList.map(topping => {
