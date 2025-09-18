@@ -2501,6 +2501,15 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         employee_orders[employee_key]["white_halves"] += white_halves
                         employee_orders[employee_key]["seeded_halves"] += seeded_halves
                         
+                        # FIXED: Update overall summary ALWAYS, not just when there are toppings
+                        if "weiss" not in breakfast_summary:
+                            breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
+                        if "koerner" not in breakfast_summary:
+                            breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
+                        
+                        breakfast_summary["weiss"]["halves"] += white_halves
+                        breakfast_summary["koerner"]["halves"] += seeded_halves
+                        
                         # Add boiled eggs if present
                         boiled_eggs = item.get("boiled_eggs", 0)
                         employee_orders[employee_key]["boiled_eggs"] += boiled_eggs
