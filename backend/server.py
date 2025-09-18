@@ -2555,15 +2555,6 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             unique_parts = list(dict.fromkeys(parts))
                             employee_orders[employee_key]["notes"] = "; ".join(unique_parts)
                         
-                        # Update overall summary
-                        if "weiss" not in breakfast_summary:
-                            breakfast_summary["weiss"] = {"halves": 0, "toppings": {}}
-                        if "koerner" not in breakfast_summary:
-                            breakfast_summary["koerner"] = {"halves": 0, "toppings": {}}
-                        
-                        breakfast_summary["weiss"]["halves"] += white_halves
-                        breakfast_summary["koerner"]["halves"] += seeded_halves
-                        
                         # Count toppings with proper roll type assignment
                         for topping_index, topping in enumerate(item["toppings"]):
                             # Determine which roll type this topping belongs to based on position
