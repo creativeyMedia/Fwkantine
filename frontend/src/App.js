@@ -5369,7 +5369,6 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                 <th className="border border-gray-300 px-2 py-2 text-center font-semibold text-sm bg-yellow-50">
                                   🍳 Extra Spiegeleier
                                 </th>
-                                </th>
                               </tr>
                             </thead>
                             <tbody>
