@@ -5494,9 +5494,6 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                 <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-yellow-100 font-bold">
                                   {dailySummary.total_fried_eggs || 0}
                                 </td>
-                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-100 font-bold">
-                                  {totalLunchCount}
-                                </td>
                               </tr>
                             </tbody>
                           </table>
