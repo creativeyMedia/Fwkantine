@@ -5448,6 +5448,9 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                 <td className="border border-gray-300 px-3 py-2">
                                   <strong>Gesamt</strong>
                                 </td>
+                                <td className="border border-gray-300 px-2 py-2 text-center text-sm bg-purple-100 font-bold">
+                                  {totalLunchCount}
+                                </td>
                                 {toppingsList.map(topping => {
                                   let totalWhite = 0;
                                   let totalSeeded = 0;
