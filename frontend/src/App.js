@@ -5455,13 +5455,22 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
                                   employeesWithBookings.forEach(([name, employeeData]) => {
                                     if (employeeData && employeeData.toppings && employeeData.toppings[topping]) {
                                       const count = employeeData.toppings[topping];
-                                      const whiteHalves = employeeData.white_halves || 0;
-                                      const seededHalves = employeeData.seeded_halves || 0;
-                                      const totalHalves = whiteHalves + seededHalves;
                                       
-                                      if (totalHalves > 0) {
-                                        totalWhite += Math.round(count * (whiteHalves / totalHalves));
-                                        totalSeeded += Math.round(count * (seededHalves / totalHalves));
+                                      // FIXED: Use new backend format {white: count, seeded: count}
+                                      if (typeof count === 'object' && count.white !== undefined && count.seeded !== undefined) {
+                                        // New format: direct assignment from backend
+                                        totalWhite += count.white || 0;
+                                        totalSeeded += count.seeded || 0;
+                                      } else {
+                                        // Legacy format: proportional distribution (fallback)
+                                        const whiteHalves = employeeData.white_halves || 0;
+                                        const seededHalves = employeeData.seeded_halves || 0;
+                                        const totalHalves = whiteHalves + seededHalves;
+                                        
+                                        if (totalHalves > 0) {
+                                          totalWhite += Math.round(count * (whiteHalves / totalHalves));
+                                          totalSeeded += Math.round(count * (seededHalves / totalHalves));
+                                        }
                                       }
                                     }
                                   });
