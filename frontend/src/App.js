@@ -3481,7 +3481,7 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
                             
                             <div className="text-gray-700 mb-2">
                               <strong>Betrag:</strong> {Math.abs(item.amount)?.toFixed(2)} €<br/>
-                              <strong>Konto:</strong> {item.payment_type === 'breakfast' ? 'Frühstück/Mittag' : 'Getränke/Süßes'}<br/>
+                              <strong>Konto:</strong> {item.payment_type === 'breakfast' ? 'Frühstück/Mittag' : 'Getränke/Snacks'}<br/>
                               <strong>Saldo vorher:</strong> {item.balance_before?.toFixed(2)} €<br/>
                               <strong>Saldo nachher:</strong> {item.balance_after?.toFixed(2)} €<br/>
                               {item.notes && <><strong>Notizen:</strong> {item.notes}</>}
