@@ -3471,7 +3471,7 @@ async def reopen_breakfast_for_day(department_id: str):
     if sponsoring_status and sponsoring_status["is_blocked"]:
         raise HTTPException(
             status_code=403, 
-            detail="Frühstück kann nicht geöffnet werden, da heute bereits gesponsert wurde. Sponsoring-Logik überschreibt Frühstück-Öffnen."
+            detail="Nachdem ein Kollege Frühstück/Mittagessen ausgegeben hat, ist kein Öffnen der Bestellung mehr möglich."
         )
     
     await db.breakfast_settings.update_one(
