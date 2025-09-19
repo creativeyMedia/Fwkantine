@@ -7123,23 +7123,11 @@ const AdminSettingsTab = ({ currentDepartment }) => {
         alert('Frühstück für heute wieder geöffnet');
       } catch (error) {
         console.error('Fehler beim Öffnen des Frühstücks:', error);
-        alert('Fehler beim Öffnen des Frühstücks');
-      }
-    }
-  };
-
-  const unblockOrdering = async () => {
-    if (window.confirm('Bestellsperre nach Sponsoring aufheben? Mitarbeiter können dann wieder neue Bestellungen aufgeben.')) {
-      try {
-        await axios.post(`${API}/department-admin/unblock-ordering/${currentDepartment.department_id}?admin_name=${currentDepartment.department_name}`);
-        // Refresh sponsoring status in parent component if possible
-        if (typeof fetchSponsoringStatus === 'function') {
-          fetchSponsoringStatus();
+        if (error.response?.status === 403) {
+          alert(error.response.data.detail);
+        } else {
+          alert('Fehler beim Öffnen des Frühstücks');
         }
-        alert('Bestellsperre erfolgreich aufgehoben');
-      } catch (error) {
-        console.error('Fehler beim Aufheben der Bestellsperre:', error);
-        alert('Fehler beim Aufheben der Bestellsperre');
       }
     }
   };
