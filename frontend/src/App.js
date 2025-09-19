@@ -1847,9 +1847,9 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         return;
       }
       
-      // Check if ordering is blocked due to sponsoring (applies to all categories)
-      if (sponsoringStatus.is_blocked) {
-        alert(`Bestellungen sind gesperrt: ${sponsoringStatus.blocked_reason || 'Nach Sponsoring gesperrt zur Vermeidung von Saldo-Konflikten.'}\n\nNur Administratoren können noch Änderungen vornehmen.`);
+      // Check if ordering is blocked due to sponsoring (only for breakfast/lunch)
+      if ((activeCategory === 'breakfast' || activeCategory === 'lunch') && sponsoringStatus.is_blocked) {
+        alert(`Frühstück/Mittag-Bestellungen sind gesperrt: ${sponsoringStatus.blocked_reason || 'Nach Sponsoring gesperrt zur Vermeidung von Saldo-Konflikten.'}\n\nGetränke und Snacks können weiterhin bestellt werden.`);
         return;
       }
       
