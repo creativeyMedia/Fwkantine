@@ -7126,6 +7126,22 @@ const AdminSettingsTab = ({ currentDepartment }) => {
     }
   };
 
+  const unblockOrdering = async () => {
+    if (window.confirm('Bestellsperre nach Sponsoring aufheben? Mitarbeiter können dann wieder neue Bestellungen aufgeben.')) {
+      try {
+        await axios.post(`${API}/department-admin/unblock-ordering/${currentDepartment.department_id}?admin_name=${currentDepartment.department_name}`);
+        // Refresh sponsoring status in parent component if possible
+        if (typeof fetchSponsoringStatus === 'function') {
+          fetchSponsoringStatus();
+        }
+        alert('Bestellsperre erfolgreich aufgehoben');
+      } catch (error) {
+        console.error('Fehler beim Aufheben der Bestellsperre:', error);
+        alert('Fehler beim Aufheben der Bestellsperre');
+      }
+    }
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-6">Einstellungen</h3>
