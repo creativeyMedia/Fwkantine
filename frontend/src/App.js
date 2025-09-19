@@ -3146,12 +3146,6 @@ const DepartmentAdminDashboard = () => {
       
       // Refresh employee data
       fetchEmployees();
-      
-      // Also call onBalanceUpdated callback if provided (for refreshing other tabs like "Andere WA")
-      if (onBalanceUpdated && typeof onBalanceUpdated === 'function') {
-        onBalanceUpdated();
-      }
-      
       setShowPaymentModal(false);
       setPaymentEmployeeData(null);
       
