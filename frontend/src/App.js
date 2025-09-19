@@ -6813,7 +6813,12 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
 
   const handleBalanceUpdated = async () => {
     // Refresh employee list after balance update
-    fetchOtherEmployeesWithBalances();
+    await fetchOtherEmployeesWithBalances();
+    
+    // Also call the parent callback if provided
+    if (onBalanceUpdated && typeof onBalanceUpdated === 'function') {
+      onBalanceUpdated();
+    }
   };
 
   if (isLoading) {
