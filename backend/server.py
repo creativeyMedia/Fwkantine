@@ -4587,11 +4587,9 @@ async def sponsor_meal(meal_data: dict):
             if others_count > 0:
                 # Remove the incorrect "á X.XX€" calculation - just show total
                 detailed_breakdown = f"Ausgegeben {others_count}x {meal_name} für {total_others_cost:.2f}€"
-                unit_price_per_person = total_others_cost / others_count
-                unit_price_text = f"{others_count} × {unit_price_per_person:.2f}€"
+                # REMOVED: unit_price_text - causes confusion with wrong calculation
             else:
                 detailed_breakdown = f"Keine Mitarbeiter gesponsert"
-                unit_price_text = ""
             
             sponsor_order_data = {
                 "id": str(uuid.uuid4()),
@@ -4614,7 +4612,7 @@ async def sponsor_meal(meal_data: dict):
                 "sponsor_message": f"{meal_name} wurde von dir ausgegeben, vielen Dank! (Ausgegeben für {others_count} Mitarbeiter im Wert von {total_others_cost:.2f}€)",
                 "readable_items": [{
                     "description": detailed_breakdown,
-                    "unit_price": unit_price_text,
+                    "unit_price": "",  # REMOVED: unit_price_text - causes confusion
                     "total_price": f"{total_others_cost:.2f} €"
                 }]
             }
