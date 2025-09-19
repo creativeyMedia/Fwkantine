@@ -1989,7 +1989,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         </div>
 
         <div className="p-6">
-          {sponsoringStatus.is_blocked ? (
+          {(activeCategory === 'breakfast' || activeCategory === 'lunch') && sponsoringStatus.is_blocked ? (
             <div className="text-center py-8">
               <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                 <div className="text-red-800 mb-4">
@@ -1997,10 +1997,10 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-red-800 mb-2">Bestellungen sind gesperrt</h3>
+                <h3 className="text-xl font-semibold text-red-800 mb-2">Frühstück/Mittag-Bestellungen sind gesperrt</h3>
                 <p className="text-red-600 mb-2">{sponsoringStatus.blocked_reason || 'Bestellungen sind nach Sponsoring gesperrt.'}</p>
                 <p className="text-red-600 text-sm">Gesperrt von: {sponsoringStatus.blocked_by}</p>
-                <p className="text-red-600 text-sm mt-3">Nur Administratoren können die Sperre aufheben.</p>
+                <p className="text-green-600 text-sm mt-3 font-medium">Getränke und Snacks können weiterhin bestellt werden.</p>
               </div>
             </div>
           ) : (
