@@ -3442,12 +3442,25 @@ const EmployeeOrdersModal = ({ employee, onClose, currentDepartment, onOrderUpda
         // Handle toppings that might be objects or strings
         const toppingsText = toppings.length > 0 ? 
           ', Beläge: ' + toppings.map(topping => {
+            let toppingName;
             if (typeof topping === 'string') {
-              return topping;
+              // Use finalToppingLabels for proper capitalization
+              const toppingLabelsMap = {
+                'ruehrei': 'Rührei',
+                'spiegelei': 'Spiegelei',
+                'eiersalat': 'Eiersalat',
+                'salami': 'Salami',
+                'schinken': 'Schinken',
+                'kaese': 'Käse',
+                'butter': 'Butter'
+              };
+              toppingName = toppingLabelsMap[topping] || topping;
             } else if (topping && typeof topping === 'object') {
-              return topping.name || topping.topping_type || 'Unknown';
+              toppingName = topping.name || topping.topping_type || 'Unknown';
+            } else {
+              toppingName = 'Unknown';
             }
-            return 'Unknown';
+            return toppingName;
           }).join(', ') : '';
         
         const rollsText = `${whiteHalves} Hell + ${seededHalves} Körner`;
