@@ -2921,6 +2921,11 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
+  const handleBalanceUpdated = () => {
+    // Refresh the employee list after balance update in Admin Dashboard
+    fetchEmployees();
+  };
+
   const fetchMenus = async () => {
     try {
       if (!currentDepartment?.department_id) {
