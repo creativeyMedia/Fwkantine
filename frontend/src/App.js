@@ -1847,6 +1847,12 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         return;
       }
       
+      // Check if ordering is blocked due to sponsoring (applies to all categories)
+      if (sponsoringStatus.is_blocked) {
+        alert(`Bestellungen sind gesperrt: ${sponsoringStatus.blocked_reason || 'Nach Sponsoring gesperrt zur Vermeidung von Saldo-Konflikten.'}\n\nNur Administratoren können noch Änderungen vornehmen.`);
+        return;
+      }
+      
       // For breakfast category, use form data if available, otherwise use order array
       if (activeCategory === 'breakfast') {
         if (breakfastFormData) {
