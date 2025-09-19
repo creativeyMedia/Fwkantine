@@ -1931,6 +1931,20 @@ async def create_order(order_data: OrderCreate):
                 status_code=403, 
                 detail="Frühstücksbestellungen sind für heute geschlossen. Nur Admins können noch Änderungen vornehmen."
             )
+    
+    # Check if ordering is blocked due to sponsoring (for all order types)
+    today = get_berlin_date().isoformat()
+    sponsoring_status = await db.sponsoring_settings.find_one({
+        "department_id": order_data.department_id,
+        "date": today
+    })
+    
+    if sponsoring_status and sponsoring_status["is_blocked"]:
+        blocked_reason = sponsoring_status.get("blocked_reason", "Bestellungen sind nach Sponsoring gesperrt.")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"{blocked_reason} Nur Admins können noch Änderungen vornehmen oder die Sperre aufheben."
+        )
         
         # Check for existing breakfast order today (single breakfast order constraint)
         # Use Berlin timezone for day boundaries
