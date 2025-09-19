@@ -7060,6 +7060,15 @@ const AdminSettingsTab = ({ currentDepartment }) => {
     }
   };
 
+  const fetchSponsoringStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/sponsoring-status/${currentDepartment.department_id}`);
+      setSponsoringStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Sponsoring-Status:', error);
+    }
+  };
+
   const changeEmployeePassword = async () => {
     if (!newEmployeePassword) {
       alert('Bitte neues Mitarbeiter-Passwort eingeben');
