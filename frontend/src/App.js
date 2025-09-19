@@ -6806,7 +6806,8 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
       paymentType: null, // Wird später vom Benutzer ausgewählt
       accountLabel: 'Subkonto-Verwaltung',
       isSubaccount: true,
-      needsAccountTypeSelection: true // Flag für erweiterte Auswahl
+      needsAccountTypeSelection: true, // Flag für erweiterte Auswahl
+      onBalanceUpdated: handleBalanceUpdated // Custom callback for "Andere WA"
     });
     setShowPaymentModal(true);
   };
