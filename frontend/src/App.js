@@ -2063,6 +2063,8 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
               Bestellung speichern
             </button>
           </div>
+          </>
+          )}
         </div>
       </div>
 
