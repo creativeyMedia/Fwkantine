@@ -3224,6 +3224,7 @@ const DepartmentAdminDashboard = () => {
               currentDepartment={currentDepartment}
               setPaymentEmployeeData={setPaymentEmployeeData}
               setShowPaymentModal={setShowPaymentModal}
+              onBalanceUpdated={handleBalanceUpdated}
             />
           )}
 
