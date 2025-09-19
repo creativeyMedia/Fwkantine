@@ -3419,6 +3419,50 @@ async def get_breakfast_status(department_id: str):
     
     return {"is_closed": False, "date": today}
 
+@api_router.get("/sponsoring-status/{department_id}")
+async def get_sponsoring_status(department_id: str):
+    """Check if ordering is blocked due to sponsoring for today"""
+    # Use Berlin timezone for current day
+    today = get_berlin_date().isoformat()
+    
+    setting = await db.sponsoring_settings.find_one({
+        "department_id": department_id,
+        "date": today
+    })
+    
+    if setting:
+        return {
+            "is_blocked": setting["is_blocked"],
+            "blocked_by": setting.get("blocked_by", ""),
+            "blocked_at": setting.get("blocked_at", ""),
+            "blocked_reason": setting.get("blocked_reason", ""),
+            "date": today
+        }
+    
+    return {"is_blocked": False, "date": today}
+
+@api_router.post("/department-admin/unblock-ordering/{department_id}")
+async def unblock_ordering_after_sponsoring(department_id: str, admin_name: str):
+    """Unblock ordering after sponsoring (Admin only)"""
+    # Use Berlin timezone for current day
+    today = get_berlin_date().isoformat()
+    
+    # Remove or update the sponsoring block
+    await db.sponsoring_settings.update_one(
+        {"department_id": department_id, "date": today},
+        {"$set": {
+            "is_blocked": False,
+            "blocked_by": "",
+            "blocked_at": None,
+            "blocked_reason": "",
+            "unblocked_by": admin_name,
+            "unblocked_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {"message": "Bestellungen nach Sponsoring wieder freigegeben", "unblocked_by": admin_name}
+
 @api_router.post("/department-admin/reopen-breakfast/{department_id}")
 async def reopen_breakfast_for_day(department_id: str):
     """Reopen breakfast ordering for the day (admin only)"""
