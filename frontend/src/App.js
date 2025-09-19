@@ -1750,6 +1750,18 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     }
   };
 
+  const fetchSponsoringStatus = async () => {
+    try {
+      if (!currentDepartment?.department_id) {
+        return;
+      }
+      const response = await axios.get(`${API}/sponsoring-status/${currentDepartment.department_id}`);
+      setSponsoringStatus(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Sponsoring-Status:', error);
+    }
+  };
+
   // Create dynamic labels from menu data
   const rollTypeLabels = {
     'weiss': 'Helles Brötchen',
