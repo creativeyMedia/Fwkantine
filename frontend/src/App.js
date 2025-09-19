@@ -6731,7 +6731,7 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
 };
 
 // ERWEITERT: Other Departments Tab (Andere WA)
-const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setShowPaymentModal }) => {
+const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setShowPaymentModal, onBalanceUpdated }) => {
   const [otherEmployeesWithBalances, setOtherEmployeesWithBalances] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
