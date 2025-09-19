@@ -1991,16 +1991,15 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
         <div className="p-6">
           {(activeCategory === 'breakfast' || activeCategory === 'lunch') && sponsoringStatus.is_blocked ? (
             <div className="text-center py-8">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <div className="text-red-800 mb-4">
-                  <svg className="mx-auto h-16 w-16 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                <div className="text-orange-800 mb-4">
+                  <svg className="mx-auto h-16 w-16 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-red-800 mb-2">Frühstück/Mittag-Bestellungen sind gesperrt</h3>
-                <p className="text-red-600 mb-2">{sponsoringStatus.blocked_reason || 'Bestellungen sind nach Sponsoring gesperrt.'}</p>
-                <p className="text-red-600 text-sm">Gesperrt von: {sponsoringStatus.blocked_by}</p>
-                <p className="text-green-600 text-sm mt-3 font-medium">Getränke und Snacks können weiterhin bestellt werden.</p>
+                <h3 className="text-xl font-semibold text-orange-800 mb-2">Frühstück/Mittag ist für heute geschlossen</h3>
+                <p className="text-orange-600">Nach dem Ausgeben wurde die Bestellung automatisch beendet.</p>
+                <p className="text-orange-600">Getränke und Snacks können weiterhin bestellt werden.</p>
               </div>
             </div>
           ) : (
