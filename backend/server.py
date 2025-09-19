@@ -4577,17 +4577,8 @@ async def sponsor_meal(meal_data: dict):
         # 3. Update sponsor balance and create payment log
         sponsor_employee = await db.employees.find_one({"id": sponsor_employee_id})
         if sponsor_employee:
+            # FIXED: Use update_employee_balance() ONLY to avoid double charging
             # Sponsor zahlt zusätzlich nur für die anderen, nicht für sich selbst (das ist schon in der Bestellung)
-            # CORRECTED: Sponsor OWES more money (balance decreases)
-            old_sponsor_balance = sponsor_employee["breakfast_balance"]
-            new_sponsor_balance = old_sponsor_balance - sponsor_additional_cost
-            new_sponsor_balance = round(new_sponsor_balance, 2)
-            await db.employees.update_one(
-                {"id": sponsor_employee_id},
-                {"$set": {"breakfast_balance": new_sponsor_balance}}
-            )
-            
-            # ERWEITERT: Also update subaccount balance for department consistency
             await update_employee_balance(sponsor_employee_id, department_id, 'breakfast', -sponsor_additional_cost)
             
             # NOTE: No PaymentLog needed for sponsoring - the sponsor order serves as the record
