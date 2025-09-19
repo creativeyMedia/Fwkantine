@@ -4635,6 +4635,24 @@ async def sponsor_meal(meal_data: dict):
                 {"$set": order_update["updates"]}
             )
         
+        # 5. NEUE FUNKTION: Block ordering after sponsoring to prevent saldo confusion
+        today = get_berlin_date().isoformat()
+        sponsor_employee_data = await db.employees.find_one({"id": sponsor_employee_id})
+        sponsor_name = sponsor_employee_data.get("name", "Unbekannt") if sponsor_employee_data else "Unbekannt"
+        
+        await db.sponsoring_settings.update_one(
+            {"department_id": department_id, "date": today},
+            {"$set": {
+                "is_blocked": True,
+                "blocked_by": sponsor_name,
+                "blocked_at": datetime.now(timezone.utc).isoformat(),
+                "blocked_reason": f"Bestellungen gesperrt nach {meal_name}-Sponsoring um weitere Saldo-Konflikte zu vermeiden.",
+                "meal_type": meal_type,
+                "sponsored_count": len(order_calculations)
+            }},
+            upsert=True
+        )
+        
         # === RÜCKGABE ===
         sponsored_items_description = f"{len(order_calculations)}x {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'}"
         
