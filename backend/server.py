@@ -3462,6 +3462,18 @@ async def reopen_breakfast_for_day(department_id: str):
     # Use Berlin timezone for current day
     today = get_berlin_date().isoformat()
     
+    # Check if sponsoring has occurred today - if so, prevent reopening breakfast
+    sponsoring_status = await db.sponsoring_settings.find_one({
+        "department_id": department_id,
+        "date": today
+    })
+    
+    if sponsoring_status and sponsoring_status["is_blocked"]:
+        raise HTTPException(
+            status_code=403, 
+            detail="Frühstück kann nicht geöffnet werden, da heute bereits gesponsert wurde. Sponsoring-Logik überschreibt Frühstück-Öffnen."
+        )
+    
     await db.breakfast_settings.update_one(
         {"department_id": department_id, "date": today},
         {"$set": {
