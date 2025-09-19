@@ -1849,7 +1849,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
       
       // Check if ordering is blocked due to sponsoring (only for breakfast/lunch)
       if ((activeCategory === 'breakfast' || activeCategory === 'lunch') && sponsoringStatus.is_blocked) {
-        alert(`Frühstück/Mittag-Bestellungen sind gesperrt: ${sponsoringStatus.blocked_reason || 'Nach Sponsoring gesperrt zur Vermeidung von Saldo-Konflikten.'}\n\nGetränke und Snacks können weiterhin bestellt werden.`);
+        alert('Frühstück/Mittag ist für heute geschlossen. Nach dem Ausgeben wurde die Bestellung automatisch beendet.\n\nGetränke und Snacks können weiterhin bestellt werden.');
         return;
       }
       
