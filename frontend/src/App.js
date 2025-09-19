@@ -1667,6 +1667,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
     fetchMenus();
     fetchLunchSettings();
     fetchBreakfastStatus();
+    fetchSponsoringStatus();
   }, [currentDepartment]);
 
   const fetchMenus = async () => {
