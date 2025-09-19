@@ -4500,18 +4500,8 @@ async def sponsor_meal(meal_data: dict):
             # Only process if sponsored_amount > 0 (meaning this meal type wasn't already sponsored)
             if sponsored_amount > 0:
                 # CORRECTED: Refund sponsored amount to employee balance (INCREASE balance = less debt)
-                employee = await db.employees.find_one({"id": employee_id})
-                if employee:
-                    # Sponsored employee gets credited (balance increases = less debt or more credit)
-                    new_balance = employee["breakfast_balance"] + sponsored_amount
-                    new_balance = round(new_balance, 2)
-                    await db.employees.update_one(
-                        {"id": employee_id},
-                        {"$set": {"breakfast_balance": new_balance}}
-                    )
-                    
-                    # ERWEITERT: Also update subaccount balance for department consistency
-                    await update_employee_balance(employee_id, department_id, 'breakfast', sponsored_amount)
+                # FIXED: Use update_employee_balance() ONLY (no double counting)
+                await update_employee_balance(employee_id, department_id, 'breakfast', sponsored_amount)
                 
                 # Store order update for later
                 sponsored_message = f"Dieses {'Frühstück' if meal_type == 'breakfast' else 'Mittagessen'} wurde von {sponsor_employee_name} ausgegeben, bedanke dich bei ihm!"
