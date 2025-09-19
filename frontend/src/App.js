@@ -7030,12 +7030,14 @@ const AdminSettingsTab = ({ currentDepartment }) => {
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [showBreakfastControls, setShowBreakfastControls] = useState(true);
   const [breakfastStatus, setBreakfastStatus] = useState({ is_closed: false });
+  const [sponsoringStatus, setSponsoringStatus] = useState({ is_blocked: false });
   const [audioEnabled, setAudioEnabled] = useState(
     localStorage.getItem('canteenAudioEnabled') !== 'false'
   );
 
   useEffect(() => {
     fetchBreakfastStatus();
+    fetchSponsoringStatus();
   }, [currentDepartment]);
 
   const toggleAudio = () => {
