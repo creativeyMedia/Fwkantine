@@ -1599,6 +1599,7 @@ const EmployeeMenu = ({ employee, onClose, onOrderComplete, fetchEmployees }) =>
   const [breakfastFormData, setBreakfastFormData] = useState(null);
   const [isLoadingExistingOrders, setIsLoadingExistingOrders] = useState(true);
   const [breakfastStatus, setBreakfastStatus] = useState({ is_closed: false });
+  const [sponsoringStatus, setSponsoringStatus] = useState({ is_blocked: false });
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
