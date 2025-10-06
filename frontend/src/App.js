@@ -3144,11 +3144,14 @@ const DepartmentAdminDashboard = () => {
       setShowSuccessNotification(true);
       
       // Refresh employee data
-      fetchEmployees();
+      await fetchEmployees();
       
       // Call custom callback if provided (for refreshing specific tabs like "Andere WA")
       if (paymentData.onBalanceUpdated && typeof paymentData.onBalanceUpdated === 'function') {
-        paymentData.onBalanceUpdated();
+        // Wait a bit for the backend to process, then refresh
+        setTimeout(() => {
+          paymentData.onBalanceUpdated();
+        }, 500);
       }
       
       setShowPaymentModal(false);
