@@ -6834,6 +6834,8 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
   };
 
   const handleBalanceUpdated = async () => {
+    console.log('OtherDepartmentsTab: handleBalanceUpdated called');
+    
     // Refresh employee list after balance update
     await fetchOtherEmployeesWithBalances();
     
@@ -6841,6 +6843,12 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
     if (onBalanceUpdated && typeof onBalanceUpdated === 'function') {
       onBalanceUpdated();
     }
+    
+    // Force a second refresh after a short delay to ensure backend changes are reflected
+    setTimeout(async () => {
+      console.log('OtherDepartmentsTab: Second refresh triggered');
+      await fetchOtherEmployeesWithBalances();
+    }, 1000);
   };
 
   if (isLoading) {
