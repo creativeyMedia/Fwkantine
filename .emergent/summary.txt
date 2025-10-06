@@ -1,34 +1,38 @@
 <analysis>
-The AI engineer has demonstrated a comprehensive full-stack development capability, iteratively addressing complex requirements and bug fixes. The work began with critical bug resolutions, including a negative balance cancellation issue and time-based order cancellations. The primary focus then shifted to a significant new feature: a multi-department sub-account system for canteen employees. This involved extensive backend modifications to data models, API endpoints for order creation, deletion, and payment, ensuring sub-account balances are correctly managed and isolated. Concurrently, the frontend was adapted with new UI elements, differentiated employee profile views, and responsive modal designs. Several rounds of user feedback led to continuous refinements in UI consistency, data filtering (e.g., history views, breakfast orders), and critical bug fixes in balance calculations and sponsoring logic. The most recent task involves moving the temporary employee persistence from client-side  to a server-side solution to enable cross-device functionality, which is currently in progress.
+The AI engineer successfully addressed a series of critical UI/UX bugs and enhanced existing features in a React/FastAPI/MongoDB application. The trajectory began with clarifying a 400 Bad Request error, which was determined to be an intended business rule. Subsequent work focused on fixing UI display issues: a timezone problem in timestamps, incorrect sponsoring calculation displays, tablet responsiveness issues (overlapping text on the homepage and dashboard), and inconsistent terminology (Süßes to Snacks). A critical double-calculation bug in the sponsoring logic was identified and resolved in the backend. A new feature, a sponsoring lock (to prevent orders after a sponsorship), was implemented. Finally, the display of orders in the admin dashboard was standardized (red, negative values), topping labels were capitalized, and balance updates for Andere WA were fixed. The work concluded with the user requesting to fork the codebase.
 </analysis>
 
 <product_requirements>
-The application is a canteen management system for German fire department employees, managing meal, drink, and sweets orders with administrative controls. The system needs to evolve to support a multi-department model where employees belong to a Stamm-Wachabteilung (home department) but can also order as temporary members in other departments.
+The Canteen Management System for German fire department employees manages meal orders with administrative controls, designed for a multi-department model. Employees have a primary Stamm-Wachabteilung (home department) and can order as temporary members in other departments, using sub-accounts.
 
-Key requirements and implemented features include:
-1.  **Unified Employee ID:** A single database entry per person, usable across all four Wachabteilungen.
-2.  **Four Separate Accounts per Employee:** Each employee will have a main account for their home department and three sub-accounts, one for each of the other departments. These accounts track Breakfast/Lunch and Drinks/Sweets balances separately.
-3.  **Temporary Employee Feature:**
-    *   Department admins can temporarily add employees from other departments via a dropdown for the current day (until 23:59 Berlin time).
-    *   These Gastabteilung-Mitarbeiter can place orders, which are booked to their respective sub-accounts.
-    *   Orders placed by temporary employees can be cancelled on the same day.
-    *   Temporary employees automatically disappear from the list after the day ends.
-    *   The feature needs to work across devices (server-side persistence).
-4.  **Differentiated UI Display:**
-    *   **Employee Profile (Stamm-Wachabteilung):** Shows main balances prominently and all sub-account balances compactly in a single row with full labels (Frühstück, Getränke, Gesamt). History shows all orders with department markings.
-    *   **Employee Profile (Gast-Wachabteilung):** Only shows the sub-account saldo for the current guest department. History only shows orders made in that specific guest tour.
-    *   All four department balances are displayed separately.
-5.  **Admin Dashboard Andere WA Tab:** A new tab to overview and manage temporary employees' sub-account bookings, including a balance overview per sub-account and the ability to manage (add/deduct) balances. Only Stamm-Tour-admins can delete.
-6.  **Full Booking & Sponsoring Functionality:** All existing booking features (Breakfast, Lunch, toppings) and the sponsoring system must fully integrate and function with the new sub-account structure, ensuring bookings and sponsorships correctly affect the designated main or sub-accounts.
+Key product requirements and implemented features include:
+1.  **Unified Employee ID**: Single database entry per person, usable across all four Wachabteilungen.
+2.  **Four Separate Accounts per Employee**: Main account for home, three sub-accounts for others, tracking Breakfast/Lunch and Drinks/Sweets balances.
+3.  **Temporary Employee Feature**: Admins can temporarily add employees; guest orders book to sub-accounts; orders are cancellable same day; auto-expire end-of-day. Server-side persistence was in progress/partially done.
+4.  **Differentiated UI Display**: Employee profiles show main balances prominently, sub-account balances compactly, with history filtered by department.
+5.  **Admin Dashboard Andere WA Tab**: Overview and management of temporary employees' sub-account bookings, including balance management.
+6.  **Full Booking & Sponsoring Functionality**: Integrated with sub-account structure, ensuring correct balance impact.
+7.  **Daily Lunch Names**: Admins can set a name for lunch meals, displayed alongside price.
+
+Recent bug fixes and improvements addressed:
+*   Corrected timezone display in history.
+*   Fixed incorrect sponsoring calculation display.
+*   Improved tablet responsiveness for homepage and admin dashboard.
+*   Changed Süßes/Süßware to Snacks terminology across the UI.
+*   Resolved a critical double-counting bug in sponsoring balance updates.
+*   Implemented an automatic sponsoring lock to prevent further breakfast/lunch orders post-sponsoring, while allowing snacks/drinks.
+*   Standardized order display in Admin Dashboard (red, negative values).
+*   Corrected capitalization of topping details in order history.
+*   Ensured automatic balance updates in Andere WA tab after transactions.
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack Development:** React (frontend), FastAPI (backend), MongoDB (database).
--   **Pydantic:** Data validation for API request/response models.
--   **Tailwind CSS:** For responsive and consistent UI styling.
--   **Datetime/Timezone Handling:** Crucial for time-based order cancellations and temporary employee expiry.
--   **State Management:** React's  and  for UI state and side effects.
--   **Client-side Persistence:**  for temporary data (being replaced by server-side).
+- **Full-stack Development**: React (frontend), FastAPI (backend), MongoDB (database).
+- **Pydantic**: Data validation for API models.
+- **Tailwind CSS**: Responsive UI styling.
+- **Datetime/Timezone Handling**: Consistent time display (Europe/Berlin).
+- **State Management**: React's  and .
+- **Client-side Persistence**:  (being replaced by server-side).
 </key_technical_concepts>
 
 <code_architecture>
@@ -37,42 +41,38 @@ Key requirements and implemented features include:
 -   ****:
     -   **Importance**: Contains all API logic, database interactions, and core business rules.
     -   **Changes Summary**:
-        -   **Employee Model Update**:  Pydantic model extended with  to store balances for other departments (JSON-based).
-        -   **Balance Update Logic**: Modified , , and  to conditionally update either main balances (for home department orders) or only specific sub-account balances (for guest department orders).
-        -   **Sponsoring Logic Update**: Modified  to update the relevant sub-account balance in addition to main balances for sponsored orders.
-        -   **Sub-account Management Endpoints**: Added  and  for flexible balance adjustments and resets specific to sub-accounts.
-        -   **Pydantic Model Enhancements**:  extended to handle  and  for sub-account payments.  model adjusted for new fields.
-        -   **System Reset Endpoint**: Added  to clear all orders, payment logs, and reset all employee balances (main and sub-accounts) to 0.
-        -   **Temporary Employee Persistence (In Progress)**: New logic and endpoints are being added to manage temporary employee associations in the database for cross-device functionality.
+        -   **Sponsoring Logic**: Corrected double-counting bug in  by removing redundant balance updates (around lines 4506, 4514, 4592, 4601).
+        -   **Sponsoring Lock**: Added  collection and logic to  to create a daily lock. Modified  to enforce this lock (preventing breakfast/lunch orders but allowing drinks/snacks) and  to prevent reopening if a sponsorship occurred (lines 4635, 1905, 3470).
+        -   **Breakfast Summary**: Corrected  calculation logic to ensure  and  are always updated, not just within the toppings loop (around lines 2500, 2548, 2567).
+        -   ** removal**: Removed  generation in  (around lines 4505, 4593) as it was incorrectly calculated and redundant.
+
 -   ****:
     -   **Importance**: Main React application, managing UI, state, and API calls.
     -   **Changes Summary**:
-        -   **Individual Employee Profile ()**: Enhanced to fetch and display main balances prominently and all sub-account balances compactly, differentiated for Stammwachabteilung (home) vs. Gastwachabteilung (guest) views. Layout was refined for three sub-accounts in a row and compact Frühstück / Getränke display.
-        -   **History Filtering**:  function was adapted to filter order history based on whether the employee is viewed as a temporary guest (only guest department orders) or a home employee (all orders with department tags).
-        -   **Andere WA + Modal (Temporary Employee Addition)**: Transformed from a simple dropdown to a full-fledged, responsive modal with an 'X' button, overlay close functionality, and improved mobile display. It now fetches other department employees.
-        -   **Admin Dashboard ()**: New Andere WA tab added to the navigation.
-        -   ** Component**: Created to display employees with sub-account bookings. Integrated with the unified  for balance management and  (now being replaced by server-side) for temporary employee persistence.
-        -   **Unified Payment Modal ()**: Extended to handle both main account and sub-account balance management, replacing a separate .
-        -   **Breakfast Order Bug Fix**: Modified  and  to filter breakfast orders by the *current department ID*, preventing guest breakfast orders from appearing in the home department's modal.
-        -   **Naming Consistency**: Renamed Stammabteilung to Stammwachabteilung and Gastmitarbeiter + button to 👥 Andere WA +, Andere Touren tab to Andere WA.
--   ****: No recent changes in the trajectory, but used for .
+        -   **Timestamp Formatting**: Modified  to specify  for accurate display (line 382).
+        -   **Sponsoring Display**: Changed display to use  instead of  for correct sponsoring messages (line 824).
+        -   **Tablet Responsiveness**: Adjusted  grid layout (around line 1070) and text sizes () for better display at 1024px. Employee list () and  (lines 1408, 6902) were optimized with  and adjusted grid/column widths.
+        -   **Terminology Update**: Süßes/Süßware consistently replaced with Snacks in various UI elements, modals, and labels (, , ,  around lines 525, 6800, 3160, 1985).
+        -   **Andere WA Balance Update**: Implemented refresh mechanisms ( callback,  on tab focus, interval refresh) to ensure balances in the Andere WA tab update automatically after payments (lines 6800, 389, 461).
+        -   **Sponsoring Lock UI**: Adapted UI for the sponsoring lock to match the breakfast closing UI (orange banner, clock icon, generic message without sponsor name, around line 2060).
+        -   **Admin Orders Display**: Modified the display of  in the Bestellungen verwalten modal to show negative, red values for orders (lines 3559-3560).
+        -   **Topping Capitalization**: Enhanced  to use a mapping for capitalizing topping names like Spiegelei instead of spiegelei (lines 3444-3451, 1777-1781).
+        -   **Breakfast Summary Table**: Unified column widths and adjusted header texts for a more compact and balanced look (lines 5354, 5450).
+        -   **Mittagessen Column Repositioning**: Moved the Mittagessen column in the  to be between the employee name and toppings (around lines 5370, 5430, 5450).
+        -   **Temporary Employee Alert**: Removed the confirmation alert when adding a temporary employee (around line 6800).
 </code_architecture>
 
 <pending_tasks>
 -   Complete the implementation of the server-side solution for temporary employee persistence to ensure cross-device functionality.
 -   Test the newly implemented server-side temporary employee persistence (including daily expiry).
+-   Extend the frontend display in all views to use the Mittagessen-Namen wherever Mittagessen appears (not fully completed).
+-   Complete the remaining frontend integrations for the Mittagessen-Namen feature across all views.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary request, the AI engineer was addressing the user's report that temporarily added guest employees were not persistent across devices. The previous implementation used , which is client-side only.
-
-The current work involves:
-1.  **Backend Changes ():** The AI engineer has initiated changes to create a server-side solution for temporary employee persistence. This includes adding new backend endpoints and logic to manage the association of temporary employees with departments in the database.
-2.  **Frontend Changes ():** The next step, after backend changes, will be to update the frontend to use these new server-side APIs for adding, retrieving, and removing temporary employees, replacing the  approach.
-
-The AI engineer has already made initial edits to  to support this, and then  to start integrating the new server-side logic, and the last action was to begin testing both solutions. This is a critical step to ensure that the temporary employee feature works reliably and consistently, regardless of the device used by the administrator.
+Immediately prior to this summary, the AI engineer had just completed a series of bug fixes and UI/UX improvements. The last completed task involved ensuring the Andere WA (Other Departments) tab's sub-account balances updated automatically after transactions. This was achieved by implementing multiple refresh strategies in , including callback-based updates after payment, automatic refresh on tab-focus, and an interval refresh. Logging was also added for diagnostic purposes. The user then reviewed the changes, particularly confirming that several employees with sub-account bookings were visible, and the balances were now updating. Following this, the user explicitly requested to Fork the current codebase to secure the stable state before further tests and changes. The AI engineer's immediate action was to invoke the  to understand how to perform a Fork on the Emergent platform.
 </current_work>
 
 <optional_next_step>
-Test the newly implemented server-side solution for temporary employee persistence.
+Process the response from the  regarding the Fork functionality and inform the user about the next steps for forking the codebase.
 </optional_next_step>
