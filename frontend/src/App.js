@@ -7091,6 +7091,42 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
           <p className="text-gray-500">Keine Mitarbeiter gefunden.</p>
         </div>
       )}
+
+      {/* Gesamtsaldi */}
+      {employees.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <h4 className="text-md font-medium text-gray-800 mb-4">📊 Gesamtsaldi</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Gesamtsaldo Frühstück & Mittagessen */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-center">
+                <div className="text-gray-600 text-sm mb-2">Frühstück & Mittagessen</div>
+                <div className={`text-2xl font-bold ${
+                  employees.reduce((sum, emp) => sum + (parseFloat(emp.breakfast_balance || 0)), 0) >= 0 
+                    ? 'text-green-600' 
+                    : 'text-red-600'
+                }`}>
+                  {formatBalance(employees.reduce((sum, emp) => sum + (parseFloat(emp.breakfast_balance || 0)), 0))}€
+                </div>
+              </div>
+            </div>
+
+            {/* Gesamtsaldo Süßigkeiten & Getränke */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="text-center">
+                <div className="text-gray-600 text-sm mb-2">Süßigkeiten & Getränke</div>
+                <div className={`text-2xl font-bold ${
+                  employees.reduce((sum, emp) => sum + (parseFloat(emp.drinks_sweets_balance || 0)), 0) >= 0 
+                    ? 'text-green-600' 
+                    : 'text-red-600'
+                }`}>
+                  {formatBalance(employees.reduce((sum, emp) => sum + (parseFloat(emp.drinks_sweets_balance || 0)), 0))}€
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
