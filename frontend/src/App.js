@@ -6760,7 +6760,36 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
   const [lastRefresh, setLastRefresh] = useState(Date.now());
 
   useEffect(() => {
-    fetchOtherEmployeesWithBalances();
+    if (currentDepartment?.department_id) {
+      fetchOtherEmployeesWithBalances();
+    }
+  }, [currentDepartment]);
+
+  // Add automatic refresh when component becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentDepartment?.department_id) {
+        console.log('OtherDepartmentsTab: Visibility changed, refreshing data');
+        fetchOtherEmployeesWithBalances();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentDepartment]);
+
+  // Add interval-based refresh every 10 seconds to ensure data stays current
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (currentDepartment?.department_id) {
+        console.log('OtherDepartmentsTab: Interval refresh');
+        fetchOtherEmployeesWithBalances();
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, [currentDepartment]);
 
   const fetchOtherEmployeesWithBalances = async () => {
