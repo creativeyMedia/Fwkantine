@@ -7095,7 +7095,7 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
       {/* Gesamtsaldi */}
       {employees.length > 0 && (
         <div className="mt-8 pt-6 border-t border-gray-200">
-          <h4 className="text-md font-medium text-gray-800 mb-4">📊 Gesamtsaldi</h4>
+          <h4 className="text-md font-medium text-gray-800 mb-4">📊 Gesamt</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Gesamtsaldo Frühstück & Mittagessen */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
