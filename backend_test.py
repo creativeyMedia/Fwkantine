@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Critical Guest Employee Ordering Bug
+Backend Test Suite for Statistics Tab - Admin Dashboard Balance Overview
 
-CRITICAL LIVE PROBLEM:
-User reports: "400 Bad Request beim Bestellen als Gastmitarbeiter - betrifft nur manche Mitarbeiter, bei anderen geht es"
+TESTING FOCUS:
+Testing the backend endpoints that support the new Statistics tab in Admin Dashboard,
+specifically the "Gesamtsaldi" (total balances) feature.
 
-ERROR DETAILS:
-- POST /api/orders 400 (Bad Request) 
-- "Fehler beim Prüfen bestehender Bestellungen"
-- "Fehler beim Speichern der Bestellung"
-- Only affects certain employees, not all
+BACKEND ENDPOINTS TO TEST:
+1. GET /api/departments/{department_id}/employees - Employee balance data
+2. GET /api/employees/{employee_id}/profile - Individual employee profiles  
+3. GET /api/departments/{department_id}/employees-with-subaccount-balances - Subaccount balances
 
-SUSPECTED DATA INCONSISTENCIES:
-The problem points to different data structures between old/new employees:
-1. Missing subaccount_balances: Old employees may not have Sub-Account structure
-2. Null/undefined fields: Critical fields could be missing
-3. Temporary Assignment Problems: Guest employee assignment fails
-4. Validation errors: Backend validation fails for certain employee data
+GESAMTSALDI CALCULATIONS TO VERIFY:
+- "Frühstück & Mittagessen" total balance (sum of all breakfast balances)
+- "Süßigkeiten & Getränke" total balance (sum of all drinks/sweets balances)
+- Color coding verification (positive/negative totals)
+- Mathematical accuracy of balance summations
 
-Test Focus:
-- Test create_order endpoint with different employee data structures
-- Test employees with/without subaccount_balances
-- Test temporary employee assignments (guest workers)
-- Identify exact cause of 400 Bad Request errors
-- Test initialize_subaccount_balances functionality
-- Test backend validation logic
+TEST DEPARTMENTS:
+- fw4abteilung1 (admin1/password1)
+- fw4abteilung2 (admin2/password1) 
+
+The frontend Statistics tab relies on these backend endpoints to display employee
+balance cards and calculate the new Gesamtsaldi totals at the bottom.
 """
 
 import asyncio
