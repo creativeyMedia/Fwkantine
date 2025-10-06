@@ -7114,7 +7114,7 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
             {/* Gesamtsaldo Süßigkeiten & Getränke */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="text-center">
-                <div className="text-gray-600 text-sm mb-2">Süßigkeiten & Getränke</div>
+                <div className="text-gray-600 text-sm mb-2">Snacks & Getränke</div>
                 <div className={`text-2xl font-bold ${
                   employees.reduce((sum, emp) => sum + (parseFloat(emp.drinks_sweets_balance || 0)), 0) >= 0 
                     ? 'text-green-600' 
