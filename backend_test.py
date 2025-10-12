@@ -1,31 +1,35 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Employee Deletion Security Feature
+Backend Test Suite for Developer Dashboard Employee Management
 
 TESTING FOCUS:
-Testing the new employee deletion security feature that prevents deleting employees 
-with non-zero balances, specifically the `/employees/{employee_id}/all-balances` endpoint.
+Testing the fixed Developer Dashboard backend endpoints for employee management,
+specifically the `/api/developer/move-employee/{employee_id}` endpoint.
 
 BACKEND ENDPOINT TO TEST:
-GET /api/employees/{employee_id}/all-balances - Complete balance structure for deletion checking
+PUT /api/developer/move-employee/{employee_id} - Move employee between departments
 
-BALANCE SCENARIOS TO VERIFY:
-1. Employee with positive main balance
-2. Employee with negative main balance  
-3. Employee with zero main balance but non-zero subaccount balance
-4. Employee with all balances at 0€ (should allow deletion)
+TEST SCENARIOS TO VERIFY:
+1. Valid employee move between departments
+2. Invalid employee ID (should return 404)
+3. Invalid target department ID (should return 404)
+4. Verify database update actually occurred
+5. Test MoveEmployeeRequest model with proper request body
 
-EXPECTED RESPONSE STRUCTURE:
-- breakfast_balance and drinks_sweets_balance for main account
-- subaccount_balances object with all department balances
-- Accurate balance calculation for both positive and negative amounts
+EXPECTED FUNCTIONALITY:
+- POST body should contain {"new_department_id": "target_dept_id"}
+- Employee's department_id should be updated in database
+- Response should confirm successful move with department name
+- Error handling for missing employees and departments
 
 TEST DEPARTMENTS:
 - fw4abteilung1 (admin1/password1)
-- fw4abteilung2 (admin2/password2) 
+- fw4abteilung2 (admin2/password2)
+- fw4abteilung3 (admin3/password3)
+- fw4abteilung4 (admin4/password4)
 
-This endpoint provides the backend support for the frontend security feature
-that prevents accidental deletion of employees with outstanding balances.
+This endpoint provides the backend functionality for the Developer Dashboard
+employee moving feature.
 """
 
 import asyncio
