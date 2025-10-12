@@ -4771,11 +4771,14 @@ logger = logging.getLogger(__name__)
 
 # ===== DEVELOPER ENDPOINTS =====
 
+class MoveEmployeeRequest(BaseModel):
+    new_department_id: str
+
 @api_router.put("/developer/move-employee/{employee_id}")
-async def move_employee_to_department(employee_id: str, request: dict):
+async def move_employee_to_department(employee_id: str, request: MoveEmployeeRequest):
     """Move employee to different department (Developer only)"""
     try:
-        new_department_id = request.get("new_department_id")
+        new_department_id = request.new_department_id
         
         # Verify target department exists
         target_dept = await db.departments.find_one({"id": new_department_id})
