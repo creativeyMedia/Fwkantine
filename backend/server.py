@@ -347,6 +347,10 @@ class DepartmentLogin(BaseModel):
 class DepartmentAdminLogin(BaseModel):
     department_name: str
     admin_password: str
+
+class MasterLogin(BaseModel):
+    department_name: str
+    master_password: str
     
 class AdminLogin(BaseModel):
     password: str
