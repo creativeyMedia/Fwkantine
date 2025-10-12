@@ -1275,6 +1275,17 @@ const DepartmentDashboard = () => {
     setShowTemporaryDropdown(false);
   };
 
+  // Filtere Mitarbeiter basierend auf Suchquery
+  const getFilteredEmployees = (employees) => {
+    if (!employeeSearchQuery.trim()) {
+      return employees;
+    }
+    const query = employeeSearchQuery.toLowerCase().trim();
+    return employees.filter(employee => 
+      employee.name.toLowerCase().includes(query)
+    );
+  };
+
   const removeTemporaryEmployee = async (employeeId) => {
     try {
       // Finde die Assignment-ID des temporären Mitarbeiters
