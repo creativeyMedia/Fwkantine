@@ -172,7 +172,7 @@ class BalanceMigrationTester:
         if payment_amount == 0:
             return True  # Already at target balance
         
-        # Use flexible payment to adjust balance
+        # Use flexible payment to adjust balance with admin_department parameter
         payment_data = {
             "payment_type": balance_type if balance_type != "drinks" else "drinks_sweets",
             "amount": payment_amount,
@@ -180,7 +180,10 @@ class BalanceMigrationTester:
             "notes": f"Test balance adjustment to {amount}"
         }
         
-        response, status = await self.make_request('POST', f'/department-admin/flexible-payment/{employee_id}', payment_data)
+        # Add admin_department as query parameter
+        params = {"admin_department": department_id}
+        
+        response, status = await self.make_request('POST', f'/department-admin/flexible-payment/{employee_id}', payment_data, params)
         if status == 200:
             print(f"✅ Set {balance_type} balance to €{amount} for employee {employee_id[:8]}")
             return True
