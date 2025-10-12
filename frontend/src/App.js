@@ -4363,6 +4363,29 @@ const MenuManagementTab = ({ drinksMenu, sweetsMenu, onCreateMenuItem, onDeleteM
           onClose={() => setShowNewSweet(false)}
         />
       )}
+
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessNotification(false);
+            setSuccessMessage('');
+          }}
+        />
+      )}
+
+      {/* Balance Warning Modal */}
+      {showBalanceWarning && (
+        <BalanceWarningModal
+          employeeName={balanceWarningData.employeeName}
+          openBalances={balanceWarningData.openBalances}
+          onClose={() => {
+            setShowBalanceWarning(false);
+            setBalanceWarningData({ employeeName: '', openBalances: [] });
+          }}
+        />
+      )}
     </div>
   );
 };
