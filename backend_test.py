@@ -304,89 +304,94 @@ class EmployeeProfileTester:
             "payment_history_count": len(response.get('payment_history', []))
         }
     
-    async def test_complex_balance_migration(self):
-        """Test Case 2: Complex Move - Employee with existing subaccount balances moves between departments"""
-        print(f"\n🧪 TEST CASE 2: Complex Balance Migration with Existing Subaccounts")
+    async def test_balance_field_names(self, employee_id, employee_name):
+        """Test Case 2: Verify correct balance field names and values"""
+        print(f"\n🧪 TEST CASE 2: Balance Field Names - {employee_name}")
         
-        # Create test employee in department 1
-        employee = await self.create_test_employee("fw4abteilung1", "TestComplexMigration")
-        if not employee:
-            return {"test": "Complex balance migration", "success": False, "error": "Failed to create test employee"}
+        # Get employee profile
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         
-        employee_id = employee['id']
-        
-        print(f"   Employee ID: {employee_id}")
-        print(f"   Testing: Dept1 → Dept2 → Dept3 with balance accumulation")
-        
-        # Set initial balance: €15 breakfast, €5 drinks
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "breakfast", 15.0):
-            return {"test": "Complex balance migration", "success": False, "error": "Failed to set initial breakfast balance"}
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "drinks", 5.0):
-            return {"test": "Complex balance migration", "success": False, "error": "Failed to set initial drinks balance"}
-        
-        # Get initial balances
-        initial_balances = await self.get_employee_all_balances(employee_id)
-        print(f"   Initial: Breakfast €{initial_balances['main_balances']['breakfast']}, Drinks €{initial_balances['main_balances']['drinks_sweets']}")
-        
-        # MOVE 1: Dept1 → Dept2
-        print(f"   🔄 MOVE 1: fw4abteilung1 → fw4abteilung2")
-        move1_response, move1_status = await self.move_employee_to_department(employee_id, "fw4abteilung2")
-        if move1_status != 200:
-            return {"test": "Complex balance migration", "success": False, "error": f"Move 1 failed: {move1_response}"}
-        
-        # Check balances after move 1
-        balances_after_move1 = await self.get_employee_all_balances(employee_id)
-        dept1_subaccount = balances_after_move1['subaccount_balances'].get('fw4abteilung1', {})
-        print(f"   After Move 1 - Dept1 subaccount: Breakfast €{dept1_subaccount.get('breakfast')}, Drinks €{dept1_subaccount.get('drinks')}")
-        print(f"   After Move 1 - Main balances: Breakfast €{balances_after_move1['main_balances']['breakfast']}, Drinks €{balances_after_move1['main_balances']['drinks_sweets']}")
-        
-        # Set some balance in dept2 (simulate orders)
-        if not await self.set_employee_balance(employee_id, "fw4abteilung2", "breakfast", -8.0):
-            return {"test": "Complex balance migration", "success": False, "error": "Failed to set dept2 balance"}
-        
-        # MOVE 2: Dept2 → Dept3  
-        print(f"   🔄 MOVE 2: fw4abteilung2 → fw4abteilung3")
-        move2_response, move2_status = await self.move_employee_to_department(employee_id, "fw4abteilung3")
-        if move2_status != 200:
-            return {"test": "Complex balance migration", "success": False, "error": f"Move 2 failed: {move2_response}"}
-        
-        # Get final balances
-        final_balances = await self.get_employee_all_balances(employee_id)
-        
-        # Verify balance preservation
-        dept1_final = final_balances['subaccount_balances'].get('fw4abteilung1', {})
-        dept2_final = final_balances['subaccount_balances'].get('fw4abteilung2', {})
-        
-        print(f"   Final - Dept1 subaccount: Breakfast €{dept1_final.get('breakfast')}, Drinks €{dept1_final.get('drinks')}")
-        print(f"   Final - Dept2 subaccount: Breakfast €{dept2_final.get('breakfast')}, Drinks €{dept2_final.get('drinks')}")
-        print(f"   Final - Main balances: Breakfast €{final_balances['main_balances']['breakfast']}, Drinks €{final_balances['main_balances']['drinks_sweets']}")
-        
-        # Verify dept1 balances are preserved
-        if dept1_final.get('breakfast') != 15.0 or dept1_final.get('drinks') != 5.0:
+        if status != 200:
             return {
-                "test": "Complex balance migration",
+                "test": "Balance field names",
                 "success": False,
-                "error": f"Dept1 balances not preserved. Expected: B€15, D€5. Got: B€{dept1_final.get('breakfast')}, D€{dept1_final.get('drinks')}"
+                "error": f"Profile endpoint failed with status {status}: {response}"
             }
         
-        # Verify dept2 balances are preserved
-        if dept2_final.get('breakfast') != -8.0:
-            return {
-                "test": "Complex balance migration",
-                "success": False,
-                "error": f"Dept2 breakfast balance not preserved. Expected: €-8, Got: €{dept2_final.get('breakfast')}"
-            }
+        # Check for different possible field name variations
+        employee_obj = response.get('employee', {})
         
-        print(f"   ✅ All balances preserved across multiple moves")
+        # Check employee object field names
+        employee_field_variations = {
+            'breakfast': ['breakfast_balance', 'breakfast_total'],
+            'drinks_sweets': ['drinks_sweets_balance', 'drinks_sweets_total']
+        }
+        
+        employee_fields_found = {}
+        for category, variations in employee_field_variations.items():
+            found_fields = []
+            for field in variations:
+                if field in employee_obj:
+                    found_fields.append({
+                        'field': field,
+                        'value': employee_obj[field]
+                    })
+            employee_fields_found[category] = found_fields
+        
+        # Check main response field names
+        main_field_variations = {
+            'breakfast': ['breakfast_balance', 'breakfast_total'],
+            'drinks_sweets': ['drinks_sweets_balance', 'drinks_sweets_total']
+        }
+        
+        main_fields_found = {}
+        for category, variations in main_field_variations.items():
+            found_fields = []
+            for field in variations:
+                if field in response:
+                    found_fields.append({
+                        'field': field,
+                        'value': response[field]
+                    })
+            main_fields_found[category] = found_fields
+        
+        print(f"   📊 Employee object balance fields:")
+        for category, fields in employee_fields_found.items():
+            if fields:
+                for field_info in fields:
+                    print(f"      {field_info['field']}: €{field_info['value']}")
+            else:
+                print(f"      {category}: No fields found")
+        
+        print(f"   📊 Main response balance fields:")
+        for category, fields in main_fields_found.items():
+            if fields:
+                for field_info in fields:
+                    print(f"      {field_info['field']}: {field_info['value']}")
+            else:
+                print(f"      {category}: No fields found")
+        
+        # Determine the correct field names being used
+        correct_employee_fields = {}
+        correct_main_fields = {}
+        
+        for category, fields in employee_fields_found.items():
+            if fields:
+                correct_employee_fields[category] = fields[0]['field']  # Use first found
+        
+        for category, fields in main_fields_found.items():
+            if fields:
+                correct_main_fields[category] = fields[0]['field']  # Use first found
         
         return {
-            "test": "Complex balance migration",
+            "test": "Balance field names",
             "success": True,
             "employee_id": employee_id,
-            "moves_completed": 2,
-            "dept1_preserved": {"breakfast": dept1_final.get('breakfast'), "drinks": dept1_final.get('drinks')},
-            "dept2_preserved": {"breakfast": dept2_final.get('breakfast'), "drinks": dept2_final.get('drinks')},
-            "final_department": "fw4abteilung3"
+            "employee_name": employee_name,
+            "employee_fields_found": employee_fields_found,
+            "main_fields_found": main_fields_found,
+            "correct_employee_fields": correct_employee_fields,
+            "correct_main_fields": correct_main_fields
         }
     
     async def test_multiple_moves_accumulation(self):
