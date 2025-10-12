@@ -1122,6 +1122,27 @@ const Homepage = () => {
     }
   };
 
+  const handleDeveloperLogin = async (password) => {
+    try {
+      // Use master login endpoint with developer role
+      const response = await axios.post(`${API}/login/master`, {
+        department_name: 'Developer',
+        master_password: password
+      });
+      
+      // Set developer context with special role
+      loginDepartment({
+        ...response.data,
+        role: 'developer',
+        department_name: 'Developer Dashboard',
+        department_id: 'developer'
+      });
+      setShowDeveloperLogin(false);
+    } catch (error) {
+      alert('Ungültiges Master-Passwort');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
