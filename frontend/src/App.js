@@ -3832,7 +3832,11 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
     const openBalances = await checkEmployeeBalancesBeforeDelete(employee);
     
     if (openBalances.length > 0) {
-      alert(`Mitarbeiter ${employee.name} kann nicht gelöscht werden, da noch offene Salden vorhanden sind:\n\n${openBalances.join('\n')}\n\nBitte gleichen Sie alle Salden auf 0€ aus, bevor Sie den Mitarbeiter löschen.`);
+      setBalanceWarningData({
+        employeeName: employee.name,
+        openBalances: openBalances
+      });
+      setShowBalanceWarning(true);
       return;
     }
     
