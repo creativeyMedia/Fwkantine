@@ -4916,6 +4916,52 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
     }
   };
 
+  const checkEmployeeBalancesBeforeDelete = async (employeeToCheck) => {
+    try {
+      // Hole alle Balances des Mitarbeiters (Haupt- und Subkonten)
+      const response = await axios.get(`${API}/employees/${employeeToCheck.id}/all-balances`);
+      const balances = response.data;
+      
+      // Prüfe Hauptkonto-Balances
+      const mainBreakfastBalance = parseFloat(balances.breakfast_balance || 0);
+      const mainDrinksBalance = parseFloat(balances.drinks_sweets_balance || 0);
+      
+      const openBalances = [];
+      
+      if (mainBreakfastBalance !== 0) {
+        openBalances.push(`Hauptkonto Frühstück/Mittag: ${mainBreakfastBalance.toFixed(2)}€`);
+      }
+      
+      if (mainDrinksBalance !== 0) {
+        openBalances.push(`Hauptkonto Getränke/Snacks: ${mainDrinksBalance.toFixed(2)}€`);
+      }
+      
+      // Prüfe Subkonto-Balances
+      if (balances.subaccount_balances) {
+        for (const [deptId, subBalances] of Object.entries(balances.subaccount_balances)) {
+          const subBreakfast = parseFloat(subBalances.breakfast || 0);
+          const subDrinks = parseFloat(subBalances.drinks || 0);
+          
+          if (subBreakfast !== 0) {
+            const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
+            openBalances.push(`Subkonto ${deptName} Frühstück/Mittag: ${subBreakfast.toFixed(2)}€`);
+          }
+          
+          if (subDrinks !== 0) {
+            const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
+            openBalances.push(`Subkonto ${deptName} Getränke/Snacks: ${subDrinks.toFixed(2)}€`);
+          }
+        }
+      }
+      
+      return openBalances;
+    } catch (error) {
+      console.error('Fehler beim Prüfen der Mitarbeiter-Balances:', error);
+      // Im Fehlerfall erlauben wir das Löschen nicht
+      return ['Fehler beim Prüfen der Balances'];
+    }
+  };
+
   const deleteEmployee = async () => {
     if (window.confirm(`Mitarbeiter ${employee.name} wirklich löschen? Alle Bestellungen werden ebenfalls gelöscht.`)) {
       try {
