@@ -1186,6 +1186,15 @@ const Homepage = () => {
             onClose={() => setShowDepartmentLogin(false)}
           />
         )}
+        
+        {/* Developer Login Modal */}
+        {showDeveloperLogin && (
+          <LoginModal
+            title="Developer Login - Master Passwort"
+            onLogin={handleDeveloperLogin}
+            onClose={() => setShowDeveloperLogin(false)}
+          />
+        )}
       </div>
     </div>
   );
