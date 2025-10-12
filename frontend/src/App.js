@@ -5260,6 +5260,18 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
             )}
           </div>
         </div>
+        
+        {/* Balance Warning Modal */}
+        {showBalanceWarning && (
+          <BalanceWarningModal
+            employeeName={balanceWarningData.employeeName}
+            openBalances={balanceWarningData.openBalances}
+            onClose={() => {
+              setShowBalanceWarning(false);
+              setBalanceWarningData({ employeeName: '', openBalances: [] });
+            }}
+          />
+        )}
       </div>
     </div>
   );
