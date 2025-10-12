@@ -495,84 +495,103 @@ class EmployeeProfileTester:
             "payment_count": len(payment_history)
         }
     
-    async def test_zero_balance_move(self):
-        """Test Case 4: Zero Balance Move - Employee with €0 balances moves departments"""
-        print(f"\n🧪 TEST CASE 4: Zero Balance Move")
+    async def test_data_completeness(self, employee_id, employee_name):
+        """Test Case 4: Verify data completeness - payment_history and order_history"""
+        print(f"\n🧪 TEST CASE 4: Data Completeness - {employee_name}")
         
-        # Create test employee
-        employee = await self.create_test_employee("fw4abteilung3", "TestZeroBalance")
-        if not employee:
-            return {"test": "Zero balance move", "success": False, "error": "Failed to create test employee"}
+        # Get employee profile
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         
-        employee_id = employee['id']
-        target_dept = "fw4abteilung4"
-        
-        print(f"   Employee ID: {employee_id}")
-        print(f"   Testing: Zero balance move fw4abteilung3 → fw4abteilung4")
-        
-        # Verify initial balances are zero
-        initial_balances = await self.get_employee_all_balances(employee_id)
-        if not initial_balances:
-            return {"test": "Zero balance move", "success": False, "error": "Failed to get initial balances"}
-        
-        print(f"   Initial breakfast balance: €{initial_balances['main_balances']['breakfast']}")
-        print(f"   Initial drinks balance: €{initial_balances['main_balances']['drinks_sweets']}")
-        
-        if initial_balances['main_balances']['breakfast'] != 0.0 or initial_balances['main_balances']['drinks_sweets'] != 0.0:
-            return {"test": "Zero balance move", "success": False, "error": "Initial balances are not zero"}
-        
-        # Move employee
-        move_response, move_status = await self.move_employee_to_department(employee_id, target_dept)
-        
-        if move_status != 200:
-            return {"test": "Zero balance move", "success": False, "error": f"Move failed: {move_response}"}
-        
-        print(f"   ✅ Move successful: {move_response.get('message')}")
-        
-        # Verify balance migration response shows zeros
-        balance_migration = move_response.get('balance_migration', {})
-        old_balances = balance_migration.get('old_main_balances_moved_to_subaccount', {})
-        new_balances = balance_migration.get('new_main_balances_from_subaccount', {})
-        
-        if old_balances.get('breakfast') != 0.0 or old_balances.get('drinks') != 0.0:
+        if status != 200:
             return {
-                "test": "Zero balance move",
+                "test": "Data completeness",
                 "success": False,
-                "error": f"Expected zero old balances, got breakfast: {old_balances.get('breakfast')}, drinks: {old_balances.get('drinks')}"
+                "error": f"Profile endpoint failed with status {status}: {response}"
             }
         
-        # Get final balances
-        final_balances = await self.get_employee_all_balances(employee_id)
-        if not final_balances:
-            return {"test": "Zero balance move", "success": False, "error": "Failed to get final balances"}
+        # Check required data fields
+        required_data_fields = ['order_history', 'payment_history']
+        missing_data = []
         
-        # Verify all balances remain zero
-        if final_balances['main_balances']['breakfast'] != 0.0 or final_balances['main_balances']['drinks_sweets'] != 0.0:
+        for field in required_data_fields:
+            if field not in response:
+                missing_data.append(field)
+        
+        if missing_data:
             return {
-                "test": "Zero balance move",
+                "test": "Data completeness",
                 "success": False,
-                "error": f"Final main balances not zero: breakfast {final_balances['main_balances']['breakfast']}, drinks {final_balances['main_balances']['drinks_sweets']}"
+                "error": f"Missing required data fields: {missing_data}"
             }
         
-        # Verify subaccount for old department shows zeros
-        old_dept_subaccount = final_balances['subaccount_balances'].get('fw4abteilung3', {})
-        if old_dept_subaccount.get('breakfast') != 0.0 or old_dept_subaccount.get('drinks') != 0.0:
-            return {
-                "test": "Zero balance move",
-                "success": False,
-                "error": f"Old dept subaccount not zero: breakfast {old_dept_subaccount.get('breakfast')}, drinks {old_dept_subaccount.get('drinks')}"
-            }
+        order_history = response.get('order_history', [])
+        payment_history = response.get('payment_history', [])
         
-        print(f"   ✅ All balances remain zero after move")
-        print(f"   ✅ Zero balance migration handled correctly")
+        print(f"   📊 Data Completeness Check:")
+        print(f"      order_history: {len(order_history)} entries")
+        print(f"      payment_history: {len(payment_history)} entries")
+        
+        # Analyze order history structure
+        order_structure_complete = True
+        order_sample = None
+        
+        if order_history:
+            order_sample = order_history[0]
+            required_order_fields = ['id', 'order_type', 'total_price', 'timestamp']
+            missing_order_fields = []
+            
+            for field in required_order_fields:
+                if field not in order_sample:
+                    missing_order_fields.append(field)
+            
+            if missing_order_fields:
+                order_structure_complete = False
+                print(f"      ❌ Order structure incomplete: missing {missing_order_fields}")
+            else:
+                print(f"      ✅ Order structure complete")
+        
+        # Analyze payment history structure
+        payment_structure_complete = True
+        payment_sample = None
+        
+        if payment_history:
+            payment_sample = payment_history[0]
+            required_payment_fields = ['id', 'amount', 'payment_type', 'timestamp']
+            missing_payment_fields = []
+            
+            for field in required_payment_fields:
+                if field not in payment_sample:
+                    missing_payment_fields.append(field)
+            
+            if missing_payment_fields:
+                payment_structure_complete = False
+                print(f"      ❌ Payment structure incomplete: missing {missing_payment_fields}")
+            else:
+                print(f"      ✅ Payment structure complete")
+        
+        # Check for readable_items in orders (enriched data)
+        has_readable_items = False
+        if order_history:
+            for order in order_history:
+                if 'readable_items' in order and order['readable_items']:
+                    has_readable_items = True
+                    break
+        
+        print(f"      {'✅' if has_readable_items else '❌'} Orders have readable_items (enriched data)")
         
         return {
-            "test": "Zero balance move",
+            "test": "Data completeness",
             "success": True,
             "employee_id": employee_id,
-            "original_department": "fw4abteilung3",
-            "target_department": target_dept,
-            "all_balances_zero": True
+            "employee_name": employee_name,
+            "data_fields_present": len(missing_data) == 0,
+            "order_history_count": len(order_history),
+            "payment_history_count": len(payment_history),
+            "order_structure_complete": order_structure_complete,
+            "payment_structure_complete": payment_structure_complete,
+            "has_readable_items": has_readable_items,
+            "order_sample": order_sample,
+            "payment_sample": payment_sample
         }
     
     async def test_negative_balance_move(self):
