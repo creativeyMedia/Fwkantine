@@ -1,28 +1,31 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Statistics Tab - Admin Dashboard Balance Overview
+Backend Test Suite for Employee Deletion Security Feature
 
 TESTING FOCUS:
-Testing the backend endpoints that support the new Statistics tab in Admin Dashboard,
-specifically the "Gesamtsaldi" (total balances) feature.
+Testing the new employee deletion security feature that prevents deleting employees 
+with non-zero balances, specifically the `/employees/{employee_id}/all-balances` endpoint.
 
-BACKEND ENDPOINTS TO TEST:
-1. GET /api/departments/{department_id}/employees - Employee balance data
-2. GET /api/employees/{employee_id}/profile - Individual employee profiles  
-3. GET /api/departments/{department_id}/employees-with-subaccount-balances - Subaccount balances
+BACKEND ENDPOINT TO TEST:
+GET /api/employees/{employee_id}/all-balances - Complete balance structure for deletion checking
 
-GESAMTSALDI CALCULATIONS TO VERIFY:
-- "Frühstück & Mittagessen" total balance (sum of all breakfast balances)
-- "Süßigkeiten & Getränke" total balance (sum of all drinks/sweets balances)
-- Color coding verification (positive/negative totals)
-- Mathematical accuracy of balance summations
+BALANCE SCENARIOS TO VERIFY:
+1. Employee with positive main balance
+2. Employee with negative main balance  
+3. Employee with zero main balance but non-zero subaccount balance
+4. Employee with all balances at 0€ (should allow deletion)
+
+EXPECTED RESPONSE STRUCTURE:
+- breakfast_balance and drinks_sweets_balance for main account
+- subaccount_balances object with all department balances
+- Accurate balance calculation for both positive and negative amounts
 
 TEST DEPARTMENTS:
 - fw4abteilung1 (admin1/password1)
-- fw4abteilung2 (admin2/password1) 
+- fw4abteilung2 (admin2/password2) 
 
-The frontend Statistics tab relies on these backend endpoints to display employee
-balance cards and calculate the new Gesamtsaldi totals at the bottom.
+This endpoint provides the backend support for the frontend security feature
+that prevents accidental deletion of employees with outstanding balances.
 """
 
 import asyncio
