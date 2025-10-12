@@ -773,7 +773,7 @@ class BalanceMigrationTester:
 
 async def main():
     """Main test execution"""
-    async with DeveloperDashboardTester() as tester:
+    async with BalanceMigrationTester() as tester:
         success = await tester.run_comprehensive_test()
         return success
 
