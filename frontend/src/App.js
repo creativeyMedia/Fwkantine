@@ -8704,6 +8704,321 @@ const DeveloperDashboard = () => {
   );
 };
 
+// Extended Employee Management Tab Component for Developer Dashboard
+const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelectedEmployee, setShowEmployeeProfile }) => {
+  
+  // Gruppiere Mitarbeiter nach Wachabteilungen
+  const employeesByDepartment = employees.reduce((acc, employee) => {
+    const deptName = employee.department_name || 'Unbekannte Abteilung';
+    if (!acc[deptName]) {
+      acc[deptName] = [];
+    }
+    acc[deptName].push(employee);
+    return acc;
+  }, {});
+
+  // Sortiere Abteilungen alphabetisch
+  const sortedDepartments = Object.keys(employeesByDepartment).sort();
+
+  const handleMoveEmployee = async (employee, targetDepartmentId) => {
+    if (window.confirm(`Mitarbeiter ${employee.name} zur Abteilung verschieben?`)) {
+      try {
+        await axios.put(`${API}/developer/move-employee/${employee.id}`, {
+          new_department_id: targetDepartmentId
+        });
+        alert('Mitarbeiter erfolgreich verschoben');
+        onEmployeeUpdate();
+      } catch (error) {
+        console.error('Fehler beim Verschieben:', error);
+        alert('Fehler beim Verschieben des Mitarbeiters');
+      }
+    }
+  };
+
+  const handleViewEmployeeProfile = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEmployeeProfile(true);
+  };
+
+  // Hole alle verfügbaren Abteilungen für das Dropdown
+  const allDepartments = [...new Set(employees.map(emp => ({ 
+    id: emp.department_id, 
+    name: emp.department_name 
+  }))).values()];
+
+  return (
+    <div className="space-y-8">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-2">🔧 Erweiterte Mitarbeiterverwaltung</h2>
+        <p className="text-gray-600">Alle Mitarbeiter aus allen Wachabteilungen - Verschieben, Verlauf einsehen und erweiterte Verwaltung</p>
+      </div>
+
+      {sortedDepartments.map((departmentName) => {
+        const deptEmployees = employeesByDepartment[departmentName];
+        
+        return (
+          <div key={departmentName} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            {/* Abteilungsheader */}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-bold text-gray-800">{departmentName}</h3>
+                <p className="text-sm text-gray-600">{deptEmployees.length} Mitarbeiter</p>
+              </div>
+            </div>
+
+            {/* Mitarbeiter-Liste */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              {deptEmployees.map((employee) => (
+                <div key={employee.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800">{employee.name}</h4>
+                      {employee.is_guest && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">👤 Gast</span>
+                      )}
+                    </div>
+                    <div className="text-right text-xs">
+                      <div className={`font-semibold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {((parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)).toFixed(2))}€
+                      </div>
+                      <div className="text-gray-500">Gesamt</div>
+                    </div>
+                  </div>
+
+                  {/* Balance Details */}
+                  <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {(parseFloat(employee.breakfast_balance || 0)).toFixed(2)}€
+                      </div>
+                      <div className="text-gray-600">F/M</div>
+                    </div>
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {(parseFloat(employee.drinks_sweets_balance || 0)).toFixed(2)}€
+                      </div>
+                      <div className="text-gray-600">G/S</div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => handleViewEmployeeProfile(employee)}
+                      className="w-full bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      📋 Vollständiger Verlauf
+                    </button>
+                    
+                    {/* Move Employee Dropdown */}
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value !== employee.department_id) {
+                          handleMoveEmployee(employee, e.target.value);
+                        }
+                        e.target.value = employee.department_id; // Reset selection
+                      }}
+                      value={employee.department_id}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50"
+                    >
+                      <option value={employee.department_id}>🔄 Verschieben nach...</option>
+                      {allDepartments
+                        .filter(dept => dept.id !== employee.department_id)
+                        .map(dept => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// Developer Employee Profile Component with Extended Functionality
+const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
+  const [employeeProfile, setEmployeeProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployeeProfile();
+  }, [employee.id]);
+
+  const fetchEmployeeProfile = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${API}/employees/${employee.id}/profile`);
+      setEmployeeProfile(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden des Mitarbeiterprofils:', error);
+      alert('Fehler beim Laden des Profils');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // SALDO-NEUTRAL - Löscht nur Einträge, verändert Salden NICHT
+  const deleteHistoryEntry = async (entryId, entryType) => {
+    if (window.confirm('Eintrag aus Verlauf löschen? (Salden bleiben unverändert)')) {
+      try {
+        await axios.delete(`${API}/developer/delete-history-entry/${entryId}?entry_type=${entryType}&employee_id=${employee.id}`);
+        alert('Eintrag erfolgreich gelöscht (saldo-neutral)');
+        fetchEmployeeProfile(); // Refresh profile
+        onRefresh(); // Refresh parent employee list
+      } catch (error) {
+        console.error('Fehler beim Löschen des Eintrags:', error);
+        alert('Fehler beim Löschen des Eintrags');
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Lade Mitarbeiterprofil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!employeeProfile) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="sticky top-0 bg-white border-b p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">🔧 {employee.name} - Developer Verlauf</h2>
+              <p className="text-gray-600">{employee.department_name}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+          {/* Balance Overview */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-blue-50 p-4 rounded-lg text-center">
+              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.breakfast_balance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(employeeProfile.breakfast_balance).toFixed(2)}€
+              </div>
+              <div className="text-gray-600">Frühstück/Mittag</div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg text-center">
+              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.drinks_sweets_balance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(employeeProfile.drinks_sweets_balance).toFixed(2)}€
+              </div>
+              <div className="text-gray-600">Getränke/Snacks</div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg text-center">
+              <div className={`text-2xl font-bold ${(parseFloat(employeeProfile.breakfast_balance) + parseFloat(employeeProfile.drinks_sweets_balance)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {(parseFloat(employeeProfile.breakfast_balance) + parseFloat(employeeProfile.drinks_sweets_balance)).toFixed(2)}€
+              </div>
+              <div className="text-gray-600">Gesamt</div>
+            </div>
+          </div>
+
+          {/* Order History with Developer Controls */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">🔧 Vollständiger Verlauf (Developer Controls)</h3>
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+              <p className="text-yellow-800 text-sm">
+                ⚠️ <strong>Saldo-neutrale Löschungen:</strong> Einträge werden nur aus dem Verlauf entfernt, Salden bleiben unverändert!
+              </p>
+            </div>
+            
+            {employeeProfile.order_history.length === 0 ? (
+              <p className="text-gray-600 text-center py-8">Keine Einträge vorhanden</p>
+            ) : (
+              <div className="space-y-4">
+                {employeeProfile.order_history.map((entry, index) => (
+                  <div key={entry.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        {entry.readable_items ? (
+                          // Order Entry
+                          <>
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                              Bestellung
+                            </span>
+                            <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
+                          </>
+                        ) : (
+                          // Payment Entry  
+                          <>
+                            <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                              {entry.amount > 0 ? 'Einzahlung' : 'Auszahlung'}
+                            </span>
+                            <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className={`font-semibold ${entry.total_price < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {entry.amount ? `${entry.amount > 0 ? '+' : ''}${entry.amount.toFixed(2)}€` : `${entry.total_price < 0 ? '-' : ''}${Math.abs(entry.total_price || 0).toFixed(2)}€`}
+                        </p>
+                        <button
+                          onClick={() => deleteHistoryEntry(entry.id, entry.readable_items ? 'order' : 'payment')}
+                          className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
+                        >
+                          🔧 Löschen
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Entry Details */}
+                    {entry.readable_items && (
+                      <div className="space-y-1">
+                        {entry.readable_items.map((item, idx) => (
+                          <div key={idx} className="text-sm flex justify-between items-start">
+                            <div className="flex-1">
+                              <span className="font-medium">{item.description}</span>
+                              {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
+                            </div>
+                            {item.total_price && (
+                              <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {entry.notes && (
+                      <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                          <span className="text-xs font-medium text-yellow-800 block mb-1">📝 Notizen:</span>
+                          <span className="text-sm text-yellow-700">{entry.notes}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin, isInitializing } = React.useContext(AuthContext);
