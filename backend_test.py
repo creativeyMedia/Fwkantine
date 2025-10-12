@@ -1,37 +1,33 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Employee Department Moving with Balance Migration
+Backend Test Suite for Employee Profile Endpoint Balance Data Structure
 
 TESTING FOCUS:
-Testing the improved employee department moving with proper balance migration logic.
+Testing the employee profile endpoint to verify balance data structure and values.
 
 BACKEND ENDPOINT TO TEST:
-PUT /api/developer/move-employee/{employee_id} - Move employee between departments with balance migration
+GET /api/employees/{employee_id}/profile - Employee profile with balance data
 
 TEST SCENARIOS TO VERIFY:
-1. Test employee moving with balance migration from department A to department B
-2. Verify that main balances become subaccount balances for old department
-3. Verify that subaccount balances (if any) for target department become new main balances
-4. Test complex scenarios with multiple moves and existing subaccount balances
-5. Verify balance consistency and data integrity after moves
+1. Test GET /api/employees/{employee_id}/profile endpoint
+2. Verify the exact structure of returned balance data
+3. Check if balance fields contain actual values (not 0)
+4. Examine both the main response structure and nested employee object
+5. Verify payment_history and order_history are included
 
-EXPECTED BALANCE MIGRATION LOGIC:
-- Move A→B: Main balances of A become subaccount A, subaccount B becomes main balances
-- Multiple moves: Previous department balances preserved in subaccounts
-- Balance totals: Total balance across all accounts remains constant (no money created/lost)
+FOCUS AREAS:
+- Balance field names: breakfast_balance vs breakfast_total, drinks_sweets_balance vs drinks_sweets_total
+- Response structure: Are balances in main response or nested under employee object?
+- Actual balance values: Do they reflect real transaction history?
+- Data completeness: Are all expected fields present?
 
-TEST SCENARIOS:
-1. Simple Move: Employee with €10 main balance (breakfast) moves A→B
-2. Complex Move: Employee with existing subaccount balances moves between departments  
-3. Multiple Moves: Employee moves A→B→C to test subaccount accumulation
-4. Zero Balance Move: Employee with €0 balances moves departments
-5. Negative Balance Move: Employee with negative balances moves departments
+EXPECTED INVESTIGATION:
+- Identify correct field names for balance display
+- Confirm balance values are not defaulting to 0
+- Verify API response structure matches frontend expectations
+- Check if employee object contains balance data vs main response level
 
-VERIFICATION POINTS:
-- Balance migration response includes old and new balance details
-- Database reflects correct main and subaccount balance updates
-- Total employee balance remains mathematically consistent
-- No balance duplication or loss during migration
+TEST EMPLOYEE: Use any employee ID with existing order/payment history from fw4abteilung1 or fw4abteilung2
 """
 
 import asyncio
