@@ -526,7 +526,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Critical Guest Employee Ordering Bug - 400 Bad Request Debug"
+    - "Improved 'Andere WA' Tab with Departmental Grouping and Separation"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
