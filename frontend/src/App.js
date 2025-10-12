@@ -9020,7 +9020,7 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
                       {entry.type === 'payment' && (
                         <div className="mt-2">
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Buchungstyp:</span> {entry.balance_type === 'breakfast' ? 'Fruehstueck/Mittag' : 'Getraenke/Snacks'}
+                            <span className="font-medium">Buchungstyp:</span> {entry.balance_type === 'breakfast' ? 'Breakfast/Lunch' : 'Drinks/Snacks'}
                           </div>
                         </div>
                       )}
