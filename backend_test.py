@@ -738,19 +738,19 @@ class BalanceMigrationTester:
         print(f"Success Rate: {success_rate:.1f}%")
         
         if successful_tests == total_tests:
-            print(f"\n🎉 ALL DEVELOPER DASHBOARD TESTS PASSED!")
+            print(f"\n🎉 ALL BALANCE MIGRATION TESTS PASSED!")
             print(f"✅ The /api/developer/move-employee/{{employee_id}} endpoint is working correctly")
-            print(f"✅ MoveEmployeeRequest model accepts proper request body format")
-            print(f"✅ Employee department_id is updated correctly in database")
-            print(f"✅ Response confirms successful move with department name")
-            print(f"✅ Error handling works for invalid employee IDs (404)")
-            print(f"✅ Error handling works for invalid department IDs (404)")
-            print(f"✅ Multiple department moves work correctly")
-            print(f"✅ Developer Dashboard employee management is FULLY FUNCTIONAL")
+            print(f"✅ Balance migration logic works properly (main ↔ subaccount)")
+            print(f"✅ Main balances correctly become subaccount balances for old department")
+            print(f"✅ Subaccount balances correctly become main balances for target department")
+            print(f"✅ Complex scenarios with multiple moves work correctly")
+            print(f"✅ Balance consistency maintained (no money created/lost)")
+            print(f"✅ Zero and negative balance moves handled correctly")
+            print(f"✅ Employee department moving with balance migration is FULLY FUNCTIONAL")
         else:
-            print(f"\n🚨 CRITICAL ISSUES DETECTED!")
+            print(f"\n🚨 CRITICAL BALANCE MIGRATION ISSUES DETECTED!")
             print(f"❌ {len(failed_tests)} test cases failed")
-            print(f"❌ This may affect the Developer Dashboard functionality")
+            print(f"❌ This may affect balance integrity during employee moves")
             
             # Identify patterns in failures
             print(f"\n🔍 FAILURE PATTERN ANALYSIS:")
@@ -760,12 +760,14 @@ class BalanceMigrationTester:
                 print(f"   - {test_name}: {error}")
             
             print(f"\n💡 RECOMMENDED FIXES:")
-            if any('404' in result.get('error', '') for result in failed_tests):
-                print(f"   1. Check endpoint URL and routing configuration")
+            if any('balance' in result.get('error', '').lower() for result in failed_tests):
+                print(f"   1. Check balance migration logic in move-employee endpoint")
+            if any('subaccount' in result.get('error', '').lower() for result in failed_tests):
+                print(f"   2. Verify subaccount balance initialization and updates")
+            if any('inconsistency' in result.get('error', '').lower() for result in failed_tests):
+                print(f"   3. Review balance calculation and preservation logic")
             if any('database' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   2. Verify database update logic in move-employee endpoint")
-            if any('model' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   3. Check MoveEmployeeRequest model validation")
+                print(f"   4. Verify database update operations for balance migration")
         
         return successful_tests == total_tests
 
