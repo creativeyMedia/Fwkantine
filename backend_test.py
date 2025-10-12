@@ -445,7 +445,9 @@ class EmployeeDeletionSecurityTester:
     
     # Removed unused methods for employee deletion security testing
     
-    async def test_duplicate_order_validation(self):
+    # Additional unused methods removed for employee deletion security testing
+    
+    async def test_duplicate_order_validation_unused(self):
         """Test the specific duplicate order validation that causes 400 errors"""
         print(f"\n{'='*60}")
         print(f"🎯 CRITICAL FINDING: DUPLICATE ORDER VALIDATION TEST")
