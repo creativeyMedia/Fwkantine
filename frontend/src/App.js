@@ -4952,6 +4952,10 @@ const AdminDashboard = () => {
 const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Balance Warning Modal State
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
+  const [balanceWarningData, setBalanceWarningData] = useState({ employeeName: '', openBalances: [] });
 
   useEffect(() => {
     fetchEmployeeProfile();
