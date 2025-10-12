@@ -1686,9 +1686,9 @@ const DepartmentDashboard = () => {
                     </div>
                     </div>
                   ))}
-                </div>
-              );
-            })()}
+              </>
+            );
+          })()}
         </div>
 
         {/* Breakfast Summary Modal */}
