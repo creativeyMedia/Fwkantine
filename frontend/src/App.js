@@ -2931,6 +2931,10 @@ const DepartmentAdminDashboard = () => {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
+  // Balance Warning Modal State
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
+  const [balanceWarningData, setBalanceWarningData] = useState({ employeeName: '', openBalances: [] });
+  
   const { currentDepartment, logout, loginDepartment } = React.useContext(AuthContext);
 
   const goBackToEmployeeDashboard = () => {
