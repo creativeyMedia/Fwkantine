@@ -543,6 +543,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
   // State for success notification in profile
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Balance Warning Modal State
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
+  const [balanceWarningData, setBalanceWarningData] = useState({ employeeName: '', openBalances: [] });
 
   if (isLoading) {
     return (
