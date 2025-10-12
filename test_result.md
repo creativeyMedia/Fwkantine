@@ -551,7 +551,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Improved 'Andere WA' Tab with Departmental Grouping and Separation"
+    - "Improved Developer Dashboard Employee Management Interface"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
