@@ -4161,6 +4161,18 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
           onOrderUpdate={onEmployeeUpdate}
         />
       )}
+      
+      {/* Balance Warning Modal */}
+      {showBalanceWarning && (
+        <BalanceWarningModal
+          employeeName={balanceWarningData.employeeName}
+          openBalances={balanceWarningData.openBalances}
+          onClose={() => {
+            setShowBalanceWarning(false);
+            setBalanceWarningData({ employeeName: '', openBalances: [] });
+          }}
+        />
+      )}
     </div>
   );
 };
