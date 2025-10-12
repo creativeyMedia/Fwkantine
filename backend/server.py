@@ -4748,27 +4748,23 @@ class MoveEmployeeRequest(BaseModel):
 @api_router.put("/developer/move-employee/{employee_id}")
 async def move_employee_to_department(employee_id: str, request: MoveEmployeeRequest):
     """Move employee to different department (Developer only)"""
-    try:
-        new_department_id = request.new_department_id
-        
-        # Verify target department exists
-        target_dept = await db.departments.find_one({"id": new_department_id})
-        if not target_dept:
-            raise HTTPException(status_code=404, detail="Ziel-Abteilung nicht gefunden")
-        
-        # Update employee's department
-        result = await db.employees.update_one(
-            {"id": employee_id},
-            {"$set": {"department_id": new_department_id}}
-        )
-        
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
-        
-        return {"message": f"Mitarbeiter erfolgreich nach {target_dept['name']} verschoben"}
+    new_department_id = request.new_department_id
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Fehler beim Verschieben: {str(e)}")
+    # Verify target department exists
+    target_dept = await db.departments.find_one({"id": new_department_id})
+    if not target_dept:
+        raise HTTPException(status_code=404, detail="Ziel-Abteilung nicht gefunden")
+    
+    # Update employee's department
+    result = await db.employees.update_one(
+        {"id": employee_id},
+        {"$set": {"department_id": new_department_id}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    return {"message": f"Mitarbeiter erfolgreich nach {target_dept['name']} verschoben"}
 
 @api_router.delete("/developer/delete-history-entry/{entry_id}")
 async def delete_history_entry_saldo_neutral(
