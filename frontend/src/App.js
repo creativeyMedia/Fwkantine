@@ -1471,35 +1471,36 @@ const DepartmentDashboard = () => {
                         
                         return (
                           Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => {
-                          const filteredEmployees = getFilteredEmployees(employees);
-                          
-                          // Skip department if no employees match search
-                          if (filteredEmployees.length === 0) {
-                            return null;
-                          }
-                          
-                          return (
-                            <div key={deptId} className="border-b border-gray-100 last:border-b-0">
-                              <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
-                                {employees[0]?.department_name} ({filteredEmployees.length})
+                            const filteredEmployees = getFilteredEmployees(employees);
+                            
+                            // Skip department if no employees match search
+                            if (filteredEmployees.length === 0) {
+                              return null;
+                            }
+                            
+                            return (
+                              <div key={deptId} className="border-b border-gray-100 last:border-b-0">
+                                <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
+                                  {employees[0]?.department_name} ({filteredEmployees.length})
+                                </div>
+                                {filteredEmployees.map((employee) => (
+                                <button
+                                  key={employee.id}
+                                  onClick={() => addTemporaryEmployee(employee)}
+                                  className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-b-0"
+                                  disabled={temporaryEmployees.find(emp => emp.id === employee.id)}
+                                >
+                                  <div className="font-medium text-gray-800">{employee.name}</div>
+                                  <div className="text-xs text-gray-500">{employee.department_name}</div>
+                                  {temporaryEmployees.find(emp => emp.id === employee.id) && (
+                                    <div className="text-xs text-green-600 mt-1">✓ Bereits hinzugefügt</div>
+                                  )}
+                                </button>
+                                ))}
                               </div>
-                              {filteredEmployees.map((employee) => (
-                              <button
-                                key={employee.id}
-                                onClick={() => addTemporaryEmployee(employee)}
-                                className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-b-0"
-                                disabled={temporaryEmployees.find(emp => emp.id === employee.id)}
-                              >
-                                <div className="font-medium text-gray-800">{employee.name}</div>
-                                <div className="text-xs text-gray-500">{employee.department_name}</div>
-                                {temporaryEmployees.find(emp => emp.id === employee.id) && (
-                                  <div className="text-xs text-green-600 mt-1">✓ Bereits hinzugefügt</div>
-                                )}
-                              </button>
-                              ))}
-                            </div>
-                          );
-                        });
+                            );
+                          })
+                        );
                       })()}
                     </div>
                   </div>
