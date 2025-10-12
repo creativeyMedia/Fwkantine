@@ -1219,6 +1219,7 @@ const DepartmentDashboard = () => {
   const [temporaryEmployees, setTemporaryEmployees] = useState([]); // ERWEITERT für temporäre Mitarbeiter  
   const [otherDepartmentEmployees, setOtherDepartmentEmployees] = useState({}); // ERWEITERT für Dropdown
   const [showTemporaryDropdown, setShowTemporaryDropdown] = useState(false); // ERWEITERT
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState(''); // Suchfunktion für Gastmitarbeiter
   const [showNewEmployee, setShowNewEmployee] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
