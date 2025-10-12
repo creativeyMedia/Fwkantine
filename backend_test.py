@@ -196,96 +196,112 @@ class EmployeeProfileTester:
         response, status = await self.make_request('PUT', f'/developer/move-employee/{employee_id}', move_data)
         return response, status
     
-    async def test_simple_balance_migration(self):
-        """Test Case 1: Simple Move - Employee with €10 main balance (breakfast) moves A→B"""
-        print(f"\n🧪 TEST CASE 1: Simple Balance Migration (A→B)")
+    async def get_employees_with_history(self, department_id):
+        """Get employees from a department that have order/payment history"""
+        response, status = await self.make_request('GET', f'/departments/{department_id}/employees')
+        if status == 200:
+            employees = response
+            # Filter employees with non-zero balances (indicating history)
+            employees_with_history = []
+            for emp in employees:
+                if (emp.get('breakfast_balance', 0) != 0 or 
+                    emp.get('drinks_sweets_balance', 0) != 0):
+                    employees_with_history.append(emp)
+            return employees_with_history
+        return []
+
+    async def test_employee_profile_structure(self, employee_id, employee_name):
+        """Test Case 1: Verify employee profile endpoint structure and balance fields"""
+        print(f"\n🧪 TEST CASE 1: Employee Profile Structure - {employee_name}")
         
-        # Create test employee in department 1
-        employee = await self.create_test_employee("fw4abteilung1", "TestSimpleMigration")
-        if not employee:
-            return {"test": "Simple balance migration", "success": False, "error": "Failed to create test employee"}
+        # Get employee profile
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         
-        employee_id = employee['id']
-        original_dept = "fw4abteilung1"
-        target_dept = "fw4abteilung2"
-        
-        print(f"   Employee ID: {employee_id}")
-        print(f"   Original Department: {original_dept}")
-        print(f"   Target Department: {target_dept}")
-        
-        # Set initial balance: €10 breakfast balance
-        if not await self.set_employee_balance(employee_id, original_dept, "breakfast", 10.0):
-            return {"test": "Simple balance migration", "success": False, "error": "Failed to set initial balance"}
-        
-        # Get initial balances
-        initial_balances = await self.get_employee_all_balances(employee_id)
-        if not initial_balances:
-            return {"test": "Simple balance migration", "success": False, "error": "Failed to get initial balances"}
-        
-        print(f"   Initial breakfast balance: €{initial_balances['main_balances']['breakfast']}")
-        print(f"   Initial drinks balance: €{initial_balances['main_balances']['drinks_sweets']}")
-        
-        # Move employee to department 2
-        move_response, move_status = await self.move_employee_to_department(employee_id, target_dept)
-        
-        if move_status != 200:
+        if status != 200:
             return {
-                "test": "Simple balance migration", 
-                "success": False, 
-                "error": f"Move failed with status {move_status}: {move_response}"
-            }
-        
-        print(f"   ✅ Move API response: {move_response}")
-        
-        # Verify balance migration in response
-        balance_migration = move_response.get('balance_migration', {})
-        old_balances = balance_migration.get('old_main_balances_moved_to_subaccount', {})
-        new_balances = balance_migration.get('new_main_balances_from_subaccount', {})
-        
-        if old_balances.get('breakfast') != 10.0:
-            return {
-                "test": "Simple balance migration",
+                "test": "Employee profile structure",
                 "success": False,
-                "error": f"Expected old breakfast balance 10.0, got {old_balances.get('breakfast')}"
+                "error": f"Profile endpoint failed with status {status}: {response}"
             }
         
-        # Get final balances
-        final_balances = await self.get_employee_all_balances(employee_id)
-        if not final_balances:
-            return {"test": "Simple balance migration", "success": False, "error": "Failed to get final balances"}
+        print(f"   ✅ Profile endpoint accessible (HTTP 200)")
         
-        print(f"   Final main breakfast balance: €{final_balances['main_balances']['breakfast']}")
-        print(f"   Final main drinks balance: €{final_balances['main_balances']['drinks_sweets']}")
+        # Analyze response structure
+        required_fields = ['employee', 'order_history', 'payment_history', 'total_orders']
+        missing_fields = []
         
-        # Verify main balances are now 0 (moved to subaccount)
-        if final_balances['main_balances']['breakfast'] != 0.0:
+        for field in required_fields:
+            if field not in response:
+                missing_fields.append(field)
+        
+        if missing_fields:
             return {
-                "test": "Simple balance migration",
+                "test": "Employee profile structure",
                 "success": False,
-                "error": f"Expected new main breakfast balance 0.0, got {final_balances['main_balances']['breakfast']}"
+                "error": f"Missing required fields: {missing_fields}"
             }
         
-        # Verify old department subaccount has the migrated balance
-        old_dept_subaccount = final_balances['subaccount_balances'].get(original_dept, {})
-        if old_dept_subaccount.get('breakfast') != 10.0:
-            return {
-                "test": "Simple balance migration",
-                "success": False,
-                "error": f"Expected subaccount breakfast balance 10.0, got {old_dept_subaccount.get('breakfast')}"
-            }
+        print(f"   ✅ All required fields present: {required_fields}")
         
-        print(f"   ✅ Old department subaccount breakfast: €{old_dept_subaccount.get('breakfast')}")
-        print(f"   ✅ Balance migration successful: Main €10 → Subaccount €10")
+        # Check employee object structure
+        employee_obj = response.get('employee', {})
+        employee_balance_fields = ['breakfast_balance', 'drinks_sweets_balance']
+        
+        for field in employee_balance_fields:
+            if field not in employee_obj:
+                return {
+                    "test": "Employee profile structure",
+                    "success": False,
+                    "error": f"Employee object missing balance field: {field}"
+                }
+        
+        print(f"   ✅ Employee object has balance fields: {employee_balance_fields}")
+        
+        # Check for balance fields in main response
+        main_balance_fields = ['breakfast_total', 'drinks_sweets_total']
+        main_balance_present = []
+        
+        for field in main_balance_fields:
+            if field in response:
+                main_balance_present.append(field)
+        
+        print(f"   📊 Main response balance fields: {main_balance_present}")
+        
+        # Analyze balance values
+        employee_breakfast = employee_obj.get('breakfast_balance', 0)
+        employee_drinks = employee_obj.get('drinks_sweets_balance', 0)
+        main_breakfast = response.get('breakfast_total', 'NOT_FOUND')
+        main_drinks = response.get('drinks_sweets_total', 'NOT_FOUND')
+        
+        print(f"   📊 Employee object balances:")
+        print(f"      breakfast_balance: €{employee_breakfast}")
+        print(f"      drinks_sweets_balance: €{employee_drinks}")
+        print(f"   📊 Main response balances:")
+        print(f"      breakfast_total: {main_breakfast}")
+        print(f"      drinks_sweets_total: {main_drinks}")
+        
+        # Check if balances are actual values (not 0)
+        has_actual_values = (employee_breakfast != 0 or employee_drinks != 0)
         
         return {
-            "test": "Simple balance migration",
+            "test": "Employee profile structure",
             "success": True,
             "employee_id": employee_id,
-            "original_department": original_dept,
-            "target_department": target_dept,
-            "initial_balance": 10.0,
-            "migrated_to_subaccount": old_dept_subaccount.get('breakfast'),
-            "new_main_balance": final_balances['main_balances']['breakfast']
+            "employee_name": employee_name,
+            "structure_complete": len(missing_fields) == 0,
+            "employee_balance_fields": employee_balance_fields,
+            "main_balance_fields": main_balance_present,
+            "employee_balances": {
+                "breakfast_balance": employee_breakfast,
+                "drinks_sweets_balance": employee_drinks
+            },
+            "main_balances": {
+                "breakfast_total": main_breakfast,
+                "drinks_sweets_total": main_drinks
+            },
+            "has_actual_values": has_actual_values,
+            "order_history_count": len(response.get('order_history', [])),
+            "payment_history_count": len(response.get('payment_history', []))
         }
     
     async def test_complex_balance_migration(self):
