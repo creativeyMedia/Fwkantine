@@ -8800,23 +8800,20 @@ const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelecte
                     {/* Move Employee Dropdown */}
                     <select
                       onChange={(e) => {
-                        if (e.target.value !== employee.department_id) {
+                        if (e.target.value !== '' && e.target.value !== employee.department_id) {
                           handleMoveEmployee(employee, e.target.value);
                         }
-                        e.target.value = employee.department_id; // Reset selection
+                        e.target.selectedIndex = 0; // Reset to first option
                       }}
-                      value={employee.department_id}
+                      defaultValue=""
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50"
                     >
-                      <option value={employee.department_id}>🔄 Verschieben nach...</option>
-                      {allDepartments
-                        .filter(dept => dept.id !== employee.department_id)
-                        .map(dept => (
-                          <option key={dept.id} value={dept.id}>
-                            {dept.name}
-                          </option>
-                        ))
-                      }
+                      <option value="">🔄 Verschieben nach...</option>
+                      {getAllOtherDepartments(employee.department_id).map(dept => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
