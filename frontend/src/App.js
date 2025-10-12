@@ -8778,34 +8778,13 @@ const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelecte
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
               {deptEmployees.map((employee) => (
                 <div key={employee.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{employee.name}</h4>
+                      <p className="text-sm text-gray-600">{employee.department_name}</p>
                       {employee.is_guest && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">👤 Gast</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full mt-1 inline-block">👤 Gast</span>
                       )}
-                    </div>
-                    <div className="text-right text-xs">
-                      <div className={`font-semibold ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {((parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)).toFixed(2))}€
-                      </div>
-                      <div className="text-gray-500">Gesamt</div>
-                    </div>
-                  </div>
-
-                  {/* Balance Details */}
-                  <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
-                    <div className="text-center p-2 bg-blue-50 rounded">
-                      <div className={`font-semibold ${parseFloat(employee.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {(parseFloat(employee.breakfast_balance || 0)).toFixed(2)}€
-                      </div>
-                      <div className="text-gray-600">F/M</div>
-                    </div>
-                    <div className="text-center p-2 bg-purple-50 rounded">
-                      <div className={`font-semibold ${parseFloat(employee.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {(parseFloat(employee.drinks_sweets_balance || 0)).toFixed(2)}€
-                      </div>
-                      <div className="text-gray-600">G/S</div>
                     </div>
                   </div>
 
