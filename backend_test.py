@@ -1,35 +1,37 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Developer Dashboard Employee Management
+Backend Test Suite for Employee Department Moving with Balance Migration
 
 TESTING FOCUS:
-Testing the fixed Developer Dashboard backend endpoints for employee management,
-specifically the `/api/developer/move-employee/{employee_id}` endpoint.
+Testing the improved employee department moving with proper balance migration logic.
 
 BACKEND ENDPOINT TO TEST:
-PUT /api/developer/move-employee/{employee_id} - Move employee between departments
+PUT /api/developer/move-employee/{employee_id} - Move employee between departments with balance migration
 
 TEST SCENARIOS TO VERIFY:
-1. Valid employee move between departments
-2. Invalid employee ID (should return 404)
-3. Invalid target department ID (should return 404)
-4. Verify database update actually occurred
-5. Test MoveEmployeeRequest model with proper request body
+1. Test employee moving with balance migration from department A to department B
+2. Verify that main balances become subaccount balances for old department
+3. Verify that subaccount balances (if any) for target department become new main balances
+4. Test complex scenarios with multiple moves and existing subaccount balances
+5. Verify balance consistency and data integrity after moves
 
-EXPECTED FUNCTIONALITY:
-- POST body should contain {"new_department_id": "target_dept_id"}
-- Employee's department_id should be updated in database
-- Response should confirm successful move with department name
-- Error handling for missing employees and departments
+EXPECTED BALANCE MIGRATION LOGIC:
+- Move A→B: Main balances of A become subaccount A, subaccount B becomes main balances
+- Multiple moves: Previous department balances preserved in subaccounts
+- Balance totals: Total balance across all accounts remains constant (no money created/lost)
 
-TEST DEPARTMENTS:
-- fw4abteilung1 (admin1/password1)
-- fw4abteilung2 (admin2/password2)
-- fw4abteilung3 (admin3/password3)
-- fw4abteilung4 (admin4/password4)
+TEST SCENARIOS:
+1. Simple Move: Employee with €10 main balance (breakfast) moves A→B
+2. Complex Move: Employee with existing subaccount balances moves between departments  
+3. Multiple Moves: Employee moves A→B→C to test subaccount accumulation
+4. Zero Balance Move: Employee with €0 balances moves departments
+5. Negative Balance Move: Employee with negative balances moves departments
 
-This endpoint provides the backend functionality for the Developer Dashboard
-employee moving feature.
+VERIFICATION POINTS:
+- Balance migration response includes old and new balance details
+- Database reflects correct main and subaccount balance updates
+- Total employee balance remains mathematically consistent
+- No balance duplication or loss during migration
 """
 
 import asyncio
