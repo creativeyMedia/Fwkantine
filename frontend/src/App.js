@@ -1456,12 +1456,20 @@ const DepartmentDashboard = () => {
                           Keine anderen Mitarbeiter verfügbar
                         </div>
                       ) : (
-                        Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => (
-                          <div key={deptId} className="border-b border-gray-100 last:border-b-0">
-                            <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
-                              {employees[0]?.department_name}
-                            </div>
-                            {employees.map((employee) => (
+                        Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => {
+                          const filteredEmployees = getFilteredEmployees(employees);
+                          
+                          // Skip department if no employees match search
+                          if (filteredEmployees.length === 0) {
+                            return null;
+                          }
+                          
+                          return (
+                            <div key={deptId} className="border-b border-gray-100 last:border-b-0">
+                              <div className="px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
+                                {employees[0]?.department_name} ({filteredEmployees.length})
+                              </div>
+                              {filteredEmployees.map((employee) => (
                               <button
                                 key={employee.id}
                                 onClick={() => addTemporaryEmployee(employee)}
