@@ -197,74 +197,96 @@ class BalanceMigrationTester:
         response, status = await self.make_request('PUT', f'/developer/move-employee/{employee_id}', move_data)
         return response, status
     
-    async def test_valid_employee_move(self):
-        """Test Case 1: Valid employee move between departments"""
-        print(f"\n🧪 TEST CASE 1: Valid employee move between departments")
+    async def test_simple_balance_migration(self):
+        """Test Case 1: Simple Move - Employee with €10 main balance (breakfast) moves A→B"""
+        print(f"\n🧪 TEST CASE 1: Simple Balance Migration (A→B)")
         
         # Create test employee in department 1
-        employee = await self.create_test_employee("fw4abteilung1", "TestMoveEmployee")
+        employee = await self.create_test_employee("fw4abteilung1", "TestSimpleMigration")
         if not employee:
-            return {"test": "Valid employee move", "success": False, "error": "Failed to create test employee"}
+            return {"test": "Simple balance migration", "success": False, "error": "Failed to create test employee"}
         
         employee_id = employee['id']
-        original_dept = employee['department_id']
+        original_dept = "fw4abteilung1"
         target_dept = "fw4abteilung2"
         
         print(f"   Employee ID: {employee_id}")
         print(f"   Original Department: {original_dept}")
         print(f"   Target Department: {target_dept}")
         
-        # Verify original department assignment
-        original_details = await self.get_employee_details(employee_id)
-        if not original_details or original_details.get('department_id') != original_dept:
-            return {"test": "Valid employee move", "success": False, "error": "Employee not in expected original department"}
+        # Set initial balance: €10 breakfast balance
+        if not await self.set_employee_balance(employee_id, original_dept, "breakfast", 10.0):
+            return {"test": "Simple balance migration", "success": False, "error": "Failed to set initial balance"}
+        
+        # Get initial balances
+        initial_balances = await self.get_employee_all_balances(employee_id)
+        if not initial_balances:
+            return {"test": "Simple balance migration", "success": False, "error": "Failed to get initial balances"}
+        
+        print(f"   Initial breakfast balance: €{initial_balances['main_balances']['breakfast']}")
+        print(f"   Initial drinks balance: €{initial_balances['main_balances']['drinks_sweets']}")
         
         # Move employee to department 2
         move_response, move_status = await self.move_employee_to_department(employee_id, target_dept)
         
         if move_status != 200:
             return {
-                "test": "Valid employee move", 
+                "test": "Simple balance migration", 
                 "success": False, 
                 "error": f"Move failed with status {move_status}: {move_response}"
             }
         
         print(f"   ✅ Move API response: {move_response}")
         
-        # Verify database update occurred
-        updated_details = await self.get_employee_details(employee_id)
-        if not updated_details:
-            return {"test": "Valid employee move", "success": False, "error": "Could not verify database update"}
+        # Verify balance migration in response
+        balance_migration = move_response.get('balance_migration', {})
+        old_balances = balance_migration.get('old_main_balances_moved_to_subaccount', {})
+        new_balances = balance_migration.get('new_main_balances_from_subaccount', {})
         
-        updated_dept = updated_details.get('department_id')
-        if updated_dept != target_dept:
+        if old_balances.get('breakfast') != 10.0:
             return {
-                "test": "Valid employee move", 
-                "success": False, 
-                "error": f"Database not updated. Expected: {target_dept}, Found: {updated_dept}"
+                "test": "Simple balance migration",
+                "success": False,
+                "error": f"Expected old breakfast balance 10.0, got {old_balances.get('breakfast')}"
             }
         
-        print(f"   ✅ Database updated successfully: {original_dept} → {updated_dept}")
+        # Get final balances
+        final_balances = await self.get_employee_all_balances(employee_id)
+        if not final_balances:
+            return {"test": "Simple balance migration", "success": False, "error": "Failed to get final balances"}
         
-        # Verify response message contains department name
-        message = move_response.get('message', '')
-        target_dept_info = next((d for d in self.departments if d['id'] == target_dept), None)
-        if target_dept_info and target_dept_info['name'] not in message:
+        print(f"   Final main breakfast balance: €{final_balances['main_balances']['breakfast']}")
+        print(f"   Final main drinks balance: €{final_balances['main_balances']['drinks_sweets']}")
+        
+        # Verify main balances are now 0 (moved to subaccount)
+        if final_balances['main_balances']['breakfast'] != 0.0:
             return {
-                "test": "Valid employee move", 
-                "success": False, 
-                "error": f"Response message doesn't contain department name: {message}"
+                "test": "Simple balance migration",
+                "success": False,
+                "error": f"Expected new main breakfast balance 0.0, got {final_balances['main_balances']['breakfast']}"
             }
         
-        print(f"   ✅ Response message contains department name: {message}")
+        # Verify old department subaccount has the migrated balance
+        old_dept_subaccount = final_balances['subaccount_balances'].get(original_dept, {})
+        if old_dept_subaccount.get('breakfast') != 10.0:
+            return {
+                "test": "Simple balance migration",
+                "success": False,
+                "error": f"Expected subaccount breakfast balance 10.0, got {old_dept_subaccount.get('breakfast')}"
+            }
+        
+        print(f"   ✅ Old department subaccount breakfast: €{old_dept_subaccount.get('breakfast')}")
+        print(f"   ✅ Balance migration successful: Main €10 → Subaccount €10")
         
         return {
-            "test": "Valid employee move",
+            "test": "Simple balance migration",
             "success": True,
             "employee_id": employee_id,
             "original_department": original_dept,
             "target_department": target_dept,
-            "response_message": message
+            "initial_balance": 10.0,
+            "migrated_to_subaccount": old_dept_subaccount.get('breakfast'),
+            "new_main_balance": final_balances['main_balances']['breakfast']
         }
     
     async def test_invalid_employee_id(self):
