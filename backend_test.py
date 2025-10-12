@@ -215,6 +215,105 @@ class EmployeeDeletionSecurityTester:
             print(f"   Error: {response}")
             return response, False
     
+    async def make_payment(self, employee_id, department_id, amount, balance_type="breakfast"):
+        """Make a payment to adjust employee balance"""
+        payment_data = {
+            "payment_type": "breakfast" if balance_type == "breakfast" else "drinks_sweets",
+            "balance_type": balance_type,
+            "amount": amount,
+            "payment_method": "cash",
+            "notes": f"Test payment for balance scenario"
+        }
+        
+        response, status = await self.make_request('POST', f'/department-admin/subaccount-payment/{employee_id}', 
+                                                 payment_data, params={"admin_department": department_id})
+        
+        if status == 200:
+            print(f"✅ Payment of €{amount} successful for {balance_type} balance")
+            return response, True
+        else:
+            print(f"❌ Payment FAILED with status {status}")
+            print(f"   Error: {response}")
+            return response, False
+    
+    async def setup_employee_with_positive_main_balance(self, department_id):
+        """Create employee with positive main balance"""
+        employee_name = f"PositiveMainBalance_{department_id}"
+        employee = await self.create_test_employee(department_id, employee_name)
+        
+        if not employee:
+            return None
+        
+        employee_id = employee['id']
+        
+        # Make a payment to create positive balance
+        payment_response, payment_success = await self.make_payment(employee_id, department_id, 10.0, "breakfast")
+        
+        if payment_success:
+            print(f"✅ Created employee with positive main balance: {employee_name}")
+            return employee_id
+        else:
+            print(f"❌ Failed to create positive balance for {employee_name}")
+            return None
+    
+    async def setup_employee_with_negative_main_balance(self, department_id):
+        """Create employee with negative main balance (via order)"""
+        employee_name = f"NegativeMainBalance_{department_id}"
+        employee = await self.create_test_employee(department_id, employee_name)
+        
+        if not employee:
+            return None
+        
+        employee_id = employee['id']
+        
+        # Create an order to generate negative balance
+        order_response, order_success = await self.create_breakfast_order(employee_id, department_id, "Order for negative balance")
+        
+        if order_success:
+            print(f"✅ Created employee with negative main balance: {employee_name}")
+            return employee_id
+        else:
+            print(f"❌ Failed to create negative balance for {employee_name}")
+            return None
+    
+    async def setup_employee_with_zero_main_nonzero_subaccount(self, home_dept_id, target_dept_id):
+        """Create employee with zero main balance but non-zero subaccount balance"""
+        employee_name = f"ZeroMainNonzeroSub_{home_dept_id}_to_{target_dept_id}"
+        employee = await self.create_test_employee(home_dept_id, employee_name)
+        
+        if not employee:
+            return None
+        
+        employee_id = employee['id']
+        
+        # Add as temporary employee to target department
+        assignment = await self.create_temporary_assignment(target_dept_id, employee_id)
+        if not assignment:
+            print(f"❌ Failed to create temporary assignment")
+            return None
+        
+        # Create order in target department (creates subaccount balance)
+        order_response, order_success = await self.create_breakfast_order(employee_id, target_dept_id, "Order for subaccount balance")
+        
+        if order_success:
+            print(f"✅ Created employee with zero main, non-zero subaccount balance: {employee_name}")
+            return employee_id
+        else:
+            print(f"❌ Failed to create subaccount balance for {employee_name}")
+            return None
+    
+    async def setup_employee_with_all_zero_balances(self, department_id):
+        """Create employee with all balances at 0€"""
+        employee_name = f"AllZeroBalances_{department_id}"
+        employee = await self.create_test_employee(department_id, employee_name)
+        
+        if employee:
+            print(f"✅ Created employee with all zero balances: {employee_name}")
+            return employee['id']
+        else:
+            print(f"❌ Failed to create employee with zero balances")
+            return None
+    
     async def get_employee_all_balances(self, employee_id):
         """Get all balances for an employee using the deletion security endpoint"""
         response, status = await self.make_request('GET', f'/employees/{employee_id}/all-balances')
