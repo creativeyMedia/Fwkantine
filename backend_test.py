@@ -771,6 +771,10 @@ class EmployeeProfileTester:
         print(f"🎯 DETAILED TEST RESULTS ANALYSIS")
         print(f"{'='*80}")
         
+        # Collect key findings
+        balance_field_findings = {}
+        structure_findings = {}
+        
         for result in test_results:
             test_name = result['test']
             success = result.get('success', False)
@@ -779,13 +783,26 @@ class EmployeeProfileTester:
             print(f"   Result: {'✅ PASSED' if success else '❌ FAILED'}")
             
             if success:
-                # Show success details
-                if 'response_message' in result:
-                    print(f"   Response: {result['response_message']}")
-                if 'database_updated' in result:
-                    print(f"   Database Updated: {'✅' if result['database_updated'] else '❌'}")
-                if 'completed_moves' in result:
-                    print(f"   Completed Moves: {len(result['completed_moves'])}")
+                # Collect specific findings
+                if test_name == "Balance field names":
+                    balance_field_findings[result.get('employee_name', 'Unknown')] = {
+                        'correct_employee_fields': result.get('correct_employee_fields', {}),
+                        'correct_main_fields': result.get('correct_main_fields', {})
+                    }
+                elif test_name == "Response structure consistency":
+                    structure_findings[result.get('employee_name', 'Unknown')] = {
+                        'primary_balance_location': result.get('primary_balance_location'),
+                        'has_nested_employee': result.get('has_nested_employee'),
+                        'has_subaccount_balances': result.get('has_subaccount_balances')
+                    }
+                
+                # Show key details
+                if 'has_actual_values' in result:
+                    print(f"   Has actual balance values: {'✅' if result['has_actual_values'] else '❌'}")
+                if 'order_history_count' in result:
+                    print(f"   Order history entries: {result['order_history_count']}")
+                if 'payment_history_count' in result:
+                    print(f"   Payment history entries: {result['payment_history_count']}")
             else:
                 # Show error details
                 if 'error' in result:
@@ -795,27 +812,46 @@ class EmployeeProfileTester:
         success_rate = (successful_tests / total_tests) * 100 if total_tests > 0 else 0
         
         print(f"\n{'='*80}")
-        print(f"🎯 FINAL ANALYSIS")
+        print(f"🎯 FINAL ANALYSIS - EMPLOYEE PROFILE BALANCE DATA STRUCTURE")
         print(f"{'='*80}")
         print(f"Total Test Cases: {total_tests}")
         print(f"Successful Tests: {successful_tests}")
         print(f"Failed Tests: {len(failed_tests)}")
         print(f"Success Rate: {success_rate:.1f}%")
         
+        # Key findings summary
+        print(f"\n🔍 KEY FINDINGS:")
+        
+        # Balance field names
+        if balance_field_findings:
+            print(f"\n📊 BALANCE FIELD NAMES:")
+            for emp_name, fields in balance_field_findings.items():
+                print(f"   Employee: {emp_name}")
+                print(f"      Employee object fields: {fields['correct_employee_fields']}")
+                print(f"      Main response fields: {fields['correct_main_fields']}")
+        
+        # Response structure
+        if structure_findings:
+            print(f"\n🏗️ RESPONSE STRUCTURE:")
+            for emp_name, structure in structure_findings.items():
+                print(f"   Employee: {emp_name}")
+                print(f"      Primary balance location: {structure['primary_balance_location']}")
+                print(f"      Has nested employee object: {structure['has_nested_employee']}")
+                print(f"      Has subaccount balances: {structure['has_subaccount_balances']}")
+        
         if successful_tests == total_tests:
-            print(f"\n🎉 ALL BALANCE MIGRATION TESTS PASSED!")
-            print(f"✅ The /api/developer/move-employee/{{employee_id}} endpoint is working correctly")
-            print(f"✅ Balance migration logic works properly (main ↔ subaccount)")
-            print(f"✅ Main balances correctly become subaccount balances for old department")
-            print(f"✅ Subaccount balances correctly become main balances for target department")
-            print(f"✅ Complex scenarios with multiple moves work correctly")
-            print(f"✅ Balance consistency maintained (no money created/lost)")
-            print(f"✅ Zero and negative balance moves handled correctly")
-            print(f"✅ Employee department moving with balance migration is FULLY FUNCTIONAL")
+            print(f"\n🎉 ALL EMPLOYEE PROFILE TESTS PASSED!")
+            print(f"✅ The GET /api/employees/{{employee_id}}/profile endpoint is working correctly")
+            print(f"✅ Balance data structure is consistent and complete")
+            print(f"✅ Balance field names are properly identified")
+            print(f"✅ Balance values reflect actual transaction history")
+            print(f"✅ Payment history and order history are included")
+            print(f"✅ Response structure matches expected format")
+            print(f"✅ Employee profile endpoint balance data is FULLY FUNCTIONAL")
         else:
-            print(f"\n🚨 CRITICAL BALANCE MIGRATION ISSUES DETECTED!")
+            print(f"\n🚨 EMPLOYEE PROFILE ISSUES DETECTED!")
             print(f"❌ {len(failed_tests)} test cases failed")
-            print(f"❌ This may affect balance integrity during employee moves")
+            print(f"❌ This may affect frontend balance display")
             
             # Identify patterns in failures
             print(f"\n🔍 FAILURE PATTERN ANALYSIS:")
@@ -824,15 +860,12 @@ class EmployeeProfileTester:
                 error = result.get('error', 'Unknown error')
                 print(f"   - {test_name}: {error}")
             
-            print(f"\n💡 RECOMMENDED FIXES:")
-            if any('balance' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   1. Check balance migration logic in move-employee endpoint")
-            if any('subaccount' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   2. Verify subaccount balance initialization and updates")
-            if any('inconsistency' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   3. Review balance calculation and preservation logic")
-            if any('database' in result.get('error', '').lower() for result in failed_tests):
-                print(f"   4. Verify database update operations for balance migration")
+            print(f"\n💡 RECOMMENDED INVESTIGATION:")
+            print(f"   1. Check balance field naming consistency (breakfast_balance vs breakfast_total)")
+            print(f"   2. Verify response structure (nested employee object vs flat structure)")
+            print(f"   3. Confirm balance values are not defaulting to 0")
+            print(f"   4. Ensure payment_history and order_history are populated")
+            print(f"   5. Validate balance calculations match transaction history")
         
         return successful_tests == total_tests
 
