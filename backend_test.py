@@ -42,7 +42,7 @@ from datetime import datetime, timezone
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://feuerwehr-kantine.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class EmployeeDeletionSecurityTester:
+class DeveloperDashboardTester:
     def __init__(self):
         self.session = None
         self.test_results = []
