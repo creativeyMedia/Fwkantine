@@ -3715,6 +3715,10 @@ const EmployeeManagementTab = ({ employees, onCreateEmployee, showNewEmployee, s
   const [sortedEmployees, setSortedEmployees] = useState([]);
   const [draggedIndex, setDraggedIndex] = useState(null);
   
+  // Balance Warning Modal State
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
+  const [balanceWarningData, setBalanceWarningData] = useState({ employeeName: '', openBalances: [] });
+  
   // Initialize sorted employees when employees prop changes
   useEffect(() => {
     setSortedEmployees([...employees]);
