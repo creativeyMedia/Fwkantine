@@ -7219,9 +7219,49 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
             Mitarbeiter anderer Abteilungen erscheinen hier, sobald sie Bestellungen in {currentDepartment.department_name} getätigt haben.
           </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {otherEmployeesWithBalances.map((employee) => (
+      ) : (() => {
+        // Gruppiere Mitarbeiter nach Wachabteilungen
+        const employeesByDepartment = otherEmployeesWithBalances.reduce((acc, employee) => {
+          const deptName = employee.main_department_name || 'Unbekannte Abteilung';
+          if (!acc[deptName]) {
+            acc[deptName] = [];
+          }
+          acc[deptName].push(employee);
+          return acc;
+        }, {});
+
+        // Sortiere Abteilungen alphabetisch
+        const sortedDepartments = Object.keys(employeesByDepartment).sort();
+
+        return (
+          <div className="space-y-8">
+            {sortedDepartments.map((departmentName) => {
+              const employees = employeesByDepartment[departmentName];
+              const totalBalance = employees.reduce((sum, emp) => {
+                const breakfast = emp.subaccount_balance?.breakfast || 0;
+                const drinks = emp.subaccount_balance?.drinks || 0;
+                return sum + breakfast + drinks;
+              }, 0);
+
+              return (
+                <div key={departmentName} className="bg-gray-50 rounded-lg p-6">
+                  {/* Abteilungsheader */}
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">{departmentName}</h3>
+                      <p className="text-sm text-gray-600">{employees.length} Mitarbeiter mit Subkonto-Buchungen</p>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-2xl font-bold ${totalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {totalBalance.toFixed(2)}€
+                      </div>
+                      <div className="text-sm text-gray-500">Gesamt-Saldo</div>
+                    </div>
+                  </div>
+
+                  {/* Mitarbeiter-Grid für diese Abteilung */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {employees.map((employee) => (
             <div
               key={employee.id}
               className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
