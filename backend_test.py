@@ -691,36 +691,76 @@ class EmployeeProfileTester:
         }
     
     async def run_comprehensive_test(self):
-        """Run comprehensive test of Employee Department Moving with Balance Migration"""
-        print("🚀 STARTING EMPLOYEE DEPARTMENT MOVING WITH BALANCE MIGRATION TEST")
+        """Run comprehensive test of Employee Profile Endpoint Balance Data Structure"""
+        print("🚀 STARTING EMPLOYEE PROFILE ENDPOINT BALANCE DATA STRUCTURE TEST")
         print("=" * 80)
-        print("TESTING: Employee department moving with proper balance migration logic")
-        print("- Endpoint: PUT /api/developer/move-employee/{employee_id}")
-        print("- Feature: Balance migration between main and subaccounts")
-        print("- Logic: Main balances → subaccount, subaccount → main balances")
+        print("TESTING: Employee profile endpoint balance data structure and values")
+        print("- Endpoint: GET /api/employees/{employee_id}/profile")
+        print("- Focus: Balance field names, structure, and actual values")
+        print("- Investigation: Response structure and data completeness")
         print("=" * 80)
+        
+        # First, get employees with existing order/payment history
+        print("\n🔍 FINDING EMPLOYEES WITH TRANSACTION HISTORY...")
+        
+        test_employees = []
+        
+        # Check fw4abteilung1
+        dept1_employees = await self.get_employees_with_history("fw4abteilung1")
+        if dept1_employees:
+            test_employees.extend(dept1_employees[:3])  # Take first 3
+            print(f"   Found {len(dept1_employees)} employees with history in fw4abteilung1")
+        
+        # Check fw4abteilung2
+        dept2_employees = await self.get_employees_with_history("fw4abteilung2")
+        if dept2_employees:
+            test_employees.extend(dept2_employees[:3])  # Take first 3
+            print(f"   Found {len(dept2_employees)} employees with history in fw4abteilung2")
+        
+        if not test_employees:
+            print("   ❌ No employees with transaction history found. Creating test employee...")
+            # Create a test employee with some balance for testing
+            test_emp = await self.create_test_employee("fw4abteilung1", "ProfileTestEmployee")
+            if test_emp:
+                # Set some balance to create history
+                await self.set_employee_balance(test_emp['id'], "fw4abteilung1", "breakfast", -5.0)
+                test_employees = [test_emp]
+        
+        if not test_employees:
+            return False
+        
+        print(f"   ✅ Testing with {len(test_employees)} employees")
         
         test_results = []
         
-        # Test Case 1: Simple Move - Employee with €10 main balance (breakfast) moves A→B
-        result_1 = await self.test_simple_balance_migration()
-        test_results.append(result_1)
-        
-        # Test Case 2: Complex Move - Employee with existing subaccount balances moves between departments
-        result_2 = await self.test_complex_balance_migration()
-        test_results.append(result_2)
-        
-        # Test Case 3: Multiple Moves - Employee moves A→B→C to test subaccount accumulation
-        result_3 = await self.test_multiple_moves_accumulation()
-        test_results.append(result_3)
-        
-        # Test Case 4: Zero Balance Move - Employee with €0 balances moves departments
-        result_4 = await self.test_zero_balance_move()
-        test_results.append(result_4)
-        
-        # Test Case 5: Negative Balance Move - Employee with negative balances moves departments
-        result_5 = await self.test_negative_balance_move()
-        test_results.append(result_5)
+        # Run tests on each employee
+        for i, employee in enumerate(test_employees[:2]):  # Test first 2 employees
+            employee_id = employee['id']
+            employee_name = employee['name']
+            
+            print(f"\n{'='*60}")
+            print(f"TESTING EMPLOYEE {i+1}: {employee_name} (ID: {employee_id[:8]}...)")
+            print(f"{'='*60}")
+            
+            # Test Case 1: Employee Profile Structure
+            result_1 = await self.test_employee_profile_structure(employee_id, employee_name)
+            test_results.append(result_1)
+            
+            # Test Case 2: Balance Field Names
+            result_2 = await self.test_balance_field_names(employee_id, employee_name)
+            test_results.append(result_2)
+            
+            # Test Case 3: Balance Values Accuracy
+            result_3 = await self.test_balance_values_accuracy(employee_id, employee_name)
+            test_results.append(result_3)
+            
+            # Test Case 4: Data Completeness
+            result_4 = await self.test_data_completeness(employee_id, employee_name)
+            test_results.append(result_4)
+            
+            # Test Case 5: Response Structure Consistency
+            result_5 = await self.test_response_structure_consistency(employee_id, employee_name)
+            test_results.append(result_5)
         
         # Analyze results
         total_tests = len(test_results)
