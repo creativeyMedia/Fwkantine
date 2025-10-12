@@ -4747,7 +4747,7 @@ class MoveEmployeeRequest(BaseModel):
 
 @api_router.put("/developer/move-employee/{employee_id}")
 async def move_employee_to_department(employee_id: str, request: MoveEmployeeRequest):
-    """Move employee to different department (Developer only)"""
+    """Move employee to different department (Developer only) with proper balance migration"""
     new_department_id = request.new_department_id
     
     # Verify target department exists
@@ -4755,16 +4755,75 @@ async def move_employee_to_department(employee_id: str, request: MoveEmployeeReq
     if not target_dept:
         raise HTTPException(status_code=404, detail="Ziel-Abteilung nicht gefunden")
     
-    # Update employee's department
+    # Get employee with current data
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Initialize subaccounts if needed
+    employee = initialize_subaccount_balances(employee)
+    
+    current_dept_id = employee["department_id"]
+    
+    # Skip if already in target department
+    if current_dept_id == new_department_id:
+        return {"message": f"Mitarbeiter ist bereits in {target_dept['name']}"}
+    
+    # SALDO-MIGRATION:
+    # 1. Aktuelle Hauptsalden merken
+    current_breakfast_balance = employee.get("breakfast_balance", 0.0)
+    current_drinks_balance = employee.get("drinks_sweets_balance", 0.0)
+    
+    # 2. Aktuelle Hauptsalden → Subkonto der alten Abteilung
+    if current_dept_id not in employee["subaccount_balances"]:
+        employee["subaccount_balances"][current_dept_id] = {"breakfast": 0.0, "drinks": 0.0}
+    
+    employee["subaccount_balances"][current_dept_id]["breakfast"] += current_breakfast_balance
+    employee["subaccount_balances"][current_dept_id]["drinks"] += current_drinks_balance
+    
+    # 3. Neue Hauptsalden = existierende Subkonto-Salden der neuen Abteilung (oder 0€)
+    new_breakfast_balance = 0.0
+    new_drinks_balance = 0.0
+    
+    if new_department_id in employee["subaccount_balances"]:
+        new_breakfast_balance = employee["subaccount_balances"][new_department_id]["breakfast"]
+        new_drinks_balance = employee["subaccount_balances"][new_department_id]["drinks"]
+        # Subkonto der neuen Abteilung auf 0 setzen (wird ja zu Hauptkonto)
+        employee["subaccount_balances"][new_department_id] = {"breakfast": 0.0, "drinks": 0.0}
+    
+    # 4. Update employee mit neuer Abteilung und migrierten Salden
     result = await db.employees.update_one(
         {"id": employee_id},
-        {"$set": {"department_id": new_department_id}}
+        {"$set": {
+            "department_id": new_department_id,
+            "breakfast_balance": new_breakfast_balance,
+            "drinks_sweets_balance": new_drinks_balance,
+            "subaccount_balances": employee["subaccount_balances"]
+        }}
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        raise HTTPException(status_code=404, detail="Fehler bei der Aktualisierung")
     
-    return {"message": f"Mitarbeiter erfolgreich nach {target_dept['name']} verschoben"}
+    # Get department names for response
+    old_dept = await db.departments.find_one({"id": current_dept_id})
+    old_dept_name = old_dept["name"] if old_dept else "Unbekannt"
+    
+    return {
+        "message": f"Mitarbeiter erfolgreich von {old_dept_name} nach {target_dept['name']} verschoben",
+        "balance_migration": {
+            "old_main_balances_moved_to_subaccount": {
+                "department": old_dept_name,
+                "breakfast": current_breakfast_balance,
+                "drinks": current_drinks_balance
+            },
+            "new_main_balances_from_subaccount": {
+                "department": target_dept["name"], 
+                "breakfast": new_breakfast_balance,
+                "drinks": new_drinks_balance
+            }
+        }
+    }
 
 @api_router.delete("/developer/delete-history-entry/{entry_id}")
 async def delete_history_entry_saldo_neutral(
