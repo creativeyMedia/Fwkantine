@@ -666,35 +666,35 @@ class BalanceMigrationTester:
         }
     
     async def run_comprehensive_test(self):
-        """Run comprehensive test of Developer Dashboard employee management"""
-        print("🚀 STARTING DEVELOPER DASHBOARD EMPLOYEE MANAGEMENT TEST")
+        """Run comprehensive test of Employee Department Moving with Balance Migration"""
+        print("🚀 STARTING EMPLOYEE DEPARTMENT MOVING WITH BALANCE MIGRATION TEST")
         print("=" * 80)
-        print("TESTING: Developer Dashboard move-employee endpoint")
+        print("TESTING: Employee department moving with proper balance migration logic")
         print("- Endpoint: PUT /api/developer/move-employee/{employee_id}")
-        print("- Feature: Move employees between departments")
-        print("- Model: MoveEmployeeRequest with new_department_id")
+        print("- Feature: Balance migration between main and subaccounts")
+        print("- Logic: Main balances → subaccount, subaccount → main balances")
         print("=" * 80)
         
         test_results = []
         
-        # Test Case 1: Valid employee move between departments
-        result_1 = await self.test_valid_employee_move()
+        # Test Case 1: Simple Move - Employee with €10 main balance (breakfast) moves A→B
+        result_1 = await self.test_simple_balance_migration()
         test_results.append(result_1)
         
-        # Test Case 2: Invalid employee ID (should return 404)
-        result_2 = await self.test_invalid_employee_id()
+        # Test Case 2: Complex Move - Employee with existing subaccount balances moves between departments
+        result_2 = await self.test_complex_balance_migration()
         test_results.append(result_2)
         
-        # Test Case 3: Invalid target department ID (should return 404)
-        result_3 = await self.test_invalid_department_id()
+        # Test Case 3: Multiple Moves - Employee moves A→B→C to test subaccount accumulation
+        result_3 = await self.test_multiple_moves_accumulation()
         test_results.append(result_3)
         
-        # Test Case 4: Verify MoveEmployeeRequest model
-        result_4 = await self.test_move_employee_request_model()
+        # Test Case 4: Zero Balance Move - Employee with €0 balances moves departments
+        result_4 = await self.test_zero_balance_move()
         test_results.append(result_4)
         
-        # Test Case 5: Multiple department moves
-        result_5 = await self.test_multiple_department_moves()
+        # Test Case 5: Negative Balance Move - Employee with negative balances moves departments
+        result_5 = await self.test_negative_balance_move()
         test_results.append(result_5)
         
         # Analyze results
