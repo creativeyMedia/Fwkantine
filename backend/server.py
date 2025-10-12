@@ -728,14 +728,14 @@ async def department_login(login_data: DepartmentLogin):
     raise HTTPException(status_code=401, detail="Ungültiger Name oder Passwort")
 
 @api_router.post("/login/master")
-async def master_login(department_name: str, master_password: str):
+async def master_login(login_data: MasterLogin):
     """Master password login for developer access to any department"""
     master_password_env = os.environ.get('MASTER_PASSWORD', 'master123dev')
-    if master_password != master_password_env:  # Developer master password
+    if login_data.master_password != master_password_env:  # Developer master password
         raise HTTPException(status_code=401, detail="Ungültiges Master-Passwort")
     
     # Special case for Developer login - return developer role
-    if department_name == "Developer":
+    if login_data.department_name == "Developer":
         return {
             "department_id": "developer", 
             "department_name": "Developer Dashboard", 
@@ -744,7 +744,7 @@ async def master_login(department_name: str, master_password: str):
         }
     
     # Find the department for regular master login
-    dept = await db.departments.find_one({"name": department_name})
+    dept = await db.departments.find_one({"name": login_data.department_name})
     if not dept:
         raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
     
