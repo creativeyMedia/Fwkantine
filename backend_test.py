@@ -133,7 +133,8 @@ class DeveloperDashboardTester:
         """Get employee details to verify department assignment"""
         response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         if status == 200:
-            return response
+            # The profile endpoint returns an object with "employee" field
+            return response.get('employee')
         else:
             print(f"❌ Failed to get employee details: {response}")
             return None
