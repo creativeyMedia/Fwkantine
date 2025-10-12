@@ -778,7 +778,7 @@ async def main():
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Developer Dashboard Employee Management")
+    print("Backend Test Suite: Employee Department Moving with Balance Migration")
     print("=" * 70)
     
     try:
