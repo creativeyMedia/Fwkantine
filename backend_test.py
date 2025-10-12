@@ -141,6 +141,53 @@ class BalanceMigrationTester:
             print(f"❌ Failed to get employee details: {response}")
             return None
     
+    async def get_employee_all_balances(self, employee_id):
+        """Get all balances (main + subaccounts) for an employee"""
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/all-balances')
+        if status == 200:
+            return response
+        else:
+            print(f"❌ Failed to get employee balances: {response}")
+            return None
+    
+    async def set_employee_balance(self, employee_id, department_id, balance_type, amount):
+        """Set employee balance for testing purposes using flexible payment"""
+        # First get current balance
+        balances = await self.get_employee_all_balances(employee_id)
+        if not balances:
+            return False
+        
+        # Calculate current balance
+        if balance_type == "breakfast":
+            current_balance = balances["main_balances"]["breakfast"]
+        elif balance_type == "drinks":
+            current_balance = balances["main_balances"]["drinks_sweets"]
+        else:
+            print(f"❌ Invalid balance type: {balance_type}")
+            return False
+        
+        # Calculate payment amount needed to reach target balance
+        payment_amount = amount - current_balance
+        
+        if payment_amount == 0:
+            return True  # Already at target balance
+        
+        # Use flexible payment to adjust balance
+        payment_data = {
+            "payment_type": balance_type if balance_type != "drinks" else "drinks_sweets",
+            "amount": payment_amount,
+            "payment_method": "adjustment",
+            "notes": f"Test balance adjustment to {amount}"
+        }
+        
+        response, status = await self.make_request('POST', f'/department-admin/flexible-payment/{employee_id}', payment_data)
+        if status == 200:
+            print(f"✅ Set {balance_type} balance to €{amount} for employee {employee_id[:8]}")
+            return True
+        else:
+            print(f"❌ Failed to set balance: {response}")
+            return False
+    
     async def move_employee_to_department(self, employee_id, new_department_id):
         """Test the move-employee endpoint"""
         move_data = {
