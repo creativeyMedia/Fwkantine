@@ -4963,6 +4963,14 @@ const AdminEmployeeProfile = ({ employee, onClose, onRefresh }) => {
   };
 
   const deleteEmployee = async () => {
+    // Prüfe zuerst alle Balances
+    const openBalances = await checkEmployeeBalancesBeforeDelete(employee);
+    
+    if (openBalances.length > 0) {
+      alert(`Mitarbeiter ${employee.name} kann nicht gelöscht werden, da noch offene Salden vorhanden sind:\n\n${openBalances.join('\n')}\n\nBitte gleichen Sie alle Salden auf 0€ aus, bevor Sie den Mitarbeiter löschen.`);
+      return;
+    }
+    
     if (window.confirm(`Mitarbeiter ${employee.name} wirklich löschen? Alle Bestellungen werden ebenfalls gelöscht.`)) {
       try {
         await axios.delete(`${API}/department-admin/employees/${employee.id}`);
