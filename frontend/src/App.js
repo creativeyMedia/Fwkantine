@@ -8574,6 +8574,136 @@ const FlexiblePaymentModal = ({ employee, paymentType, accountLabel, onClose, on
   );
 };
 
+// Developer Dashboard Component
+const DeveloperDashboard = () => {
+  const [activeTab, setActiveTab] = useState('employees');
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
+  
+  // Success Notification State
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  
+  const { logout } = React.useContext(AuthContext);
+
+  useEffect(() => {
+    fetchAllEmployees();
+  }, []);
+
+  const fetchAllEmployees = async () => {
+    try {
+      // Fetch employees from all departments
+      const deptResponse = await axios.get(`${API}/departments`);
+      const departments = deptResponse.data;
+      
+      let allEmps = [];
+      for (const dept of departments) {
+        const empResponse = await axios.get(`${API}/departments/${dept.id}/employees`);
+        const employees = empResponse.data.map(emp => ({
+          ...emp,
+          department_name: dept.name,
+          department_id: dept.id
+        }));
+        allEmps = [...allEmps, ...employees];
+      }
+      
+      // Sort by department, then by name
+      allEmps.sort((a, b) => {
+        if (a.department_name !== b.department_name) {
+          return a.department_name.localeCompare(b.department_name);
+        }
+        return a.name.localeCompare(b.name);
+      });
+      
+      setAllEmployees(allEmps);
+    } catch (error) {
+      console.error('Fehler beim Laden aller Mitarbeiter:', error);
+    }
+  };
+
+  const tabs = [
+    { id: 'employees', label: 'Erweiterte Mitarbeiterverwaltung' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">🔧 Developer Dashboard</h1>
+              <p className="text-sm text-gray-600">Erweiterte System-Verwaltung</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={logout}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Abmelden
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 mb-8">
+          <nav className="-mb-px flex space-x-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'employees' && (
+          <ExtendedEmployeeManagementTab 
+            employees={allEmployees}
+            onEmployeeUpdate={fetchAllEmployees}
+            setSelectedEmployee={setSelectedEmployee}
+            setShowEmployeeProfile={setShowEmployeeProfile}
+          />
+        )}
+
+        {/* Employee Profile Modal */}
+        {showEmployeeProfile && selectedEmployee && (
+          <DeveloperEmployeeProfile
+            employee={selectedEmployee}
+            onClose={() => {
+              setShowEmployeeProfile(false);
+              setSelectedEmployee(null);
+            }}
+            onRefresh={fetchAllEmployees}
+          />
+        )}
+        
+        {/* Success Notification */}
+        {showSuccessNotification && (
+          <SuccessNotification
+            message={successMessage}
+            onClose={() => {
+              setShowSuccessNotification(false);
+              setSuccessMessage('');
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const { currentDepartment, isDepartmentAdmin, isInitializing } = React.useContext(AuthContext);
