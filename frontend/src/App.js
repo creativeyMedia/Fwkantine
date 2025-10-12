@@ -9006,20 +9006,20 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
           {/* Balance Overview */}
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {parseFloat(employeeProfile.breakfast_balance || 0).toFixed(2)}€
+              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.employee?.breakfast_balance || employeeProfile.breakfast_total || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(employeeProfile.employee?.breakfast_balance || employeeProfile.breakfast_total || 0).toFixed(2)}€
               </div>
               <div className="text-gray-600">Frühstück/Mittag</div>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg text-center">
-              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.drinks_sweets_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {parseFloat(employeeProfile.drinks_sweets_balance || 0).toFixed(2)}€
+              <div className={`text-2xl font-bold ${parseFloat(employeeProfile.employee?.drinks_sweets_balance || employeeProfile.drinks_sweets_total || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(employeeProfile.employee?.drinks_sweets_balance || employeeProfile.drinks_sweets_total || 0).toFixed(2)}€
               </div>
               <div className="text-gray-600">Getränke/Snacks</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className={`text-2xl font-bold ${(parseFloat(employeeProfile.breakfast_balance || 0) + parseFloat(employeeProfile.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {(parseFloat(employeeProfile.breakfast_balance || 0) + parseFloat(employeeProfile.drinks_sweets_balance || 0)).toFixed(2)}€
+              <div className={`text-2xl font-bold ${(parseFloat(employeeProfile.employee?.breakfast_balance || employeeProfile.breakfast_total || 0) + parseFloat(employeeProfile.employee?.drinks_sweets_balance || employeeProfile.drinks_sweets_total || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {(parseFloat(employeeProfile.employee?.breakfast_balance || employeeProfile.breakfast_total || 0) + parseFloat(employeeProfile.employee?.drinks_sweets_balance || employeeProfile.drinks_sweets_total || 0)).toFixed(2)}€
               </div>
               <div className="text-gray-600">Gesamt</div>
             </div>
