@@ -8740,11 +8740,19 @@ const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelecte
     setShowEmployeeProfile(true);
   };
 
-  // Hole alle verfügbaren Abteilungen für das Dropdown
-  const allDepartments = [...new Set(employees.map(emp => ({ 
-    id: emp.department_id, 
-    name: emp.department_name 
-  }))).values()];
+  // Hole alle verfügbaren Abteilungen für das Dropdown - aber nur ANDERE als die aktuelle
+  const getAllOtherDepartments = (currentDepartmentId) => {
+    const uniqueDepartments = employees.reduce((acc, emp) => {
+      if (!acc[emp.department_id] && emp.department_id !== currentDepartmentId) {
+        acc[emp.department_id] = {
+          id: emp.department_id,
+          name: emp.department_name
+        };
+      }
+      return acc;
+    }, {});
+    return Object.values(uniqueDepartments);
+  };
 
   return (
     <div className="space-y-8">
