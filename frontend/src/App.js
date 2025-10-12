@@ -1482,9 +1482,10 @@ const DepartmentDashboard = () => {
                                   <div className="text-xs text-green-600 mt-1">✓ Bereits hinzugefügt</div>
                                 )}
                               </button>
-                            ))}
-                          </div>
-                        ))
+                              ))}
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>
