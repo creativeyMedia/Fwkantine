@@ -882,12 +882,12 @@ class EmployeeDeletionSecurityTester:
 
 async def main():
     """Main test execution"""
-    async with GuestEmployeeOrderTester() as tester:
+    async with EmployeeDeletionSecurityTester() as tester:
         success = await tester.run_comprehensive_test()
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Critical Guest Employee Ordering Bug Debug")
+    print("Backend Test Suite: Employee Deletion Security Feature")
     print("=" * 70)
     
     try:
