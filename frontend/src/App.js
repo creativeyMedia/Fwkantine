@@ -7321,11 +7321,16 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
                 >
                   Saldo verwalten
                 </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                    </div>
+                  </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Employee Profile Modal */}
       {showEmployeeProfile && selectedEmployee && (
