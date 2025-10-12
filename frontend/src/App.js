@@ -3343,6 +3343,18 @@ const DepartmentAdminDashboard = () => {
         />
       )}
       
+      {/* Balance Warning Modal */}
+      {showBalanceWarning && (
+        <BalanceWarningModal
+          employeeName={balanceWarningData.employeeName}
+          openBalances={balanceWarningData.openBalances}
+          onClose={() => {
+            setShowBalanceWarning(false);
+            setBalanceWarningData({ employeeName: '', openBalances: [] });
+          }}
+        />
+      )}
+      
       {/* Success Notification */}
       {showSuccessNotification && (
         <SuccessNotification
