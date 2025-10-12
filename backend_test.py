@@ -484,54 +484,85 @@ class BalanceMigrationTester:
             "back_to_original_dept": True
         }
     
-    async def test_move_employee_request_model(self):
-        """Test Case 4: Verify MoveEmployeeRequest model accepts proper request body"""
-        print(f"\n🧪 TEST CASE 4: MoveEmployeeRequest model validation")
+    async def test_zero_balance_move(self):
+        """Test Case 4: Zero Balance Move - Employee with €0 balances moves departments"""
+        print(f"\n🧪 TEST CASE 4: Zero Balance Move")
         
         # Create test employee
-        employee = await self.create_test_employee("fw4abteilung3", "TestRequestModel")
+        employee = await self.create_test_employee("fw4abteilung3", "TestZeroBalance")
         if not employee:
-            return {"test": "MoveEmployeeRequest model", "success": False, "error": "Failed to create test employee"}
+            return {"test": "Zero balance move", "success": False, "error": "Failed to create test employee"}
         
         employee_id = employee['id']
         target_dept = "fw4abteilung4"
         
         print(f"   Employee ID: {employee_id}")
-        print(f"   Target Department: {target_dept}")
+        print(f"   Testing: Zero balance move fw4abteilung3 → fw4abteilung4")
         
-        # Test with correct request body format
-        correct_request = {"new_department_id": target_dept}
-        print(f"   Request body: {correct_request}")
+        # Verify initial balances are zero
+        initial_balances = await self.get_employee_all_balances(employee_id)
+        if not initial_balances:
+            return {"test": "Zero balance move", "success": False, "error": "Failed to get initial balances"}
         
+        print(f"   Initial breakfast balance: €{initial_balances['main_balances']['breakfast']}")
+        print(f"   Initial drinks balance: €{initial_balances['main_balances']['drinks_sweets']}")
+        
+        if initial_balances['main_balances']['breakfast'] != 0.0 or initial_balances['main_balances']['drinks_sweets'] != 0.0:
+            return {"test": "Zero balance move", "success": False, "error": "Initial balances are not zero"}
+        
+        # Move employee
         move_response, move_status = await self.move_employee_to_department(employee_id, target_dept)
         
-        if move_status == 200:
-            print(f"   ✅ MoveEmployeeRequest model accepted correct request body")
-            print(f"   ✅ Response: {move_response}")
-            
-            # Verify the move actually happened
-            updated_details = await self.get_employee_details(employee_id)
-            if updated_details and updated_details.get('department_id') == target_dept:
-                print(f"   ✅ Database update confirmed")
-                return {
-                    "test": "MoveEmployeeRequest model",
-                    "success": True,
-                    "request_body": correct_request,
-                    "response": move_response,
-                    "database_updated": True
-                }
-            else:
-                return {
-                    "test": "MoveEmployeeRequest model",
-                    "success": False,
-                    "error": "Request accepted but database not updated"
-                }
-        else:
+        if move_status != 200:
+            return {"test": "Zero balance move", "success": False, "error": f"Move failed: {move_response}"}
+        
+        print(f"   ✅ Move successful: {move_response.get('message')}")
+        
+        # Verify balance migration response shows zeros
+        balance_migration = move_response.get('balance_migration', {})
+        old_balances = balance_migration.get('old_main_balances_moved_to_subaccount', {})
+        new_balances = balance_migration.get('new_main_balances_from_subaccount', {})
+        
+        if old_balances.get('breakfast') != 0.0 or old_balances.get('drinks') != 0.0:
             return {
-                "test": "MoveEmployeeRequest model",
+                "test": "Zero balance move",
                 "success": False,
-                "error": f"Request rejected with status {move_status}: {move_response}"
+                "error": f"Expected zero old balances, got breakfast: {old_balances.get('breakfast')}, drinks: {old_balances.get('drinks')}"
             }
+        
+        # Get final balances
+        final_balances = await self.get_employee_all_balances(employee_id)
+        if not final_balances:
+            return {"test": "Zero balance move", "success": False, "error": "Failed to get final balances"}
+        
+        # Verify all balances remain zero
+        if final_balances['main_balances']['breakfast'] != 0.0 or final_balances['main_balances']['drinks_sweets'] != 0.0:
+            return {
+                "test": "Zero balance move",
+                "success": False,
+                "error": f"Final main balances not zero: breakfast {final_balances['main_balances']['breakfast']}, drinks {final_balances['main_balances']['drinks_sweets']}"
+            }
+        
+        # Verify subaccount for old department shows zeros
+        old_dept_subaccount = final_balances['subaccount_balances'].get('fw4abteilung3', {})
+        if old_dept_subaccount.get('breakfast') != 0.0 or old_dept_subaccount.get('drinks') != 0.0:
+            return {
+                "test": "Zero balance move",
+                "success": False,
+                "error": f"Old dept subaccount not zero: breakfast {old_dept_subaccount.get('breakfast')}, drinks {old_dept_subaccount.get('drinks')}"
+            }
+        
+        print(f"   ✅ All balances remain zero after move")
+        print(f"   ✅ Zero balance migration handled correctly")
+        
+        return {
+            "test": "Zero balance move",
+            "success": True,
+            "employee_id": employee_id,
+            "original_department": "fw4abteilung3",
+            "target_department": target_dept,
+            "all_balances_zero": True
+        }
     
     async def test_multiple_department_moves(self):
         """Test Case 5: Test moving employee through multiple departments"""
