@@ -871,12 +871,12 @@ class EmployeeProfileTester:
 
 async def main():
     """Main test execution"""
-    async with BalanceMigrationTester() as tester:
+    async with EmployeeProfileTester() as tester:
         success = await tester.run_comprehensive_test()
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Employee Department Moving with Balance Migration")
+    print("Backend Test Suite: Employee Profile Endpoint Balance Data Structure")
     print("=" * 70)
     
     try:
