@@ -1455,7 +1455,21 @@ const DepartmentDashboard = () => {
                         <div className="p-6 text-center text-gray-500">
                           Keine anderen Mitarbeiter verfügbar
                         </div>
-                      ) : (
+                      ) : (() => {
+                        // Check if any employees match search
+                        const hasResults = Object.values(otherDepartmentEmployees).some(employees => 
+                          getFilteredEmployees(employees).length > 0
+                        );
+                        
+                        if (!hasResults && employeeSearchQuery.trim()) {
+                          return (
+                            <div className="p-6 text-center text-gray-500">
+                              Keine Mitarbeiter gefunden für "{employeeSearchQuery}"
+                            </div>
+                          );
+                        }
+                        
+                        return (
                         Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => {
                           const filteredEmployees = getFilteredEmployees(employees);
                           
