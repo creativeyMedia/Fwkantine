@@ -1470,7 +1470,7 @@ const DepartmentDashboard = () => {
                         }
                         
                         return (
-                        Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => {
+                          Object.entries(otherDepartmentEmployees).map(([deptId, employees]) => {
                           const filteredEmployees = getFilteredEmployees(employees);
                           
                           // Skip department if no employees match search
