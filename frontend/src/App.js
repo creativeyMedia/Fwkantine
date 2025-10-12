@@ -256,6 +256,54 @@ const SuccessNotification = ({ message, onClose }) => {
   );
 };
 
+// Balance Warning Modal Component
+const BalanceWarningModal = ({ employeeName, openBalances, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-2xl p-6 mx-4 max-w-lg w-full border-2 border-red-200">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">⚠️ Löschung nicht möglich</h3>
+          
+          <div className="text-left mb-4">
+            <p className="text-gray-700 mb-3">
+              <strong>{employeeName}</strong> kann nicht gelöscht werden, da noch offene Salden vorhanden sind:
+            </p>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <ul className="space-y-1">
+                {openBalances.map((balance, index) => (
+                  <li key={index} className="text-red-700 font-medium text-sm flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    {balance}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <p className="text-gray-600 text-sm">
+              <strong>Lösung:</strong> Bitte gleichen Sie alle Salden auf 0€ aus, bevor Sie den Mitarbeiter löschen.
+            </p>
+          </div>
+          
+          <div className="flex justify-center">
+            <button
+              onClick={onClose}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200"
+            >
+              Verstanden
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Sound Utility Functions
 const playSucessSound = () => {
   try {
