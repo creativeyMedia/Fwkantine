@@ -9000,31 +9000,39 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
                         </div>
                       </div>
                     
-                    {/* Entry Details */}
-                    {entry.readable_items && (
-                      <div className="space-y-1">
-                        {entry.readable_items.map((item, idx) => (
-                          <div key={idx} className="text-sm flex justify-between items-start">
-                            <div className="flex-1">
-                              <span className="font-medium">{item.description}</span>
-                              {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
+                      {/* Entry Details */}
+                      {entry.type === 'order' && entry.readable_items && (
+                        <div className="space-y-1">
+                          {entry.readable_items.map((item, idx) => (
+                            <div key={idx} className="text-sm flex justify-between items-start">
+                              <div className="flex-1">
+                                <span className="font-medium">{item.description}</span>
+                                {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
+                              </div>
+                              {item.total_price && (
+                                <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
+                              )}
                             </div>
-                            {item.total_price && (
-                              <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {entry.notes && (
-                      <div className="mt-3 pt-3 border-t border-gray-300">
-                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                          <span className="text-xs font-medium text-yellow-800 block mb-1">📝 Notizen:</span>
-                          <span className="text-sm text-yellow-700">{entry.notes}</span>
+                          ))}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      
+                      {entry.type === 'payment' && (
+                        <div className="mt-2">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Buchungstyp:</span> {entry.balance_type === 'breakfast' ? 'Frühstück/Mittag' : 'Getränke/Snacks'}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {entry.notes && (
+                        <div className="mt-3 pt-3 border-t border-gray-300">
+                          <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                            <span className="text-xs font-medium text-yellow-800 block mb-1">📝 Notizen:</span>
+                            <span className="text-sm text-yellow-700">{entry.notes}</span>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
