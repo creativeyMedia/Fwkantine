@@ -7270,7 +7270,6 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">{employee.name}</h3>
-                  <p className="text-sm text-purple-600 mb-2">👥 {employee.main_department_name}</p>
                 </div>
                 <div className="text-right">
                   {(() => {
