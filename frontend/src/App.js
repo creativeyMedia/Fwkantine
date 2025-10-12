@@ -8939,11 +8939,26 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
               </p>
             </div>
             
-            {employeeProfile.order_history.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">Keine Einträge vorhanden</p>
-            ) : (
-              <div className="space-y-4">
-                {employeeProfile.order_history.map((entry, index) => (
+            {/* Combine and sort orders and payments */}
+            {(() => {
+              const orders = employeeProfile.order_history || [];
+              const payments = employeeProfile.payment_history || [];
+              
+              // Combine both arrays and sort by timestamp
+              const allEntries = [
+                ...orders.map(order => ({...order, type: 'order'})),
+                ...payments.map(payment => ({...payment, type: 'payment'}))
+              ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+              
+              if (allEntries.length === 0) {
+                return (
+                  <p className="text-gray-600 text-center py-8">Keine Einträge vorhanden</p>
+                );
+              }
+              
+              return (
+                <div className="space-y-4">
+                  {allEntries.map((entry, index) => (
                   <div key={entry.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
