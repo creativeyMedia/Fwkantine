@@ -786,7 +786,8 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                       })}
                     </div>
                   </div>
-                )}
+                );
+              })()}
               </>
             )}
           </div>
