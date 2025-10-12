@@ -730,7 +730,16 @@ async def master_login(department_name: str, master_password: str):
     if master_password != master_password_env:  # Developer master password
         raise HTTPException(status_code=401, detail="Ungültiges Master-Passwort")
     
-    # Find the department
+    # Special case for Developer login - return developer role
+    if department_name == "Developer":
+        return {
+            "department_id": "developer", 
+            "department_name": "Developer Dashboard", 
+            "role": "developer",
+            "access_level": "master"
+        }
+    
+    # Find the department for regular master login
     dept = await db.departments.find_one({"name": department_name})
     if not dept:
         raise HTTPException(status_code=404, detail="Abteilung nicht gefunden")
