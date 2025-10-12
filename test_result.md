@@ -563,7 +563,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Improved Developer Dashboard Employee Management Interface"
+    - "Developer Dashboard Employee Moving with Balance Migration Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
