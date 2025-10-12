@@ -1165,7 +1165,17 @@ const Homepage = () => {
         </div>
 
         <div className="text-center">
-          <p className="text-gray-600">Wählen Sie Ihre Wachabteilung aus</p>
+          <p className="text-gray-600 mb-8">Wählen Sie Ihre Wachabteilung aus</p>
+          
+          {/* Developer Login Button - dezent unten */}
+          <div className="mt-8">
+            <button
+              onClick={() => setShowDeveloperLogin(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm transition-colors duration-200"
+            >
+              Dev
+            </button>
+          </div>
         </div>
 
         {/* Department Login Modal */}
