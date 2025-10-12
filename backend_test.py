@@ -969,12 +969,12 @@ class DeveloperDashboardTester:
 
 async def main():
     """Main test execution"""
-    async with EmployeeDeletionSecurityTester() as tester:
+    async with DeveloperDashboardTester() as tester:
         success = await tester.run_comprehensive_test()
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Employee Deletion Security Feature")
+    print("Backend Test Suite: Developer Dashboard Employee Management")
     print("=" * 70)
     
     try:
