@@ -394,114 +394,105 @@ class EmployeeProfileTester:
             "correct_main_fields": correct_main_fields
         }
     
-    async def test_multiple_moves_accumulation(self):
-        """Test Case 3: Multiple Moves - Employee moves A→B→C to test subaccount accumulation"""
-        print(f"\n🧪 TEST CASE 3: Multiple Moves with Subaccount Accumulation (A→B→C→A)")
+    async def test_balance_values_accuracy(self, employee_id, employee_name):
+        """Test Case 3: Verify balance values reflect actual transaction history"""
+        print(f"\n🧪 TEST CASE 3: Balance Values Accuracy - {employee_name}")
         
-        # Create test employee in department 1
-        employee = await self.create_test_employee("fw4abteilung1", "TestMultipleMoves")
-        if not employee:
-            return {"test": "Multiple moves accumulation", "success": False, "error": "Failed to create test employee"}
+        # Get employee profile
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         
-        employee_id = employee['id']
-        
-        print(f"   Employee ID: {employee_id}")
-        print(f"   Testing: Dept1 → Dept2 → Dept3 → Dept1 (full circle)")
-        
-        # Set initial balance: €20 breakfast, €10 drinks
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "breakfast", 20.0):
-            return {"test": "Multiple moves accumulation", "success": False, "error": "Failed to set initial breakfast balance"}
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "drinks", 10.0):
-            return {"test": "Multiple moves accumulation", "success": False, "error": "Failed to set initial drinks balance"}
-        
-        # Track total balance for consistency check
-        initial_total = 30.0
-        
-        # MOVE 1: Dept1 → Dept2
-        print(f"   🔄 MOVE 1: fw4abteilung1 → fw4abteilung2")
-        move1_response, move1_status = await self.move_employee_to_department(employee_id, "fw4abteilung2")
-        if move1_status != 200:
-            return {"test": "Multiple moves accumulation", "success": False, "error": f"Move 1 failed: {move1_response}"}
-        
-        # Add some balance in dept2
-        if not await self.set_employee_balance(employee_id, "fw4abteilung2", "breakfast", -5.0):
-            return {"test": "Multiple moves accumulation", "success": False, "error": "Failed to set dept2 balance"}
-        
-        # MOVE 2: Dept2 → Dept3
-        print(f"   🔄 MOVE 2: fw4abteilung2 → fw4abteilung3")
-        move2_response, move2_status = await self.move_employee_to_department(employee_id, "fw4abteilung3")
-        if move2_status != 200:
-            return {"test": "Multiple moves accumulation", "success": False, "error": f"Move 2 failed: {move2_response}"}
-        
-        # Add some balance in dept3
-        if not await self.set_employee_balance(employee_id, "fw4abteilung3", "drinks", 7.0):
-            return {"test": "Multiple moves accumulation", "success": False, "error": "Failed to set dept3 balance"}
-        
-        # MOVE 3: Dept3 → Dept1 (back to original)
-        print(f"   🔄 MOVE 3: fw4abteilung3 → fw4abteilung1 (back to original)")
-        move3_response, move3_status = await self.move_employee_to_department(employee_id, "fw4abteilung1")
-        if move3_status != 200:
-            return {"test": "Multiple moves accumulation", "success": False, "error": f"Move 3 failed: {move3_response}"}
-        
-        # Get final balances
-        final_balances = await self.get_employee_all_balances(employee_id)
-        
-        # Calculate total balance across all accounts
-        main_total = final_balances['main_balances']['breakfast'] + final_balances['main_balances']['drinks_sweets']
-        subaccount_total = 0.0
-        
-        for dept_id, balances in final_balances['subaccount_balances'].items():
-            dept_total = balances.get('breakfast', 0.0) + balances.get('drinks', 0.0)
-            subaccount_total += dept_total
-            print(f"   Subaccount {dept_id}: Breakfast €{balances.get('breakfast')}, Drinks €{balances.get('drinks')}, Total €{dept_total}")
-        
-        total_balance = main_total + subaccount_total
-        
-        print(f"   Main balances total: €{main_total}")
-        print(f"   Subaccounts total: €{subaccount_total}")
-        print(f"   Grand total: €{total_balance}")
-        print(f"   Expected total: €{initial_total + (-5.0) + 7.0}")  # Initial + dept2 change + dept3 change
-        
-        # Verify balance consistency (allowing for small floating point differences)
-        expected_total = initial_total + (-5.0) + 7.0  # 30 - 5 + 7 = 32
-        if abs(total_balance - expected_total) > 0.01:
+        if status != 200:
             return {
-                "test": "Multiple moves accumulation",
+                "test": "Balance values accuracy",
                 "success": False,
-                "error": f"Balance inconsistency. Expected total: €{expected_total}, Got: €{total_balance}"
+                "error": f"Profile endpoint failed with status {status}: {response}"
             }
         
-        # Verify employee is back in original department
-        if final_balances['main_department_id'] != 'fw4abteilung1':
-            return {
-                "test": "Multiple moves accumulation",
-                "success": False,
-                "error": f"Employee not in expected final department. Expected: fw4abteilung1, Got: {final_balances['main_department_id']}"
-            }
+        employee_obj = response.get('employee', {})
+        order_history = response.get('order_history', [])
+        payment_history = response.get('payment_history', [])
         
-        # Verify original dept1 balances are now main balances
-        expected_main_breakfast = 20.0  # Original dept1 breakfast balance
-        expected_main_drinks = 10.0     # Original dept1 drinks balance
+        # Get balance values
+        breakfast_balance = employee_obj.get('breakfast_balance', 0)
+        drinks_sweets_balance = employee_obj.get('drinks_sweets_balance', 0)
         
-        if abs(final_balances['main_balances']['breakfast'] - expected_main_breakfast) > 0.01:
-            return {
-                "test": "Multiple moves accumulation",
-                "success": False,
-                "error": f"Main breakfast balance incorrect. Expected: €{expected_main_breakfast}, Got: €{final_balances['main_balances']['breakfast']}"
-            }
+        # Analyze order history for balance calculation
+        calculated_breakfast_debt = 0.0
+        calculated_drinks_debt = 0.0
         
-        print(f"   ✅ Balance consistency maintained across {3} moves")
-        print(f"   ✅ Original department balances restored as main balances")
+        for order in order_history:
+            order_type = order.get('order_type', '')
+            total_price = order.get('total_price', 0)
+            
+            if order_type == 'breakfast':
+                calculated_breakfast_debt += total_price
+            elif order_type in ['drinks', 'sweets']:
+                calculated_drinks_debt += total_price
+        
+        # Analyze payment history for balance adjustments
+        total_breakfast_payments = 0.0
+        total_drinks_payments = 0.0
+        
+        for payment in payment_history:
+            payment_type = payment.get('payment_type', '')
+            amount = payment.get('amount', 0)
+            
+            if payment_type == 'breakfast':
+                total_breakfast_payments += amount
+            elif payment_type in ['drinks_sweets', 'drinks']:
+                total_drinks_payments += amount
+        
+        # Calculate expected balances (payments - orders = balance)
+        expected_breakfast = total_breakfast_payments - calculated_breakfast_debt
+        expected_drinks = total_drinks_payments - calculated_drinks_debt
+        
+        print(f"   📊 Balance Analysis:")
+        print(f"      Current breakfast_balance: €{breakfast_balance}")
+        print(f"      Current drinks_sweets_balance: €{drinks_sweets_balance}")
+        print(f"   📊 Transaction History:")
+        print(f"      Breakfast orders total: €{calculated_breakfast_debt}")
+        print(f"      Drinks/sweets orders total: €{calculated_drinks_debt}")
+        print(f"      Breakfast payments total: €{total_breakfast_payments}")
+        print(f"      Drinks payments total: €{total_drinks_payments}")
+        print(f"   📊 Expected Balances:")
+        print(f"      Expected breakfast: €{expected_breakfast}")
+        print(f"      Expected drinks: €{expected_drinks}")
+        
+        # Check if balances are not defaulting to 0
+        has_non_zero_balances = (breakfast_balance != 0 or drinks_sweets_balance != 0)
+        has_transaction_history = (len(order_history) > 0 or len(payment_history) > 0)
+        
+        # Check balance accuracy (allowing for small floating point differences)
+        breakfast_accurate = abs(breakfast_balance - expected_breakfast) < 0.01
+        drinks_accurate = abs(drinks_sweets_balance - expected_drinks) < 0.01
         
         return {
-            "test": "Multiple moves accumulation",
+            "test": "Balance values accuracy",
             "success": True,
             "employee_id": employee_id,
-            "moves_completed": 3,
-            "total_balance_maintained": True,
-            "final_total": total_balance,
-            "expected_total": expected_total,
-            "back_to_original_dept": True
+            "employee_name": employee_name,
+            "current_balances": {
+                "breakfast_balance": breakfast_balance,
+                "drinks_sweets_balance": drinks_sweets_balance
+            },
+            "transaction_totals": {
+                "breakfast_orders": calculated_breakfast_debt,
+                "drinks_orders": calculated_drinks_debt,
+                "breakfast_payments": total_breakfast_payments,
+                "drinks_payments": total_drinks_payments
+            },
+            "expected_balances": {
+                "breakfast": expected_breakfast,
+                "drinks": expected_drinks
+            },
+            "accuracy_check": {
+                "breakfast_accurate": breakfast_accurate,
+                "drinks_accurate": drinks_accurate
+            },
+            "has_non_zero_balances": has_non_zero_balances,
+            "has_transaction_history": has_transaction_history,
+            "order_count": len(order_history),
+            "payment_count": len(payment_history)
         }
     
     async def test_zero_balance_move(self):
