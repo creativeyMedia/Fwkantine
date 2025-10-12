@@ -289,34 +289,90 @@ class BalanceMigrationTester:
             "new_main_balance": final_balances['main_balances']['breakfast']
         }
     
-    async def test_invalid_employee_id(self):
-        """Test Case 2: Invalid employee ID (should return 404)"""
-        print(f"\n🧪 TEST CASE 2: Invalid employee ID (should return 404)")
+    async def test_complex_balance_migration(self):
+        """Test Case 2: Complex Move - Employee with existing subaccount balances moves between departments"""
+        print(f"\n🧪 TEST CASE 2: Complex Balance Migration with Existing Subaccounts")
         
-        invalid_employee_id = "invalid-employee-id-12345"
-        target_dept = "fw4abteilung1"
+        # Create test employee in department 1
+        employee = await self.create_test_employee("fw4abteilung1", "TestComplexMigration")
+        if not employee:
+            return {"test": "Complex balance migration", "success": False, "error": "Failed to create test employee"}
         
-        print(f"   Invalid Employee ID: {invalid_employee_id}")
-        print(f"   Target Department: {target_dept}")
+        employee_id = employee['id']
         
-        move_response, move_status = await self.move_employee_to_department(invalid_employee_id, target_dept)
+        print(f"   Employee ID: {employee_id}")
+        print(f"   Testing: Dept1 → Dept2 → Dept3 with balance accumulation")
         
-        if move_status == 404:
-            print(f"   ✅ Correctly returned 404 for invalid employee ID")
-            print(f"   ✅ Error message: {move_response}")
+        # Set initial balance: €15 breakfast, €5 drinks
+        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "breakfast", 15.0):
+            return {"test": "Complex balance migration", "success": False, "error": "Failed to set initial breakfast balance"}
+        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "drinks", 5.0):
+            return {"test": "Complex balance migration", "success": False, "error": "Failed to set initial drinks balance"}
+        
+        # Get initial balances
+        initial_balances = await self.get_employee_all_balances(employee_id)
+        print(f"   Initial: Breakfast €{initial_balances['main_balances']['breakfast']}, Drinks €{initial_balances['main_balances']['drinks_sweets']}")
+        
+        # MOVE 1: Dept1 → Dept2
+        print(f"   🔄 MOVE 1: fw4abteilung1 → fw4abteilung2")
+        move1_response, move1_status = await self.move_employee_to_department(employee_id, "fw4abteilung2")
+        if move1_status != 200:
+            return {"test": "Complex balance migration", "success": False, "error": f"Move 1 failed: {move1_response}"}
+        
+        # Check balances after move 1
+        balances_after_move1 = await self.get_employee_all_balances(employee_id)
+        dept1_subaccount = balances_after_move1['subaccount_balances'].get('fw4abteilung1', {})
+        print(f"   After Move 1 - Dept1 subaccount: Breakfast €{dept1_subaccount.get('breakfast')}, Drinks €{dept1_subaccount.get('drinks')}")
+        print(f"   After Move 1 - Main balances: Breakfast €{balances_after_move1['main_balances']['breakfast']}, Drinks €{balances_after_move1['main_balances']['drinks_sweets']}")
+        
+        # Set some balance in dept2 (simulate orders)
+        if not await self.set_employee_balance(employee_id, "fw4abteilung2", "breakfast", -8.0):
+            return {"test": "Complex balance migration", "success": False, "error": "Failed to set dept2 balance"}
+        
+        # MOVE 2: Dept2 → Dept3  
+        print(f"   🔄 MOVE 2: fw4abteilung2 → fw4abteilung3")
+        move2_response, move2_status = await self.move_employee_to_department(employee_id, "fw4abteilung3")
+        if move2_status != 200:
+            return {"test": "Complex balance migration", "success": False, "error": f"Move 2 failed: {move2_response}"}
+        
+        # Get final balances
+        final_balances = await self.get_employee_all_balances(employee_id)
+        
+        # Verify balance preservation
+        dept1_final = final_balances['subaccount_balances'].get('fw4abteilung1', {})
+        dept2_final = final_balances['subaccount_balances'].get('fw4abteilung2', {})
+        
+        print(f"   Final - Dept1 subaccount: Breakfast €{dept1_final.get('breakfast')}, Drinks €{dept1_final.get('drinks')}")
+        print(f"   Final - Dept2 subaccount: Breakfast €{dept2_final.get('breakfast')}, Drinks €{dept2_final.get('drinks')}")
+        print(f"   Final - Main balances: Breakfast €{final_balances['main_balances']['breakfast']}, Drinks €{final_balances['main_balances']['drinks_sweets']}")
+        
+        # Verify dept1 balances are preserved
+        if dept1_final.get('breakfast') != 15.0 or dept1_final.get('drinks') != 5.0:
             return {
-                "test": "Invalid employee ID",
-                "success": True,
-                "expected_status": 404,
-                "actual_status": move_status,
-                "error_message": move_response
-            }
-        else:
-            return {
-                "test": "Invalid employee ID",
+                "test": "Complex balance migration",
                 "success": False,
-                "error": f"Expected 404, got {move_status}: {move_response}"
+                "error": f"Dept1 balances not preserved. Expected: B€15, D€5. Got: B€{dept1_final.get('breakfast')}, D€{dept1_final.get('drinks')}"
             }
+        
+        # Verify dept2 balances are preserved
+        if dept2_final.get('breakfast') != -8.0:
+            return {
+                "test": "Complex balance migration",
+                "success": False,
+                "error": f"Dept2 breakfast balance not preserved. Expected: €-8, Got: €{dept2_final.get('breakfast')}"
+            }
+        
+        print(f"   ✅ All balances preserved across multiple moves")
+        
+        return {
+            "test": "Complex balance migration",
+            "success": True,
+            "employee_id": employee_id,
+            "moves_completed": 2,
+            "dept1_preserved": {"breakfast": dept1_final.get('breakfast'), "drinks": dept1_final.get('drinks')},
+            "dept2_preserved": {"breakfast": dept2_final.get('breakfast'), "drinks": dept2_final.get('drinks')},
+            "final_department": "fw4abteilung3"
+        }
     
     async def test_invalid_department_id(self):
         """Test Case 3: Invalid target department ID (should return 404)"""
