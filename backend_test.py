@@ -215,55 +215,73 @@ class EmployeeDeletionSecurityTester:
             print(f"   Error: {response}")
             return response, False
     
-    async def test_employee_data_structure(self, employee_id, employee_name):
-        """Test employee data structure to identify missing fields"""
-        print(f"\n🔍 Analyzing employee data structure for {employee_name}")
+    async def get_employee_all_balances(self, employee_id):
+        """Get all balances for an employee using the deletion security endpoint"""
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/all-balances')
+        if status == 200:
+            return response
+        else:
+            print(f"❌ Failed to get employee all balances: {response}")
+            return None
+    
+    async def test_all_balances_endpoint_structure(self, employee_id, employee_name):
+        """Test the all-balances endpoint structure for deletion security"""
+        print(f"\n🔍 Testing all-balances endpoint structure for {employee_name}")
         
-        profile = await self.get_employee_profile(employee_id)
-        if not profile:
-            print("❌ Could not get employee profile")
-            return False
+        balances = await self.get_employee_all_balances(employee_id)
+        if not balances:
+            print("❌ Could not get employee all balances")
+            return False, {}
         
-        # Extract employee data from nested structure
-        employee_data = profile.get('employee', {})
-        
-        # Check critical fields that might cause 400 errors
-        critical_fields = {
-            'id': employee_data.get('id'),
-            'name': employee_data.get('name'),
-            'department_id': employee_data.get('department_id'),
-            'breakfast_balance': employee_data.get('breakfast_balance'),
-            'drinks_sweets_balance': employee_data.get('drinks_sweets_balance'),
-            'subaccount_balances': employee_data.get('subaccount_balances')
+        # Check required fields for deletion security
+        required_fields = {
+            'employee_id': balances.get('employee_id'),
+            'employee_name': balances.get('employee_name'),
+            'main_department_id': balances.get('main_department_id'),
+            'main_department_name': balances.get('main_department_name'),
+            'main_balances': balances.get('main_balances'),
+            'subaccount_balances': balances.get('subaccount_balances')
         }
         
-        print("📋 Employee Data Structure:")
+        print("📋 All-Balances Endpoint Response Structure:")
         missing_fields = []
-        for field, value in critical_fields.items():
+        for field, value in required_fields.items():
             if value is None:
                 print(f"   ❌ {field}: MISSING (None)")
                 missing_fields.append(field)
             else:
                 print(f"   ✅ {field}: {value}")
         
+        # Check main_balances structure
+        main_balances = balances.get('main_balances', {})
+        if main_balances:
+            breakfast_balance = main_balances.get('breakfast', 'MISSING')
+            drinks_sweets_balance = main_balances.get('drinks_sweets', 'MISSING')
+            print(f"📋 Main Balances: breakfast={breakfast_balance}, drinks_sweets={drinks_sweets_balance}")
+        else:
+            print("❌ main_balances: COMPLETELY MISSING")
+            missing_fields.append('main_balances')
+        
         # Check subaccount_balances structure
-        subaccounts = employee_data.get('subaccount_balances')
+        subaccounts = balances.get('subaccount_balances', {})
         if subaccounts:
             print("📋 Subaccount Balances Structure:")
-            for dept_id, balances in subaccounts.items():
-                breakfast_bal = balances.get('breakfast', 'MISSING')
-                drinks_bal = balances.get('drinks', 'MISSING')
-                print(f"   {dept_id}: breakfast={breakfast_bal}, drinks={drinks_bal}")
+            for dept_id, dept_data in subaccounts.items():
+                dept_name = dept_data.get('department_name', 'MISSING')
+                breakfast_bal = dept_data.get('breakfast', 'MISSING')
+                drinks_bal = dept_data.get('drinks', 'MISSING')
+                total_bal = dept_data.get('total', 'MISSING')
+                print(f"   {dept_id} ({dept_name}): breakfast={breakfast_bal}, drinks={drinks_bal}, total={total_bal}")
         else:
             print("❌ subaccount_balances: COMPLETELY MISSING")
             missing_fields.append('subaccount_balances')
         
         if missing_fields:
-            print(f"⚠️  POTENTIAL ISSUE: Missing fields could cause 400 errors: {missing_fields}")
-            return False
+            print(f"⚠️  MISSING FIELDS: {missing_fields}")
+            return False, balances
         else:
-            print("✅ Employee data structure appears complete")
-            return True
+            print("✅ All-balances endpoint structure is complete")
+            return True, balances
     
     async def test_guest_employee_scenario(self, home_dept, target_dept):
         """Test the exact guest employee scenario that causes 400 errors"""
