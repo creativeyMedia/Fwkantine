@@ -864,133 +864,65 @@ class DeveloperDashboardTester:
         return scenario_results
     
     async def run_comprehensive_test(self):
-        """Run comprehensive test of employee deletion security feature"""
-        print("🚀 STARTING EMPLOYEE DELETION SECURITY FEATURE TEST")
+        """Run comprehensive test of Developer Dashboard employee management"""
+        print("🚀 STARTING DEVELOPER DASHBOARD EMPLOYEE MANAGEMENT TEST")
         print("=" * 80)
-        print("TESTING: Employee deletion security with balance checking")
-        print("- Endpoint: GET /api/employees/{employee_id}/all-balances")
-        print("- Feature: Prevent deletion of employees with non-zero balances")
-        print("- Scenarios: Different balance combinations")
+        print("TESTING: Developer Dashboard move-employee endpoint")
+        print("- Endpoint: PUT /api/developer/move-employee/{employee_id}")
+        print("- Feature: Move employees between departments")
+        print("- Model: MoveEmployeeRequest with new_department_id")
         print("=" * 80)
-        
-        # Authenticate as admin for both test departments
-        dept1_auth = await self.authenticate_admin("1. Wachabteilung", "admin1")
-        dept2_auth = await self.authenticate_admin("2. Wachabteilung", "admin2")
-        
-        if not dept1_auth or not dept2_auth:
-            print("❌ Failed to authenticate as admin for test departments")
-            return False
         
         test_results = []
         
-        # Test Scenario 1: Employee with positive main balance
-        print(f"\n{'='*60}")
-        print(f"🧪 SCENARIO 1: Employee with positive main balance")
-        print(f"{'='*60}")
+        # Test Case 1: Valid employee move between departments
+        result_1 = await self.test_valid_employee_move()
+        test_results.append(result_1)
         
-        employee_id_1 = await self.setup_employee_with_positive_main_balance("fw4abteilung1")
-        if employee_id_1:
-            result_1 = await self.test_balance_scenario("Positive Main Balance", employee_id_1, False)
-            test_results.append(result_1)
-        else:
-            test_results.append({
-                'scenario': 'Positive Main Balance',
-                'endpoint_working': False,
-                'error': 'Failed to setup employee'
-            })
+        # Test Case 2: Invalid employee ID (should return 404)
+        result_2 = await self.test_invalid_employee_id()
+        test_results.append(result_2)
         
-        # Test Scenario 2: Employee with negative main balance
-        print(f"\n{'='*60}")
-        print(f"🧪 SCENARIO 2: Employee with negative main balance")
-        print(f"{'='*60}")
+        # Test Case 3: Invalid target department ID (should return 404)
+        result_3 = await self.test_invalid_department_id()
+        test_results.append(result_3)
         
-        employee_id_2 = await self.setup_employee_with_negative_main_balance("fw4abteilung1")
-        if employee_id_2:
-            result_2 = await self.test_balance_scenario("Negative Main Balance", employee_id_2, False)
-            test_results.append(result_2)
-        else:
-            test_results.append({
-                'scenario': 'Negative Main Balance',
-                'endpoint_working': False,
-                'error': 'Failed to setup employee'
-            })
+        # Test Case 4: Verify MoveEmployeeRequest model
+        result_4 = await self.test_move_employee_request_model()
+        test_results.append(result_4)
         
-        # Test Scenario 3: Employee with zero main balance but non-zero subaccount balance
-        print(f"\n{'='*60}")
-        print(f"🧪 SCENARIO 3: Zero main balance, non-zero subaccount balance")
-        print(f"{'='*60}")
-        
-        employee_id_3 = await self.setup_employee_with_zero_main_nonzero_subaccount("fw4abteilung1", "fw4abteilung2")
-        if employee_id_3:
-            result_3 = await self.test_balance_scenario("Zero Main, Non-zero Subaccount", employee_id_3, False)
-            test_results.append(result_3)
-        else:
-            test_results.append({
-                'scenario': 'Zero Main, Non-zero Subaccount',
-                'endpoint_working': False,
-                'error': 'Failed to setup employee'
-            })
-        
-        # Test Scenario 4: Employee with all balances at 0€ (should allow deletion)
-        print(f"\n{'='*60}")
-        print(f"🧪 SCENARIO 4: All balances at 0€ (should allow deletion)")
-        print(f"{'='*60}")
-        
-        employee_id_4 = await self.setup_employee_with_all_zero_balances("fw4abteilung2")
-        if employee_id_4:
-            result_4 = await self.test_balance_scenario("All Zero Balances", employee_id_4, True)
-            test_results.append(result_4)
-        else:
-            test_results.append({
-                'scenario': 'All Zero Balances',
-                'endpoint_working': False,
-                'error': 'Failed to setup employee'
-            })
+        # Test Case 5: Multiple department moves
+        result_5 = await self.test_multiple_department_moves()
+        test_results.append(result_5)
         
         # Analyze results
         total_tests = len(test_results)
-        successful_tests = 0
-        failed_tests = []
+        successful_tests = sum(1 for result in test_results if result.get('success', False))
+        failed_tests = [result for result in test_results if not result.get('success', False)]
         
         print(f"\n{'='*80}")
         print(f"🎯 DETAILED TEST RESULTS ANALYSIS")
         print(f"{'='*80}")
         
         for result in test_results:
-            scenario = result['scenario']
-            endpoint_working = result.get('endpoint_working', False)
-            structure_complete = result.get('structure_complete', False)
-            expectation_correct = result.get('expectation_correct', False)
+            test_name = result['test']
+            success = result.get('success', False)
             
-            print(f"\n📋 SCENARIO: {scenario}")
-            print(f"   Endpoint Working: {'✅' if endpoint_working else '❌'}")
+            print(f"\n📋 TEST: {test_name}")
+            print(f"   Result: {'✅ PASSED' if success else '❌ FAILED'}")
             
-            if endpoint_working:
-                print(f"   Structure Complete: {'✅' if structure_complete else '❌'}")
-                
-                if structure_complete:
-                    print(f"   Expected vs Actual: {'✅' if expectation_correct else '❌'}")
-                    
-                    if 'main_balances' in result:
-                        main_balances = result['main_balances']
-                        print(f"   Main Balances: breakfast={main_balances.get('breakfast', 0)}, drinks_sweets={main_balances.get('drinks_sweets', 0)}")
-                    
-                    if 'has_nonzero_main' in result:
-                        print(f"   Has Non-zero Main: {result['has_nonzero_main']}")
-                        print(f"   Has Non-zero Subaccount: {result['has_nonzero_subaccount']}")
-                        print(f"   Should be Deletable: {result['should_be_deletable']}")
-                        print(f"   Expected Deletable: {result['expected_deletable']}")
-            
-            if result.get('error'):
-                print(f"   🚨 ERROR: {result['error']}")
-            
-            # Count as successful if endpoint works and expectations are correct
-            if endpoint_working and structure_complete and expectation_correct:
-                successful_tests += 1
-                print(f"   ✅ SCENARIO PASSED")
+            if success:
+                # Show success details
+                if 'response_message' in result:
+                    print(f"   Response: {result['response_message']}")
+                if 'database_updated' in result:
+                    print(f"   Database Updated: {'✅' if result['database_updated'] else '❌'}")
+                if 'completed_moves' in result:
+                    print(f"   Completed Moves: {len(result['completed_moves'])}")
             else:
-                failed_tests.append(result)
-                print(f"   ❌ SCENARIO FAILED")
+                # Show error details
+                if 'error' in result:
+                    print(f"   🚨 ERROR: {result['error']}")
         
         # Final analysis
         success_rate = (successful_tests / total_tests) * 100 if total_tests > 0 else 0
@@ -998,38 +930,40 @@ class DeveloperDashboardTester:
         print(f"\n{'='*80}")
         print(f"🎯 FINAL ANALYSIS")
         print(f"{'='*80}")
-        print(f"Total Scenarios Tested: {total_tests}")
-        print(f"Successful Scenarios: {successful_tests}")
-        print(f"Failed Scenarios: {len(failed_tests)}")
+        print(f"Total Test Cases: {total_tests}")
+        print(f"Successful Tests: {successful_tests}")
+        print(f"Failed Tests: {len(failed_tests)}")
         print(f"Success Rate: {success_rate:.1f}%")
         
         if successful_tests == total_tests:
-            print(f"\n🎉 ALL EMPLOYEE DELETION SECURITY SCENARIOS PASSED!")
-            print(f"✅ The /api/employees/{{employee_id}}/all-balances endpoint is working correctly")
-            print(f"✅ Balance structure includes breakfast_balance and drinks_sweets_balance for main account")
-            print(f"✅ Balance structure includes subaccount_balances object with all department balances")
-            print(f"✅ Balance calculation is accurate for both positive and negative amounts")
-            print(f"✅ The endpoint works for employees across different departments")
-            print(f"✅ Backend support for employee deletion security feature is FULLY FUNCTIONAL")
+            print(f"\n🎉 ALL DEVELOPER DASHBOARD TESTS PASSED!")
+            print(f"✅ The /api/developer/move-employee/{{employee_id}} endpoint is working correctly")
+            print(f"✅ MoveEmployeeRequest model accepts proper request body format")
+            print(f"✅ Employee department_id is updated correctly in database")
+            print(f"✅ Response confirms successful move with department name")
+            print(f"✅ Error handling works for invalid employee IDs (404)")
+            print(f"✅ Error handling works for invalid department IDs (404)")
+            print(f"✅ Multiple department moves work correctly")
+            print(f"✅ Developer Dashboard employee management is FULLY FUNCTIONAL")
         else:
             print(f"\n🚨 CRITICAL ISSUES DETECTED!")
-            print(f"❌ {len(failed_tests)} employee deletion security scenarios failed")
-            print(f"❌ This may affect the frontend security feature")
+            print(f"❌ {len(failed_tests)} test cases failed")
+            print(f"❌ This may affect the Developer Dashboard functionality")
             
             # Identify patterns in failures
             print(f"\n🔍 FAILURE PATTERN ANALYSIS:")
             for result in failed_tests:
-                scenario = result['scenario']
+                test_name = result['test']
                 error = result.get('error', 'Unknown error')
-                print(f"   - {scenario}: {error}")
+                print(f"   - {test_name}: {error}")
             
             print(f"\n💡 RECOMMENDED FIXES:")
-            if any(not result.get('endpoint_working', False) for result in failed_tests):
-                print(f"   1. Fix /api/employees/{{employee_id}}/all-balances endpoint accessibility")
-            if any(not result.get('structure_complete', False) for result in failed_tests):
-                print(f"   2. Ensure complete response structure with all required fields")
-            if any(not result.get('expectation_correct', False) for result in failed_tests):
-                print(f"   3. Verify balance calculation logic for deletion security")
+            if any('404' in result.get('error', '') for result in failed_tests):
+                print(f"   1. Check endpoint URL and routing configuration")
+            if any('database' in result.get('error', '').lower() for result in failed_tests):
+                print(f"   2. Verify database update logic in move-employee endpoint")
+            if any('model' in result.get('error', '').lower() for result in failed_tests):
+                print(f"   3. Check MoveEmployeeRequest model validation")
         
         return successful_tests == total_tests
 
