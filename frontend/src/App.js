@@ -8959,39 +8959,46 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
               return (
                 <div className="space-y-4">
                   {allEntries.map((entry, index) => (
-                  <div key={entry.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        {entry.readable_items ? (
-                          // Order Entry
-                          <>
-                            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                              Bestellung
-                            </span>
-                            <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
-                          </>
-                        ) : (
-                          // Payment Entry  
-                          <>
-                            <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                              {entry.amount > 0 ? 'Einzahlung' : 'Auszahlung'}
-                            </span>
-                            <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
-                          </>
-                        )}
+                    <div key={entry.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          {entry.type === 'order' ? (
+                            // Order Entry
+                            <>
+                              <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                                Bestellung
+                              </span>
+                              <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
+                            </>
+                          ) : (
+                            // Payment Entry  
+                            <>
+                              <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                                {entry.amount > 0 ? 'Einzahlung' : 'Auszahlung'}
+                              </span>
+                              <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className={`font-semibold ${
+                            entry.type === 'payment' 
+                              ? (entry.amount >= 0 ? 'text-green-600' : 'text-red-600')
+                              : (entry.total_price < 0 ? 'text-red-600' : 'text-gray-900')
+                          }`}>
+                            {entry.type === 'payment' 
+                              ? `${entry.amount > 0 ? '+' : ''}${entry.amount.toFixed(2)}€` 
+                              : `${entry.total_price < 0 ? '-' : ''}${Math.abs(entry.total_price || 0).toFixed(2)}€`
+                            }
+                          </p>
+                          <button
+                            onClick={() => deleteHistoryEntry(entry.id, entry.type)}
+                            className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
+                          >
+                            🔧 Löschen
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <p className={`font-semibold ${entry.total_price < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                          {entry.amount ? `${entry.amount > 0 ? '+' : ''}${entry.amount.toFixed(2)}€` : `${entry.total_price < 0 ? '-' : ''}${Math.abs(entry.total_price || 0).toFixed(2)}€`}
-                        </p>
-                        <button
-                          onClick={() => deleteHistoryEntry(entry.id, entry.readable_items ? 'order' : 'payment')}
-                          className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
-                        >
-                          🔧 Löschen
-                        </button>
-                      </div>
-                    </div>
                     
                     {/* Entry Details */}
                     {entry.readable_items && (
