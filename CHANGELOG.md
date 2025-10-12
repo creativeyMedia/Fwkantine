@@ -1,5 +1,32 @@
 # Changelog - Canteen Management System
 
+## Version 1.3.0 - Developer Dashboard & UI Enhancements (October 2025)
+
+### 🔧 **NEW: Developer Dashboard**
+- **Developer Access**: New Dev login button with master password authentication
+- **Enhanced Employee Management**: View all employees across departments with department grouping
+- **Employee Migration**: Move employees between departments with automatic balance migration
+- **Extended History Access**: View complete order/payment history with developer deletion controls
+- **Saldo-Neutral Deletions**: Remove history entries without affecting balances
+
+### ✅ **Security & Safety Features**
+- **Balance Warning Modal**: Prevents employee deletion with open balances (main + subaccounts)
+- **Dangerous Scripts Removed**: Cleanup scripts moved to backup folder for production safety
+- **Balance Migration**: Automatic main↔subaccount balance transfer when moving employees
+
+### 🎨 **UI/UX Improvements**
+- **Statistics Enhancement**: Added total balance overview (Frühstück+Mittag, Snacks+Getränke)
+- **Search Functionality**: Employee search in "Andere WA" guest employee modal
+- **Department Grouping**: "Andere WA" tab now groups employees by home department
+- **Responsive Design**: Improved tablet display (1024px) for homepage and admin dashboard
+- **Terminology Update**: "Süßes/Süßware" → "Snacks" throughout application
+
+### 🐛 **Bug Fixes**
+- **Timezone Display**: Fixed German timezone (Europe/Berlin) in order history
+- **NaN Error**: Fixed balance display showing "NaN€" in developer profiles
+- **Sponsoring Display**: Corrected sponsoring calculation messages
+- **Employee Deletion**: Enhanced deletion prevention with detailed balance breakdown
+
 ## Version 2.0 - Bug Fixes & Enhancements (August 2025)
 
 ### 🐛 Critical Bug Fixes
