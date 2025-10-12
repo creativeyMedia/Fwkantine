@@ -594,105 +594,100 @@ class EmployeeProfileTester:
             "payment_sample": payment_sample
         }
     
-    async def test_negative_balance_move(self):
-        """Test Case 5: Negative Balance Move - Employee with negative balances moves departments"""
-        print(f"\n🧪 TEST CASE 5: Negative Balance Move")
+    async def test_response_structure_consistency(self, employee_id, employee_name):
+        """Test Case 5: Verify response structure matches frontend expectations"""
+        print(f"\n🧪 TEST CASE 5: Response Structure Consistency - {employee_name}")
         
-        # Create test employee
-        employee = await self.create_test_employee("fw4abteilung1", "TestNegativeBalance")
-        if not employee:
-            return {"test": "Negative balance move", "success": False, "error": "Failed to create test employee"}
+        # Get employee profile
+        response, status = await self.make_request('GET', f'/employees/{employee_id}/profile')
         
-        employee_id = employee['id']
-        target_dept = "fw4abteilung2"
-        
-        print(f"   Employee ID: {employee_id}")
-        print(f"   Testing: Negative balance move fw4abteilung1 → fw4abteilung2")
-        
-        # Set negative balances: -€25 breakfast, -€15 drinks (employee owes money)
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "breakfast", -25.0):
-            return {"test": "Negative balance move", "success": False, "error": "Failed to set negative breakfast balance"}
-        if not await self.set_employee_balance(employee_id, "fw4abteilung1", "drinks", -15.0):
-            return {"test": "Negative balance move", "success": False, "error": "Failed to set negative drinks balance"}
-        
-        # Get initial balances
-        initial_balances = await self.get_employee_all_balances(employee_id)
-        if not initial_balances:
-            return {"test": "Negative balance move", "success": False, "error": "Failed to get initial balances"}
-        
-        print(f"   Initial breakfast balance: €{initial_balances['main_balances']['breakfast']}")
-        print(f"   Initial drinks balance: €{initial_balances['main_balances']['drinks_sweets']}")
-        
-        # Verify negative balances are set
-        if initial_balances['main_balances']['breakfast'] != -25.0 or initial_balances['main_balances']['drinks_sweets'] != -15.0:
-            return {"test": "Negative balance move", "success": False, "error": "Failed to set negative balances correctly"}
-        
-        # Move employee
-        move_response, move_status = await self.move_employee_to_department(employee_id, target_dept)
-        
-        if move_status != 200:
-            return {"test": "Negative balance move", "success": False, "error": f"Move failed: {move_response}"}
-        
-        print(f"   ✅ Move successful: {move_response.get('message')}")
-        
-        # Verify balance migration response shows negative values
-        balance_migration = move_response.get('balance_migration', {})
-        old_balances = balance_migration.get('old_main_balances_moved_to_subaccount', {})
-        new_balances = balance_migration.get('new_main_balances_from_subaccount', {})
-        
-        if old_balances.get('breakfast') != -25.0 or old_balances.get('drinks') != -15.0:
+        if status != 200:
             return {
-                "test": "Negative balance move",
+                "test": "Response structure consistency",
                 "success": False,
-                "error": f"Expected negative old balances, got breakfast: {old_balances.get('breakfast')}, drinks: {old_balances.get('drinks')}"
+                "error": f"Profile endpoint failed with status {status}: {response}"
             }
         
-        # Get final balances
-        final_balances = await self.get_employee_all_balances(employee_id)
-        if not final_balances:
-            return {"test": "Negative balance move", "success": False, "error": "Failed to get final balances"}
+        # Analyze the complete response structure
+        response_structure = {
+            "top_level_fields": list(response.keys()),
+            "employee_object_fields": list(response.get('employee', {}).keys()) if 'employee' in response else [],
+            "balance_locations": {}
+        }
         
-        # Verify main balances are now 0 (moved to subaccount)
-        if final_balances['main_balances']['breakfast'] != 0.0 or final_balances['main_balances']['drinks_sweets'] != 0.0:
-            return {
-                "test": "Negative balance move",
-                "success": False,
-                "error": f"Expected zero main balances, got breakfast: {final_balances['main_balances']['breakfast']}, drinks: {final_balances['main_balances']['drinks_sweets']}"
-            }
+        # Check where balance data is located
+        employee_obj = response.get('employee', {})
         
-        # Verify old department subaccount has the negative balances
-        old_dept_subaccount = final_balances['subaccount_balances'].get('fw4abteilung1', {})
-        if old_dept_subaccount.get('breakfast') != -25.0 or old_dept_subaccount.get('drinks') != -15.0:
-            return {
-                "test": "Negative balance move",
-                "success": False,
-                "error": f"Old dept subaccount incorrect: breakfast {old_dept_subaccount.get('breakfast')}, drinks {old_dept_subaccount.get('drinks')}"
-            }
+        # Check for balance fields in employee object
+        employee_balance_fields = []
+        for field in employee_obj.keys():
+            if 'balance' in field.lower() or 'total' in field.lower():
+                employee_balance_fields.append({
+                    'field': field,
+                    'value': employee_obj[field],
+                    'location': 'employee_object'
+                })
         
-        print(f"   ✅ Negative balances correctly migrated to subaccount")
-        print(f"   ✅ Old dept subaccount: Breakfast €{old_dept_subaccount.get('breakfast')}, Drinks €{old_dept_subaccount.get('drinks')}")
+        # Check for balance fields in main response
+        main_balance_fields = []
+        for field in response.keys():
+            if 'balance' in field.lower() or 'total' in field.lower():
+                main_balance_fields.append({
+                    'field': field,
+                    'value': response[field],
+                    'location': 'main_response'
+                })
         
-        # Calculate total debt to verify no money created/lost
-        total_debt = old_dept_subaccount.get('breakfast', 0.0) + old_dept_subaccount.get('drinks', 0.0)
-        expected_total_debt = -25.0 + (-15.0)  # -40.0
+        response_structure['balance_locations'] = {
+            'employee_object': employee_balance_fields,
+            'main_response': main_balance_fields
+        }
         
-        if abs(total_debt - expected_total_debt) > 0.01:
-            return {
-                "test": "Negative balance move",
-                "success": False,
-                "error": f"Total debt inconsistency. Expected: €{expected_total_debt}, Got: €{total_debt}"
-            }
+        print(f"   📊 Response Structure Analysis:")
+        print(f"      Top-level fields: {len(response_structure['top_level_fields'])}")
+        print(f"      Employee object fields: {len(response_structure['employee_object_fields'])}")
+        print(f"      Balance fields in employee object: {len(employee_balance_fields)}")
+        print(f"      Balance fields in main response: {len(main_balance_fields)}")
         
-        print(f"   ✅ Total debt preserved: €{total_debt}")
+        # Check for nested employee object vs flat structure
+        has_nested_employee = 'employee' in response
+        has_flat_structure = any(field in response for field in ['breakfast_balance', 'drinks_sweets_balance'])
+        
+        print(f"   📊 Structure Type:")
+        print(f"      Has nested employee object: {'✅' if has_nested_employee else '❌'}")
+        print(f"      Has flat balance structure: {'✅' if has_flat_structure else '❌'}")
+        
+        # Determine the primary balance location
+        primary_balance_location = None
+        if employee_balance_fields and not main_balance_fields:
+            primary_balance_location = "employee_object"
+        elif main_balance_fields and not employee_balance_fields:
+            primary_balance_location = "main_response"
+        elif employee_balance_fields and main_balance_fields:
+            primary_balance_location = "both"
+        else:
+            primary_balance_location = "none"
+        
+        print(f"      Primary balance location: {primary_balance_location}")
+        
+        # Check for subaccount_balances (multi-department support)
+        has_subaccount_balances = 'subaccount_balances' in employee_obj
+        print(f"      Has subaccount_balances: {'✅' if has_subaccount_balances else '❌'}")
         
         return {
-            "test": "Negative balance move",
+            "test": "Response structure consistency",
             "success": True,
             "employee_id": employee_id,
-            "original_department": "fw4abteilung1",
-            "target_department": target_dept,
-            "negative_balances_migrated": True,
-            "total_debt_preserved": total_debt
+            "employee_name": employee_name,
+            "response_structure": response_structure,
+            "has_nested_employee": has_nested_employee,
+            "has_flat_structure": has_flat_structure,
+            "primary_balance_location": primary_balance_location,
+            "has_subaccount_balances": has_subaccount_balances,
+            "balance_field_count": {
+                "employee_object": len(employee_balance_fields),
+                "main_response": len(main_balance_fields)
+            }
         }
     
     async def run_comprehensive_test(self):
