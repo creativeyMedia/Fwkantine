@@ -8939,104 +8939,11 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
               </p>
             </div>
             
-            {/* Combine and sort orders and payments */}
-            {(() => {
-              const orders = employeeProfile.order_history || [];
-              const payments = employeeProfile.payment_history || [];
-              
-              // Combine both arrays and sort by timestamp
-              const allEntries = [
-                ...orders.map(order => ({...order, type: 'order'})),
-                ...payments.map(payment => ({...payment, type: 'payment'}))
-              ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-              
-              if (allEntries.length === 0) {
-                return (
-                  <p className="text-gray-600 text-center py-8">Keine Einträge vorhanden</p>
-                );
-              }
-              
-              return (
-                <div className="space-y-4">
-                  {allEntries.map((entry, index) => (
-                    <div key={entry.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          {entry.type === 'order' ? (
-                            // Order Entry
-                            <>
-                              <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                                Bestellung
-                              </span>
-                              <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
-                            </>
-                          ) : (
-                            // Payment Entry  
-                            <>
-                              <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                                {entry.amount > 0 ? 'Einzahlung' : 'Auszahlung'}
-                              </span>
-                              <span className="text-sm text-gray-600">{formatDate(entry.timestamp)}</span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className={`font-semibold ${
-                            entry.type === 'payment' 
-                              ? (entry.amount >= 0 ? 'text-green-600' : 'text-red-600')
-                              : (entry.total_price < 0 ? 'text-red-600' : 'text-gray-900')
-                          }`}>
-                            {entry.type === 'payment' 
-                              ? `${entry.amount > 0 ? '+' : ''}${entry.amount.toFixed(2)}€` 
-                              : `${entry.total_price < 0 ? '-' : ''}${Math.abs(entry.total_price || 0).toFixed(2)}€`
-                            }
-                          </p>
-                          <button
-                            onClick={() => deleteHistoryEntry(entry.id, entry.type)}
-                            className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600"
-                          >
-                            🔧 Löschen
-                          </button>
-                        </div>
-                      </div>
-                    
-                      {/* Entry Details */}
-                      {entry.type === 'order' && entry.readable_items && (
-                        <div className="space-y-1">
-                          {entry.readable_items.map((item, idx) => (
-                            <div key={idx} className="text-sm flex justify-between items-start">
-                              <div className="flex-1">
-                                <span className="font-medium">{item.description}</span>
-                                {item.toppings && <span className="text-gray-600 block text-xs">mit {item.toppings}</span>}
-                              </div>
-                              {item.total_price && (
-                                <span className="text-sm font-medium text-right ml-2">{item.total_price}</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {entry.type === 'payment' && (
-                        <div className="mt-2">
-                          <div className="text-sm text-gray-600">
-                            <span className="font-medium">Buchungstyp:</span> {entry.balance_type === 'breakfast' ? 'Breakfast/Lunch' : 'Drinks/Snacks'}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {entry.notes && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
-                          <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                            <span className="text-xs font-medium text-yellow-800 block mb-1">📝 Notizen:</span>
-                            <span className="text-sm text-yellow-700">{entry.notes}</span>
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <HistoryDisplay 
+              employeeProfile={employeeProfile} 
+              formatDate={formatDate}
+              deleteHistoryEntry={deleteHistoryEntry}
+            />
           </div>
         </div>
       </div>
