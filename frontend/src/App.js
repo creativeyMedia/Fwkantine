@@ -8610,6 +8610,10 @@ function App() {
     );
   }
 
+  if (currentDepartment?.role === 'developer') {
+    return <DeveloperDashboard />;
+  }
+
   if (isDepartmentAdmin) {
     return <DepartmentAdminDashboard />;
   }
