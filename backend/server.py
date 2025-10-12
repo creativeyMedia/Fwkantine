@@ -4756,6 +4756,58 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ===== DEVELOPER ENDPOINTS =====
+
+@api_router.put("/developer/move-employee/{employee_id}")
+async def move_employee_to_department(employee_id: str, request: dict):
+    """Move employee to different department (Developer only)"""
+    try:
+        new_department_id = request.get("new_department_id")
+        
+        # Verify target department exists
+        target_dept = await db.departments.find_one({"id": new_department_id})
+        if not target_dept:
+            raise HTTPException(status_code=404, detail="Ziel-Abteilung nicht gefunden")
+        
+        # Update employee's department
+        result = await db.employees.update_one(
+            {"id": employee_id},
+            {"$set": {"department_id": new_department_id}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+        
+        return {"message": f"Mitarbeiter erfolgreich nach {target_dept['name']} verschoben"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Verschieben: {str(e)}")
+
+@api_router.delete("/developer/delete-history-entry/{entry_id}")
+async def delete_history_entry_saldo_neutral(
+    entry_id: str,
+    entry_type: str,
+    employee_id: str
+):
+    """Delete history entry without affecting balance (Developer only)"""
+    try:
+        if entry_type == "order":
+            # Delete from orders collection
+            result = await db.orders.delete_one({"id": entry_id})
+        elif entry_type == "payment":
+            # Delete from payment_logs collection
+            result = await db.payment_logs.delete_one({"id": entry_id})
+        else:
+            raise HTTPException(status_code=400, detail="Ungültiger Eintrag-Typ")
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Eintrag nicht gefunden")
+        
+        return {"message": "Eintrag erfolgreich gelöscht (saldo-neutral)"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Löschen: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
