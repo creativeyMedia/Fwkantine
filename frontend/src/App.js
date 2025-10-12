@@ -1684,11 +1684,11 @@ const DepartmentDashboard = () => {
                         Bestellen
                       </button>
                     </div>
-                  </div>
-                ))}
-              </>
-            );
-          })()}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
         </div>
 
         {/* Breakfast Summary Modal */}
