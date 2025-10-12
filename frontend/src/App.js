@@ -8831,6 +8831,17 @@ const DeveloperEmployeeProfile = ({ employee, onClose, onRefresh }) => {
   const [employeeProfile, setEmployeeProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Berlin'
+    });
+  };
+
   useEffect(() => {
     fetchEmployeeProfile();
   }, [employee.id]);
