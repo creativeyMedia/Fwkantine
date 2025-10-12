@@ -283,77 +283,66 @@ class EmployeeDeletionSecurityTester:
             print("✅ All-balances endpoint structure is complete")
             return True, balances
     
-    async def test_guest_employee_scenario(self, home_dept, target_dept):
-        """Test the exact guest employee scenario that causes 400 errors"""
-        print(f"\n{'='*60}")
-        print(f"🎯 CRITICAL TEST: Guest Employee Ordering")
-        print(f"   Home Department: {home_dept['name']}")
-        print(f"   Target Department: {target_dept['name']}")
-        print(f"{'='*60}")
+    async def test_balance_scenario(self, scenario_name, employee_id, expected_deletable):
+        """Test a specific balance scenario for deletion security"""
+        print(f"\n🎯 TESTING SCENARIO: {scenario_name}")
         
-        test_results = {
-            'employee_creation': False,
-            'data_structure_check': False,
-            'temporary_assignment': False,
-            'guest_order_creation': False,
-            'error_details': []
+        # Get all balances using the deletion security endpoint
+        structure_ok, balances = await self.test_all_balances_endpoint_structure(employee_id, scenario_name)
+        
+        if not structure_ok:
+            return {
+                'scenario': scenario_name,
+                'endpoint_working': False,
+                'structure_complete': False,
+                'deletable': None,
+                'error': 'Endpoint structure incomplete'
+            }
+        
+        # Calculate if employee should be deletable based on balances
+        main_balances = balances.get('main_balances', {})
+        main_breakfast = main_balances.get('breakfast', 0.0)
+        main_drinks_sweets = main_balances.get('drinks_sweets', 0.0)
+        
+        # Check all subaccount balances
+        subaccount_balances = balances.get('subaccount_balances', {})
+        has_nonzero_subaccount = False
+        
+        for dept_id, dept_data in subaccount_balances.items():
+            breakfast_bal = dept_data.get('breakfast', 0.0)
+            drinks_bal = dept_data.get('drinks', 0.0)
+            if breakfast_bal != 0.0 or drinks_bal != 0.0:
+                has_nonzero_subaccount = True
+                print(f"   🔍 Non-zero subaccount found in {dept_id}: breakfast={breakfast_bal}, drinks={drinks_bal}")
+        
+        # Determine if employee should be deletable
+        has_nonzero_main = (main_breakfast != 0.0 or main_drinks_sweets != 0.0)
+        should_be_deletable = not (has_nonzero_main or has_nonzero_subaccount)
+        
+        print(f"   📊 Balance Analysis:")
+        print(f"      Main breakfast: {main_breakfast}")
+        print(f"      Main drinks/sweets: {main_drinks_sweets}")
+        print(f"      Has non-zero main balance: {has_nonzero_main}")
+        print(f"      Has non-zero subaccount balance: {has_nonzero_subaccount}")
+        print(f"      Should be deletable: {should_be_deletable}")
+        print(f"      Expected deletable: {expected_deletable}")
+        
+        # Verify expectation matches calculation
+        expectation_correct = (should_be_deletable == expected_deletable)
+        
+        return {
+            'scenario': scenario_name,
+            'endpoint_working': True,
+            'structure_complete': True,
+            'main_balances': main_balances,
+            'subaccount_balances': subaccount_balances,
+            'has_nonzero_main': has_nonzero_main,
+            'has_nonzero_subaccount': has_nonzero_subaccount,
+            'should_be_deletable': should_be_deletable,
+            'expected_deletable': expected_deletable,
+            'expectation_correct': expectation_correct,
+            'deletable': should_be_deletable
         }
-        
-        # Step 1: Create employee in home department
-        employee_name = f"GuestTest_{home_dept['id']}_to_{target_dept['id']}"
-        employee = await self.create_test_employee(home_dept['id'], employee_name, is_guest=False)
-        
-        if not employee:
-            test_results['error_details'].append("Failed to create test employee")
-            return test_results
-        
-        test_results['employee_creation'] = True
-        employee_id = employee['id']
-        
-        # Step 2: Check employee data structure
-        data_structure_ok = await self.test_employee_data_structure(employee_id, employee_name)
-        test_results['data_structure_check'] = data_structure_ok
-        
-        # Step 3: Add as temporary employee to target department
-        assignment = await self.create_temporary_assignment(target_dept['id'], employee_id)
-        if assignment:
-            test_results['temporary_assignment'] = True
-            print(f"✅ Employee successfully added as guest worker")
-        else:
-            test_results['error_details'].append("Failed to create temporary assignment")
-            print(f"❌ Failed to add employee as guest worker")
-        
-        # Step 4: Try to create order in target department (THE CRITICAL TEST)
-        print(f"\n🚨 CRITICAL TEST: Creating order as guest employee...")
-        order_response, order_success = await self.create_breakfast_order(
-            employee_id, 
-            target_dept['id'], 
-            f"Guest order from {home_dept['name']} to {target_dept['name']}"
-        )
-        
-        test_results['guest_order_creation'] = order_success
-        
-        if not order_success:
-            # This is the critical failure we're debugging
-            print(f"🚨 CRITICAL FAILURE DETECTED!")
-            print(f"   Status: {order_response}")
-            test_results['error_details'].append(f"Guest order failed: {order_response}")
-            
-            # Additional debugging
-            if isinstance(order_response, dict):
-                error_detail = order_response.get('detail', 'No detail provided')
-                print(f"   Error Detail: {error_detail}")
-                
-                # Check for specific error patterns
-                if "Fehler beim Prüfen bestehender Bestellungen" in str(error_detail):
-                    print("🔍 ERROR PATTERN: 'Fehler beim Prüfen bestehender Bestellungen'")
-                    test_results['error_details'].append("Error checking existing orders")
-                
-                if "Fehler beim Speichern der Bestellung" in str(error_detail):
-                    print("🔍 ERROR PATTERN: 'Fehler beim Speichern der Bestellung'")
-                    test_results['error_details'].append("Error saving order")
-        
-        return test_results
     
     async def test_problematic_employee_scenarios(self):
         """Test specific scenarios that might cause 400 errors"""
