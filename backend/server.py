@@ -3948,7 +3948,7 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
             if order["order_type"] == "breakfast":
                 if is_home_department:
                     # STAMMBESTELLUNG-STORNIERUNG: Admin refund main balance
-                    new_breakfast_balance = employee["breakfast_balance"] + order["total_price"]
+                    new_breakfast_balance = round_to_cents(employee["breakfast_balance"] + order["total_price"])
                     await db.employees.update_one(
                         {"id": order["employee_id"]},
                         {"$set": {"breakfast_balance": new_breakfast_balance}}
