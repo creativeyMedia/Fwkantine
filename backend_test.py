@@ -1,22 +1,46 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for New Functionality Testing
+Backend Test Suite for 8H-Service Employee Ordering Fix RE-TEST
 
-TESTING FOCUS:
-Testing newly implemented functionality as requested in review:
+CRITICAL TEST: Verify 8H-Service Employee Uses Subaccounts Only
 
-1. **Topping Display Fix** - Verify topping names are displayed correctly (capitalized, not as IDs)
-2. **8H-Service Employee Creation** - Test POST /api/employees with is_8h_service=True
-3. **8H-Service Employee Listing** - Test GET /api/departments/{department_id}/8h-employees
-4. **8H-Service Employee Ordering** - Test breakfast orders for 8H-service employees
-5. **8H-Service Employee Deletion Protection** - Test deletion protection for non-zero balances
+Test Setup:
+- Create a NEW 8H-service employee (fresh start, no previous test data)
+- Create orders in DIFFERENT departments
+
+Test 1: Create 8H Employee
+- POST /api/employees with is_8h_service=true
+- Verify is_8h_service=true, main balances=0.0
+
+Test 2: Order in Department 1
+- Create a breakfast order for 8H employee in fw4abteilung1
+- GET /api/employees/{id}/all-balances
+- Verify:
+  - ✅ breakfast_balance REMAINS 0.0 (main balance NOT updated)
+  - ✅ drinks_sweets_balance REMAINS 0.0 (main balance NOT updated)
+  - ✅ subaccount_balances.fw4abteilung1.breakfast is NEGATIVE (subaccount WAS updated)
+
+Test 3: Order in Department 2
+- Create a drinks order for same 8H employee in fw4abteilung2
+- GET /api/employees/{id}/all-balances again
+- Verify:
+  - ✅ breakfast_balance STILL 0.0
+  - ✅ drinks_sweets_balance STILL 0.0
+  - ✅ subaccount_balances.fw4abteilung1.breakfast UNCHANGED (same negative value)
+  - ✅ subaccount_balances.fw4abteilung2.drinks is NEGATIVE (drinks order adds to balance)
+
+Test 4: Deletion Protection
+- Try DELETE /api/department-admin/employees/{8h_employee_id}
+- Verify:
+  - ✅ Returns HTTP 400 (deletion blocked)
+  - ✅ German error message about outstanding balances
+  - ✅ Employee NOT deleted
 
 BACKEND ENDPOINTS TO TEST:
 - POST /api/employees (8H-service employee creation)
-- GET /api/departments/{department_id}/8h-employees (8H-service employee listing)
-- GET /api/employees/{employee_id}/profile (topping display verification)
-- POST /api/orders (8H-service employee ordering)
-- DELETE /api/employees/{employee_id} (8H-service deletion protection)
+- POST /api/orders (8H-service employee ordering in different departments)
+- GET /api/employees/{employee_id}/all-balances (balance verification)
+- DELETE /api/department-admin/employees/{employee_id} (deletion protection)
 
 TEST DEPARTMENTS: fw4abteilung1, fw4abteilung2
 """
