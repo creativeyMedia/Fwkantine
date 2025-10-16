@@ -853,12 +853,23 @@ async def update_employees_sort_order(department_id: str, employee_ids: List[str
 
 @api_router.post("/employees", response_model=Employee)
 async def create_employee(employee_data: EmployeeCreate):
-    """Create a new employee with initialized subaccount balances"""
+    """Create a new employee with initialized subaccount balances
+    
+    For 8H-Service employees (is_8h_service=True):
+    - No main account (breakfast_balance and drinks_sweets_balance remain 0)
+    - Only subaccount balances are used
+    - Department_id can be set to "none" or the creating department
+    """
     employee = Employee(**employee_data.dict())
     
     # Initialize subaccount balances for new employee
     employee_dict = employee.dict()
     employee_dict = initialize_subaccount_balances(employee_dict)
+    
+    # For 8H-Service employees: ensure main balances are 0 (they use only subaccounts)
+    if employee_dict.get('is_8h_service'):
+        employee_dict['breakfast_balance'] = 0.0
+        employee_dict['drinks_sweets_balance'] = 0.0
     
     await db.employees.insert_one(employee_dict)
     return Employee(**employee_dict)
