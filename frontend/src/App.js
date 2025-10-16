@@ -3146,12 +3146,13 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
-  const handleCreateEmployee = async (name, isGuest = false) => {
+  const handleCreateEmployee = async (name, isGuest = false, is8HService = false) => {
     try {
       await axios.post(`${API}/employees`, {
         name,
         department_id: currentDepartment.department_id,
-        is_guest: isGuest
+        is_guest: isGuest,
+        is_8h_service: is8HService
       });
       fetchEmployees();
       setShowNewEmployee(false);
