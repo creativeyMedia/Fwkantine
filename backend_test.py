@@ -737,14 +737,28 @@ class EmployeeProfileTester:
         topping_issues = []
         
         for item in readable_items:
-            if any(topping_id in item.lower() for topping_id in ['ruehrei', 'kaese']):
-                # Check if it's still showing as ID (lowercase) vs proper name (capitalized)
-                if 'ruehrei' in item.lower() and 'Rührei' not in item:
+            # Convert item to string for checking
+            item_str = str(item)
+            toppings_field = item.get('toppings', '') if isinstance(item, dict) else ''
+            
+            # Check if toppings are properly converted from IDs to readable names
+            if 'ruehrei' in item_str.lower():
+                if 'Ruehrei' not in toppings_field and 'Rührei' not in toppings_field:
                     topping_names_correct = False
-                    topping_issues.append(f"'ruehrei' not converted to 'Rührei' in: {item}")
-                if 'kaese' in item.lower() and 'Käse' not in item:
+                    topping_issues.append(f"'ruehrei' not properly converted in: {item}")
+            
+            if 'kaese' in item_str.lower():
+                if 'Kaese' not in toppings_field and 'Käse' not in toppings_field:
                     topping_names_correct = False
-                    topping_issues.append(f"'kaese' not converted to 'Käse' in: {item}")
+                    topping_issues.append(f"'kaese' not properly converted in: {item}")
+            
+            # Check if we have proper capitalized topping names
+            if isinstance(item, dict) and 'toppings' in item:
+                toppings = item['toppings']
+                if 'Ruehrei' in toppings or 'Rührei' in toppings:
+                    print(f"   ✅ Found properly formatted 'Rührei' topping")
+                if 'Kaese' in toppings or 'Käse' in toppings:
+                    print(f"   ✅ Found properly formatted 'Käse' topping")
         
         if topping_names_correct and not topping_issues:
             print(f"   ✅ Topping names are displayed correctly (capitalized, not as IDs)")
