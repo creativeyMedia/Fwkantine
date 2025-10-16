@@ -40,8 +40,6 @@ def round_to_cents(amount):
         return 0.0
     
     # Use Decimal for precise rounding to avoid floating-point issues
-    from decimal import Decimal, ROUND_HALF_UP
-    
     # Convert to Decimal and round to 2 decimal places using ROUND_HALF_UP
     decimal_amount = Decimal(str(float(amount)))
     rounded = float(decimal_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
