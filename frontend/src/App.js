@@ -618,49 +618,41 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
             <h3 className="text-lg font-semibold mb-4">💰 Kontostände</h3>
             
             {is8HService ? (
-              /* 8H-DIENST: Zeige alle 4 Subkonten */
+              /* 8H-DIENST: Zeige alle 4 Subkonten aller Wachabteilungen */
               <div className="mb-4">
                 <h4 className="text-md font-medium text-orange-800 mb-3">
-                  🕐 8-Stunden-Dienst: {currentDepartment?.department_name}
+                  🕐 8-Stunden-Dienst: Subkonten aller Wachabteilungen
                 </h4>
-                {allBalances && allBalances.subaccount_balances && allBalances.subaccount_balances[currentDepartment?.department_id] ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className={`border border-gray-300 rounded-lg p-4 ${
-                      allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-red-50 border-red-200'
-                    }`}>
-                      <h3 className={`font-semibold ${
-                        allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
-                          ? 'text-green-800' 
-                          : 'text-red-800'
-                      }`}>Frühstück/Mittag Saldo</h3>
-                      <p className={`text-2xl font-bold ${
-                        allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {formatBalance(allBalances.subaccount_balances[currentDepartment.department_id].breakfast)}
-                      </p>
-                    </div>
-                    <div className={`border border-gray-300 rounded-lg p-4 ${
-                      allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-red-50 border-red-200'
-                    }`}>
-                      <h3 className={`font-semibold ${
-                        allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
-                          ? 'text-green-800' 
-                          : 'text-red-800'
-                      }`}>Getränke/Snacks Saldo</h3>
-                      <p className={`text-2xl font-bold ${
-                        allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {formatBalance(allBalances.subaccount_balances[currentDepartment.department_id].drinks)}
-                      </p>
-                    </div>
+                {allBalances && allBalances.subaccount_balances ? (
+                  <div className="space-y-4">
+                    {Object.entries(allBalances.subaccount_balances).map(([deptId, balances]) => {
+                      const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
+                      const breakfastBalance = balances.breakfast || 0;
+                      const drinksBalance = balances.drinks || 0;
+                      const hasBalance = breakfastBalance !== 0 || drinksBalance !== 0;
+                      
+                      return (
+                        <div key={deptId} className={`border rounded-lg p-4 ${deptId === currentDepartment?.department_id ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-gray-50'}`}>
+                          <h5 className="font-semibold text-gray-800 mb-3">
+                            {deptName} {deptId === currentDepartment?.department_id && '(Aktuell)'}
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200">
+                              <span className="text-sm font-medium">Frühstück:</span>
+                              <span className={`font-bold ${breakfastBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatBalance(breakfastBalance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200">
+                              <span className="text-sm font-medium">Getränke:</span>
+                              <span className={`font-bold ${drinksBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatBalance(drinksBalance)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-gray-600">Keine Saldo-Informationen verfügbar</p>
