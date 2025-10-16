@@ -912,34 +912,54 @@ class EmployeeProfileTester:
             "test_employees_created": len(test_employees)
         }
     
-    async def test_8h_service_employee_ordering(self):
-        """Test 4: 8H-Service Employee Ordering"""
-        print("\n🧪 TEST 4: 8H-SERVICE EMPLOYEE ORDERING")
+    async def test_8h_service_employee_ordering_workflow(self):
+        """Test 2.3 & 2.4: 8H-Service Employee Ordering Workflow"""
+        print("\n🧪 TEST 2.3 & 2.4: 8H-SERVICE EMPLOYEE ORDERING WORKFLOW")
         print("=" * 60)
         
         # Create 8H-service employee
         employee_data = {
-            "name": "8H_OrderTest",
+            "name": "Test 8H Mitarbeiter",
             "department_id": "fw4abteilung1",
             "is_8h_service": True
         }
         
         emp_response, emp_status = await self.make_request('POST', '/employees', employee_data)
         if emp_status != 200:
-            return {"test": "8H-Service Employee Ordering", "success": False, "error": f"Failed to create employee: {emp_response}"}
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": f"Failed to create employee: {emp_response}"}
         
         employee_id = emp_response['id']
-        print(f"   ✅ Created 8H-service employee for ordering test")
+        print(f"   ✅ Created 8H-service employee: {employee_id[:8]}...")
+        
+        # Verify initial properties
+        expected_properties = {
+            "is_8h_service": True,
+            "breakfast_balance": 0.0,
+            "drinks_sweets_balance": 0.0
+        }
+        
+        verification_issues = []
+        for prop, expected_value in expected_properties.items():
+            actual_value = emp_response.get(prop)
+            if actual_value != expected_value:
+                verification_issues.append(f"{prop}: expected {expected_value}, got {actual_value}")
+            else:
+                print(f"   ✅ {prop} = {actual_value}")
+        
+        if verification_issues:
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": f"Property verification failed: {verification_issues}"}
         
         # Get initial balances
         initial_balances = await self.get_employee_all_balances(employee_id)
         if not initial_balances:
-            return {"test": "8H-Service Employee Ordering", "success": False, "error": "Failed to get initial balances"}
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": "Failed to get initial balances"}
         
         print(f"   📊 Initial main balances: breakfast={initial_balances['main_balances']['breakfast']}, drinks={initial_balances['main_balances']['drinks_sweets']}")
         
-        # Create breakfast order for 8H-service employee
-        order_data = {
+        # Test 2.3: Create breakfast order for 8H employee in Department 1
+        print(f"\n   🔸 Test 2.3: Order for 8H Employee in Department 1")
+        
+        order_data_dept1 = {
             "employee_id": employee_id,
             "department_id": "fw4abteilung1",
             "order_type": "breakfast",
@@ -955,55 +975,98 @@ class EmployeeProfileTester:
             }]
         }
         
-        order_response, order_status = await self.make_request('POST', '/orders', order_data)
-        if order_status != 200:
-            return {"test": "8H-Service Employee Ordering", "success": False, "error": f"Failed to create order: {order_response}"}
+        order_response_dept1, order_status_dept1 = await self.make_request('POST', '/orders', order_data_dept1)
+        if order_status_dept1 != 200:
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": f"Failed to create order in dept1: {order_response_dept1}"}
         
-        print(f"   ✅ Created breakfast order for 8H-service employee")
+        print(f"   ✅ Created breakfast order in fw4abteilung1")
         
-        # Get balances after order
+        # Get balances after dept1 order
+        balances_after_dept1 = await self.get_employee_all_balances(employee_id)
+        if not balances_after_dept1:
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": "Failed to get balances after dept1 order"}
+        
+        # Verify main balances STILL 0.0
+        main_balances_still_zero_dept1 = (
+            balances_after_dept1['main_balances']['breakfast'] == 0.0 and
+            balances_after_dept1['main_balances']['drinks_sweets'] == 0.0
+        )
+        
+        # Verify subaccount for fw4abteilung1 updated (negative)
+        fw1_subaccount_after = balances_after_dept1['subaccount_balances']['fw4abteilung1']
+        fw1_subaccount_updated = (fw1_subaccount_after['breakfast'] < 0 or fw1_subaccount_after['drinks'] < 0)
+        
+        print(f"   📊 After dept1 order - Main balances still 0.0: {main_balances_still_zero_dept1}")
+        print(f"   📊 fw4abteilung1 subaccount: {fw1_subaccount_after}")
+        print(f"   📊 fw4abteilung1 subaccount updated (negative): {fw1_subaccount_updated}")
+        
+        # Test 2.4: Create drinks order for 8H employee in Department 2
+        print(f"\n   🔸 Test 2.4: Order for 8H Employee in Department 2")
+        
+        order_data_dept2 = {
+            "employee_id": employee_id,
+            "department_id": "fw4abteilung2",
+            "order_type": "drinks",
+            "drink_items": {"cola_id": 2}  # Assuming cola exists in menu
+        }
+        
+        order_response_dept2, order_status_dept2 = await self.make_request('POST', '/orders', order_data_dept2)
+        if order_status_dept2 != 200:
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": f"Failed to create order in dept2: {order_response_dept2}"}
+        
+        print(f"   ✅ Created drinks order in fw4abteilung2")
+        
+        # Get final balances
         final_balances = await self.get_employee_all_balances(employee_id)
         if not final_balances:
-            return {"test": "8H-Service Employee Ordering", "success": False, "error": "Failed to get final balances"}
+            return {"test": "8H-Service Employee Ordering Workflow", "success": False, "error": "Failed to get final balances"}
         
-        print(f"   📊 Final main balances: breakfast={final_balances['main_balances']['breakfast']}, drinks={final_balances['main_balances']['drinks_sweets']}")
-        
-        # Verify main balances remain at 0.0 (8H-service employees use only subaccounts)
-        main_balances_unchanged = (
+        # Verify main balances STILL 0.0
+        main_balances_still_zero_final = (
             final_balances['main_balances']['breakfast'] == 0.0 and
             final_balances['main_balances']['drinks_sweets'] == 0.0
         )
         
-        # Check subaccount balance was updated
-        fw1_subaccount_before = initial_balances['subaccount_balances']['fw4abteilung1']
-        fw1_subaccount_after = final_balances['subaccount_balances']['fw4abteilung1']
+        # Verify subaccount balances
+        fw1_subaccount_final = final_balances['subaccount_balances']['fw4abteilung1']
+        fw2_subaccount_final = final_balances['subaccount_balances']['fw4abteilung2']
         
-        subaccount_updated = (
-            fw1_subaccount_after['breakfast'] != fw1_subaccount_before['breakfast'] or
-            fw1_subaccount_after['drinks'] != fw1_subaccount_before['drinks']
-        )
+        # fw4abteilung1 should be unchanged from dept1 order
+        fw1_unchanged = (fw1_subaccount_final == fw1_subaccount_after)
         
-        print(f"   📊 fw4abteilung1 subaccount before: {fw1_subaccount_before}")
-        print(f"   📊 fw4abteilung1 subaccount after: {fw1_subaccount_after}")
+        # fw4abteilung2 should be updated (negative) from dept2 order
+        fw2_updated = (fw2_subaccount_final['drinks'] < 0)
         
-        success = main_balances_unchanged and subaccount_updated
+        print(f"   📊 Final main balances still 0.0: {main_balances_still_zero_final}")
+        print(f"   📊 fw4abteilung1 subaccount unchanged: {fw1_unchanged}")
+        print(f"   📊 fw4abteilung2 subaccount: {fw2_subaccount_final}")
+        print(f"   📊 fw4abteilung2 subaccount updated (negative): {fw2_updated}")
+        
+        success = (main_balances_still_zero_dept1 and main_balances_still_zero_final and 
+                  fw1_subaccount_updated and fw1_unchanged and fw2_updated)
         
         if success:
-            print(f"   ✅ Main balances remained at 0.0 (correct for 8H-service)")
-            print(f"   ✅ Subaccount balance was updated (correct for 8H-service)")
+            print(f"   ✅ All tests passed - 8H-service employee ordering workflow working correctly")
         else:
-            print(f"   ❌ Main balances unchanged: {main_balances_unchanged}")
-            print(f"   ❌ Subaccount updated: {subaccount_updated}")
+            print(f"   ❌ Some tests failed:")
+            print(f"      Main balances 0.0 after dept1: {main_balances_still_zero_dept1}")
+            print(f"      Main balances 0.0 final: {main_balances_still_zero_final}")
+            print(f"      fw4abteilung1 updated: {fw1_subaccount_updated}")
+            print(f"      fw4abteilung1 unchanged after dept2: {fw1_unchanged}")
+            print(f"      fw4abteilung2 updated: {fw2_updated}")
         
         return {
-            "test": "8H-Service Employee Ordering",
+            "test": "8H-Service Employee Ordering Workflow",
             "success": success,
             "employee_id": employee_id,
-            "main_balances_unchanged": main_balances_unchanged,
-            "subaccount_updated": subaccount_updated,
+            "main_balances_zero_dept1": main_balances_still_zero_dept1,
+            "main_balances_zero_final": main_balances_still_zero_final,
+            "fw1_subaccount_updated": fw1_subaccount_updated,
+            "fw1_unchanged_after_dept2": fw1_unchanged,
+            "fw2_updated": fw2_updated,
             "initial_balances": initial_balances,
-            "final_balances": final_balances,
-            "order_created": order_response
+            "balances_after_dept1": balances_after_dept1,
+            "final_balances": final_balances
         }
     
     async def test_8h_service_employee_deletion_protection(self):
