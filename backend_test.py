@@ -2221,23 +2221,124 @@ class EmployeeProfileTester:
         return successful_tests == total_tests
 
 async def main():
-    """Main test execution"""
+    """Main test execution function - Critical Bug Investigation"""
+    print("🚀 STARTING CRITICAL BUG INVESTIGATION")
+    print("🔍 Issue: 1. Wachabteilung Employees Not Showing")
+    print("=" * 80)
+    
     async with EmployeeProfileTester() as tester:
-        success = await tester.run_8h_service_retest()
-        return success
+        # Run critical bug investigation tests
+        test_results = []
+        
+        # Test 1: Check All Employees in fw4abteilung1
+        print("\n" + "🔍 INVESTIGATION STEP 1: Check All Employees in Database")
+        result1 = await tester.test_all_employees_in_fw4abteilung1()
+        test_results.append(result1)
+        
+        # Test 2: Check 8H Employees Endpoint
+        print("\n" + "🔍 INVESTIGATION STEP 2: Check 8H Employees Endpoint")
+        result2 = await tester.test_8h_employees_endpoint_fw4abteilung1()
+        test_results.append(result2)
+        
+        # Test 3: Compare with Working Department
+        print("\n" + "🔍 INVESTIGATION STEP 3: Compare with Working Department")
+        result3 = await tester.test_compare_with_working_department()
+        test_results.append(result3)
+        
+        # Test 4: Create Test Employee
+        print("\n" + "🔍 INVESTIGATION STEP 4: Create Test Employee in fw4abteilung1")
+        result4 = await tester.test_create_test_employee_fw4abteilung1()
+        test_results.append(result4)
+        
+        # Test 5: Check for Corrupted Data
+        print("\n" + "🔍 INVESTIGATION STEP 5: Check for Corrupted Data")
+        result5 = await tester.test_check_corrupted_data_fw4abteilung1()
+        test_results.append(result5)
+        
+        # Print investigation summary
+        print("\n" + "=" * 80)
+        print("🎯 CRITICAL BUG INVESTIGATION SUMMARY")
+        print("=" * 80)
+        
+        # Analyze findings
+        fw1_data = result1 if result1.get('success') else {}
+        fw2_comparison = result3 if result3.get('success') else {}
+        corruption_data = result5 if result5.get('success') else {}
+        
+        print(f"\n📊 KEY FINDINGS:")
+        
+        if fw1_data.get('success'):
+            print(f"   fw4abteilung1 Employee Counts:")
+            print(f"      - Total: {fw1_data.get('total_employees', 0)}")
+            print(f"      - Regular: {fw1_data.get('regular_employees', 0)}")
+            print(f"      - Guest: {fw1_data.get('guest_employees', 0)}")
+            print(f"      - 8H Service: {fw1_data.get('h8_employees', 0)}")
+            print(f"      - Corrupted: {fw1_data.get('corrupted_employees', 0)}")
+        
+        if fw2_comparison.get('success'):
+            fw1_counts = fw2_comparison.get('fw4abteilung1', {})
+            fw2_counts = fw2_comparison.get('fw4abteilung2', {})
+            print(f"\n   Department Comparison:")
+            print(f"      fw4abteilung1: Total={fw1_counts.get('total', 0)}, Regular={fw1_counts.get('regular', 0)}, Guest={fw1_counts.get('guest', 0)}, 8H={fw1_counts.get('h8', 0)}")
+            print(f"      fw4abteilung2: Total={fw2_counts.get('total', 0)}, Regular={fw2_counts.get('regular', 0)}, Guest={fw2_counts.get('guest', 0)}, 8H={fw2_counts.get('h8', 0)}")
+            
+            differences = fw2_comparison.get('structure_differences', [])
+            if differences:
+                print(f"\n   🚨 STRUCTURAL DIFFERENCES DETECTED:")
+                for diff in differences:
+                    print(f"      - {diff}")
+        
+        if corruption_data.get('success'):
+            corruption_count = corruption_data.get('total_corruption_count', 0)
+            if corruption_count > 0:
+                print(f"\n   🚨 DATA CORRUPTION DETECTED: {corruption_count} issues")
+            else:
+                print(f"\n   ✅ No data corruption detected")
+        
+        # Determine possible root cause
+        print(f"\n🔍 POSSIBLE ROOT CAUSE ANALYSIS:")
+        
+        if fw1_data.get('success'):
+            regular_count = fw1_data.get('regular_employees', 0)
+            h8_count = fw1_data.get('h8_employees', 0)
+            
+            if regular_count == 0 and h8_count > 0:
+                print(f"   🎯 CONFIRMED: fw4abteilung1 shows ONLY 8H employees ({h8_count}), NO regular employees")
+                print(f"   🔍 Possible causes:")
+                print(f"      1. Frontend filtering logic incorrectly hiding regular employees")
+                print(f"      2. Backend endpoint returning wrong employee types")
+                print(f"      3. Database query filtering out regular employees")
+                print(f"      4. Employee data corruption (is_8h_service field issues)")
+            elif regular_count > 0:
+                print(f"   ✅ Regular employees ARE present in database ({regular_count})")
+                print(f"   🔍 Issue might be frontend display logic")
+        
+        # Test execution summary
+        passed_tests = sum(1 for result in test_results if result.get('success', False))
+        failed_tests = len(test_results) - passed_tests
+        
+        print(f"\n📊 INVESTIGATION RESULTS: {passed_tests} successful, {failed_tests} failed")
+        
+        if failed_tests == 0:
+            print("🎉 INVESTIGATION COMPLETED SUCCESSFULLY!")
+        else:
+            print("⚠️  SOME INVESTIGATION STEPS FAILED - CHECK DETAILS ABOVE")
+        
+        return test_results
 
 if __name__ == "__main__":
-    print("Backend Test Suite: 8H-Service Employee Ordering Fix RE-TEST")
+    print("Backend Test Suite: Critical Bug Investigation")
+    print("Issue: 1. Wachabteilung Employees Not Showing")
     print("=" * 70)
     
     try:
         result = asyncio.run(main())
         exit_code = 0 if result else 1
-        print(f"\nTest completed with exit code: {exit_code}")
+        print(f"\nInvestigation completed with exit code: {exit_code}")
         exit(exit_code)
     except KeyboardInterrupt:
-        print("\n⚠️ Test interrupted by user")
+        print("\n⚠️ Investigation interrupted by user")
         exit(130)
     except Exception as e:
-        print(f"\n💥 Test failed with exception: {str(e)}")
+        print(f"\n💥 Investigation failed with exception: {str(e)}")
         exit(1)
