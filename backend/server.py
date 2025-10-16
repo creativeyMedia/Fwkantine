@@ -1896,6 +1896,42 @@ async def get_employees_with_subaccount_balances(department_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Mitarbeiter: {str(e)}")
 
+@api_router.get("/departments/{department_id}/8h-employees")
+async def get_8h_service_employees(department_id: str):
+    """Get all 8H-Service employees (employees that belong to all departments, no main account)
+    
+    8H-Service employees:
+    - Have is_8h_service = True
+    - No main account (breakfast_balance and drinks_sweets_balance always 0)
+    - Appear in all department dashboards
+    - Use only subaccount balances
+    """
+    try:
+        # Find all 8H-Service employees
+        employees = await db.employees.find({"is_8h_service": True}).sort("sort_order", 1).to_list(100)
+        
+        # Format response with subaccount balance for the requested department
+        result = []
+        for emp in employees:
+            emp = initialize_subaccount_balances(emp)
+            subaccount = emp.get('subaccount_balances', {}).get(department_id, {"breakfast": 0.0, "drinks": 0.0})
+            
+            result.append({
+                "id": emp["id"],
+                "name": emp["name"],
+                "department_id": emp.get("department_id"),
+                "is_8h_service": True,
+                "subaccount_breakfast_balance": subaccount.get("breakfast", 0.0),
+                "subaccount_drinks_balance": subaccount.get("drinks", 0.0),
+                "total_subaccount_balance": subaccount.get("breakfast", 0.0) + subaccount.get("drinks", 0.0)
+            })
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der 8H-Mitarbeiter: {str(e)}")
+
+
 @api_router.get("/menu/sweets/{department_id}", response_model=List[MenuItemSweet])
 async def get_sweets_menu(department_id: str):
     """Get sweet menu items for a specific department"""
