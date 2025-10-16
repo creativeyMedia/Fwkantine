@@ -3202,6 +3202,7 @@ async def get_employee_profile(employee_id: str):
         department_menus[dept_id] = {
             "breakfast_prices": {item["roll_type"]: item["price"] for item in breakfast_menu},
             "topping_prices": {item["topping_type"]: item["price"] for item in toppings_menu},
+            "topping_names": {item["topping_type"]: item.get("name") or item.get("topping_type", "").capitalize() for item in toppings_menu},
             "drink_names": {item["id"]: {"name": item["name"], "price": item["price"]} for item in drinks_menu},
             "sweet_names": {item["id"]: {"name": item["name"], "price": item["price"]} for item in sweets_menu}
         }
