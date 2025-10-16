@@ -4415,6 +4415,94 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
                   </div>
                 );
               })}
+              
+              {/* NEU: Visual separator for 8H-Dienst employees */}
+              {eightHourEmployees.length > 0 && (
+                <div className="col-span-full">
+                  <div className="flex items-center my-6">
+                    <div className="flex-1 border-t-2 border-orange-300"></div>
+                    <div className="px-4 text-sm font-medium text-orange-600 bg-white">
+                      🕐 8 Stunden Dienst
+                    </div>
+                    <div className="flex-1 border-t-2 border-orange-300"></div>
+                  </div>
+                </div>
+              )}
+              
+              {/* NEU: 8H-Dienst employees */}
+              {eightHourEmployees.map((employee) => (
+                <div 
+                  key={`8h-${employee.id}`}
+                  className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 border-l-4 border-l-orange-400"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-lg">
+                      {employee.name} <span className="text-sm text-orange-600 font-normal">🕐 8H</span>
+                    </h4>
+                  </div>
+                  
+                  {/* Subaccount Breakfast Balance */}
+                  <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Frühstück (Subkonto):</span>
+                      <span className={`font-bold ${employee.subaccount_breakfast_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {employee.subaccount_breakfast_balance >= 0 ? '+' : ''}{employee.subaccount_breakfast_balance.toFixed(2)} €
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Subaccount Drinks Balance */}
+                  <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Getränke (Subkonto):</span>
+                      <span className={`font-bold ${employee.subaccount_drinks_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {employee.subaccount_drinks_balance >= 0 ? '+' : ''}{employee.subaccount_drinks_balance.toFixed(2)} €
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Delete Button */}
+                  <div className="mt-3">
+                    <button
+                      onClick={() => deleteEmployee(employee)}
+                      className="w-full bg-red-600 text-white text-xs py-2 px-2 rounded hover:bg-red-700"
+                    >
+                      Mitarbeiter löschen
+                    </button>
+                  </div>
+
+                  {/* Payment Buttons */}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setPaymentEmployeeData({
+                          employee: employee,
+                          paymentType: 'breakfast',
+                          accountLabel: 'Frühstück (Subkonto)'
+                        });
+                        setShowPaymentModal(true);
+                      }}
+                      className="flex-1 bg-blue-600 text-white text-xs py-1 px-2 rounded hover:bg-blue-700"
+                    >
+                      💰 Frühstück
+                    </button>
+                    <button
+                      onClick={() => {
+                        setPaymentEmployeeData({
+                          employee: employee,
+                          paymentType: 'drinks_sweets',
+                          accountLabel: 'Getränke (Subkonto)'
+                        });
+                        setShowPaymentModal(true);
+                      }}
+                      className="flex-1 bg-purple-600 text-white text-xs py-1 px-2 rounded hover:bg-purple-700"
+                    >
+                      💰 Getränke
+                    </button>
+                  </div>
+                </div>
+              ))}
             </>
           );
         })()}
