@@ -3161,6 +3161,7 @@ const EmployeeProfileDetail = ({ profile, onBack, onClose }) => {
 const DepartmentAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('employees');
   const [employees, setEmployees] = useState([]);
+  const [eightHourEmployees, setEightHourEmployees] = useState([]); // NEU: 8H-Dienst Mitarbeiter
   const [breakfastMenu, setBreakfastMenu] = useState([]);
   const [toppingsMenu, setToppingsMenu] = useState([]);
   const [drinksMenu, setDrinksMenu] = useState([]);
