@@ -5779,19 +5779,19 @@ const BreakfastSummaryTable = ({ departmentId, onClose }) => {
         className="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b">
+        <div className="p-4 sm:p-6 border-b">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Frühstück Tagesübersicht - {formatGermanDate(dailySummary?.date)}</h2>
+            <h2 className="text-lg sm:text-2xl font-bold">Frühstück Tagesübersicht - {formatGermanDate(dailySummary?.date)}</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-xl"
+              className="text-gray-500 hover:text-gray-700 text-xl ml-2"
             >
               ×
             </button>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {dailySummary && dailySummary.shopping_list && Object.keys(dailySummary.shopping_list).length > 0 ? (
             <div>
               {/* Combined Shopping List with Lunch Box */}
