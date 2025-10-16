@@ -681,14 +681,441 @@ class EmployeeProfileTester:
             }
         }
     
+    async def test_topping_display_fix(self):
+        """Test 1: Topping Display Fix - Verify topping names are displayed correctly"""
+        print("\n🧪 TEST 1: TOPPING DISPLAY FIX")
+        print("=" * 60)
+        
+        # Create test employee with custom toppings order
+        test_employee = await self.create_test_employee("fw4abteilung1", "ToppingTestEmployee")
+        if not test_employee:
+            return {"test": "Topping Display Fix", "success": False, "error": "Failed to create test employee"}
+        
+        employee_id = test_employee['id']
+        
+        # Create a breakfast order with toppings
+        order_data = {
+            "employee_id": employee_id,
+            "department_id": "fw4abteilung1",
+            "order_type": "breakfast",
+            "breakfast_items": [{
+                "total_halves": 2,
+                "white_halves": 1,
+                "seeded_halves": 1,
+                "toppings": ["ruehrei", "kaese"],  # Use topping IDs
+                "has_lunch": False,
+                "boiled_eggs": 0,
+                "fried_eggs": 0,
+                "has_coffee": False
+            }]
+        }
+        
+        # Create the order
+        order_response, order_status = await self.make_request('POST', '/orders', order_data)
+        if order_status != 200:
+            return {"test": "Topping Display Fix", "success": False, "error": f"Failed to create order: {order_response}"}
+        
+        print(f"   ✅ Created test order with toppings: ruehrei, kaese")
+        
+        # Get employee profile to check topping display
+        profile_response, profile_status = await self.make_request('GET', f'/employees/{employee_id}/profile')
+        if profile_status != 200:
+            return {"test": "Topping Display Fix", "success": False, "error": f"Failed to get profile: {profile_response}"}
+        
+        # Check readable_items in order history
+        order_history = profile_response.get('order_history', [])
+        if not order_history:
+            return {"test": "Topping Display Fix", "success": False, "error": "No order history found"}
+        
+        latest_order = order_history[0]  # Most recent order
+        readable_items = latest_order.get('readable_items', [])
+        
+        print(f"   📊 Readable items found: {readable_items}")
+        
+        # Check if topping names are properly capitalized and not IDs
+        topping_names_correct = True
+        topping_issues = []
+        
+        for item in readable_items:
+            if any(topping_id in item.lower() for topping_id in ['ruehrei', 'kaese']):
+                # Check if it's still showing as ID (lowercase) vs proper name (capitalized)
+                if 'ruehrei' in item.lower() and 'Rührei' not in item:
+                    topping_names_correct = False
+                    topping_issues.append(f"'ruehrei' not converted to 'Rührei' in: {item}")
+                if 'kaese' in item.lower() and 'Käse' not in item:
+                    topping_names_correct = False
+                    topping_issues.append(f"'kaese' not converted to 'Käse' in: {item}")
+        
+        if topping_names_correct and not topping_issues:
+            print(f"   ✅ Topping names are displayed correctly (capitalized, not as IDs)")
+        else:
+            print(f"   ❌ Topping display issues found: {topping_issues}")
+        
+        return {
+            "test": "Topping Display Fix",
+            "success": topping_names_correct,
+            "employee_id": employee_id,
+            "readable_items": readable_items,
+            "topping_issues": topping_issues,
+            "order_created": True
+        }
+    
+    async def test_8h_service_employee_creation(self):
+        """Test 2: 8H-Service Employee Creation"""
+        print("\n🧪 TEST 2: 8H-SERVICE EMPLOYEE CREATION")
+        print("=" * 60)
+        
+        # Create 8H-service employee
+        employee_data = {
+            "name": "8H_Service_TestEmployee",
+            "department_id": "fw4abteilung1",
+            "is_8h_service": True
+        }
+        
+        response, status = await self.make_request('POST', '/employees', employee_data)
+        if status != 200:
+            return {"test": "8H-Service Employee Creation", "success": False, "error": f"Failed to create employee: {response}"}
+        
+        employee_id = response['id']
+        print(f"   ✅ Created 8H-service employee: {employee_id[:8]}...")
+        
+        # Verify employee properties
+        expected_properties = {
+            "is_8h_service": True,
+            "breakfast_balance": 0.0,
+            "drinks_sweets_balance": 0.0
+        }
+        
+        verification_issues = []
+        for prop, expected_value in expected_properties.items():
+            actual_value = response.get(prop)
+            if actual_value != expected_value:
+                verification_issues.append(f"{prop}: expected {expected_value}, got {actual_value}")
+            else:
+                print(f"   ✅ {prop} = {actual_value}")
+        
+        # Check subaccount balances initialization
+        subaccount_balances = response.get('subaccount_balances', {})
+        if not subaccount_balances:
+            verification_issues.append("subaccount_balances not initialized")
+        else:
+            # Check all 4 departments have 0.0 balances
+            expected_departments = ["fw4abteilung1", "fw4abteilung2", "fw4abteilung3", "fw4abteilung4"]
+            for dept in expected_departments:
+                if dept not in subaccount_balances:
+                    verification_issues.append(f"Missing subaccount for {dept}")
+                else:
+                    dept_balances = subaccount_balances[dept]
+                    if dept_balances.get('breakfast', -1) != 0.0 or dept_balances.get('drinks', -1) != 0.0:
+                        verification_issues.append(f"{dept} subaccount not initialized to 0.0: {dept_balances}")
+                    else:
+                        print(f"   ✅ {dept} subaccount balances initialized to 0.0")
+        
+        success = len(verification_issues) == 0
+        if success:
+            print(f"   ✅ All 8H-service employee properties verified correctly")
+        else:
+            print(f"   ❌ Verification issues: {verification_issues}")
+        
+        return {
+            "test": "8H-Service Employee Creation",
+            "success": success,
+            "employee_id": employee_id,
+            "verification_issues": verification_issues,
+            "created_employee": response
+        }
+    
+    async def test_8h_service_employee_listing(self):
+        """Test 3: 8H-Service Employee Listing"""
+        print("\n🧪 TEST 3: 8H-SERVICE EMPLOYEE LISTING")
+        print("=" * 60)
+        
+        # First create a few 8H-service employees in different departments
+        test_employees = []
+        
+        for i, dept_id in enumerate(["fw4abteilung1", "fw4abteilung2"]):
+            employee_data = {
+                "name": f"8H_ListTest_{i+1}",
+                "department_id": dept_id,
+                "is_8h_service": True
+            }
+            
+            response, status = await self.make_request('POST', '/employees', employee_data)
+            if status == 200:
+                test_employees.append((response, dept_id))
+                print(f"   ✅ Created 8H-service employee in {dept_id}")
+        
+        if not test_employees:
+            return {"test": "8H-Service Employee Listing", "success": False, "error": "Failed to create test employees"}
+        
+        # Test the 8H-service employee listing endpoint for each department
+        listing_results = {}
+        
+        for dept_id in ["fw4abteilung1", "fw4abteilung2"]:
+            response, status = await self.make_request('GET', f'/departments/{dept_id}/8h-employees')
+            
+            if status != 200:
+                listing_results[dept_id] = {"success": False, "error": f"Endpoint failed: {response}"}
+                continue
+            
+            # Verify response structure and content
+            if not isinstance(response, list):
+                listing_results[dept_id] = {"success": False, "error": "Response is not a list"}
+                continue
+            
+            # Check if our test employees are in the list
+            found_8h_employees = []
+            for emp in response:
+                if emp.get('is_8h_service') == True:
+                    found_8h_employees.append(emp)
+            
+            # Verify subaccount balance is included for the requested department
+            subaccount_balance_included = True
+            for emp in found_8h_employees:
+                subaccount_balances = emp.get('subaccount_balances', {})
+                if dept_id not in subaccount_balances:
+                    subaccount_balance_included = False
+                    break
+            
+            listing_results[dept_id] = {
+                "success": True,
+                "total_employees": len(response),
+                "8h_service_employees": len(found_8h_employees),
+                "subaccount_balance_included": subaccount_balance_included,
+                "employees": found_8h_employees
+            }
+            
+            print(f"   ✅ {dept_id}: Found {len(found_8h_employees)} 8H-service employees")
+            print(f"   ✅ {dept_id}: Subaccount balance included: {subaccount_balance_included}")
+        
+        # Overall success check
+        all_success = all(result.get("success", False) for result in listing_results.values())
+        
+        return {
+            "test": "8H-Service Employee Listing",
+            "success": all_success,
+            "listing_results": listing_results,
+            "test_employees_created": len(test_employees)
+        }
+    
+    async def test_8h_service_employee_ordering(self):
+        """Test 4: 8H-Service Employee Ordering"""
+        print("\n🧪 TEST 4: 8H-SERVICE EMPLOYEE ORDERING")
+        print("=" * 60)
+        
+        # Create 8H-service employee
+        employee_data = {
+            "name": "8H_OrderTest",
+            "department_id": "fw4abteilung1",
+            "is_8h_service": True
+        }
+        
+        emp_response, emp_status = await self.make_request('POST', '/employees', employee_data)
+        if emp_status != 200:
+            return {"test": "8H-Service Employee Ordering", "success": False, "error": f"Failed to create employee: {emp_response}"}
+        
+        employee_id = emp_response['id']
+        print(f"   ✅ Created 8H-service employee for ordering test")
+        
+        # Get initial balances
+        initial_balances = await self.get_employee_all_balances(employee_id)
+        if not initial_balances:
+            return {"test": "8H-Service Employee Ordering", "success": False, "error": "Failed to get initial balances"}
+        
+        print(f"   📊 Initial main balances: breakfast={initial_balances['main_balances']['breakfast']}, drinks={initial_balances['main_balances']['drinks_sweets']}")
+        
+        # Create breakfast order for 8H-service employee
+        order_data = {
+            "employee_id": employee_id,
+            "department_id": "fw4abteilung1",
+            "order_type": "breakfast",
+            "breakfast_items": [{
+                "total_halves": 2,
+                "white_halves": 1,
+                "seeded_halves": 1,
+                "toppings": ["ruehrei", "kaese"],
+                "has_lunch": False,
+                "boiled_eggs": 0,
+                "fried_eggs": 0,
+                "has_coffee": True
+            }]
+        }
+        
+        order_response, order_status = await self.make_request('POST', '/orders', order_data)
+        if order_status != 200:
+            return {"test": "8H-Service Employee Ordering", "success": False, "error": f"Failed to create order: {order_response}"}
+        
+        print(f"   ✅ Created breakfast order for 8H-service employee")
+        
+        # Get balances after order
+        final_balances = await self.get_employee_all_balances(employee_id)
+        if not final_balances:
+            return {"test": "8H-Service Employee Ordering", "success": False, "error": "Failed to get final balances"}
+        
+        print(f"   📊 Final main balances: breakfast={final_balances['main_balances']['breakfast']}, drinks={final_balances['main_balances']['drinks_sweets']}")
+        
+        # Verify main balances remain at 0.0 (8H-service employees use only subaccounts)
+        main_balances_unchanged = (
+            final_balances['main_balances']['breakfast'] == 0.0 and
+            final_balances['main_balances']['drinks_sweets'] == 0.0
+        )
+        
+        # Check subaccount balance was updated
+        fw1_subaccount_before = initial_balances['subaccount_balances']['fw4abteilung1']
+        fw1_subaccount_after = final_balances['subaccount_balances']['fw4abteilung1']
+        
+        subaccount_updated = (
+            fw1_subaccount_after['breakfast'] != fw1_subaccount_before['breakfast'] or
+            fw1_subaccount_after['drinks'] != fw1_subaccount_before['drinks']
+        )
+        
+        print(f"   📊 fw4abteilung1 subaccount before: {fw1_subaccount_before}")
+        print(f"   📊 fw4abteilung1 subaccount after: {fw1_subaccount_after}")
+        
+        success = main_balances_unchanged and subaccount_updated
+        
+        if success:
+            print(f"   ✅ Main balances remained at 0.0 (correct for 8H-service)")
+            print(f"   ✅ Subaccount balance was updated (correct for 8H-service)")
+        else:
+            print(f"   ❌ Main balances unchanged: {main_balances_unchanged}")
+            print(f"   ❌ Subaccount updated: {subaccount_updated}")
+        
+        return {
+            "test": "8H-Service Employee Ordering",
+            "success": success,
+            "employee_id": employee_id,
+            "main_balances_unchanged": main_balances_unchanged,
+            "subaccount_updated": subaccount_updated,
+            "initial_balances": initial_balances,
+            "final_balances": final_balances,
+            "order_created": order_response
+        }
+    
+    async def test_8h_service_employee_deletion_protection(self):
+        """Test 5: 8H-Service Employee Deletion Protection"""
+        print("\n🧪 TEST 5: 8H-SERVICE EMPLOYEE DELETION PROTECTION")
+        print("=" * 60)
+        
+        # Test Case A: Employee with non-zero subaccount balance (should be protected)
+        print("\n   🔸 Test Case A: Deletion protection with non-zero balance")
+        
+        # Create 8H-service employee
+        employee_data = {
+            "name": "8H_DeleteProtectionTest",
+            "department_id": "fw4abteilung1", 
+            "is_8h_service": True
+        }
+        
+        emp_response, emp_status = await self.make_request('POST', '/employees', employee_data)
+        if emp_status != 200:
+            return {"test": "8H-Service Employee Deletion Protection", "success": False, "error": f"Failed to create employee: {emp_response}"}
+        
+        employee_id_protected = emp_response['id']
+        
+        # Create an order to give non-zero balance
+        order_data = {
+            "employee_id": employee_id_protected,
+            "department_id": "fw4abteilung1",
+            "order_type": "breakfast",
+            "breakfast_items": [{
+                "total_halves": 2,
+                "white_halves": 1,
+                "seeded_halves": 1,
+                "toppings": ["ruehrei"],
+                "has_lunch": False,
+                "boiled_eggs": 0,
+                "fried_eggs": 0,
+                "has_coffee": True
+            }]
+        }
+        
+        order_response, order_status = await self.make_request('POST', '/orders', order_data)
+        if order_status != 200:
+            return {"test": "8H-Service Employee Deletion Protection", "success": False, "error": f"Failed to create order: {order_response}"}
+        
+        print(f"   ✅ Created order to establish non-zero balance")
+        
+        # Try to delete employee (should fail with 400 error)
+        delete_response, delete_status = await self.make_request('DELETE', f'/employees/{employee_id_protected}')
+        
+        deletion_protected = delete_status == 400
+        german_error_message = False
+        
+        if deletion_protected and isinstance(delete_response, dict):
+            error_detail = delete_response.get('detail', '')
+            # Check for German error message
+            german_error_message = any(word in error_detail.lower() for word in ['saldo', 'balance', 'nicht', 'löschen'])
+        
+        print(f"   {'✅' if deletion_protected else '❌'} Deletion protection active (HTTP {delete_status})")
+        print(f"   {'✅' if german_error_message else '❌'} German error message present")
+        if delete_response and isinstance(delete_response, dict):
+            print(f"   📝 Error message: {delete_response.get('detail', 'No detail')}")
+        
+        # Test Case B: Employee with zero subaccount balances (should allow deletion)
+        print("\n   🔸 Test Case B: Deletion allowed with zero balances")
+        
+        # Create another 8H-service employee
+        employee_data_zero = {
+            "name": "8H_DeleteAllowedTest",
+            "department_id": "fw4abteilung2",
+            "is_8h_service": True
+        }
+        
+        emp_response_zero, emp_status_zero = await self.make_request('POST', '/employees', employee_data_zero)
+        if emp_status_zero != 200:
+            return {"test": "8H-Service Employee Deletion Protection", "success": False, "error": f"Failed to create second employee: {emp_response_zero}"}
+        
+        employee_id_zero = emp_response_zero['id']
+        
+        # Verify all subaccounts are at 0€ (should be by default)
+        balances = await self.get_employee_all_balances(employee_id_zero)
+        all_zero = True
+        if balances:
+            for dept_id, dept_balances in balances['subaccount_balances'].items():
+                if dept_balances['breakfast'] != 0.0 or dept_balances['drinks'] != 0.0:
+                    all_zero = False
+                    break
+        
+        print(f"   📊 All subaccount balances at 0€: {all_zero}")
+        
+        # Try to delete employee (should succeed)
+        delete_response_zero, delete_status_zero = await self.make_request('DELETE', f'/employees/{employee_id_zero}')
+        
+        deletion_allowed = delete_status_zero == 200
+        print(f"   {'✅' if deletion_allowed else '❌'} Deletion allowed for zero balance (HTTP {delete_status_zero})")
+        
+        success = deletion_protected and german_error_message and deletion_allowed and all_zero
+        
+        return {
+            "test": "8H-Service Employee Deletion Protection",
+            "success": success,
+            "test_case_a": {
+                "employee_id": employee_id_protected,
+                "deletion_protected": deletion_protected,
+                "german_error_message": german_error_message,
+                "delete_status": delete_status,
+                "delete_response": delete_response
+            },
+            "test_case_b": {
+                "employee_id": employee_id_zero,
+                "all_balances_zero": all_zero,
+                "deletion_allowed": deletion_allowed,
+                "delete_status": delete_status_zero,
+                "delete_response": delete_response_zero
+            }
+        }
+
     async def run_comprehensive_test(self):
-        """Run comprehensive test of Employee Profile Endpoint Balance Data Structure"""
-        print("🚀 STARTING EMPLOYEE PROFILE ENDPOINT BALANCE DATA STRUCTURE TEST")
+        """Run comprehensive test of new functionality"""
+        print("🚀 STARTING NEW FUNCTIONALITY TESTING")
         print("=" * 80)
-        print("TESTING: Employee profile endpoint balance data structure and values")
-        print("- Endpoint: GET /api/employees/{employee_id}/profile")
-        print("- Focus: Balance field names, structure, and actual values")
-        print("- Investigation: Response structure and data completeness")
+        print("TESTING: Newly implemented functionality as requested in review")
+        print("- Test 1: Topping Display Fix")
+        print("- Test 2: 8H-Service Employee Creation") 
+        print("- Test 3: 8H-Service Employee Listing")
+        print("- Test 4: 8H-Service Employee Ordering")
+        print("- Test 5: 8H-Service Employee Deletion Protection")
         print("=" * 80)
         
         # First, get employees with existing order/payment history
