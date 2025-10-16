@@ -3207,6 +3207,7 @@ const DepartmentAdminDashboard = () => {
   useEffect(() => {
     if (currentDepartment) {
       fetchEmployees();
+      fetch8HourEmployees(); // NEU: Lade 8H-Mitarbeiter
       fetchMenus();
     }
   }, [currentDepartment]);
@@ -3215,10 +3216,20 @@ const DepartmentAdminDashboard = () => {
   useEffect(() => {
     if (activeTab === 'employees' && currentDepartment) {
       fetchEmployees();
+      fetch8HourEmployees(); // NEU: Reload 8H employees when switching to employees tab
     }
     // Scroll to top when changing tabs
     window.scrollTo(0, 0);
   }, [activeTab, currentDepartment]);
+
+  const fetch8HourEmployees = async () => {
+    try {
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/8h-employees`);
+      setEightHourEmployees(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der 8H-Mitarbeiter:', error);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
