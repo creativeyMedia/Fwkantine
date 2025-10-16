@@ -1051,7 +1051,7 @@ class EmployeeProfileTester:
         print(f"   ✅ Created order to establish non-zero balance")
         
         # Try to delete employee (should fail with 400 error)
-        delete_response, delete_status = await self.make_request('DELETE', f'/employees/{employee_id_protected}')
+        delete_response, delete_status = await self.make_request('DELETE', f'/department-admin/employees/{employee_id_protected}')
         
         deletion_protected = delete_status == 400
         german_error_message = False
