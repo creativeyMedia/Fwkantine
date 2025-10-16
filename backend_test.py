@@ -693,7 +693,7 @@ class EmployeeProfileTester:
         
         employee_id = test_employee['id']
         
-        # Create a breakfast order with toppings
+        # Create a breakfast order with toppings (must match halves count)
         order_data = {
             "employee_id": employee_id,
             "department_id": "fw4abteilung1",
@@ -702,7 +702,7 @@ class EmployeeProfileTester:
                 "total_halves": 2,
                 "white_halves": 1,
                 "seeded_halves": 1,
-                "toppings": ["ruehrei", "kaese"],  # Use topping IDs
+                "toppings": ["ruehrei", "kaese"],  # 2 toppings for 2 halves
                 "has_lunch": False,
                 "boiled_eggs": 0,
                 "fried_eggs": 0,
