@@ -3244,11 +3244,29 @@ async def get_employee_profile(employee_id: str):
                         parts.append(f"{seeded_halves}x Körnerbrötchen Hälften")
                     description = ", ".join(parts) if parts else f"{total_halves} Brötchen Hälften"
                 
-                topping_names_german = {
+                # KORRIGIERT: Use order department's menu prices, not employee's home department
+                order_department_id = order.get("department_id", employee_department_id)
+                order_dept_menu = department_menus.get(order_department_id, default_dept_menu)
+                
+                # Get department-specific topping names (not static dictionary!)
+                order_topping_names = order_dept_menu.get("topping_names", topping_names)
+                
+                # Fallback dictionary for standard toppings (if not in database)
+                topping_names_fallback = {
                     "ruehrei": "Rührei", "spiegelei": "Spiegelei", "eiersalat": "Eiersalat",
                     "salami": "Salami", "schinken": "Schinken", "kaese": "Käse", "butter": "Butter"
                 }
-                toppings_str = ", ".join([topping_names_german.get(t, t) for t in item["toppings"]])
+                
+                # Get topping display names (prioritize database, fallback to dictionary, then capitalize ID)
+                def get_topping_display_name(topping_id):
+                    # First try order department's topping names
+                    if topping_id in order_topping_names:
+                        return order_topping_names[topping_id]
+                    # Then try fallback dictionary
+                    if topping_id in topping_names_fallback:
+                        return topping_names_fallback[topping_id]
+                    # Finally capitalize the ID itself
+                    return topping_id.capitalize()
                 
                 # Create separate topping strings for white and seeded rolls based on position
                 toppings_list = item["toppings"]
@@ -3256,7 +3274,7 @@ async def get_employee_profile(employee_id: str):
                 seeded_toppings = []
                 
                 for topping_index, topping in enumerate(toppings_list):
-                    topping_display = topping_names_german.get(topping, topping)
+                    topping_display = get_topping_display_name(topping)
                     if topping_index < white_halves:
                         # This topping is on a white roll
                         white_toppings.append(topping_display)
@@ -3266,10 +3284,6 @@ async def get_employee_profile(employee_id: str):
                 
                 white_toppings_str = ", ".join(white_toppings) if white_toppings else "Ohne Belag"
                 seeded_toppings_str = ", ".join(seeded_toppings) if seeded_toppings else "Ohne Belag"
-                
-                # KORRIGIERT: Use order department's menu prices, not employee's home department
-                order_department_id = order.get("department_id", employee_department_id)
-                order_dept_menu = department_menus.get(order_department_id, default_dept_menu)
                 
                 # Get department-specific prices for this order
                 order_breakfast_prices = order_dept_menu.get("breakfast_prices", breakfast_prices)
