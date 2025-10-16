@@ -1207,48 +1207,55 @@ class EmployeeProfileTester:
             }
         }
 
-    async def run_comprehensive_test(self):
-        """Run comprehensive test of new functionality"""
-        print("🚀 STARTING REVIEW REQUEST TESTING")
+    async def run_8h_service_retest(self):
+        """RE-TEST the 8H-Service Employee Ordering Fix as requested"""
+        print("🚀 RE-TESTING 8H-SERVICE EMPLOYEE ORDERING FIX")
         print("=" * 80)
-        print("TESTING: Specific tasks from review request")
-        print("- Task 1: Topping Display Fix - Verify topping names are displayed correctly")
-        print("- Task 2: 8H-Service Employee Full Workflow (6 sub-tests)")
-        print("  - 2.1: Create 8H-Service Employee")
-        print("  - 2.2: List 8H Employees")
-        print("  - 2.3: Order for 8H Employee in Department 1")
-        print("  - 2.4: Order for 8H Employee in Department 2")
-        print("  - 2.5: Try Deleting 8H Employee with Non-Zero Balance")
-        print("  - 2.6: Delete 8H Employee with Zero Balances")
+        print("CRITICAL TEST: Verify 8H-Service Employee Uses Subaccounts Only")
+        print("")
+        print("Test Setup:")
+        print("- Create a NEW 8H-service employee (fresh start, no previous test data)")
+        print("- Create orders in DIFFERENT departments")
+        print("")
+        print("Test 1: Create 8H Employee")
+        print("- POST /api/employees with is_8h_service=true")
+        print("- Verify is_8h_service=true, main balances=0.0")
+        print("")
+        print("Test 2: Order in Department 1")
+        print("- Create a breakfast order for 8H employee in fw4abteilung1")
+        print("- Verify main balances REMAIN 0.0, subaccount updated")
+        print("")
+        print("Test 3: Order in Department 2")
+        print("- Create a drinks order for same 8H employee in fw4abteilung2")
+        print("- Verify main balances STILL 0.0, different subaccount updated")
+        print("")
+        print("Test 4: Deletion Protection")
+        print("- Try DELETE /api/department-admin/employees/{8h_employee_id}")
+        print("- Verify deletion blocked with HTTP 400 and German error message")
         print("=" * 80)
         
-        # Run all new functionality tests
+        # Run the critical 8H-Service Employee tests
         test_results = []
         
-        # Test 1: Topping Display Fix
+        # Test 1: Create 8H Employee
         print(f"\n{'='*80}")
-        result_1 = await self.test_topping_display_fix()
+        result_1 = await self.test_8h_service_employee_creation_critical()
         test_results.append(result_1)
         
-        # Test 2.1: 8H-Service Employee Creation
+        # Test 2: Order in Department 1 (breakfast)
         print(f"\n{'='*80}")
-        result_2_1 = await self.test_8h_service_employee_creation()
-        test_results.append(result_2_1)
+        result_2 = await self.test_8h_service_order_department_1()
+        test_results.append(result_2)
         
-        # Test 2.2: 8H-Service Employee Listing
+        # Test 3: Order in Department 2 (drinks)
         print(f"\n{'='*80}")
-        result_2_2 = await self.test_8h_service_employee_listing()
-        test_results.append(result_2_2)
+        result_3 = await self.test_8h_service_order_department_2(result_1.get('employee_id') if result_1.get('success') else None)
+        test_results.append(result_3)
         
-        # Test 2.3 & 2.4: 8H-Service Employee Ordering (both departments)
+        # Test 4: Deletion Protection
         print(f"\n{'='*80}")
-        result_2_3_2_4 = await self.test_8h_service_employee_ordering_workflow()
-        test_results.append(result_2_3_2_4)
-        
-        # Test 2.5 & 2.6: 8H-Service Employee Deletion Protection
-        print(f"\n{'='*80}")
-        result_2_5_2_6 = await self.test_8h_service_employee_deletion_protection()
-        test_results.append(result_2_5_2_6)
+        result_4 = await self.test_8h_service_deletion_protection_critical(result_1.get('employee_id') if result_1.get('success') else None)
+        test_results.append(result_4)
         
         # Analyze results
         total_tests = len(test_results)
