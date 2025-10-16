@@ -33,6 +33,15 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Helper functions for Balance Management
+def round_to_cents(amount):
+    """Round amount to exactly 2 decimal places and avoid -0.00"""
+    if amount is None:
+        return 0.0
+    rounded = round(float(amount), 2)
+    # Avoid -0.00 display
+    return 0.0 if rounded == -0.0 else rounded
+
 # Helper functions for Multi-Department Balance Management
 def initialize_subaccount_balances(employee_data):
     """Initialize subaccount_balances for new employees or existing ones without it"""
