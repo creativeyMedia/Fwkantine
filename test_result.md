@@ -575,7 +575,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Developer Dashboard Employee Moving with Balance Migration Testing"
+    - "Balance Rounding Fix Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
