@@ -1094,7 +1094,7 @@ class EmployeeProfileTester:
         print(f"   📊 All subaccount balances at 0€: {all_zero}")
         
         # Try to delete employee (should succeed)
-        delete_response_zero, delete_status_zero = await self.make_request('DELETE', f'/employees/{employee_id_zero}')
+        delete_response_zero, delete_status_zero = await self.make_request('DELETE', f'/department-admin/employees/{employee_id_zero}')
         
         deletion_allowed = delete_status_zero == 200
         print(f"   {'✅' if deletion_allowed else '❌'} Deletion allowed for zero balance (HTTP {delete_status_zero})")
