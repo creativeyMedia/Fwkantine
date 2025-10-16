@@ -7402,7 +7402,8 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
 
   const formatBalance = (balance) => {
     const numBalance = parseFloat(balance) || 0;
-    return numBalance.toFixed(2);
+    const rounded = Math.round(numBalance * 100) / 100; // Round to 2 decimals
+    return (rounded === -0 ? 0 : rounded).toFixed(2); // Avoid -0.00
   };
 
   const getBalanceColor = (balance) => {
