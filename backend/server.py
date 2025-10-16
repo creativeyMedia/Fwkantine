@@ -84,7 +84,11 @@ def get_employee_balance(employee_data, department_id, balance_type):
     return 0.0
 
 async def update_employee_balance(employee_id, department_id, balance_type, amount_change):
-    """Update employee balance for specific department and type"""
+    """Update employee balance for specific department and type
+    
+    For 8H-Service employees: ALWAYS use subaccount balances, never main balances
+    For normal employees: Use main balance for home department, subaccounts for others
+    """
     employee = await db.employees.find_one({"id": employee_id})
     if not employee:
         raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
@@ -92,8 +96,11 @@ async def update_employee_balance(employee_id, department_id, balance_type, amou
     # Initialize subaccounts if not exists
     employee = initialize_subaccount_balances(employee)
     
-    # For main department, update main balance fields (RÜCKWÄRTSKOMPATIBILITÄT)
-    if department_id == employee.get('department_id'):
+    # CRITICAL: 8H-Service employees ALWAYS use subaccounts, never main balances
+    is_8h_service = employee.get('is_8h_service', False)
+    
+    # For main department AND not 8H-service, update main balance fields (RÜCKWÄRTSKOMPATIBILITÄT)
+    if department_id == employee.get('department_id') and not is_8h_service:
         update_fields = {}
         if balance_type == 'breakfast':
             new_balance = round_to_cents(employee.get('breakfast_balance', 0.0) + amount_change)
@@ -113,7 +120,7 @@ async def update_employee_balance(employee_id, department_id, balance_type, amou
             {"$set": update_fields}
         )
     else:
-        # For other departments, only update subaccount balances
+        # For other departments OR 8H-service employees, only update subaccount balances
         if balance_type == 'breakfast':
             employee['subaccount_balances'][department_id]['breakfast'] = round_to_cents(employee['subaccount_balances'][department_id]['breakfast'] + amount_change)
         elif balance_type in ['drinks', 'drinks_sweets']:
