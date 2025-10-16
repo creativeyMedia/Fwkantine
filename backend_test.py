@@ -1773,7 +1773,7 @@ class EmployeeProfileTester:
 async def main():
     """Main test execution"""
     async with EmployeeProfileTester() as tester:
-        success = await tester.run_comprehensive_test()
+        success = await tester.run_8h_service_retest()
         return success
 
 if __name__ == "__main__":
