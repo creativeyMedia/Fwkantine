@@ -3959,7 +3959,7 @@ async def delete_order_by_admin(order_id: str, admin_user: str = "Admin"):
             else:
                 if is_home_department:
                     # STAMMBESTELLUNG-STORNIERUNG: Admin refund main balance
-                    new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                    new_drinks_sweets_balance = round_to_cents(employee["drinks_sweets_balance"] - order["total_price"])
                     await db.employees.update_one(
                         {"id": order["employee_id"]},
                         {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
