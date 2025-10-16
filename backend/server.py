@@ -3738,7 +3738,51 @@ async def delete_sweet_item(item_id: str):
 
 @api_router.delete("/department-admin/employees/{employee_id}")
 async def delete_employee(employee_id: str):
-    """Department Admin: Delete employee"""
+    """Department Admin: Delete employee
+    
+    For 8H-Service employees: All 4 subaccount balances must be 0€ before deletion
+    For normal employees: Main account balances must be 0€
+    """
+    # Get employee to check balances
+    employee = await db.employees.find_one({"id": employee_id})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Check if employee can be deleted based on balances
+    if employee.get('is_8h_service'):
+        # For 8H-Service employees: Check ALL subaccount balances
+        subaccounts = employee.get('subaccount_balances', {})
+        has_outstanding_balance = False
+        outstanding_departments = []
+        
+        for dept_id, balances in subaccounts.items():
+            breakfast_bal = balances.get('breakfast', 0.0)
+            drinks_bal = balances.get('drinks', 0.0)
+            
+            if breakfast_bal != 0.0 or drinks_bal != 0.0:
+                has_outstanding_balance = True
+                # Get department name for error message
+                dept = await db.departments.find_one({"id": dept_id})
+                dept_name = dept["name"] if dept else dept_id
+                outstanding_departments.append(f"{dept_name} (Frühstück: {breakfast_bal:.2f}€, Getränke: {drinks_bal:.2f}€)")
+        
+        if has_outstanding_balance:
+            raise HTTPException(
+                status_code=400,
+                detail=f"8H-Dienst Mitarbeiter kann nicht gelöscht werden. Ausstehende Saldos in: {', '.join(outstanding_departments)}"
+            )
+    else:
+        # For normal employees: Check main balances (existing logic)
+        breakfast_balance = employee.get('breakfast_balance', 0.0)
+        drinks_balance = employee.get('drinks_sweets_balance', 0.0)
+        
+        if breakfast_balance != 0.0 or drinks_balance != 0.0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Mitarbeiter kann nicht gelöscht werden. Ausstehende Saldos: Frühstück {breakfast_balance:.2f}€, Getränke {drinks_balance:.2f}€"
+            )
+    
+    # Delete employee
     result = await db.employees.delete_one({"id": employee_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
