@@ -3740,7 +3740,7 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
     # Calculate new balance - CORRECTED LOGIC
     # Negative balance = debt (owes money), Positive balance = credit (has money)
     # Payment INCREASES balance (reduces debt or adds credit)
-    new_balance = current_balance + payment_data.amount
+    new_balance = round_to_cents(current_balance + payment_data.amount)
     
     # Get readable department name
     department_doc = await db.departments.find_one({"id": admin_department})
