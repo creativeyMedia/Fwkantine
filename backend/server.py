@@ -3124,7 +3124,7 @@ async def delete_employee_order(employee_id: str, order_id: str):
         else:  # DRINKS or SWEETS
             if is_home_department:
                 # STAMMBESTELLUNG-STORNIERUNG: Restore NUR main balance  
-                new_drinks_sweets_balance = employee["drinks_sweets_balance"] - order["total_price"]
+                new_drinks_sweets_balance = round_to_cents(employee["drinks_sweets_balance"] - order["total_price"])
                 await db.employees.update_one(
                     {"id": employee_id},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
