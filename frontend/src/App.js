@@ -1412,14 +1412,16 @@ const DepartmentDashboard = () => {
     }
   };
 
-  const handleCreateEmployee = async (name, isGuest = false) => {
+  const handleCreateEmployee = async (name, isGuest = false, is8HService = false) => {
     try {
       await axios.post(`${API}/employees`, {
         name,
         department_id: currentDepartment.department_id,
-        is_guest: isGuest
+        is_guest: isGuest,
+        is_8h_service: is8HService
       });
       fetchEmployees();
+      fetch8HourEmployees(); // Reload 8H employees if created
       setShowNewEmployee(false);
     } catch (error) {
       console.error('Fehler beim Erstellen des Mitarbeiters:', error);
