@@ -2137,7 +2137,7 @@ async def create_order(order_data: OrderCreate):
         else:  # DRINKS or SWEETS
             if is_home_department:
                 # STAMMBESTELLUNG: Update NUR main balance (subaccount wird in update_employee_balance automatisch synchronisiert)
-                new_drinks_sweets_balance = employee["drinks_sweets_balance"] + total_price
+                new_drinks_sweets_balance = round_to_cents(employee["drinks_sweets_balance"] + total_price)
                 await db.employees.update_one(
                     {"id": order_data.employee_id},
                     {"$set": {"drinks_sweets_balance": new_drinks_sweets_balance}}
