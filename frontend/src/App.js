@@ -1258,6 +1258,7 @@ const LoginModal = ({ title, onLogin, onClose }) => {
 const DepartmentDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [temporaryEmployees, setTemporaryEmployees] = useState([]); // ERWEITERT für temporäre Mitarbeiter  
+  const [eightHourEmployees, setEightHourEmployees] = useState([]); // NEU: 8H-Dienst Mitarbeiter
   const [otherDepartmentEmployees, setOtherDepartmentEmployees] = useState({}); // ERWEITERT für Dropdown
   const [showTemporaryDropdown, setShowTemporaryDropdown] = useState(false); // ERWEITERT
   const [employeeSearchQuery, setEmployeeSearchQuery] = useState(''); // Suchfunktion für Gastmitarbeiter
@@ -1278,8 +1279,18 @@ const DepartmentDashboard = () => {
       fetchEmployees();
       fetchOtherDepartmentEmployees(); // ERWEITERT: Lade Mitarbeiter anderer Abteilungen
       fetchTemporaryEmployees(); // ERWEITERT: Lade temporäre Mitarbeiter (geräteübergreifend)
+      fetch8HourEmployees(); // NEU: Lade 8H-Dienst Mitarbeiter
     }
   }, [currentDepartment]);
+
+  const fetch8HourEmployees = async () => {
+    try {
+      const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/8h-employees`);
+      setEightHourEmployees(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der 8H-Mitarbeiter:', error);
+    }
+  };
 
   const fetchTemporaryEmployees = async () => {
     try {
