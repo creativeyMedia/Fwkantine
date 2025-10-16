@@ -70,6 +70,18 @@ user_problem_statement: {
 ##
 
 backend:
+  - task: "Critical Bug Investigation: 1. Wachabteilung Employees Not Showing"
+    implemented: true
+    working: true
+    file: "backend/server.py (database corruption fix)"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 CRITICAL BUG INVESTIGATION COMPLETED SUCCESSFULLY! Root cause identified and FIXED: The /api/departments/fw4abteilung1/employees endpoint was returning HTTP 500 'Internal Server Error' due to NaN (Not a Number) values in employee database records. INVESTIGATION FINDINGS: ✅ 1) ENDPOINT FAILURE CONFIRMED - GET /api/departments/fw4abteilung1/employees returned HTTP 500 with 'ValueError: Out of range float values are not JSON compliant'. ✅ 2) ROOT CAUSE IDENTIFIED - 2 employees (EdgeCaseTestEmployee records) had NaN values in breakfast_balance field, preventing JSON serialization. ✅ 3) DATA CORRUPTION FIXED - Applied database fix to convert NaN values to 0.0, endpoint now returns HTTP 200 with 69 employees. ✅ 4) EMPLOYEE DATA VERIFIED - fw4abteilung1 contains 53 regular employees, 16 8H-service employees, 0 guest employees (vs fw4abteilung2: 10 regular, 6 8H, 2 guests). ✅ 5) BACKEND FUNCTIONALITY RESTORED - All employees now properly accessible via API, new employee creation working, no data corruption remaining. CRITICAL RESULT: The reported issue 'NO regular employees or guests showing, ONLY 8H employees' was caused by backend API failure, NOT frontend filtering. With the NaN values fixed, all 53 regular employees in fw4abteilung1 are now accessible to the frontend. The backend is FULLY FUNCTIONAL."
+
   - task: "Employee Profile Endpoint Balance Data Structure Verification"
     implemented: true
     working: true
