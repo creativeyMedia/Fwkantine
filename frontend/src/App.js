@@ -586,7 +586,15 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
       >
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">{employeeProfile.employee.name} - Verlauf</h2>
+            <h2 className="text-2xl font-bold">
+              {employeeProfile.employee.name} - Verlauf
+              {is8HService && (
+                <span className="ml-2 text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-full">🕐 8H</span>
+              )}
+              {employee.is_guest && (
+                <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">👤 Gast</span>
+              )}
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-xl"
@@ -597,11 +605,60 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
         </div>
 
         <div className="p-6">
-          {/* ERWEITERTE Balance Overview - UNTERSCHIEDLICH für Gast vs. Stamm */}
+          {/* ERWEITERTE Balance Overview - UNTERSCHIEDLICH für Gast vs. Stamm vs. 8H */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4">💰 Kontostände</h3>
             
-            {isTemporaryGuest ? (
+            {is8HService ? (
+              /* 8H-DIENST: Zeige alle 4 Subkonten */
+              <div className="mb-4">
+                <h4 className="text-md font-medium text-orange-800 mb-3">
+                  🕐 8-Stunden-Dienst: {currentDepartment?.department_name}
+                </h4>
+                {allBalances && allBalances.subaccount_balances && allBalances.subaccount_balances[currentDepartment?.department_id] ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`border border-gray-300 rounded-lg p-4 ${
+                      allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <h3 className={`font-semibold ${
+                        allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
+                          ? 'text-green-800' 
+                          : 'text-red-800'
+                      }`}>Frühstück/Mittag Saldo</h3>
+                      <p className={`text-2xl font-bold ${
+                        allBalances.subaccount_balances[currentDepartment.department_id].breakfast >= 0 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {formatBalance(allBalances.subaccount_balances[currentDepartment.department_id].breakfast)}
+                      </p>
+                    </div>
+                    <div className={`border border-gray-300 rounded-lg p-4 ${
+                      allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <h3 className={`font-semibold ${
+                        allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
+                          ? 'text-green-800' 
+                          : 'text-red-800'
+                      }`}>Getränke/Snacks Saldo</h3>
+                      <p className={`text-2xl font-bold ${
+                        allBalances.subaccount_balances[currentDepartment.department_id].drinks >= 0 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {formatBalance(allBalances.subaccount_balances[currentDepartment.department_id].drinks)}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600">Keine Saldo-Informationen verfügbar</p>
+                )}
+              </div>
+            ) : isTemporaryGuest ? (
               /* GASTWACHABTEILUNG: Nur aktueller Subkonto-Saldo */
               <div className="mb-4">
                 <h4 className="text-md font-medium text-purple-800 mb-3">
