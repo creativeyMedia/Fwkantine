@@ -417,9 +417,12 @@ class BalanceRoundingTester:
                 results.append({"amount": amount, "success": False, "error": "Failed to get final balance", "description": description})
                 continue
             
-            # Check rounding
+            # Check rounding - use our improved rounding function logic
+            from decimal import Decimal, ROUND_HALF_UP
+            decimal_amount = Decimal(str(float(amount)))
+            expected_change = float(decimal_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+            
             balance_change = final_balance['breakfast_balance'] - initial_balance['breakfast_balance']
-            expected_change = round(amount, 2)
             is_properly_rounded = abs(balance_change - expected_change) < 0.001
             
             # Check that final balance has exactly 2 decimal places
