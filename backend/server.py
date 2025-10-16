@@ -91,12 +91,12 @@ async def update_employee_balance(employee_id, department_id, balance_type, amou
     if department_id == employee.get('department_id'):
         update_fields = {}
         if balance_type == 'breakfast':
-            new_balance = employee.get('breakfast_balance', 0.0) + amount_change
+            new_balance = round_to_cents(employee.get('breakfast_balance', 0.0) + amount_change)
             update_fields['breakfast_balance'] = new_balance
             # Also update subaccount for consistency
             employee['subaccount_balances'][department_id]['breakfast'] = new_balance
         elif balance_type in ['drinks', 'drinks_sweets']:
-            new_balance = employee.get('drinks_sweets_balance', 0.0) + amount_change
+            new_balance = round_to_cents(employee.get('drinks_sweets_balance', 0.0) + amount_change)
             update_fields['drinks_sweets_balance'] = new_balance  
             # Also update subaccount for consistency
             employee['subaccount_balances'][department_id]['drinks'] = new_balance
