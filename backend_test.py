@@ -1118,67 +1118,33 @@ class EmployeeProfileTester:
         print("- Test 5: 8H-Service Employee Deletion Protection")
         print("=" * 80)
         
-        # First, get employees with existing order/payment history
-        print("\n🔍 FINDING EMPLOYEES WITH TRANSACTION HISTORY...")
-        
-        test_employees = []
-        
-        # Check fw4abteilung1
-        dept1_employees = await self.get_employees_with_history("fw4abteilung1")
-        if dept1_employees:
-            test_employees.extend(dept1_employees[:3])  # Take first 3
-            print(f"   Found {len(dept1_employees)} employees with history in fw4abteilung1")
-        
-        # Check fw4abteilung2
-        dept2_employees = await self.get_employees_with_history("fw4abteilung2")
-        if dept2_employees:
-            test_employees.extend(dept2_employees[:3])  # Take first 3
-            print(f"   Found {len(dept2_employees)} employees with history in fw4abteilung2")
-        
-        if not test_employees:
-            print("   ❌ No employees with transaction history found. Creating test employee...")
-            # Create a test employee with some balance for testing
-            test_emp = await self.create_test_employee("fw4abteilung1", "ProfileTestEmployee")
-            if test_emp:
-                # Set some balance to create history
-                await self.set_employee_balance(test_emp['id'], "fw4abteilung1", "breakfast", -5.0)
-                test_employees = [test_emp]
-        
-        if not test_employees:
-            return False
-        
-        print(f"   ✅ Testing with {len(test_employees)} employees")
-        
+        # Run all new functionality tests
         test_results = []
         
-        # Run tests on each employee
-        for i, employee in enumerate(test_employees[:2]):  # Test first 2 employees
-            employee_id = employee['id']
-            employee_name = employee['name']
-            
-            print(f"\n{'='*60}")
-            print(f"TESTING EMPLOYEE {i+1}: {employee_name} (ID: {employee_id[:8]}...)")
-            print(f"{'='*60}")
-            
-            # Test Case 1: Employee Profile Structure
-            result_1 = await self.test_employee_profile_structure(employee_id, employee_name)
-            test_results.append(result_1)
-            
-            # Test Case 2: Balance Field Names
-            result_2 = await self.test_balance_field_names(employee_id, employee_name)
-            test_results.append(result_2)
-            
-            # Test Case 3: Balance Values Accuracy
-            result_3 = await self.test_balance_values_accuracy(employee_id, employee_name)
-            test_results.append(result_3)
-            
-            # Test Case 4: Data Completeness
-            result_4 = await self.test_data_completeness(employee_id, employee_name)
-            test_results.append(result_4)
-            
-            # Test Case 5: Response Structure Consistency
-            result_5 = await self.test_response_structure_consistency(employee_id, employee_name)
-            test_results.append(result_5)
+        # Test 1: Topping Display Fix
+        print(f"\n{'='*80}")
+        result_1 = await self.test_topping_display_fix()
+        test_results.append(result_1)
+        
+        # Test 2: 8H-Service Employee Creation
+        print(f"\n{'='*80}")
+        result_2 = await self.test_8h_service_employee_creation()
+        test_results.append(result_2)
+        
+        # Test 3: 8H-Service Employee Listing
+        print(f"\n{'='*80}")
+        result_3 = await self.test_8h_service_employee_listing()
+        test_results.append(result_3)
+        
+        # Test 4: 8H-Service Employee Ordering
+        print(f"\n{'='*80}")
+        result_4 = await self.test_8h_service_employee_ordering()
+        test_results.append(result_4)
+        
+        # Test 5: 8H-Service Employee Deletion Protection
+        print(f"\n{'='*80}")
+        result_5 = await self.test_8h_service_employee_deletion_protection()
+        test_results.append(result_5)
         
         # Analyze results
         total_tests = len(test_results)
