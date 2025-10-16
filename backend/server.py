@@ -110,9 +110,9 @@ async def update_employee_balance(employee_id, department_id, balance_type, amou
     else:
         # For other departments, only update subaccount balances
         if balance_type == 'breakfast':
-            employee['subaccount_balances'][department_id]['breakfast'] += amount_change
+            employee['subaccount_balances'][department_id]['breakfast'] = round_to_cents(employee['subaccount_balances'][department_id]['breakfast'] + amount_change)
         elif balance_type in ['drinks', 'drinks_sweets']:
-            employee['subaccount_balances'][department_id]['drinks'] += amount_change
+            employee['subaccount_balances'][department_id]['drinks'] = round_to_cents(employee['subaccount_balances'][department_id]['drinks'] + amount_change)
             
         await db.employees.update_one(
             {"id": employee_id},
