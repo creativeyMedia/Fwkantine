@@ -1,33 +1,24 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Employee Profile Endpoint Balance Data Structure
+Backend Test Suite for New Functionality Testing
 
 TESTING FOCUS:
-Testing the employee profile endpoint to verify balance data structure and values.
+Testing newly implemented functionality as requested in review:
 
-BACKEND ENDPOINT TO TEST:
-GET /api/employees/{employee_id}/profile - Employee profile with balance data
+1. **Topping Display Fix** - Verify topping names are displayed correctly (capitalized, not as IDs)
+2. **8H-Service Employee Creation** - Test POST /api/employees with is_8h_service=True
+3. **8H-Service Employee Listing** - Test GET /api/departments/{department_id}/8h-employees
+4. **8H-Service Employee Ordering** - Test breakfast orders for 8H-service employees
+5. **8H-Service Employee Deletion Protection** - Test deletion protection for non-zero balances
 
-TEST SCENARIOS TO VERIFY:
-1. Test GET /api/employees/{employee_id}/profile endpoint
-2. Verify the exact structure of returned balance data
-3. Check if balance fields contain actual values (not 0)
-4. Examine both the main response structure and nested employee object
-5. Verify payment_history and order_history are included
+BACKEND ENDPOINTS TO TEST:
+- POST /api/employees (8H-service employee creation)
+- GET /api/departments/{department_id}/8h-employees (8H-service employee listing)
+- GET /api/employees/{employee_id}/profile (topping display verification)
+- POST /api/orders (8H-service employee ordering)
+- DELETE /api/employees/{employee_id} (8H-service deletion protection)
 
-FOCUS AREAS:
-- Balance field names: breakfast_balance vs breakfast_total, drinks_sweets_balance vs drinks_sweets_total
-- Response structure: Are balances in main response or nested under employee object?
-- Actual balance values: Do they reflect real transaction history?
-- Data completeness: Are all expected fields present?
-
-EXPECTED INVESTIGATION:
-- Identify correct field names for balance display
-- Confirm balance values are not defaulting to 0
-- Verify API response structure matches frontend expectations
-- Check if employee object contains balance data vs main response level
-
-TEST EMPLOYEE: Use any employee ID with existing order/payment history from fw4abteilung1 or fw4abteilung2
+TEST DEPARTMENTS: fw4abteilung1, fw4abteilung2
 """
 
 import asyncio
