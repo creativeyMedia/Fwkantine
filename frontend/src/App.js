@@ -379,6 +379,14 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
 
   const { currentDepartment } = React.useContext(AuthContext);
   
+  // Helper function to format balance with 2 decimal places
+  const formatBalance = (balance) => {
+    const numBalance = parseFloat(balance) || 0;
+    const rounded = Math.round(numBalance * 100) / 100; // Round to 2 decimals
+    const formatted = (rounded === -0 ? 0 : rounded).toFixed(2); // Avoid -0.00
+    return `${formatted}€`;
+  };
+  
   // ERWEITERT: Prüfe ob es sich um einen temporären Gastmitarbeiter oder 8H-Dienst Mitarbeiter handelt
   const isTemporaryGuest = employee.isTemporary || (employee.department_id !== currentDepartment?.department_id && !employee.is_8h_service);
   const is8HService = employee.is_8h_service || false;
