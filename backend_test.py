@@ -1259,7 +1259,7 @@ async def main():
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: Employee Profile Endpoint Balance Data Structure")
+    print("Backend Test Suite: New Functionality Testing")
     print("=" * 70)
     
     try:
