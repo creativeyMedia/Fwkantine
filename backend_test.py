@@ -1036,7 +1036,7 @@ class EmployeeProfileTester:
                 "total_halves": 2,
                 "white_halves": 1,
                 "seeded_halves": 1,
-                "toppings": ["ruehrei"],
+                "toppings": ["ruehrei", "kaese"],  # 2 toppings for 2 halves
                 "has_lunch": False,
                 "boiled_eggs": 0,
                 "fried_eggs": 0,
