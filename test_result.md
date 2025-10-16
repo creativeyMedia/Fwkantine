@@ -558,7 +558,7 @@ backend:
 
   - task: "8H-Service Employee Ordering Logic Bug"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "critical"
@@ -570,6 +570,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "🚨 CRITICAL BUG CONFIRMED AGAIN: 8H-Service Employee Ordering Logic Bug! Re-testing confirmed the exact same issue: ❌ MAIN BALANCE INCORRECTLY UPDATED: 8H-service employee main balance changed from €0.0 to negative values after orders (should remain €0.0), ❌ SUBACCOUNT BALANCES NOT UPDATED: Both fw4abteilung1 and fw4abteilung2 subaccount balances remained at €0.0 before and after orders (should have been updated with negative values), ❌ ROOT CAUSE CONFIRMED: Order creation logic in backend/server.py lines 2184-2208 checks is_home_department but does NOT check for is_8h_service flag. For 8H-service employees, the logic should ALWAYS use subaccounts via update_employee_balance() regardless of department. Current logic: if is_home_department → update main balance directly, else → update subaccount. REQUIRED FIX: Add is_8h_service check: if is_8h_service → ALWAYS use update_employee_balance() for subaccounts, else → use existing home/guest logic."
+        - working: true
+          agent: "testing"
+          comment: "🎉 8H-SERVICE EMPLOYEE ORDERING FIX VERIFIED WORKING! Comprehensive RE-TEST of the 8H-Service Employee Ordering Fix completed with 100% success rate (4/4 critical tests passed): ✅ TEST 1: CREATE 8H EMPLOYEE - Successfully created 8H-service employee with is_8h_service=true, main balances correctly initialized to 0.0 (breakfast_balance=0.0, drinks_sweets_balance=0.0), all 4 subaccount balances properly initialized to 0.0. ✅ TEST 2: ORDER IN DEPARTMENT 1 - Created breakfast order for 8H employee in fw4abteilung1, CRITICAL VERIFICATION: breakfast_balance REMAINS 0.0 (main balance NOT updated), drinks_sweets_balance REMAINS 0.0 (main balance NOT updated), fw4abteilung1.breakfast is NEGATIVE -2.6 (subaccount WAS updated correctly). ✅ TEST 3: ORDER IN DEPARTMENT 2 - Created drinks order for same 8H employee in fw4abteilung2, CRITICAL VERIFICATION: breakfast_balance STILL 0.0, drinks_sweets_balance STILL 0.0, fw4abteilung1.breakfast UNCHANGED (same negative value), fw4abteilung2.drinks is NEGATIVE -2.0 (drinks order correctly updated different subaccount). ✅ TEST 4: DELETION PROTECTION - Attempted DELETE /api/department-admin/employees/{8h_employee_id}, CRITICAL VERIFICATION: Returns HTTP 400 (deletion blocked), German error message about outstanding balances ('8H-Dienst Mitarbeiter kann nicht gelöscht werden. Ausstehende Saldos in: 2. Wachabteilung'), Employee NOT deleted (still exists). CRITICAL SUCCESS: The exact scenario from review request is working perfectly - 8H-Service employees use SUBACCOUNTS ONLY, main balances (breakfast_balance, drinks_sweets_balance) NEVER updated, subaccount balances updated correctly per department, deletion protection works for outstanding subaccount balances. The 8H-Service Employee Ordering Fix is FULLY FUNCTIONAL!"
 
   - task: "8H-Service Employee Deletion Protection Logic Bug"
     implemented: true
