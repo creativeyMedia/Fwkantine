@@ -2182,9 +2182,14 @@ async def create_order(order_data: OrderCreate):
     if employee:
         # KORRIGIERT: Unterscheide zwischen Stammbestellung und Gastbestellung
         is_home_department = (order_data.department_id == employee.get("department_id"))
+        is_8h_service = employee.get('is_8h_service', False)
         
         if order_data.order_type == OrderType.BREAKFAST:
-            if is_home_department:
+            # CRITICAL: 8H-Service employees ALWAYS use subaccounts (no main balance)
+            if is_8h_service:
+                # 8H-DIENST: ALWAYS use subaccount balance, never main balance
+                await update_employee_balance(order_data.employee_id, order_data.department_id, 'breakfast', -total_price)
+            elif is_home_department:
                 # STAMMBESTELLUNG: Update NUR main balance (subaccount wird in update_employee_balance automatisch synchronisiert)
                 new_breakfast_balance = round_to_cents(employee["breakfast_balance"] - total_price)
                 await db.employees.update_one(
@@ -2196,7 +2201,11 @@ async def create_order(order_data: OrderCreate):
                 await update_employee_balance(order_data.employee_id, order_data.department_id, 'breakfast', -total_price)
                 
         else:  # DRINKS or SWEETS
-            if is_home_department:
+            # CRITICAL: 8H-Service employees ALWAYS use subaccounts (no main balance)
+            if is_8h_service:
+                # 8H-DIENST: ALWAYS use subaccount balance, never main balance
+                await update_employee_balance(order_data.employee_id, order_data.department_id, 'drinks', total_price)
+            elif is_home_department:
                 # STAMMBESTELLUNG: Update NUR main balance (subaccount wird in update_employee_balance automatisch synchronisiert)
                 new_drinks_sweets_balance = round_to_cents(employee["drinks_sweets_balance"] + total_price)
                 await db.employees.update_one(
