@@ -374,6 +374,7 @@ class EmployeeCreate(BaseModel):
     name: str
     department_id: str
     is_guest: bool = False  # Optional guest marker for new employees
+    is_8h_service: bool = False  # NEU: 8-Stunden-Dienst Mitarbeiter
 
 class OrderCreate(BaseModel):
     employee_id: str
