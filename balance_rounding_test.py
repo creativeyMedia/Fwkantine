@@ -669,8 +669,8 @@ class BalanceRoundingTester:
         # Test mathematical operations consistency
         test_operations = []
         
-        # Operation 1: Multiple small payments should equal one large payment
-        print(f"   Operation 1: Multiple small vs single large payment")
+        # Operation 1: Multiple small payments vs one large payment (expect small difference due to individual rounding)
+        print(f"   Operation 1: Multiple small vs single large payment (individual rounding expected)")
         
         # Reset balance
         current_balance = await self.get_employee_balance(employee_id)
