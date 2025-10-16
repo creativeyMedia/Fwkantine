@@ -2456,9 +2456,9 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       
       <div className="space-y-6">
         {/* Step 1: Select Roll Counts */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
           <h4 className="font-semibold mb-4">1. Brötchen Auswahl</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6">
             <div>
               <label className="block text-sm font-medium mb-3">Helle Brötchen (Hälften)</label>
               <div className="flex flex-col gap-2">
