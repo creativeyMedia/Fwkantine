@@ -1122,14 +1122,17 @@ class EmployeeProfileTester:
 
     async def run_comprehensive_test(self):
         """Run comprehensive test of new functionality"""
-        print("🚀 STARTING NEW FUNCTIONALITY TESTING")
+        print("🚀 STARTING REVIEW REQUEST TESTING")
         print("=" * 80)
-        print("TESTING: Newly implemented functionality as requested in review")
-        print("- Test 1: Topping Display Fix")
-        print("- Test 2: 8H-Service Employee Creation") 
-        print("- Test 3: 8H-Service Employee Listing")
-        print("- Test 4: 8H-Service Employee Ordering")
-        print("- Test 5: 8H-Service Employee Deletion Protection")
+        print("TESTING: Specific tasks from review request")
+        print("- Task 1: Topping Display Fix - Verify topping names are displayed correctly")
+        print("- Task 2: 8H-Service Employee Full Workflow (6 sub-tests)")
+        print("  - 2.1: Create 8H-Service Employee")
+        print("  - 2.2: List 8H Employees")
+        print("  - 2.3: Order for 8H Employee in Department 1")
+        print("  - 2.4: Order for 8H Employee in Department 2")
+        print("  - 2.5: Try Deleting 8H Employee with Non-Zero Balance")
+        print("  - 2.6: Delete 8H Employee with Zero Balances")
         print("=" * 80)
         
         # Run all new functionality tests
@@ -1140,25 +1143,25 @@ class EmployeeProfileTester:
         result_1 = await self.test_topping_display_fix()
         test_results.append(result_1)
         
-        # Test 2: 8H-Service Employee Creation
+        # Test 2.1: 8H-Service Employee Creation
         print(f"\n{'='*80}")
-        result_2 = await self.test_8h_service_employee_creation()
-        test_results.append(result_2)
+        result_2_1 = await self.test_8h_service_employee_creation()
+        test_results.append(result_2_1)
         
-        # Test 3: 8H-Service Employee Listing
+        # Test 2.2: 8H-Service Employee Listing
         print(f"\n{'='*80}")
-        result_3 = await self.test_8h_service_employee_listing()
-        test_results.append(result_3)
+        result_2_2 = await self.test_8h_service_employee_listing()
+        test_results.append(result_2_2)
         
-        # Test 4: 8H-Service Employee Ordering
+        # Test 2.3 & 2.4: 8H-Service Employee Ordering (both departments)
         print(f"\n{'='*80}")
-        result_4 = await self.test_8h_service_employee_ordering()
-        test_results.append(result_4)
+        result_2_3_2_4 = await self.test_8h_service_employee_ordering_workflow()
+        test_results.append(result_2_3_2_4)
         
-        # Test 5: 8H-Service Employee Deletion Protection
+        # Test 2.5 & 2.6: 8H-Service Employee Deletion Protection
         print(f"\n{'='*80}")
-        result_5 = await self.test_8h_service_employee_deletion_protection()
-        test_results.append(result_5)
+        result_2_5_2_6 = await self.test_8h_service_employee_deletion_protection()
+        test_results.append(result_2_5_2_6)
         
         # Analyze results
         total_tests = len(test_results)
