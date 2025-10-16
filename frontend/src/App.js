@@ -3538,11 +3538,15 @@ const DepartmentAdminDashboard = () => {
           {activeTab === 'employees' && (
             <EmployeeManagementTab 
               employees={employees}
+              eightHourEmployees={eightHourEmployees}
               onCreateEmployee={handleCreateEmployee}
               showNewEmployee={showNewEmployee}
               setShowNewEmployee={setShowNewEmployee}
               currentDepartment={currentDepartment}
-              onEmployeeUpdate={fetchEmployees}
+              onEmployeeUpdate={() => {
+                fetchEmployees();
+                fetch8HourEmployees();
+              }}
               setPaymentEmployeeData={setPaymentEmployeeData}
               setShowPaymentModal={setShowPaymentModal}
             />
