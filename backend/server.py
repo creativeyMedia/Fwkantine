@@ -3211,6 +3211,7 @@ async def get_employee_profile(employee_id: str):
     default_dept_menu = department_menus.get(employee_department_id, {})
     breakfast_prices = default_dept_menu.get("breakfast_prices", {})
     topping_prices = default_dept_menu.get("topping_prices", {})
+    topping_names = default_dept_menu.get("topping_names", {})
     drink_names = default_dept_menu.get("drink_names", {})
     sweet_names = default_dept_menu.get("sweet_names", {})
     
