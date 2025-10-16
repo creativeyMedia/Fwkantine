@@ -620,34 +620,37 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
             {is8HService ? (
               /* 8H-DIENST: Zeige alle 4 Subkonten aller Wachabteilungen */
               <div className="mb-4">
-                <h4 className="text-md font-medium text-orange-800 mb-3">
-                  🕐 8-Stunden-Dienst: Subkonten aller Wachabteilungen
-                </h4>
+                <h4 className="text-sm font-medium text-gray-600 mb-3">🕐 8-Stunden-Dienst: Subkonten aller Wachabteilungen</h4>
                 {allBalances && allBalances.subaccount_balances ? (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(allBalances.subaccount_balances).map(([deptId, balances]) => {
                       const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
                       const breakfastBalance = balances.breakfast || 0;
                       const drinksBalance = balances.drinks || 0;
-                      const hasBalance = breakfastBalance !== 0 || drinksBalance !== 0;
+                      const totalBalance = breakfastBalance + drinksBalance;
                       
                       return (
-                        <div key={deptId} className={`border rounded-lg p-4 ${deptId === currentDepartment?.department_id ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-gray-50'}`}>
-                          <h5 className="font-semibold text-gray-800 mb-3">
-                            {deptName} {deptId === currentDepartment?.department_id && '(Aktuell)'}
-                          </h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200">
-                              <span className="text-sm font-medium">Frühstück:</span>
-                              <span className={`font-bold ${breakfastBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {formatBalance(breakfastBalance)}
-                              </span>
+                        <div key={deptId} className={`border rounded-lg p-3 ${deptId === currentDepartment?.department_id ? 'border-orange-400 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
+                          <div className="text-center mb-3">
+                            <h5 className="text-sm font-medium text-gray-700">
+                              {deptName} {deptId === currentDepartment?.department_id && '(Aktuell)'}
+                            </h5>
+                            <div className={`text-sm font-semibold ${totalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              Gesamt: {totalBalance.toFixed(2)}€
                             </div>
-                            <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200">
-                              <span className="text-sm font-medium">Getränke:</span>
-                              <span className={`font-bold ${drinksBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {formatBalance(drinksBalance)}
-                              </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="text-center p-2 bg-white rounded border">
+                              <div className={`text-sm font-medium ${breakfastBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {breakfastBalance.toFixed(2)}€
+                              </div>
+                              <div className="text-xs text-gray-500">Frühstück</div>
+                            </div>
+                            <div className="text-center p-2 bg-white rounded border">
+                              <div className={`text-sm font-medium ${drinksBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {drinksBalance.toFixed(2)}€
+                              </div>
+                              <div className="text-xs text-gray-500">Getränke</div>
                             </div>
                           </div>
                         </div>
