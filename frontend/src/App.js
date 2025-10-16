@@ -4078,21 +4078,27 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
       const response = await axios.get(`${API}/employees/${employee.id}/all-balances`);
       const balances = response.data;
       
-      // Prüfe Hauptkonto-Balances
-      const mainBreakfastBalance = parseFloat(balances.breakfast_balance || 0);
-      const mainDrinksBalance = parseFloat(balances.drinks_sweets_balance || 0);
+      const is8HService = balances.is_8h_service || employee.is_8h_service || false;
       
       const openBalances = [];
       
-      if (mainBreakfastBalance !== 0) {
-        openBalances.push(`Hauptkonto Frühstück/Mittag: ${mainBreakfastBalance.toFixed(2)}€`);
+      // Für 8H-Mitarbeiter: Nur Subkonten prüfen (Hauptkonten sollten immer 0 sein)
+      // Für normale Mitarbeiter: Hauptkonten prüfen
+      if (!is8HService) {
+        // Prüfe Hauptkonto-Balances
+        const mainBreakfastBalance = parseFloat(balances.breakfast_balance || 0);
+        const mainDrinksBalance = parseFloat(balances.drinks_sweets_balance || 0);
+        
+        if (mainBreakfastBalance !== 0) {
+          openBalances.push(`Hauptkonto Frühstück/Mittag: ${mainBreakfastBalance.toFixed(2)}€`);
+        }
+        
+        if (mainDrinksBalance !== 0) {
+          openBalances.push(`Hauptkonto Getränke/Snacks: ${mainDrinksBalance.toFixed(2)}€`);
+        }
       }
       
-      if (mainDrinksBalance !== 0) {
-        openBalances.push(`Hauptkonto Getränke/Snacks: ${mainDrinksBalance.toFixed(2)}€`);
-      }
-      
-      // Prüfe Subkonto-Balances
+      // Prüfe Subkonto-Balances (für ALLE Mitarbeiter, inklusive 8H)
       if (balances.subaccount_balances) {
         for (const [deptId, subBalances] of Object.entries(balances.subaccount_balances)) {
           const subBreakfast = parseFloat(subBalances.breakfast || 0);
@@ -4100,12 +4106,12 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
           
           if (subBreakfast !== 0) {
             const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
-            openBalances.push(`Subkonto ${deptName} Frühstück/Mittag: ${subBreakfast.toFixed(2)}€`);
+            openBalances.push(`${is8HService ? '🕐 ' : ''}Subkonto ${deptName} Frühstück/Mittag: ${subBreakfast.toFixed(2)}€`);
           }
           
           if (subDrinks !== 0) {
             const deptName = deptId.replace('fw', '').replace('abteilung', '. WA');
-            openBalances.push(`Subkonto ${deptName} Getränke/Snacks: ${subDrinks.toFixed(2)}€`);
+            openBalances.push(`${is8HService ? '🕐 ' : ''}Subkonto ${deptName} Getränke/Snacks: ${subDrinks.toFixed(2)}€`);
           }
         }
       }
