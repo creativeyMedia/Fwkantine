@@ -7494,30 +7494,30 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
         <div className="mt-8 pt-6 border-t border-gray-200">
           <h4 className="text-md font-medium text-gray-800 mb-4">📊 Gesamt</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Gesamtsaldo Frühstück & Mittagessen */}
+            {/* Gesamtsaldo Frühstück & Mittagessen - nur negative Werte (offene Schulden) */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="text-center">
                 <div className="text-gray-600 text-sm mb-2">Frühstück & Mittagessen</div>
-                <div className={`text-2xl font-bold ${
-                  employees.reduce((sum, emp) => sum + (parseFloat(emp.breakfast_balance || 0)), 0) >= 0 
-                    ? 'text-green-600' 
-                    : 'text-red-600'
-                }`}>
-                  {formatBalance(employees.reduce((sum, emp) => sum + (parseFloat(emp.breakfast_balance || 0)), 0))}€
+                <div className="text-xs text-gray-500 mb-1">Offene Schulden</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {formatBalance(employees.reduce((sum, emp) => {
+                    const balance = parseFloat(emp.breakfast_balance || 0);
+                    return sum + (balance < 0 ? balance : 0);
+                  }, 0))}€
                 </div>
               </div>
             </div>
 
-            {/* Gesamtsaldo Süßigkeiten & Getränke */}
+            {/* Gesamtsaldo Süßigkeiten & Getränke - nur negative Werte (offene Schulden) */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="text-center">
                 <div className="text-gray-600 text-sm mb-2">Snacks & Getränke</div>
-                <div className={`text-2xl font-bold ${
-                  employees.reduce((sum, emp) => sum + (parseFloat(emp.drinks_sweets_balance || 0)), 0) >= 0 
-                    ? 'text-green-600' 
-                    : 'text-red-600'
-                }`}>
-                  {formatBalance(employees.reduce((sum, emp) => sum + (parseFloat(emp.drinks_sweets_balance || 0)), 0))}€
+                <div className="text-xs text-gray-500 mb-1">Offene Schulden</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {formatBalance(employees.reduce((sum, emp) => {
+                    const balance = parseFloat(emp.drinks_sweets_balance || 0);
+                    return sum + (balance < 0 ? balance : 0);
+                  }, 0))}€
                 </div>
               </div>
             </div>
