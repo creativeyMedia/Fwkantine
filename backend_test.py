@@ -1777,7 +1777,7 @@ async def main():
         return success
 
 if __name__ == "__main__":
-    print("Backend Test Suite: New Functionality Testing")
+    print("Backend Test Suite: 8H-Service Employee Ordering Fix RE-TEST")
     print("=" * 70)
     
     try:
