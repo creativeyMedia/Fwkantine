@@ -2788,13 +2788,15 @@ const SweetsOrderForm = ({ sweetsMenu, onUpdateQuantity }) => {
 const NewEmployeeModal = ({ onCreate, onClose }) => {
   const [name, setName] = useState('');
   const [isGuest, setIsGuest] = useState(false);
+  const [is8HService, setIs8HService] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name.trim()) {
-      onCreate(name.trim(), isGuest);
+      onCreate(name.trim(), isGuest, is8HService);
       setName('');
       setIsGuest(false);
+      setIs8HService(false);
     }
   };
 
@@ -2825,12 +2827,35 @@ const NewEmployeeModal = ({ onCreate, onClose }) => {
               <input
                 type="checkbox"
                 checked={isGuest}
-                onChange={(e) => setIsGuest(e.target.checked)}
+                onChange={(e) => {
+                  setIsGuest(e.target.checked);
+                  if (e.target.checked) setIs8HService(false); // Can't be both guest and 8H
+                }}
                 className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                disabled={is8HService}
               />
               <div>
                 <span className="text-sm font-medium">👤 Als Gast markieren</span>
                 <div className="text-xs text-gray-500">Gäste werden im Dashboard unten angezeigt</div>
+              </div>
+            </label>
+          </div>
+          
+          <div className="mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={is8HService}
+                onChange={(e) => {
+                  setIs8HService(e.target.checked);
+                  if (e.target.checked) setIsGuest(false); // Can't be both guest and 8H
+                }}
+                className="mr-3 w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                disabled={isGuest}
+              />
+              <div>
+                <span className="text-sm font-medium">🕐 Als 8H-Dienst markieren</span>
+                <div className="text-xs text-gray-500">Erscheint in allen WA-Dashboards, nur Subkonten</div>
               </div>
             </label>
           </div>
