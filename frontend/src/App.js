@@ -379,8 +379,9 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
 
   const { currentDepartment } = React.useContext(AuthContext);
   
-  // ERWEITERT: Prüfe ob es sich um einen temporären Gastmitarbeiter handelt
-  const isTemporaryGuest = employee.isTemporary || (employee.department_id !== currentDepartment?.department_id);
+  // ERWEITERT: Prüfe ob es sich um einen temporären Gastmitarbeiter oder 8H-Dienst Mitarbeiter handelt
+  const isTemporaryGuest = employee.isTemporary || (employee.department_id !== currentDepartment?.department_id && !employee.is_8h_service);
+  const is8HService = employee.is_8h_service || false;
 
   useEffect(() => {
     fetchEmployeeProfile();
