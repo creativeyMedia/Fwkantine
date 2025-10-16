@@ -2494,7 +2494,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
 
     {/* Step 2: Assign Toppings to Each Roll */}
     {totalHalves > 0 && (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6">
         <h4 className="font-semibold mb-4">2. Beläge zuweisen (kostenlos)</h4>
         <p className="text-sm text-gray-600 mb-4">
           Weisen Sie jedem Brötchen einen Belag zu. Gleiche Beläge können mehrfach verwendet werden.
@@ -2502,8 +2502,8 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
         
         <div className="space-y-3">
           {toppingAssignments.map((assignment, index) => (
-            <div key={assignment.id} className="flex items-center gap-4 p-3 bg-white border border-green-300 rounded">
-              <div className="w-40">
+            <div key={assignment.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-white border border-green-300 rounded">
+              <div className="sm:w-40">
                 <span className="text-sm font-medium">{assignment.rollLabel}</span>
               </div>
               <div className="flex-1">
@@ -2526,8 +2526,8 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
     )}
 
-    {/* Eggs and Coffee Options - Three columns */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {/* Eggs and Coffee Options - Stack on mobile, three columns on larger screens */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* Boiled Eggs Option */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <label className="block text-sm font-medium mb-3">🥚 Gekochte Frühstückseier</label>
@@ -2563,7 +2563,7 @@ const BreakfastOrderForm = ({ breakfastMenu, toppingsMenu, onAddItem, rollTypeLa
       </div>
 
       {/* Coffee Option */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:col-span-2 lg:col-span-1">
         <label className="flex items-center cursor-pointer">
           <input
             type="checkbox"
