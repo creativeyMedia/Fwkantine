@@ -1,48 +1,52 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for 8H-Service Employee Ordering Fix RE-TEST
+Backend Test Suite for Critical Bug Investigation: 1. Wachabteilung Employees Not Showing
 
-CRITICAL TEST: Verify 8H-Service Employee Uses Subaccounts Only
+CRITICAL BUG INVESTIGATION:
+- In 1. Wachabteilung (fw4abteilung1): NO regular employees or guests showing, ONLY 8H employees
+- New employees not appearing
+- 2. and 3. Wachabteilung working normally
 
-Test Setup:
-- Create a NEW 8H-service employee (fresh start, no previous test data)
-- Create orders in DIFFERENT departments
+INVESTIGATION TASKS:
 
-Test 1: Create 8H Employee
-- POST /api/employees with is_8h_service=true
-- Verify is_8h_service=true, main balances=0.0
+Test 1: Check All Employees in Database
+- GET /api/departments/fw4abteilung1/employees
+- List ALL employees returned
+- Check each employee's properties: is_8h_service flag, is_guest flag, department_id
+- Count: How many regular vs 8H vs guest employees?
 
-Test 2: Order in Department 1
-- Create a breakfast order for 8H employee in fw4abteilung1
-- GET /api/employees/{id}/all-balances
-- Verify:
-  - ✅ breakfast_balance REMAINS 0.0 (main balance NOT updated)
-  - ✅ drinks_sweets_balance REMAINS 0.0 (main balance NOT updated)
-  - ✅ subaccount_balances.fw4abteilung1.breakfast is NEGATIVE (subaccount WAS updated)
+Test 2: Check 8H Employees Endpoint
+- GET /api/departments/fw4abteilung1/8h-employees
+- List all employees returned
+- Verify these are ACTUALLY 8H employees (is_8h_service=true)
 
-Test 3: Order in Department 2
-- Create a drinks order for same 8H employee in fw4abteilung2
-- GET /api/employees/{id}/all-balances again
-- Verify:
-  - ✅ breakfast_balance STILL 0.0
-  - ✅ drinks_sweets_balance STILL 0.0
-  - ✅ subaccount_balances.fw4abteilung1.breakfast UNCHANGED (same negative value)
-  - ✅ subaccount_balances.fw4abteilung2.drinks is NEGATIVE (drinks order adds to balance)
+Test 3: Compare with Working Department
+- GET /api/departments/fw4abteilung2/employees
+- Compare structure and employee properties
+- Check if filtering logic is different
 
-Test 4: Deletion Protection
-- Try DELETE /api/department-admin/employees/{8h_employee_id}
-- Verify:
-  - ✅ Returns HTTP 400 (deletion blocked)
-  - ✅ German error message about outstanding balances
-  - ✅ Employee NOT deleted
+Test 4: Create Test Employee in fw4abteilung1
+- POST /api/employees with department_id="fw4abteilung1", is_8h_service=false, is_guest=false
+- Verify employee is created correctly
+- GET employees again - does new employee appear?
+
+Test 5: Check for Corrupted Data
+- Look for employees in fw4abteilung1 that might have:
+  - Missing or corrupted is_8h_service field
+  - Incorrect department_id
+  - Any data anomalies
 
 BACKEND ENDPOINTS TO TEST:
-- POST /api/employees (8H-service employee creation)
-- POST /api/orders (8H-service employee ordering in different departments)
-- GET /api/employees/{employee_id}/all-balances (balance verification)
-- DELETE /api/department-admin/employees/{employee_id} (deletion protection)
+- GET /api/departments/fw4abteilung1/employees (main employee listing)
+- GET /api/departments/fw4abteilung1/8h-employees (8H employee listing)
+- GET /api/departments/fw4abteilung2/employees (working department comparison)
+- POST /api/employees (test employee creation)
+- GET /api/employees/{employee_id}/profile (individual employee verification)
 
-TEST DEPARTMENTS: fw4abteilung1, fw4abteilung2
+EXPECTED FINDINGS:
+- Total employee counts per department
+- Any data inconsistencies
+- Possible root cause of missing regular employees
 """
 
 import asyncio
