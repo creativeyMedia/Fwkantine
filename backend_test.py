@@ -709,6 +709,452 @@ class EmployeeProfileTester:
             }
         }
     
+    async def test_all_employees_in_fw4abteilung1(self):
+        """Test 1: Check All Employees in fw4abteilung1 Database"""
+        print("\n🧪 TEST 1: CHECK ALL EMPLOYEES IN FW4ABTEILUNG1")
+        print("=" * 60)
+        
+        # Get all employees from fw4abteilung1
+        response, status = await self.make_request('GET', '/departments/fw4abteilung1/employees')
+        
+        if status != 200:
+            return {
+                "test": "All Employees in fw4abteilung1",
+                "success": False,
+                "error": f"Failed to get employees: HTTP {status} - {response}"
+            }
+        
+        employees = response if isinstance(response, list) else []
+        
+        print(f"   📊 Total employees found in fw4abteilung1: {len(employees)}")
+        
+        # Analyze employee properties
+        regular_employees = []
+        guest_employees = []
+        h8_employees = []
+        corrupted_employees = []
+        
+        for emp in employees:
+            emp_id = emp.get('id', 'NO_ID')[:8]
+            emp_name = emp.get('name', 'NO_NAME')
+            is_8h_service = emp.get('is_8h_service', False)
+            is_guest = emp.get('is_guest', False)
+            department_id = emp.get('department_id', 'NO_DEPT')
+            
+            print(f"   👤 Employee: {emp_name} ({emp_id})")
+            print(f"      - is_8h_service: {is_8h_service}")
+            print(f"      - is_guest: {is_guest}")
+            print(f"      - department_id: {department_id}")
+            
+            # Check for data corruption
+            if department_id != 'fw4abteilung1':
+                corrupted_employees.append({
+                    'id': emp_id,
+                    'name': emp_name,
+                    'issue': f'Wrong department_id: {department_id}'
+                })
+            
+            if 'is_8h_service' not in emp:
+                corrupted_employees.append({
+                    'id': emp_id,
+                    'name': emp_name,
+                    'issue': 'Missing is_8h_service field'
+                })
+            
+            if 'is_guest' not in emp:
+                corrupted_employees.append({
+                    'id': emp_id,
+                    'name': emp_name,
+                    'issue': 'Missing is_guest field'
+                })
+            
+            # Categorize employees
+            if is_8h_service:
+                h8_employees.append(emp)
+            elif is_guest:
+                guest_employees.append(emp)
+            else:
+                regular_employees.append(emp)
+        
+        print(f"\n   📊 EMPLOYEE BREAKDOWN:")
+        print(f"      Regular employees: {len(regular_employees)}")
+        print(f"      Guest employees: {len(guest_employees)}")
+        print(f"      8H employees: {len(h8_employees)}")
+        print(f"      Corrupted data: {len(corrupted_employees)}")
+        
+        if corrupted_employees:
+            print(f"\n   ⚠️  DATA CORRUPTION DETECTED:")
+            for corrupt in corrupted_employees:
+                print(f"      - {corrupt['name']} ({corrupt['id']}): {corrupt['issue']}")
+        
+        return {
+            "test": "All Employees in fw4abteilung1",
+            "success": True,
+            "total_employees": len(employees),
+            "regular_employees": len(regular_employees),
+            "guest_employees": len(guest_employees),
+            "h8_employees": len(h8_employees),
+            "corrupted_employees": len(corrupted_employees),
+            "employee_details": employees,
+            "corruption_issues": corrupted_employees
+        }
+    
+    async def test_8h_employees_endpoint_fw4abteilung1(self):
+        """Test 2: Check 8H Employees Endpoint for fw4abteilung1"""
+        print("\n🧪 TEST 2: CHECK 8H EMPLOYEES ENDPOINT")
+        print("=" * 60)
+        
+        # Get 8H employees from fw4abteilung1
+        response, status = await self.make_request('GET', '/departments/fw4abteilung1/8h-employees')
+        
+        if status != 200:
+            return {
+                "test": "8H Employees Endpoint",
+                "success": False,
+                "error": f"Failed to get 8H employees: HTTP {status} - {response}"
+            }
+        
+        h8_employees = response if isinstance(response, list) else []
+        
+        print(f"   📊 Total 8H employees found: {len(h8_employees)}")
+        
+        # Verify these are actually 8H employees
+        verified_8h = []
+        false_8h = []
+        
+        for emp in h8_employees:
+            emp_id = emp.get('id', 'NO_ID')[:8]
+            emp_name = emp.get('name', 'NO_NAME')
+            is_8h_service = emp.get('is_8h_service', False)
+            department_id = emp.get('department_id', 'NO_DEPT')
+            
+            print(f"   👤 8H Employee: {emp_name} ({emp_id})")
+            print(f"      - is_8h_service: {is_8h_service}")
+            print(f"      - department_id: {department_id}")
+            
+            if is_8h_service == True:
+                verified_8h.append(emp)
+            else:
+                false_8h.append({
+                    'id': emp_id,
+                    'name': emp_name,
+                    'is_8h_service': is_8h_service
+                })
+        
+        print(f"\n   📊 8H EMPLOYEE VERIFICATION:")
+        print(f"      Verified 8H employees: {len(verified_8h)}")
+        print(f"      False 8H employees: {len(false_8h)}")
+        
+        if false_8h:
+            print(f"\n   ⚠️  FALSE 8H EMPLOYEES DETECTED:")
+            for false in false_8h:
+                print(f"      - {false['name']} ({false['id']}): is_8h_service={false['is_8h_service']}")
+        
+        return {
+            "test": "8H Employees Endpoint",
+            "success": True,
+            "total_8h_employees": len(h8_employees),
+            "verified_8h_employees": len(verified_8h),
+            "false_8h_employees": len(false_8h),
+            "h8_employee_details": h8_employees,
+            "false_8h_issues": false_8h
+        }
+    
+    async def test_compare_with_working_department(self):
+        """Test 3: Compare fw4abteilung1 with working fw4abteilung2"""
+        print("\n🧪 TEST 3: COMPARE WITH WORKING DEPARTMENT (fw4abteilung2)")
+        print("=" * 60)
+        
+        # Get employees from fw4abteilung2 (working department)
+        response2, status2 = await self.make_request('GET', '/departments/fw4abteilung2/employees')
+        
+        if status2 != 200:
+            return {
+                "test": "Compare with Working Department",
+                "success": False,
+                "error": f"Failed to get fw4abteilung2 employees: HTTP {status2} - {response2}"
+            }
+        
+        employees2 = response2 if isinstance(response2, list) else []
+        
+        print(f"   📊 fw4abteilung2 total employees: {len(employees2)}")
+        
+        # Analyze fw4abteilung2 employee breakdown
+        regular2 = []
+        guest2 = []
+        h8_2 = []
+        
+        for emp in employees2:
+            is_8h_service = emp.get('is_8h_service', False)
+            is_guest = emp.get('is_guest', False)
+            
+            if is_8h_service:
+                h8_2.append(emp)
+            elif is_guest:
+                guest2.append(emp)
+            else:
+                regular2.append(emp)
+        
+        print(f"   📊 fw4abteilung2 BREAKDOWN:")
+        print(f"      Regular employees: {len(regular2)}")
+        print(f"      Guest employees: {len(guest2)}")
+        print(f"      8H employees: {len(h8_2)}")
+        
+        # Get fw4abteilung1 data for comparison
+        response1, status1 = await self.make_request('GET', '/departments/fw4abteilung1/employees')
+        employees1 = response1 if isinstance(response1, list) and status1 == 200 else []
+        
+        regular1 = []
+        guest1 = []
+        h8_1 = []
+        
+        for emp in employees1:
+            is_8h_service = emp.get('is_8h_service', False)
+            is_guest = emp.get('is_guest', False)
+            
+            if is_8h_service:
+                h8_1.append(emp)
+            elif is_guest:
+                guest1.append(emp)
+            else:
+                regular1.append(emp)
+        
+        print(f"\n   📊 COMPARISON:")
+        print(f"      fw4abteilung1 - Regular: {len(regular1)}, Guest: {len(guest1)}, 8H: {len(h8_1)}")
+        print(f"      fw4abteilung2 - Regular: {len(regular2)}, Guest: {len(guest2)}, 8H: {len(h8_2)}")
+        
+        # Check for structural differences
+        structure_differences = []
+        
+        if len(regular1) == 0 and len(regular2) > 0:
+            structure_differences.append("fw4abteilung1 has NO regular employees, fw4abteilung2 has regular employees")
+        
+        if len(guest1) == 0 and len(guest2) > 0:
+            structure_differences.append("fw4abteilung1 has NO guest employees, fw4abteilung2 has guest employees")
+        
+        if len(h8_1) > 0 and len(regular1) == 0:
+            structure_differences.append("fw4abteilung1 ONLY shows 8H employees, no regular/guest employees")
+        
+        print(f"\n   🔍 STRUCTURAL DIFFERENCES:")
+        for diff in structure_differences:
+            print(f"      - {diff}")
+        
+        return {
+            "test": "Compare with Working Department",
+            "success": True,
+            "fw4abteilung1": {
+                "total": len(employees1),
+                "regular": len(regular1),
+                "guest": len(guest1),
+                "h8": len(h8_1)
+            },
+            "fw4abteilung2": {
+                "total": len(employees2),
+                "regular": len(regular2),
+                "guest": len(guest2),
+                "h8": len(h8_2)
+            },
+            "structure_differences": structure_differences
+        }
+    
+    async def test_create_test_employee_fw4abteilung1(self):
+        """Test 4: Create Test Employee in fw4abteilung1"""
+        print("\n🧪 TEST 4: CREATE TEST EMPLOYEE IN FW4ABTEILUNG1")
+        print("=" * 60)
+        
+        # Create a regular test employee
+        test_employee_data = {
+            "name": "Test Regular Employee WA1",
+            "department_id": "fw4abteilung1",
+            "is_8h_service": False,
+            "is_guest": False
+        }
+        
+        print(f"   📝 Creating test employee: {test_employee_data}")
+        
+        # Create the employee
+        create_response, create_status = await self.make_request('POST', '/employees', test_employee_data)
+        
+        if create_status != 200:
+            return {
+                "test": "Create Test Employee",
+                "success": False,
+                "error": f"Failed to create employee: HTTP {create_status} - {create_response}"
+            }
+        
+        employee_id = create_response.get('id')
+        print(f"   ✅ Created test employee: {employee_id[:8]}...")
+        
+        # Verify employee properties
+        verification_issues = []
+        
+        expected_props = {
+            "name": "Test Regular Employee WA1",
+            "department_id": "fw4abteilung1",
+            "is_8h_service": False,
+            "is_guest": False
+        }
+        
+        for prop, expected in expected_props.items():
+            actual = create_response.get(prop)
+            if actual != expected:
+                verification_issues.append(f"{prop}: expected {expected}, got {actual}")
+            else:
+                print(f"   ✅ {prop} = {actual}")
+        
+        # Get employees list again to see if new employee appears
+        print(f"\n   🔍 Checking if new employee appears in department list...")
+        
+        list_response, list_status = await self.make_request('GET', '/departments/fw4abteilung1/employees')
+        
+        if list_status != 200:
+            verification_issues.append(f"Failed to get updated employee list: HTTP {list_status}")
+        else:
+            employees = list_response if isinstance(list_response, list) else []
+            
+            # Look for our test employee
+            found_employee = None
+            for emp in employees:
+                if emp.get('id') == employee_id:
+                    found_employee = emp
+                    break
+            
+            if found_employee:
+                print(f"   ✅ New employee appears in department list")
+                print(f"      - Name: {found_employee.get('name')}")
+                print(f"      - is_8h_service: {found_employee.get('is_8h_service')}")
+                print(f"      - is_guest: {found_employee.get('is_guest')}")
+            else:
+                verification_issues.append("New employee does NOT appear in department list")
+                print(f"   ❌ New employee does NOT appear in department list")
+        
+        success = len(verification_issues) == 0
+        
+        if success:
+            print(f"   🎉 TEST 4 PASSED: Employee created and appears correctly")
+        else:
+            print(f"   ❌ TEST 4 ISSUES:")
+            for issue in verification_issues:
+                print(f"      - {issue}")
+        
+        return {
+            "test": "Create Test Employee",
+            "success": success,
+            "employee_id": employee_id,
+            "verification_issues": verification_issues,
+            "created_employee": create_response,
+            "appears_in_list": found_employee is not None if list_status == 200 else None
+        }
+    
+    async def test_check_corrupted_data_fw4abteilung1(self):
+        """Test 5: Check for Corrupted Data in fw4abteilung1"""
+        print("\n🧪 TEST 5: CHECK FOR CORRUPTED DATA IN FW4ABTEILUNG1")
+        print("=" * 60)
+        
+        # Get all employees and analyze for corruption
+        response, status = await self.make_request('GET', '/departments/fw4abteilung1/employees')
+        
+        if status != 200:
+            return {
+                "test": "Check Corrupted Data",
+                "success": False,
+                "error": f"Failed to get employees: HTTP {status} - {response}"
+            }
+        
+        employees = response if isinstance(response, list) else []
+        
+        print(f"   📊 Analyzing {len(employees)} employees for data corruption...")
+        
+        corruption_issues = []
+        field_analysis = {
+            'missing_is_8h_service': [],
+            'missing_is_guest': [],
+            'wrong_department_id': [],
+            'invalid_is_8h_service': [],
+            'invalid_is_guest': [],
+            'missing_name': [],
+            'missing_id': []
+        }
+        
+        for emp in employees:
+            emp_id = emp.get('id', 'MISSING_ID')
+            emp_name = emp.get('name', 'MISSING_NAME')
+            
+            # Check for missing fields
+            if 'is_8h_service' not in emp:
+                field_analysis['missing_is_8h_service'].append({'id': emp_id, 'name': emp_name})
+            elif emp.get('is_8h_service') not in [True, False]:
+                field_analysis['invalid_is_8h_service'].append({
+                    'id': emp_id, 
+                    'name': emp_name, 
+                    'value': emp.get('is_8h_service')
+                })
+            
+            if 'is_guest' not in emp:
+                field_analysis['missing_is_guest'].append({'id': emp_id, 'name': emp_name})
+            elif emp.get('is_guest') not in [True, False]:
+                field_analysis['invalid_is_guest'].append({
+                    'id': emp_id, 
+                    'name': emp_name, 
+                    'value': emp.get('is_guest')
+                })
+            
+            if emp.get('department_id') != 'fw4abteilung1':
+                field_analysis['wrong_department_id'].append({
+                    'id': emp_id, 
+                    'name': emp_name, 
+                    'department_id': emp.get('department_id')
+                })
+            
+            if not emp.get('name'):
+                field_analysis['missing_name'].append({'id': emp_id})
+            
+            if not emp.get('id'):
+                field_analysis['missing_id'].append({'name': emp_name})
+        
+        # Report findings
+        total_issues = 0
+        for issue_type, issues in field_analysis.items():
+            if issues:
+                total_issues += len(issues)
+                print(f"\n   ⚠️  {issue_type.upper()}: {len(issues)} employees")
+                for issue in issues[:3]:  # Show first 3 examples
+                    if 'value' in issue:
+                        print(f"      - {issue['name']} ({issue['id'][:8]}): {issue['value']}")
+                    elif 'department_id' in issue:
+                        print(f"      - {issue['name']} ({issue['id'][:8]}): {issue['department_id']}")
+                    else:
+                        print(f"      - {issue['name']} ({issue['id'][:8]})")
+                if len(issues) > 3:
+                    print(f"      ... and {len(issues) - 3} more")
+        
+        if total_issues == 0:
+            print(f"   ✅ No data corruption detected")
+        
+        # Check for employees that might be hidden due to filtering logic
+        regular_employees = [emp for emp in employees if not emp.get('is_8h_service', False) and not emp.get('is_guest', False)]
+        guest_employees = [emp for emp in employees if emp.get('is_guest', False)]
+        h8_employees = [emp for emp in employees if emp.get('is_8h_service', False)]
+        
+        print(f"\n   📊 FINAL EMPLOYEE BREAKDOWN:")
+        print(f"      Regular employees: {len(regular_employees)}")
+        print(f"      Guest employees: {len(guest_employees)}")
+        print(f"      8H employees: {len(h8_employees)}")
+        print(f"      Total corruption issues: {total_issues}")
+        
+        return {
+            "test": "Check Corrupted Data",
+            "success": True,
+            "total_employees": len(employees),
+            "corruption_issues": field_analysis,
+            "total_corruption_count": total_issues,
+            "employee_breakdown": {
+                "regular": len(regular_employees),
+                "guest": len(guest_employees),
+                "h8": len(h8_employees)
+            }
+        }
+
     async def test_topping_display_fix(self):
         """Test 1: Topping Display Fix - Verify topping names are displayed correctly"""
         print("\n🧪 TEST 1: TOPPING DISPLAY FIX")
