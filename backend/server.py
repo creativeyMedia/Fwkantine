@@ -38,7 +38,14 @@ def round_to_cents(amount):
     """Round amount to exactly 2 decimal places and avoid -0.00"""
     if amount is None:
         return 0.0
-    rounded = round(float(amount), 2)
+    
+    # Use Decimal for precise rounding to avoid floating-point issues
+    from decimal import Decimal, ROUND_HALF_UP
+    
+    # Convert to Decimal and round to 2 decimal places using ROUND_HALF_UP
+    decimal_amount = Decimal(str(float(amount)))
+    rounded = float(decimal_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+    
     # Avoid -0.00 display
     return 0.0 if rounded == -0.0 else rounded
 
