@@ -1695,41 +1695,25 @@ class EmployeeProfileTester:
         failed_tests = [result for result in test_results if not result.get('success', False)]
         
         print(f"\n{'='*80}")
-        print(f"🎯 DETAILED TEST RESULTS ANALYSIS")
+        print(f"🎯 8H-SERVICE EMPLOYEE ORDERING FIX - TEST RESULTS")
         print(f"{'='*80}")
         
-        # Collect key findings
-        balance_field_findings = {}
-        structure_findings = {}
-        
-        for result in test_results:
+        for i, result in enumerate(test_results, 1):
             test_name = result['test']
             success = result.get('success', False)
             
-            print(f"\n📋 TEST: {test_name}")
+            print(f"\n📋 TEST {i}: {test_name}")
             print(f"   Result: {'✅ PASSED' if success else '❌ FAILED'}")
             
             if success:
-                # Collect specific findings
-                if test_name == "Balance field names":
-                    balance_field_findings[result.get('employee_name', 'Unknown')] = {
-                        'correct_employee_fields': result.get('correct_employee_fields', {}),
-                        'correct_main_fields': result.get('correct_main_fields', {})
-                    }
-                elif test_name == "Response structure consistency":
-                    structure_findings[result.get('employee_name', 'Unknown')] = {
-                        'primary_balance_location': result.get('primary_balance_location'),
-                        'has_nested_employee': result.get('has_nested_employee'),
-                        'has_subaccount_balances': result.get('has_subaccount_balances')
-                    }
+                # Show key verification details
+                if 'verification_results' in result:
+                    for req, req_result in result['verification_results'].items():
+                        print(f"   {'✅' if req_result else '❌'} {req}")
                 
-                # Show key details
-                if 'has_actual_values' in result:
-                    print(f"   Has actual balance values: {'✅' if result['has_actual_values'] else '❌'}")
-                if 'order_history_count' in result:
-                    print(f"   Order history entries: {result['order_history_count']}")
-                if 'payment_history_count' in result:
-                    print(f"   Payment history entries: {result['payment_history_count']}")
+                # Show employee ID for tracking
+                if 'employee_id' in result and result['employee_id']:
+                    print(f"   Employee ID: {result['employee_id'][:8]}...")
             else:
                 # Show error details
                 if 'error' in result:
@@ -1739,59 +1723,50 @@ class EmployeeProfileTester:
         success_rate = (successful_tests / total_tests) * 100 if total_tests > 0 else 0
         
         print(f"\n{'='*80}")
-        print(f"🎯 FINAL ANALYSIS - EMPLOYEE PROFILE BALANCE DATA STRUCTURE")
+        print(f"🎯 FINAL ANALYSIS - 8H-SERVICE EMPLOYEE ORDERING FIX")
         print(f"{'='*80}")
         print(f"Total Test Cases: {total_tests}")
         print(f"Successful Tests: {successful_tests}")
         print(f"Failed Tests: {len(failed_tests)}")
         print(f"Success Rate: {success_rate:.1f}%")
         
-        # Key findings summary
-        print(f"\n🔍 KEY FINDINGS:")
-        
-        # Balance field names
-        if balance_field_findings:
-            print(f"\n📊 BALANCE FIELD NAMES:")
-            for emp_name, fields in balance_field_findings.items():
-                print(f"   Employee: {emp_name}")
-                print(f"      Employee object fields: {fields['correct_employee_fields']}")
-                print(f"      Main response fields: {fields['correct_main_fields']}")
-        
-        # Response structure
-        if structure_findings:
-            print(f"\n🏗️ RESPONSE STRUCTURE:")
-            for emp_name, structure in structure_findings.items():
-                print(f"   Employee: {emp_name}")
-                print(f"      Primary balance location: {structure['primary_balance_location']}")
-                print(f"      Has nested employee object: {structure['has_nested_employee']}")
-                print(f"      Has subaccount balances: {structure['has_subaccount_balances']}")
-        
         if successful_tests == total_tests:
-            print(f"\n🎉 ALL NEW FUNCTIONALITY TESTS PASSED!")
-            print(f"✅ Topping Display Fix - Topping names displayed correctly (capitalized, not IDs)")
-            print(f"✅ 8H-Service Employee Creation - Employees created with correct properties")
-            print(f"✅ 8H-Service Employee Listing - Endpoint returns 8H-service employees with subaccount balances")
-            print(f"✅ 8H-Service Employee Ordering - Orders update subaccount balances, main balances remain 0")
-            print(f"✅ 8H-Service Employee Deletion Protection - Deletion blocked for non-zero balances, allowed for zero balances")
-            print(f"✅ ALL NEW FUNCTIONALITY IS FULLY FUNCTIONAL")
+            print(f"\n🎉 ALL 8H-SERVICE EMPLOYEE TESTS PASSED!")
+            print(f"✅ Test 1: Create 8H Employee - is_8h_service=true, main balances=0.0")
+            print(f"✅ Test 2: Order in Department 1 - main balances REMAIN 0.0, subaccount updated")
+            print(f"✅ Test 3: Order in Department 2 - main balances STILL 0.0, different subaccount updated")
+            print(f"✅ Test 4: Deletion Protection - HTTP 400, German error, employee preserved")
+            print(f"")
+            print(f"🎯 CRITICAL VERIFICATION COMPLETE:")
+            print(f"   ✅ 8H-Service employees use SUBACCOUNTS ONLY")
+            print(f"   ✅ Main balances (breakfast_balance, drinks_sweets_balance) NEVER updated")
+            print(f"   ✅ Subaccount balances updated correctly per department")
+            print(f"   ✅ Deletion protection works for outstanding subaccount balances")
+            print(f"")
+            print(f"🎉 THE 8H-SERVICE EMPLOYEE ORDERING FIX IS FULLY FUNCTIONAL!")
         else:
-            print(f"\n🚨 NEW FUNCTIONALITY ISSUES DETECTED!")
+            print(f"\n🚨 8H-SERVICE EMPLOYEE ORDERING FIX ISSUES DETECTED!")
             print(f"❌ {len(failed_tests)} test cases failed")
-            print(f"❌ This may affect the new features")
+            print(f"❌ The fix may not be working correctly")
             
-            # Identify patterns in failures
-            print(f"\n🔍 FAILURE PATTERN ANALYSIS:")
+            # Identify specific failures
+            print(f"\n🔍 FAILURE ANALYSIS:")
             for result in failed_tests:
                 test_name = result['test']
                 error = result.get('error', 'Unknown error')
-                print(f"   - {test_name}: {error}")
+                print(f"   ❌ {test_name}: {error}")
+                
+                # Show specific verification failures
+                if 'verification_results' in result:
+                    for req, req_result in result['verification_results'].items():
+                        if not req_result:
+                            print(f"      - {req}: FAILED")
             
-            print(f"\n💡 RECOMMENDED INVESTIGATION:")
-            print(f"   1. Check topping name conversion from IDs to readable names")
-            print(f"   2. Verify 8H-service employee creation initializes all required fields")
-            print(f"   3. Confirm 8H-service employee listing endpoint exists and works")
-            print(f"   4. Validate 8H-service employee orders update subaccounts not main balances")
-            print(f"   5. Test deletion protection logic for 8H-service employees")
+            print(f"\n💡 CRITICAL ISSUES TO INVESTIGATE:")
+            print(f"   1. Check if order creation logic properly handles is_8h_service flag")
+            print(f"   2. Verify update_employee_balance() function uses subaccounts for 8H employees")
+            print(f"   3. Confirm deletion protection checks all subaccount balances")
+            print(f"   4. Test with different order types (breakfast, drinks, sweets)")
         
         return successful_tests == total_tests
 
