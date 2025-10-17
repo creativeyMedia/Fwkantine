@@ -3066,7 +3066,7 @@ async def get_daily_summary(department_id: str):
     notes_summary = {}
     for employee_name, data in employee_orders.items():
         employee_notes = data.get("notes", "")
-        if data.get("notes") and data["notes").strip():
+        if employee_notes and employee_notes.strip():
             notes_summary[employee_name] = employee_notes
     
     # TEMPORARY: Set total_amount to 0 for all employees to avoid NaN issues
