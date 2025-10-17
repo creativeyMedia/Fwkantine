@@ -3075,43 +3075,70 @@ async def get_daily_summary(department_id: str):
         breakfast_menu = await db.menu_breakfast.find({"department_id": department_id}).to_list(100)
         toppings_menu = await db.menu_toppings.find({"department_id": department_id}).to_list(100)
         
-        # Create price maps
-        roll_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+        # Create price maps with safe float conversion
+        roll_prices = {}
+        for item in breakfast_menu:
+            price = item.get("price", 0.50)
+            # Ensure price is a valid float, not NaN or Infinity
+            if isinstance(price, (int, float)) and not (price != price or abs(price) == float('inf')):
+                roll_prices[item["roll_type"]] = float(price)
+            else:
+                roll_prices[item["roll_type"]] = 0.50
         
-        # Get coffee and egg prices from department settings
-        coffee_price = dept.get("coffee_price", 1.50)
-        boiled_egg_price = dept.get("boiled_egg_price", 0.50)
-        fried_egg_price = dept.get("fried_egg_price", 0.50)
-        lunch_price = dept.get("lunch_price", 5.00)
+        # Get coffee and egg prices from department settings with safe defaults
+        def safe_float(value, default):
+            if value is None:
+                return default
+            try:
+                f = float(value)
+                # Check for NaN or Infinity
+                if f != f or abs(f) == float('inf'):
+                    return default
+                return f
+            except (ValueError, TypeError):
+                return default
+        
+        coffee_price = safe_float(dept.get("coffee_price"), 1.50)
+        boiled_egg_price = safe_float(dept.get("boiled_egg_price"), 0.50)
+        fried_egg_price = safe_float(dept.get("fried_egg_price"), 0.50)
+        lunch_price = safe_float(dept.get("lunch_price"), 5.00)
         
         for employee_name, data in employee_orders.items():
             total = 0.0
             
-            # Calculate roll costs
-            white_price = roll_prices.get("weiss", 0.50)
-            seeded_price = roll_prices.get("koerner", 0.60)
-            total += data["white_halves"] * white_price
-            total += data["seeded_halves"] * seeded_price
+            # Calculate roll costs with safe conversions
+            white_price = safe_float(roll_prices.get("weiss"), 0.50)
+            seeded_price = safe_float(roll_prices.get("koerner"), 0.60)
+            white_halves = safe_float(data.get("white_halves"), 0)
+            seeded_halves = safe_float(data.get("seeded_halves"), 0)
+            
+            total += white_halves * white_price
+            total += seeded_halves * seeded_price
             
             # Add eggs
-            total += data["boiled_eggs"] * boiled_egg_price
-            total += data["fried_eggs"] * fried_egg_price
+            boiled_eggs = safe_float(data.get("boiled_eggs"), 0)
+            fried_eggs = safe_float(data.get("fried_eggs"), 0)
+            total += boiled_eggs * boiled_egg_price
+            total += fried_eggs * fried_egg_price
             
             # Add coffee
-            if data["has_coffee"]:
+            if data.get("has_coffee"):
                 total += coffee_price
             
             # Add lunch
-            if data["has_lunch"]:
+            if data.get("has_lunch"):
                 total += lunch_price
             
             # Add sponsored amounts (if this employee sponsored others)
             if data.get("sponsored_breakfast"):
-                total += data["sponsored_breakfast"].get("amount", 0.0)
+                sponsored_amount = safe_float(data["sponsored_breakfast"].get("amount"), 0.0)
+                total += sponsored_amount
             if data.get("sponsored_lunch"):
-                total += data["sponsored_lunch"].get("amount", 0.0)
+                sponsored_amount = safe_float(data["sponsored_lunch"].get("amount"), 0.0)
+                total += sponsored_amount
             
-            data["total_amount"] = round(total, 2)
+            # Ensure total is valid before assigning
+            data["total_amount"] = round(safe_float(total, 0.0), 2)
     else:
         # Fallback: set all totals to 0 if department not found
         for data in employee_orders.values():
