@@ -5012,40 +5012,50 @@ const AdminDashboard = () => {
 
   const fetchAllEmployees = async () => {
     try {
+      console.log('🔄 Starte Laden aller Mitarbeiter...');
+      
       // Fetch employees from all departments
       const deptResponse = await axios.get(`${API}/departments`);
       const departments = deptResponse.data;
+      console.log('📁 Departments geladen:', departments.length);
       
       let allEmps = [];
+      
+      // Fetch 8H-Service employees FIRST (using first department as reference)
+      try {
+        if (departments.length > 0) {
+          const eightHResponse = await axios.get(`${API}/departments/${departments[0].id}/8h-employees`);
+          console.log('🕐 8H-Mitarbeiter Antwort:', eightHResponse.data);
+          const eightHEmployees = eightHResponse.data.map(emp => ({
+            id: emp.id,
+            name: emp.name,
+            department_id: emp.department_id,
+            department_name: '8H-Dienst',
+            is_8h_service: true
+          }));
+          console.log('✅ 8H-Mitarbeiter geladen:', eightHEmployees.length, eightHEmployees);
+          allEmps = [...eightHEmployees];
+        }
+      } catch (eightHError) {
+        console.error('❌ Fehler beim Laden der 8H-Mitarbeiter:', eightHError);
+      }
+      
+      // Then fetch regular employees from all departments
       for (const dept of departments) {
-        // Fetch regular employees
         const empResponse = await axios.get(`${API}/departments/${dept.id}/employees`);
         const deptEmployees = empResponse.data.map(emp => ({
           ...emp,
           department_name: dept.name
         }));
+        console.log(`📋 ${dept.name}: ${deptEmployees.length} Mitarbeiter`);
         allEmps = [...allEmps, ...deptEmployees];
-        
-        // Fetch 8H-Service employees (they appear in all departments but we only need them once)
-        if (dept.id === departments[0].id) {  // Only fetch once from first department
-          try {
-            const eightHResponse = await axios.get(`${API}/departments/${dept.id}/8h-employees`);
-            const eightHEmployees = eightHResponse.data.map(emp => ({
-              ...emp,
-              department_name: '8H-Dienst',
-              is_8h_service: true
-            }));
-            console.log('8H-Mitarbeiter geladen:', eightHEmployees.length);
-            allEmps = [...allEmps, ...eightHEmployees];
-          } catch (eightHError) {
-            console.error('Fehler beim Laden der 8H-Mitarbeiter:', eightHError);
-          }
-        }
       }
-      console.log('Alle Mitarbeiter geladen:', allEmps.length);
+      
+      console.log('✅ Alle Mitarbeiter geladen:', allEmps.length);
+      console.log('👥 AllEmployees Array:', allEmps);
       setAllEmployees(allEmps);
     } catch (error) {
-      console.error('Fehler beim Laden der Mitarbeiter:', error);
+      console.error('❌ Fehler beim Laden der Mitarbeiter:', error);
     }
   };
 
