@@ -2755,18 +2755,26 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             
             # Add sponsors to employee_orders if they're not already there
             for sponsor_key, sponsor_info in sponsor_keys_to_add.items():
+                # Get employee data from database to get is_8h_service flag
+                sponsor_employee = await db.employees.find_one({"id": sponsor_info["sponsor_id"]})
+                
                 employee_orders[sponsor_key] = {
                     "white_halves": 0,
                     "seeded_halves": 0,
                     "boiled_eggs": 0,
+                    "fried_eggs": 0,
                     "has_coffee": False,
                     "has_lunch": False,
+                    "lunch_name": "",
                     "total_amount": 0.0,
                     "toppings": {},
                     "sponsored_breakfast": None,
                     "sponsored_lunch": None,
                     "is_sponsored": False,  # Sponsors are not sponsored
-                    "sponsored_meal_type": None  # Sponsors don't have sponsored meal types
+                    "sponsored_meal_type": None,  # Sponsors don't have sponsored meal types
+                    "employee_department_id": sponsor_employee.get("department_id") if sponsor_employee else None,
+                    "order_department_id": department_id,  # They're sponsoring in this department
+                    "is_8h_service": sponsor_employee.get("is_8h_service", False) if sponsor_employee else False
                 }
             
             # Now calculate sponsoring information for ALL employees (including sponsors-only)
