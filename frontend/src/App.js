@@ -5249,11 +5249,14 @@ const AdminDashboard = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
                       >
                         <option value="">Mitarbeiter auswählen...</option>
-                        {allEmployees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} ({emp.department_name})
-                          </option>
-                        ))}
+                        {allEmployees.map((emp) => {
+                          console.log('Rendering employee option:', emp.name, emp.department_name, emp.is_8h_service);
+                          return (
+                            <option key={emp.id} value={emp.id}>
+                              {emp.name} ({emp.department_name})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                     <button
