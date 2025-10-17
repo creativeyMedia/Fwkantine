@@ -7258,23 +7258,39 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
                             <div key={employeeName} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                                 <h6 className="font-medium text-gray-800">{employeeName}</h6>
-                                {/* NEU: Gastmitarbeiter-Marker */}
-                                {employeeData.employee_department_id && 
-                                 employeeData.order_department_id && 
-                                 employeeData.employee_department_id !== employeeData.order_department_id && (
-                                  <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded mt-1 sm:mt-0">
-                                    👥 Gast aus {(() => {
-                                      // Inline Department-Name-Mapping
-                                      const departmentNames = {
-                                        'fw4abteilung1': '1. WA',
-                                        'fw4abteilung2': '2. WA', 
-                                        'fw4abteilung3': '3. WA',
-                                        'fw4abteilung4': '4. WA'
-                                      };
-                                      return departmentNames[employeeData.employee_department_id] || employeeData.employee_department_id;
-                                    })()}
-                                  </span>
-                                )}
+                                {/* NEU: Gastmitarbeiter und 8H-Mitarbeiter Marker */}
+                                {(() => {
+                                  // Check if 8H-Service employee
+                                  if (employeeData.is_8h_service) {
+                                    return (
+                                      <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2 py-1 rounded mt-1 sm:mt-0">
+                                        🕐 8H-Dienst
+                                      </span>
+                                    );
+                                  }
+                                  
+                                  // Check if guest from another department
+                                  if (employeeData.employee_department_id && 
+                                      employeeData.order_department_id && 
+                                      employeeData.employee_department_id !== employeeData.order_department_id) {
+                                    return (
+                                      <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded mt-1 sm:mt-0">
+                                        👥 Gast aus {(() => {
+                                          // Inline Department-Name-Mapping
+                                          const departmentNames = {
+                                            'fw4abteilung1': '1. WA',
+                                            'fw4abteilung2': '2. WA', 
+                                            'fw4abteilung3': '3. WA',
+                                            'fw4abteilung4': '4. WA'
+                                          };
+                                          return departmentNames[employeeData.employee_department_id] || employeeData.employee_department_id;
+                                        })()}
+                                      </span>
+                                    );
+                                  }
+                                  
+                                  return null;
+                                })()}
                               </div>
                               <div className="mt-2 space-y-1 text-sm text-gray-600">
                                 <div>Helle Hälften: {employeeData.white_halves}</div>
