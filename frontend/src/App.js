@@ -5018,12 +5018,24 @@ const AdminDashboard = () => {
       
       let allEmps = [];
       for (const dept of departments) {
+        // Fetch regular employees
         const empResponse = await axios.get(`${API}/departments/${dept.id}/employees`);
         const deptEmployees = empResponse.data.map(emp => ({
           ...emp,
           department_name: dept.name
         }));
         allEmps = [...allEmps, ...deptEmployees];
+        
+        // Fetch 8H-Service employees (they appear in all departments but we only need them once)
+        if (dept.id === departments[0].id) {  // Only fetch once from first department
+          const eightHResponse = await axios.get(`${API}/departments/${dept.id}/8h-employees`);
+          const eightHEmployees = eightHResponse.data.map(emp => ({
+            ...emp,
+            department_name: '8H-Dienst',
+            is_8h_service: true
+          }));
+          allEmps = [...allEmps, ...eightHEmployees];
+        }
       }
       setAllEmployees(allEmps);
     } catch (error) {
