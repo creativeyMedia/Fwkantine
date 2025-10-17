@@ -2445,8 +2445,10 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             })
             daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
             lunch_name = daily_lunch_price_doc.get("lunch_name", "") if daily_lunch_price_doc else ""
-            # CORRECTED: Filter out sponsor orders from statistics (they're not real food orders)
+            
+            # Separate real orders and sponsor orders
             real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+            sponsor_orders = [order for order in orders if order.get("is_sponsor_order", False)]
             
             # Calculate daily summary using only real orders
             breakfast_summary = {}
@@ -2456,6 +2458,7 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             # This prevents double-counting and ensures consistency
             total_amount = Decimal('0')  # Use Decimal for financial precision
             
+            # First, process real orders
             for order in real_orders:  # Only process real orders for employee statistics
                 if order.get("breakfast_items"):
                     # Get employee info
