@@ -6874,8 +6874,30 @@ const BreakfastHistoryTab = ({ currentDepartment }) => {
 
   const fetchDepartmentEmployees = async () => {
     try {
+      console.log('🔄 Lade Mitarbeiter für Sponsoring...');
+      
+      // Fetch regular employees
       const response = await axios.get(`${API}/departments/${currentDepartment.department_id}/employees`);
-      setDepartmentEmployees(response.data);
+      let allEmps = response.data;
+      console.log('📋 Reguläre Mitarbeiter geladen:', allEmps.length);
+      
+      // Fetch 8H-Service employees
+      try {
+        const eightHResponse = await axios.get(`${API}/departments/${currentDepartment.department_id}/8h-employees`);
+        const eightHEmployees = eightHResponse.data.map(emp => ({
+          id: emp.id,
+          name: emp.name,
+          department_id: emp.department_id,
+          is_8h_service: true
+        }));
+        console.log('🕐 8H-Mitarbeiter geladen:', eightHEmployees.length);
+        allEmps = [...allEmps, ...eightHEmployees];
+      } catch (eightHError) {
+        console.error('❌ Fehler beim Laden der 8H-Mitarbeiter:', eightHError);
+      }
+      
+      console.log('✅ Gesamt Mitarbeiter für Sponsoring:', allEmps.length);
+      setDepartmentEmployees(allEmps);
     } catch (error) {
       console.error('Fehler beim Laden der Abteilungs-Mitarbeiter:', error);
     }
