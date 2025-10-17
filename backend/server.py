@@ -2779,11 +2779,19 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                     
                     # CRITICAL FIX: Find the full employee ID from database using partial ID
                     # The employee key contains only last 8 characters, but we need the full UUID
+                    # First try to find in current department, then try all employees (for 8H-service)
                     employee_doc = await db.employees.find_one({
                         "department_id": department_id,
                         "name": employee_name,
                         "id": {"$regex": f".*{partial_employee_id}$"}  # Match ending with partial ID
                     })
+                    
+                    # If not found in department, try to find anywhere (for 8H-service employees)
+                    if not employee_doc:
+                        employee_doc = await db.employees.find_one({
+                            "name": employee_name,
+                            "id": {"$regex": f".*{partial_employee_id}$"}  # Match ending with partial ID
+                        })
                     
                     if employee_doc:
                         employee_id = employee_doc["id"]  # Use full employee ID
