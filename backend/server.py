@@ -2903,7 +2903,10 @@ async def get_daily_summary(department_id: str):
                     "has_lunch": False,  # Add lunch tracking
                     "has_coffee": False,  # Add coffee tracking
                     "notes": "",  # Initialize empty - will be populated during processing
-                    "toppings": {}
+                    "toppings": {},
+                    "employee_department_id": employee.get("department_id") if employee else None,  # Add employee's home department
+                    "order_department_id": order.get("department_id"),  # Add order's department
+                    "is_8h_service": employee.get("is_8h_service", False) if employee else False  # Add 8H flag
                 }
             
             # Check if this order is sponsored and how to handle it
