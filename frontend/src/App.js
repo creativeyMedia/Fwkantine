@@ -4448,7 +4448,7 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
                   {/* Subaccount Breakfast Balance */}
                   <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Frühstück (Subkonto):</span>
+                      <span className="text-sm font-medium">Frühstück/Mittag (Subkonto):</span>
                       <span className={`font-bold ${employee.subaccount_breakfast_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {employee.subaccount_breakfast_balance >= 0 ? '+' : ''}{employee.subaccount_breakfast_balance.toFixed(2)} €
                       </span>
@@ -4458,7 +4458,7 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
                   {/* Subaccount Drinks Balance */}
                   <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Getränke (Subkonto):</span>
+                      <span className="text-sm font-medium">Getränke/Snacks (Subkonto):</span>
                       <span className={`font-bold ${employee.subaccount_drinks_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {employee.subaccount_drinks_balance >= 0 ? '+' : ''}{employee.subaccount_drinks_balance.toFixed(2)} €
                       </span>
