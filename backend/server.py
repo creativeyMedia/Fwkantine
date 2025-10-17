@@ -1253,12 +1253,22 @@ async def reset_subaccount_balance(employee_id: str, balance_type: str, admin_de
 
 @api_router.get("/departments/{department_id}/other-employees")
 async def get_other_department_employees(department_id: str):
-    """Get employees from OTHER departments for temporary assignment dropdown"""
+    """Get employees from OTHER departments for temporary assignment dropdown
+    
+    Excludes:
+    - Employees from the current department
+    - Guest employees (is_guest=True)
+    - 8H-Service employees (is_8h_service=True) - they have their own section
+    """
     try:
-        # Get all employees NOT from this department
+        # Get all employees NOT from this department, excluding guests and 8H-service employees
         other_employees = await db.employees.find({
             "department_id": {"$ne": department_id},
-            "is_guest": False  # Only regular employees, not guests
+            "is_guest": False,  # Only regular employees, not guests
+            "$or": [
+                {"is_8h_service": {"$exists": False}},  # Field doesn't exist (old employees)
+                {"is_8h_service": False}  # Field exists and is False
+            ]
         }).sort("name", 1).to_list(1000)
         
         # Group by department for easier frontend handling
