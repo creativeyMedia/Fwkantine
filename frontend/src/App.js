@@ -5028,15 +5028,21 @@ const AdminDashboard = () => {
         
         // Fetch 8H-Service employees (they appear in all departments but we only need them once)
         if (dept.id === departments[0].id) {  // Only fetch once from first department
-          const eightHResponse = await axios.get(`${API}/departments/${dept.id}/8h-employees`);
-          const eightHEmployees = eightHResponse.data.map(emp => ({
-            ...emp,
-            department_name: '8H-Dienst',
-            is_8h_service: true
-          }));
-          allEmps = [...allEmps, ...eightHEmployees];
+          try {
+            const eightHResponse = await axios.get(`${API}/departments/${dept.id}/8h-employees`);
+            const eightHEmployees = eightHResponse.data.map(emp => ({
+              ...emp,
+              department_name: '8H-Dienst',
+              is_8h_service: true
+            }));
+            console.log('8H-Mitarbeiter geladen:', eightHEmployees.length);
+            allEmps = [...allEmps, ...eightHEmployees];
+          } catch (eightHError) {
+            console.error('Fehler beim Laden der 8H-Mitarbeiter:', eightHError);
+          }
         }
       }
+      console.log('Alle Mitarbeiter geladen:', allEmps.length);
       setAllEmployees(allEmps);
     } catch (error) {
       console.error('Fehler beim Laden der Mitarbeiter:', error);
