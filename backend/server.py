@@ -2480,7 +2480,8 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                             "is_sponsored": False,  # Add sponsored status tracking
                             "sponsored_meal_type": None,  # Add sponsored meal type tracking
                             "employee_department_id": employee.get("department_id") if employee else None,  # NEU: Stammabteilung des Mitarbeiters
-                            "order_department_id": order.get("department_id")  # NEU: Abteilung der Bestellung
+                            "order_department_id": order.get("department_id"),  # NEU: Abteilung der Bestellung
+                            "is_8h_service": employee.get("is_8h_service", False) if employee else False  # NEU: 8H-Dienst Flag
                         }
                     
                     # Calculate individual employee total_amount considering sponsoring
