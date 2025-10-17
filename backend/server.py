@@ -2587,16 +2587,16 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
                         # CRITICAL: Coffee must be included in employee balance calculations
                         order_amount = order.get("total_price", 0)
                     
-                    # Round to avoid floating point errors
-                    order_amount = round(order_amount, 2)
+                    # Calculate individual employee total_amount for DISPLAY purposes
+                    # This should show the FULL order value, regardless of sponsoring
+                    display_order_amount = order.get("total_price", 0)
                     
                     # ALWAYS add employee to statistics regardless of sponsoring status
-                    # This ensures shopping list includes all employees
-                    # KORRIGIERT: Use calculated order_amount (which includes sponsoring deductions)
-                    employee_orders[employee_key]["total_amount"] += order_amount
+                    # Use FULL order price for display total (not the sponsored-deducted amount)
+                    employee_orders[employee_key]["total_amount"] += display_order_amount
                     
                     # DEBUG: Log the calculation for troubleshooting
-                    print(f"DEBUG BREAKFAST HISTORY: Employee {employee_key[:20]}... adding {order_amount} (sponsored: {order.get('is_sponsored', False)}, meal_type: {order.get('sponsored_meal_type', 'None')})")
+                    print(f"DEBUG BREAKFAST HISTORY: Employee {employee_key[:20]}... adding {display_order_amount} DISPLAY (order total_price)")
                     
                     for item in order["breakfast_items"]:
                         # Handle new format (total_halves, white_halves, seeded_halves)
