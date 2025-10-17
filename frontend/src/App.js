@@ -644,13 +644,13 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               <div className={`text-sm font-medium ${breakfastBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {breakfastBalance.toFixed(2)}€
                               </div>
-                              <div className="text-xs text-gray-500">Frühstück</div>
+                              <div className="text-xs text-gray-500">Frühstück/Mittag</div>
                             </div>
                             <div className="text-center p-2 bg-white rounded border">
                               <div className={`text-sm font-medium ${drinksBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {drinksBalance.toFixed(2)}€
                               </div>
-                              <div className="text-xs text-gray-500">Getränke</div>
+                              <div className="text-xs text-gray-500">Getränke/Snacks</div>
                             </div>
                           </div>
                         </div>
