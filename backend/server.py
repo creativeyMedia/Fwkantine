@@ -3068,6 +3068,55 @@ async def get_daily_summary(department_id: str):
         if data.get("notes") and data["notes"].strip():
             notes_summary[employee_name] = data["notes"]
     
+    # Calculate total_amount for each employee based on their orders
+    # We need to get menu prices from the department
+    dept = await db.departments.find_one({"id": department_id})
+    if dept:
+        breakfast_menu = await db.menu_breakfast.find({"department_id": department_id}).to_list(100)
+        toppings_menu = await db.menu_toppings.find({"department_id": department_id}).to_list(100)
+        
+        # Create price maps
+        roll_prices = {item["roll_type"]: item["price"] for item in breakfast_menu}
+        
+        # Get coffee and egg prices from department settings
+        coffee_price = dept.get("coffee_price", 1.50)
+        boiled_egg_price = dept.get("boiled_egg_price", 0.50)
+        fried_egg_price = dept.get("fried_egg_price", 0.50)
+        lunch_price = dept.get("lunch_price", 5.00)
+        
+        for employee_name, data in employee_orders.items():
+            total = 0.0
+            
+            # Calculate roll costs
+            white_price = roll_prices.get("weiss", 0.50)
+            seeded_price = roll_prices.get("koerner", 0.60)
+            total += data["white_halves"] * white_price
+            total += data["seeded_halves"] * seeded_price
+            
+            # Add eggs
+            total += data["boiled_eggs"] * boiled_egg_price
+            total += data["fried_eggs"] * fried_egg_price
+            
+            # Add coffee
+            if data["has_coffee"]:
+                total += coffee_price
+            
+            # Add lunch
+            if data["has_lunch"]:
+                total += lunch_price
+            
+            # Add sponsored amounts (if this employee sponsored others)
+            if data.get("sponsored_breakfast"):
+                total += data["sponsored_breakfast"].get("amount", 0.0)
+            if data.get("sponsored_lunch"):
+                total += data["sponsored_lunch"].get("amount", 0.0)
+            
+            data["total_amount"] = round(total, 2)
+    else:
+        # Fallback: set all totals to 0 if department not found
+        for data in employee_orders.values():
+            data["total_amount"] = 0.0
+    
     return {
         "date": today.isoformat(),
         "breakfast_summary": breakfast_summary,
