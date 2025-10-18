@@ -6709,7 +6709,7 @@ const MealSponsorModal = ({
 
 
 // Extended Order History Tab Component
-const ExtendedOrderHistoryTab = ({ currentDepartment, extendedOrderHistory, fetchExtendedOrderHistory, selectedDeptForHistory, setSelectedDeptForHistory }) => {
+const ExtendedOrderHistoryTab = ({ extendedOrderHistory, fetchExtendedOrderHistory, selectedDeptForHistory, setSelectedDeptForHistory }) => {
   const [departments, setDepartments] = useState([]);
   
   useEffect(() => {
@@ -6717,12 +6717,12 @@ const ExtendedOrderHistoryTab = ({ currentDepartment, extendedOrderHistory, fetc
   }, []);
   
   useEffect(() => {
-    // Auto-select current department on first load
-    if (!selectedDeptForHistory && currentDepartment) {
-      setSelectedDeptForHistory(currentDepartment.department_id);
-      fetchExtendedOrderHistory(currentDepartment.department_id);
+    // Auto-select first department on first load
+    if (!selectedDeptForHistory && departments.length > 0) {
+      setSelectedDeptForHistory(departments[0].id);
+      fetchExtendedOrderHistory(departments[0].id);
     }
-  }, [currentDepartment]);
+  }, [departments]);
   
   useEffect(() => {
     // Fetch when department changes
