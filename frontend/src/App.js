@@ -9211,6 +9211,15 @@ const DeveloperDashboard = () => {
             setShowEmployeeProfile={setShowEmployeeProfile}
           />
         )}
+        
+        {activeTab === 'extended-history' && (
+          <ExtendedOrderHistoryTab 
+            extendedOrderHistory={extendedOrderHistory}
+            fetchExtendedOrderHistory={fetchExtendedOrderHistory}
+            selectedDeptForHistory={selectedDeptForHistory}
+            setSelectedDeptForHistory={setSelectedDeptForHistory}
+          />
+        )}
 
         {/* Employee Profile Modal */}
         {showEmployeeProfile && selectedEmployee && (
