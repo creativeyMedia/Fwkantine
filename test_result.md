@@ -604,6 +604,18 @@ backend:
           agent: "testing"
           comment: "🎉 8H-SERVICE EMPLOYEE DELETION PROTECTION VERIFIED WORKING! As part of the comprehensive RE-TEST of the 8H-Service Employee Ordering Fix, the deletion protection functionality was also verified and is now working correctly: ✅ DELETION BLOCKED: Employee with outstanding subaccount balances correctly blocked from deletion with HTTP 400 error (not HTTP 200), ✅ GERMAN ERROR MESSAGE: Proper German error message returned: '8H-Dienst Mitarbeiter kann nicht gelöscht werden. Ausstehende Saldos in: 2. Wachabteilung (Frühstück: 0.00€, Getränke: -2.00€)', ✅ EMPLOYEE PRESERVED: Employee NOT deleted and still exists in system after blocked deletion attempt, ✅ SUBACCOUNT BALANCE DETECTION: Deletion protection correctly detects outstanding balances in ANY subaccount across all departments (fw4abteilung1, fw4abteilung2, fw4abteilung3, fw4abteilung4). DEPENDENCY RESOLVED: The previous issue was indeed caused by the 8H-Service Employee Ordering Logic Bug - now that ordering correctly updates subaccount balances, deletion protection works as expected. The 8H-Service Employee Deletion Protection is FULLY FUNCTIONAL!"
 
+  - task: "Fix Extended Order History Endpoint - Drinks/Sweets Items and Total Price Display"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed the /api/department-admin/extended-order-history/{department_id} endpoint to properly parse drink_items and sweet_items dictionaries, calculate total_price correctly, and ensure all order details are properly displayed. Changes include: 1) Added type checking for drink_items and sweet_items to ensure they are dictionaries, 2) Added quantity > 0 check to only include items with valid quantities, 3) Enhanced breakfast items parsing with defensive checks for dict types, 4) Ensured total_price is always displayed as absolute value (abs()) for all order types, 5) Added better error handling for menu item lookups. The fix addresses the issues where order_details.items was empty and total_price was showing as 0 or negative values. Now awaiting user testing."
+
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
     implemented: true
