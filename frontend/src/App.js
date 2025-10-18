@@ -6853,7 +6853,7 @@ const ExtendedOrderHistoryTab = ({ extendedOrderHistory, fetchExtendedOrderHisto
                 
                 <div className="text-right">
                   <div className="text-lg font-bold text-gray-800">
-                    {order.order_details.total_price.toFixed(2)} €
+                    {order.order_details?.total_price ? order.order_details.total_price.toFixed(2) : '0.00'} €
                   </div>
                 </div>
               </div>
