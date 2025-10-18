@@ -9257,10 +9257,50 @@ const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelecte
                 <div key={employee.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800">{employee.name}</h4>
-                      <p className="text-sm text-gray-600">{employee.department_name}</p>
-                      {employee.is_guest && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full mt-1 inline-block">👤 Gast</span>
+                      {editingEmployeeId === employee.id ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className="w-full px-2 py-1 border border-blue-500 rounded text-sm font-semibold"
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSaveName(employee.id)}
+                              className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                            >
+                              ✓ Speichern
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                            >
+                              ✗ Abbrechen
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-gray-800">{employee.name}</h4>
+                            <button
+                              onClick={() => handleEditName(employee)}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                              title="Namen bearbeiten"
+                            >
+                              ✏️
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-600">{employee.department_name}</p>
+                          {employee.is_guest && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full mt-1 inline-block">👤 Gast</span>
+                          )}
+                          {employee.is_8h_service && (
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full mt-1 inline-block">🕐 8H</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
