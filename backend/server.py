@@ -3990,6 +3990,136 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
         "result_description": result_description
     }
 
+
+
+@api_router.get("/department-admin/extended-order-history/{department_id}")
+async def get_extended_order_history(department_id: str, limit: int = 30):
+    """Admin: Get chronological order history for all employees in department
+    
+    Returns all order types (breakfast, drinks, sweets) in a single chronological feed
+    Shows the latest orders first, not grouped by employee
+    
+    Args:
+        department_id: Department ID
+        limit: Maximum number of orders to return (default 30)
+    """
+    try:
+        # Fetch all orders for this department, sorted by timestamp DESC (newest first)
+        orders = await db.orders.find({
+            "department_id": department_id
+        }).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        # Enrich orders with employee information
+        enriched_orders = []
+        for order in orders:
+            # Get employee info
+            employee = await db.employees.find_one({"id": order["employee_id"]})
+            employee_name = employee["name"] if employee else "Unbekannt"
+            is_8h_service = employee.get("is_8h_service", False) if employee else False
+            is_guest = employee.get("is_guest", False) if employee else False
+            employee_dept_id = employee.get("department_id") if employee else None
+            
+            # Determine employee type marker
+            employee_marker = None
+            if is_8h_service:
+                employee_marker = "8H"
+            elif is_guest:
+                employee_marker = "Gast"
+            elif employee_dept_id and employee_dept_id != department_id:
+                # Guest from another department
+                dept_name = employee_dept_id.replace('fw', '').replace('abteilung', '. WA')
+                employee_marker = f"Gast aus {dept_name}"
+            
+            # Format order details based on type
+            order_details = {}
+            order_type = order.get("order_type", "UNKNOWN")
+            
+            if order_type == "BREAKFAST":
+                # Parse breakfast items
+                items = order.get("breakfast_items", [])
+                order_details = {
+                    "type": "Frühstück",
+                    "items": [],
+                    "total_price": order.get("total_price", 0)
+                }
+                
+                for item in items:
+                    item_desc = []
+                    white_halves = item.get("white_halves", 0)
+                    seeded_halves = item.get("seeded_halves", 0)
+                    
+                    if white_halves > 0:
+                        item_desc.append(f"{white_halves}x Helle Brötchen")
+                    if seeded_halves > 0:
+                        item_desc.append(f"{seeded_halves}x Körner Brötchen")
+                    
+                    toppings = item.get("toppings", [])
+                    if toppings:
+                        topping_str = ", ".join(toppings)
+                        item_desc.append(f"mit {topping_str}")
+                    
+                    order_details["items"].append(" ".join(item_desc))
+                
+                # Add eggs
+                boiled_eggs = order.get("boiled_eggs", 0)
+                fried_eggs = order.get("fried_eggs", 0)
+                if boiled_eggs > 0:
+                    order_details["items"].append(f"{boiled_eggs}x Gekochte Eier")
+                if fried_eggs > 0:
+                    order_details["items"].append(f"{fried_eggs}x Spiegeleier")
+                
+                # Add coffee
+                if order.get("has_coffee"):
+                    order_details["items"].append("☕ Kaffee")
+                
+                # Add lunch
+                if order.get("has_lunch"):
+                    lunch_name = order.get("lunch_name", "Mittagessen")
+                    order_details["items"].append(f"🍽️ {lunch_name}")
+                
+            elif order_type in ["DRINKS", "SWEETS"]:
+                order_details = {
+                    "type": "Getränke" if order_type == "DRINKS" else "Snacks",
+                    "items": [],
+                    "total_price": order.get("total_price", 0)
+                }
+                
+                # Parse items
+                items = order.get("items", [])
+                for item in items:
+                    item_name = item.get("name", "Unbekannt")
+                    quantity = item.get("quantity", 1)
+                    order_details["items"].append(f"{quantity}x {item_name}")
+            
+            # Add sponsoring info
+            is_sponsored = order.get("is_sponsored", False)
+            sponsored_meal_type = order.get("sponsored_meal_type")
+            is_sponsor_order = order.get("is_sponsor_order", False)
+            
+            enriched_orders.append({
+                "order_id": order["id"],
+                "employee_name": employee_name,
+                "employee_id": order["employee_id"],
+                "employee_marker": employee_marker,
+                "is_8h_service": is_8h_service,
+                "is_guest": is_guest,
+                "timestamp": order["timestamp"],
+                "order_details": order_details,
+                "is_sponsored": is_sponsored,
+                "sponsored_meal_type": sponsored_meal_type,
+                "is_sponsor_order": is_sponsor_order,
+                "is_cancelled": order.get("is_cancelled", False)
+            })
+        
+        return {
+            "orders": enriched_orders,
+            "total": len(enriched_orders),
+            "department_id": department_id
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Bestellhistorie: {str(e)}")
+
 # LEGACY: Keep old endpoint for backward compatibility (mark as deprecated)
 @api_router.post("/department-admin/payment/{employee_id}")
 async def mark_payment(employee_id: str, payment_type: str, amount: float, admin_department: str):
