@@ -3247,6 +3247,17 @@ const DepartmentAdminDashboard = () => {
     }
   };
 
+
+  const fetchExtendedOrderHistory = async (deptId) => {
+    try {
+      const response = await axios.get(`${API}/department-admin/extended-order-history/${deptId}?limit=30`);
+      setExtendedOrderHistory(response.data.orders);
+    } catch (error) {
+      console.error('Fehler beim Laden der erweiterten Bestellhistorie:', error);
+    }
+  };
+
+
   const handleBalanceUpdated = () => {
     // Refresh the employee list after balance update in Admin Dashboard
     fetchEmployees();
