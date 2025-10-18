@@ -822,8 +822,17 @@ async def get_departments():
 # Employee routes
 @api_router.get("/departments/{department_id}/employees", response_model=List[Employee])
 async def get_department_employees(department_id: str):
-    """Get all employees for a specific department, sorted by sort_order"""
-    employees = await db.employees.find({"department_id": department_id}).sort("sort_order", 1).to_list(100)
+    """Get all employees for a specific department, sorted by sort_order
+    
+    Excludes 8H-Service employees (they have their own section)
+    """
+    employees = await db.employees.find({
+        "department_id": department_id,
+        "$or": [
+            {"is_8h_service": {"$exists": False}},  # Old employees without the field
+            {"is_8h_service": False}  # Explicitly not 8H-service
+        ]
+    }).sort("sort_order", 1).to_list(100)
     
     # Initialize subaccount balances for existing employees that don't have them
     updated_employees = []
