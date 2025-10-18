@@ -4081,30 +4081,38 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
                 order_details = {
                     "type": "Getränke" if order_type == "DRINKS" else "Snacks",
                     "items": [],
-                    "total_price": abs(order.get("total_price", 0))  # Use absolute value
+                    "total_price": abs(order.get("total_price", 0.0))  # Use absolute value for display
                 }
                 
                 # Parse drink_items or sweet_items
                 drink_items = order.get("drink_items", {})
                 sweet_items = order.get("sweet_items", {})
                 
+                # Ensure items are dictionaries
+                if not isinstance(drink_items, dict):
+                    drink_items = {}
+                if not isinstance(sweet_items, dict):
+                    sweet_items = {}
+                
                 # For drinks - get names from department menu
-                if drink_items:
+                if drink_items and len(drink_items) > 0:
                     dept_menu = await db.menu_drinks.find({"department_id": department_id}).to_list(100)
                     drink_map = {item["id"]: item["name"] for item in dept_menu}
                     
                     for item_id, quantity in drink_items.items():
-                        item_name = drink_map.get(item_id, "Unbekanntes Getränk")
-                        order_details["items"].append(f"{quantity}x {item_name}")
+                        if quantity > 0:  # Only include items with quantity > 0
+                            item_name = drink_map.get(item_id, "Unbekanntes Getränk")
+                            order_details["items"].append(f"{quantity}x {item_name}")
                 
                 # For sweets - get names from department menu
-                if sweet_items:
+                if sweet_items and len(sweet_items) > 0:
                     dept_menu = await db.menu_sweets.find({"department_id": department_id}).to_list(100)
                     sweet_map = {item["id"]: item["name"] for item in dept_menu}
                     
                     for item_id, quantity in sweet_items.items():
-                        item_name = sweet_map.get(item_id, "Unbekannter Snack")
-                        order_details["items"].append(f"{quantity}x {item_name}")
+                        if quantity > 0:  # Only include items with quantity > 0
+                            item_name = sweet_map.get(item_id, "Unbekannter Snack")
+                            order_details["items"].append(f"{quantity}x {item_name}")
             
             # Add sponsoring info
             is_sponsored = order.get("is_sponsored", False)
