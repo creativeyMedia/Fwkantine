@@ -3171,6 +3171,10 @@ const DepartmentAdminDashboard = () => {
   const [showNewDrink, setShowNewDrink] = useState(false);
   const [showNewSweet, setShowNewSweet] = useState(false);
   
+  // Extended Order History state
+  const [extendedOrderHistory, setExtendedOrderHistory] = useState([]);
+  const [selectedDeptForHistory, setSelectedDeptForHistory] = useState('');
+  
   // Sponsoring state
   const [sponsorDate, setSponsorDate] = useState(new Date().toISOString().split('T')[0]);
   const [sponsorEmployeeId, setSponsorEmployeeId] = useState('');
