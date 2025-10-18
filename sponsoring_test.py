@@ -43,7 +43,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://firebrigade-food.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://brigade-meals.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class SponsoringDoubleCalculationTester:
