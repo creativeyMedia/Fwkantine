@@ -3603,6 +3603,18 @@ const DepartmentAdminDashboard = () => {
             <BreakfastHistoryTab currentDepartment={currentDepartment} />
           )}
 
+
+
+          {activeTab === 'extended-history' && (
+            <ExtendedOrderHistoryTab 
+              currentDepartment={currentDepartment}
+              extendedOrderHistory={extendedOrderHistory}
+              fetchExtendedOrderHistory={fetchExtendedOrderHistory}
+              selectedDeptForHistory={selectedDeptForHistory}
+              setSelectedDeptForHistory={setSelectedDeptForHistory}
+            />
+          )}
+
           {activeTab === 'settings' && (
             <AdminSettingsTab currentDepartment={currentDepartment} />
           )}
