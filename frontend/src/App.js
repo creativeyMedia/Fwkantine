@@ -8923,6 +8923,27 @@ const DeveloperDashboard = () => {
       const departments = deptResponse.data;
       
       let allEmps = [];
+      
+      // Fetch 8H-Service employees first (using first department as reference)
+      if (departments.length > 0) {
+        try {
+          const eightHResponse = await axios.get(`${API}/departments/${departments[0].id}/8h-employees`);
+          const eightHEmployees = eightHResponse.data.map(emp => ({
+            id: emp.id,
+            name: emp.name,
+            department_id: emp.department_id,
+            department_name: '8H-Dienst',
+            is_8h_service: true,
+            breakfast_balance: 0,
+            drinks_sweets_balance: 0
+          }));
+          allEmps = [...eightHEmployees];
+        } catch (error) {
+          console.error('Fehler beim Laden der 8H-Mitarbeiter:', error);
+        }
+      }
+      
+      // Then fetch regular employees from all departments
       for (const dept of departments) {
         const empResponse = await axios.get(`${API}/departments/${dept.id}/employees`);
         const employees = empResponse.data.map(emp => ({
@@ -8933,11 +8954,18 @@ const DeveloperDashboard = () => {
         allEmps = [...allEmps, ...employees];
       }
       
-      // Sort by department, then by name
+      // Sort: 8H first, then by department, then by name
       allEmps.sort((a, b) => {
+        // 8H employees come first
+        if (a.is_8h_service && !b.is_8h_service) return -1;
+        if (!a.is_8h_service && b.is_8h_service) return 1;
+        
+        // Then sort by department
         if (a.department_name !== b.department_name) {
           return a.department_name.localeCompare(b.department_name);
         }
+        
+        // Finally sort by name
         return a.name.localeCompare(b.name);
       });
       
