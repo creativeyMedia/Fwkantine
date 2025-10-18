@@ -881,6 +881,32 @@ async def create_employee(employee_data: EmployeeCreate):
     await db.employees.insert_one(employee_dict)
     return Employee(**employee_dict)
 
+
+@api_router.put("/developer/employees/{employee_id}/name")
+async def update_employee_name(employee_id: str, name: str):
+    """Developer: Update employee name
+    
+    Args:
+        employee_id: Employee UUID
+        name: New name for the employee
+    """
+    if not name or not name.strip():
+        raise HTTPException(status_code=400, detail="Name darf nicht leer sein")
+    
+    # Update employee name
+    result = await db.employees.update_one(
+        {"id": employee_id},
+        {"$set": {"name": name.strip()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Mitarbeiter nicht gefunden")
+    
+    # Get updated employee
+    employee = await db.employees.find_one({"id": employee_id})
+    return Employee(**employee)
+
+
 @api_router.post("/admin/migrate-subaccounts")
 async def migrate_employee_subaccounts():
     """EINMALIGE MIGRATION: Initialize subaccount_balances for all existing employees
