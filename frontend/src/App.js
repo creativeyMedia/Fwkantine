@@ -9154,6 +9154,8 @@ const HistoryDisplay = ({ employeeProfile, formatDate, deleteHistoryEntry }) => 
 
 // Extended Employee Management Tab Component for Developer Dashboard
 const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelectedEmployee, setShowEmployeeProfile }) => {
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+  const [editingName, setEditingName] = useState('');
   
   // Gruppiere Mitarbeiter nach Wachabteilungen
   const employeesByDepartment = employees.reduce((acc, employee) => {
@@ -9167,6 +9169,33 @@ const ExtendedEmployeeManagementTab = ({ employees, onEmployeeUpdate, setSelecte
 
   // Sortiere Abteilungen alphabetisch
   const sortedDepartments = Object.keys(employeesByDepartment).sort();
+
+  const handleEditName = (employee) => {
+    setEditingEmployeeId(employee.id);
+    setEditingName(employee.name);
+  };
+
+  const handleSaveName = async (employeeId) => {
+    if (!editingName.trim()) {
+      alert('Name darf nicht leer sein');
+      return;
+    }
+    
+    try {
+      await axios.put(`${API}/developer/employees/${employeeId}/name?name=${encodeURIComponent(editingName.trim())}`);
+      setEditingEmployeeId(null);
+      setEditingName('');
+      onEmployeeUpdate();
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Namens:', error);
+      alert('Fehler beim Aktualisieren des Namens');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEmployeeId(null);
+    setEditingName('');
+  };
 
   const handleMoveEmployee = async (employee, targetDepartmentId) => {
     if (window.confirm(`Mitarbeiter ${employee.name} zur Abteilung verschieben?`)) {
