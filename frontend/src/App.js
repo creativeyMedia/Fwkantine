@@ -6734,6 +6734,174 @@ const MealSponsorModal = ({
   );
 };
 
+
+
+// Extended Order History Tab Component
+const ExtendedOrderHistoryTab = ({ currentDepartment, extendedOrderHistory, fetchExtendedOrderHistory, selectedDeptForHistory, setSelectedDeptForHistory }) => {
+  const [departments, setDepartments] = useState([]);
+  
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+  
+  useEffect(() => {
+    // Auto-select current department on first load
+    if (!selectedDeptForHistory && currentDepartment) {
+      setSelectedDeptForHistory(currentDepartment.department_id);
+      fetchExtendedOrderHistory(currentDepartment.department_id);
+    }
+  }, [currentDepartment]);
+  
+  useEffect(() => {
+    // Fetch when department changes
+    if (selectedDeptForHistory) {
+      fetchExtendedOrderHistory(selectedDeptForHistory);
+    }
+  }, [selectedDeptForHistory]);
+  
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(`${API}/departments`);
+      setDepartments(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Wachabteilungen:', error);
+    }
+  };
+  
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Berlin'
+    });
+  };
+  
+  const getOrderTypeColor = (type) => {
+    switch (type) {
+      case 'Frühstück':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'Getränke':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'Snacks':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+  
+  return (
+    <div>
+      <h3 className="text-2xl font-bold mb-6">Erweiterter Bestellverlauf</h3>
+      
+      {/* Department Selector */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium mb-2">Wachabteilung wählen:</label>
+        <select
+          value={selectedDeptForHistory}
+          onChange={(e) => setSelectedDeptForHistory(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+        >
+          <option value="">Bitte wählen...</option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Order History Feed */}
+      {extendedOrderHistory.length === 0 ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-gray-600">Keine Bestellungen vorhanden</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600 mb-4">
+            Zeige die letzten {extendedOrderHistory.length} Bestellungen (chronologisch)
+          </div>
+          
+          {extendedOrderHistory.map((order) => (
+            <div 
+              key={order.order_id} 
+              className={`border-l-4 rounded-lg p-4 ${
+                order.is_cancelled ? 'bg-red-50 border-red-400' : 'bg-white border-gray-300'
+              } shadow-sm hover:shadow-md transition-shadow`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-semibold text-lg">{order.employee_name}</h4>
+                    
+                    {/* Employee Marker */}
+                    {order.employee_marker && (
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        order.is_8h_service 
+                          ? 'bg-orange-100 text-orange-800' 
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {order.is_8h_service ? '🕐 ' : '👥 '}{order.employee_marker}
+                      </span>
+                    )}
+                    
+                    {/* Order Type Badge */}
+                    <span className={`text-xs px-2 py-1 rounded border ${getOrderTypeColor(order.order_details.type)}`}>
+                      {order.order_details.type}
+                    </span>
+                    
+                    {/* Cancelled Badge */}
+                    {order.is_cancelled && (
+                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                        Storniert
+                      </span>
+                    )}
+                    
+                    {/* Sponsored Badge */}
+                    {order.is_sponsored && (
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                        🎁 Gesponsert
+                      </span>
+                    )}
+                    
+                    {/* Sponsor Order Badge */}
+                    {order.is_sponsor_order && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        💰 Sponsor
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 mt-1">
+                    {formatDate(order.timestamp)}
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className="text-lg font-bold text-gray-800">
+                    {order.order_details.total_price.toFixed(2)} €
+                  </div>
+                </div>
+              </div>
+              
+              {/* Order Items */}
+              <div className="mt-3 space-y-1">
+                {order.order_details.items.map((item, index) => (
+                  <div key={index} className="text-sm text-gray-700">
+                    • {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Breakfast History Tab Component
 const BreakfastHistoryTab = ({ currentDepartment }) => {
   const [breakfastHistory, setBreakfastHistory] = useState([]);
