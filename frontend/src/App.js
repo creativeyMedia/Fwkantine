@@ -3534,6 +3534,7 @@ const DepartmentAdminDashboard = () => {
             { id: 'other-departments', label: 'Andere WA' }, // ERWEITERT
             { id: 'menu-management', label: 'Menü & Preise' },
             { id: 'breakfast-history', label: 'Bestellverlauf' },
+            { id: 'extended-history', label: 'Erweiterter Verlauf' }, // NEU
             { id: 'settings', label: 'Einstellungen' }
           ].map((tab) => (
             <button
