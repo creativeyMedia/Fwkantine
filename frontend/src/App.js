@@ -9074,6 +9074,10 @@ const DeveloperDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
   
+  // Extended Order History state
+  const [extendedOrderHistory, setExtendedOrderHistory] = useState([]);
+  const [selectedDeptForHistory, setSelectedDeptForHistory] = useState('');
+  
   // Success Notification State
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
