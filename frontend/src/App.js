@@ -6860,11 +6860,15 @@ const ExtendedOrderHistoryTab = ({ extendedOrderHistory, fetchExtendedOrderHisto
               
               {/* Order Items */}
               <div className="mt-3 space-y-1">
-                {order.order_details.items.map((item, index) => (
-                  <div key={index} className="text-sm text-gray-700">
-                    • {item}
-                  </div>
-                ))}
+                {order.order_details?.items && order.order_details.items.length > 0 ? (
+                  order.order_details.items.map((item, index) => (
+                    <div key={index} className="text-sm text-gray-700">
+                      • {item}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500 italic">Keine Details verfügbar</div>
+                )}
               </div>
             </div>
           ))}
