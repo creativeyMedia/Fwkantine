@@ -4032,7 +4032,7 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
             
             # Format order details based on type
             order_details = {}
-            order_type = order.get("order_type", "UNKNOWN")
+            order_type = order.get("order_type", "UNKNOWN").upper()  # Convert to uppercase for comparison
             
             if order_type == "BREAKFAST":
                 # Parse breakfast items
