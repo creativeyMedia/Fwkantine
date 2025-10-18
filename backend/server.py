@@ -4040,7 +4040,7 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
                 order_details = {
                     "type": "Frühstück",
                     "items": [],
-                    "total_price": order.get("total_price", 0)
+                    "total_price": abs(order.get("total_price", 0))  # Use absolute value
                 }
                 
                 for item in items:
