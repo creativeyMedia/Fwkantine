@@ -4040,10 +4040,17 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
                 order_details = {
                     "type": "Frühstück",
                     "items": [],
-                    "total_price": abs(order.get("total_price", 0))  # Use absolute value
+                    "total_price": abs(order.get("total_price", 0.0))  # Use absolute value for display
                 }
                 
+                # Ensure items is a list
+                if not isinstance(items, list):
+                    items = []
+                
                 for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                        
                     item_desc = []
                     white_halves = item.get("white_halves", 0)
                     seeded_halves = item.get("seeded_halves", 0)
@@ -4054,11 +4061,12 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
                         item_desc.append(f"{seeded_halves}x Körner Brötchen")
                     
                     toppings = item.get("toppings", [])
-                    if toppings:
-                        topping_str = ", ".join(toppings)
+                    if toppings and isinstance(toppings, list):
+                        topping_str = ", ".join(str(t) for t in toppings)
                         item_desc.append(f"mit {topping_str}")
                     
-                    order_details["items"].append(" ".join(item_desc))
+                    if item_desc:  # Only add if we have content
+                        order_details["items"].append(" ".join(item_desc))
                 
                 # Add eggs
                 boiled_eggs = order.get("boiled_eggs", 0)
