@@ -2476,8 +2476,21 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             # Sponsor orders have NEGATIVE total_price, use abs() to get actual cost
             for order in sponsor_orders:
                 sponsor_cost = abs(order.get("total_price", 0))
-                # Add to breakfast revenue (sponsor orders are always breakfast type, may include lunch)
-                daily_breakfast_revenue += sponsor_cost
+                
+                # Check if sponsor order includes lunch (check sponsored_meal_type)
+                sponsored_meal_type = order.get("sponsored_meal_type", "")
+                sponsor_employee_count = order.get("sponsor_employee_count", 0)
+                
+                if "lunch" in sponsored_meal_type.lower():
+                    # This sponsor order includes lunch - need to separate
+                    lunch_cost = sponsor_employee_count * daily_lunch_price
+                    breakfast_cost = sponsor_cost - lunch_cost
+                    
+                    daily_breakfast_revenue += breakfast_cost
+                    daily_lunch_revenue += lunch_cost
+                else:
+                    # Pure breakfast sponsoring (no lunch)
+                    daily_breakfast_revenue += sponsor_cost
             
             total_breakfast_revenue += daily_breakfast_revenue
             total_lunch_revenue += daily_lunch_revenue
