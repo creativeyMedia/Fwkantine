@@ -7884,7 +7884,7 @@ const OtherDepartmentsTab = ({ currentDepartment, setPaymentEmployeeData, setSho
 };
 
 // Statistics Tab Component
-const StatisticsTab = ({ employees, currentDepartment }) => {
+const StatisticsTab = ({ employees, eightHourEmployees, currentDepartment }) => {
   if (!employees) {
     return (
       <div className="text-center py-8">
@@ -7938,6 +7938,40 @@ const StatisticsTab = ({ employees, currentDepartment }) => {
             <div className="text-gray-500 mb-1 text-xs">Gesamt</div>
             <div className={`font-bold text-xs ${(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatBalance(parseFloat(employee.breakfast_balance || 0) + parseFloat(employee.drinks_sweets_balance || 0))}€
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // NEU: 8H Employee Card - zeigt nur Subkonto-Saldos für diese Wachabteilung
+  const EightHourEmployeeStatCard = ({ employee }) => (
+    <div key={employee.id} className="bg-white border rounded-lg p-3 border-l-4 border-l-orange-400 hover:shadow-sm transition-shadow">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-gray-800 text-sm truncate flex-1">
+            {employee.name}
+          </h3>
+          <span className="text-orange-600 text-sm flex-shrink-0">🕐</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">F/M</div>
+            <div className={`font-semibold text-xs ${parseFloat(employee.subaccount_breakfast_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatBalance(employee.subaccount_breakfast_balance)}€
+            </div>
+          </div>
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">G/S</div>
+            <div className={`font-semibold text-xs ${parseFloat(employee.subaccount_drinks_balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatBalance(employee.subaccount_drinks_balance)}€
+            </div>
+          </div>
+          <div className="text-center flex-1 px-1">
+            <div className="text-gray-500 mb-1 text-xs">Gesamt</div>
+            <div className={`font-bold text-xs ${(parseFloat(employee.subaccount_breakfast_balance || 0) + parseFloat(employee.subaccount_drinks_balance || 0)) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatBalance(parseFloat(employee.subaccount_breakfast_balance || 0) + parseFloat(employee.subaccount_drinks_balance || 0))}€
             </div>
           </div>
         </div>
