@@ -3519,6 +3519,11 @@ const DepartmentAdminDashboard = () => {
       // Refresh employee data
       await fetchEmployees();
       
+      // WICHTIG: Auch 8H-Mitarbeiter neu laden nach Zahlung
+      if (paymentData.isSubaccount) {
+        await fetch8HourEmployees();
+      }
+      
       // Call custom callback if provided (for refreshing specific tabs like "Andere WA")
       if (paymentData.onBalanceUpdated && typeof paymentData.onBalanceUpdated === 'function') {
         // Wait a bit for the backend to process, then refresh
