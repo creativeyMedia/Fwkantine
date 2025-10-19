@@ -628,6 +628,18 @@ backend:
           agent: "main"
           comment: "IMPLEMENTED: Added 8H-Dienst employees to the Statistics Tab in Admin Dashboard. Changes include: 1) Added eightHourEmployees prop to StatisticsTab component, 2) Created new EightHourEmployeeStatCard component that displays only subaccount balances for the current department (F/M and G/S), 3) Added separate section for 8H employees with orange border and 🕐 icon, 4) Updated Gesamtsaldi calculation to include 8H employee subaccount balances in the total debt calculation, 5) Modified useEffect to reload 8H employees when switching to statistics tab. 8H employees now appear in Statistics Tab with their department-specific subaccount balances only (not all 4 subaccounts). Now awaiting user testing."
 
+  - task: "Developer Dashboard Improvements - Extended Order History Limit & Modal Close"
+    implemented: true
+    working: false
+    file: "backend/server.py + frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Two improvements for Developer Dashboard: 1) EXTENDED ORDER HISTORY LIMIT: Changed default limit from 30 to 50 orders in /api/department-admin/extended-order-history endpoint (backend/server.py line 3996). Now shows last 50 orders instead of 30. 2) MODAL BACKDROP CLICK: Added onClick handler to DeveloperEmployeeProfile modal backdrop to close modal when clicking outside (frontend/src/App.js line 9671-9677). Added stopPropagation to modal content to prevent closing when clicking inside modal. Now consistent with rest of app. Now awaiting user testing."
+
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
     implemented: true
