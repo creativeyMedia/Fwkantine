@@ -2322,14 +2322,8 @@ async def get_daily_revenue(department_id: str, date: str):
         })
         daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
         
-        for order in orders:
-            # IMPORTANT: Sponsored orders should COUNT toward revenue!
-            # Sponsoring is just cost redistribution, total revenue stays the same
-            
-            # Skip ONLY pure sponsor orders (they're not actual food orders)
-            if order.get("is_sponsor_order") and not order.get("breakfast_items"):
-                continue
-            
+        # Process real orders for revenue calculation
+        for order in real_orders:
             for item in order.get("breakfast_items", []):
                 # Calculate breakfast revenue (rolls + eggs ONLY - coffee excluded from statistics)
                 white_halves = item.get("white_halves", 0)
@@ -2345,6 +2339,16 @@ async def get_daily_revenue(department_id: str, date: str):
                 # Calculate lunch revenue
                 if item.get("has_lunch", False):
                     lunch_revenue += daily_lunch_price
+        
+        # WICHTIG: Also add revenue from sponsor orders!
+        # Sponsor orders represent food costs paid by sponsors for others
+        for order in sponsor_orders:
+            # Sponsor orders have negative total_price, use abs() to get actual cost
+            # This represents the actual food cost that was sponsored
+            sponsor_cost = abs(order.get("total_price", 0))
+            
+            # Add to breakfast revenue (sponsor orders are always breakfast type)
+            breakfast_revenue += sponsor_cost
     
     return {
         "date": date,
