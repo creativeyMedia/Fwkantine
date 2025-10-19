@@ -2392,6 +2392,10 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             daily_breakfast_revenue = 0.0
             daily_lunch_revenue = 0.0
             
+            # Separate real orders and sponsor orders
+            real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+            sponsor_orders = [order for order in orders if order.get("is_sponsor_order", False)]
+            
             # Get department prices
             try:
                 white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
@@ -2416,14 +2420,8 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             })
             daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
             
-            for order in orders:
-                # IMPORTANT: Sponsored orders should COUNT toward revenue!
-                # Sponsoring is just cost redistribution, total revenue stays the same
-                
-                # Skip ONLY pure sponsor orders (they're not actual food orders)
-                if order.get("is_sponsor_order") and not order.get("breakfast_items"):
-                    continue
-                
+            # Process real orders for item-level revenue calculation
+            for order in real_orders:
                 for item in order.get("breakfast_items", []):
                     # Calculate breakfast revenue (rolls + eggs ONLY - coffee excluded from statistics)
                     white_halves = item.get("white_halves", 0)
@@ -2439,6 +2437,13 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
                     # Calculate lunch revenue
                     if item.get("has_lunch", False):
                         daily_lunch_revenue += daily_lunch_price
+            
+            # WICHTIG: Also add revenue from sponsor orders!
+            # Sponsor orders have NEGATIVE total_price, use abs() to get actual cost
+            for order in sponsor_orders:
+                sponsor_cost = abs(order.get("total_price", 0))
+                # Add to breakfast revenue (sponsor orders are always breakfast type)
+                daily_breakfast_revenue += sponsor_cost
             
             total_breakfast_revenue += daily_breakfast_revenue
             total_lunch_revenue += daily_lunch_revenue
