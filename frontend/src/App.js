@@ -36,8 +36,16 @@ const calculateDisplayPrice = (item) => {
       }
       
       // Subtract lunch cost if sponsored
-      if (sponsoredTypes.includes('lunch') && description.includes('Mittagessen')) {
-        remainingCost -= itemPrice;
+      // Lunch items are in breakfast orders and are NOT coffee/rolls/eggs
+      if (sponsoredTypes.includes('lunch') && item.order_type === 'breakfast') {
+        const isNotBreakfastItem = !description.includes('Kaffee') && 
+                                   !description.includes('Brötchen') && 
+                                   !description.includes('Helle') && 
+                                   !description.includes('Körner') && 
+                                   !description.includes('Ei');
+        if (isNotBreakfastItem) {
+          remainingCost -= itemPrice;
+        }
       }
     }
   }
