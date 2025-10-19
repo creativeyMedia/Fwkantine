@@ -2318,8 +2318,8 @@ async def get_daily_revenue(department_id: str, date: str):
         })
         daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
         
-        # EINFACHE LOGIK: Summiere alle Order-Kosten, dann trenne Mittagessen ab
-        # Dies vermeidet Doppelzählung bei gesponserten Orders
+        # WICHTIG: Nur real_orders zählen für Revenue!
+        # Sponsor-orders sind nur Umverteilung der Kosten, nicht zusätzliches Essen
         total_revenue = 0.0
         lunch_count = 0
         
@@ -2330,13 +2330,6 @@ async def get_daily_revenue(department_id: str, date: str):
             for item in order.get("breakfast_items", []):
                 if item.get("has_lunch", False):
                     lunch_count += 1
-        
-        # Zähle alle sponsor_orders  
-        for order in sponsor_orders:
-            total_revenue += abs(order.get("total_price", 0))
-            # Sponsor-Orders für Mittagessen
-            if "lunch" in order.get("sponsored_meal_type", "").lower():
-                lunch_count += order.get("sponsor_employee_count", 0)
         
         # Separiere Mittagessen vom Gesamtumsatz
         lunch_revenue = lunch_count * daily_lunch_price
