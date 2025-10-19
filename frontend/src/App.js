@@ -975,64 +975,38 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               const isSponsored = item.is_sponsored && !item.is_sponsor_order && !isSelfSponsored;
                               let isSponsoredItem = false;
                               
+                              // SPEZIAL-CHECK: Wenn die Message nur "Mittagessen" erwähnt, dann NUR Mittagessen durchstreichen
+                              let onlyLunchSponsored = false;
+                              if (isSponsored && item.sponsored_message) {
+                                const message = item.sponsored_message.toLowerCase();
+                                if (message.includes('mittagessen') && message.includes('ausgegeben') && !message.includes('frühstück')) {
+                                  onlyLunchSponsored = true;
+                                }
+                              }
+                              
                               if (isSponsored && item.sponsored_meal_type) {
                                 // Handle comma-separated meal types (e.g., "breakfast,lunch")
                                 const sponsoredTypes = item.sponsored_meal_type.split(',');
                                 
                                 // For lunch sponsoring: check if this item is the lunch
-                                // Lunch items have format "1x {lunch_name}" where lunch_name could be "Bolo", "Pasta", etc.
-                                // We need to check if the order has lunch and if this is NOT coffee/rolls/eggs
                                 if (sponsoredTypes.includes('lunch')) {
-                                  // Check if this item is lunch by excluding coffee, rolls, and eggs
                                   const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
                                                              !orderItem.description.includes('Brötchen') && 
                                                              !orderItem.description.includes('Helle') && 
                                                              !orderItem.description.includes('Körner') && 
                                                              !orderItem.description.includes('Ei');
                                   
-                                  // If it's in a breakfast order and not a breakfast item, it must be lunch
                                   if (item.order_type === 'breakfast' && isNotBreakfastItem) {
                                     isSponsoredItem = true;
                                   }
                                 }
                                 
-                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee or lunch
-                                if (sponsoredTypes.includes('breakfast') && 
+                                // For breakfast sponsoring: NUR durchstreichen wenn NICHT onlyLunchSponsored
+                                if (sponsoredTypes.includes('breakfast') && !onlyLunchSponsored &&
                                     (orderItem.description.includes('Brötchen') || 
                                      orderItem.description.includes('Helle') || 
                                      orderItem.description.includes('Körner') || 
                                      orderItem.description.includes('Ei')) &&
-                                    !orderItem.description.includes('Kaffee')) {
-                                  isSponsoredItem = true;
-                                }
-                              }
-                              
-                              // Additional check: analyze sponsored_message for clues (fallback)
-                              if (isSponsored && !isSponsoredItem && item.sponsored_message) {
-                                const message = item.sponsored_message.toLowerCase();
-                                
-                                // WICHTIG: Wenn die Message "mittagessen" erwähnt, dann sollte NUR das Mittagessen durchgestrichen sein
-                                // und NICHT das Frühstück (auch wenn sponsored_meal_type='breakfast,lunch' enthält)
-                                if (message.includes('mittagessen') && message.includes('ausgegeben')) {
-                                  // Nur Mittagessen durchstreichen (nicht Frühstück)
-                                  const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
-                                                             !orderItem.description.includes('Brötchen') && 
-                                                             !orderItem.description.includes('Helle') && 
-                                                             !orderItem.description.includes('Körner') && 
-                                                             !orderItem.description.includes('Ei');
-                                  if (item.order_type === 'breakfast' && isNotBreakfastItem) {
-                                    isSponsoredItem = true;
-                                  }
-                                  // NICHT das Frühstück durchstreichen, auch wenn es in sponsored_meal_type steht
-                                  return; // Skip weitere Checks
-                                }
-                                
-                                if (message.includes('frühstück') && message.includes('ausgegeben') && 
-                                    (orderItem.description.includes('Brötchen') || 
-                                     orderItem.description.includes('Helle') || 
-                                     orderItem.description.includes('Körner') || 
-                                     orderItem.description.includes('Gekochte Eier') ||
-                                     orderItem.description.includes('Spiegeleier')) &&
                                     !orderItem.description.includes('Kaffee')) {
                                   isSponsoredItem = true;
                                 }
