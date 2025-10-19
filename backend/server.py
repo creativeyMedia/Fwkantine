@@ -2089,9 +2089,22 @@ async def create_order(order_data: OrderCreate):
         })
         
         if existing_breakfast:
+            # Get department name for better error message
+            existing_dept = await db.departments.find_one({"id": existing_breakfast["department_id"]})
+            existing_dept_name = existing_dept["department_name"] if existing_dept else "einer anderen Wachabteilung"
+            
+            current_dept = await db.departments.find_one({"id": order_data.department_id})
+            current_dept_name = current_dept["department_name"] if current_dept else "dieser Wachabteilung"
+            
+            # Check if trying to order in same or different department
+            if existing_breakfast["department_id"] == order_data.department_id:
+                error_msg = f"Sie haben bereits eine Frühstücksbestellung für heute in {current_dept_name}. Bitte bearbeiten Sie Ihre bestehende Bestellung."
+            else:
+                error_msg = f"Sie haben bereits eine Frühstücksbestellung für heute in {existing_dept_name}. Pro Tag ist nur eine Frühstücksbestellung möglich, auch über verschiedene Wachabteilungen hinweg. Bitte bearbeiten oder löschen Sie Ihre Bestellung in {existing_dept_name}, bevor Sie in {current_dept_name} bestellen."
+            
             raise HTTPException(
                 status_code=400,
-                detail="Sie haben bereits eine Frühstücksbestellung für heute. Bitte bearbeiten Sie Ihre bestehende Bestellung."
+                detail=error_msg
             )
     
     # Calculate total price (rest of the existing logic...)
