@@ -3556,6 +3556,7 @@ const DepartmentAdminDashboard = () => {
           {activeTab === 'statistics' && (
             <StatisticsTab 
               employees={employees}
+              eightHourEmployees={eightHourEmployees}
               currentDepartment={currentDepartment}
             />
           )}
