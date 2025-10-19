@@ -2290,7 +2290,12 @@ async def get_daily_revenue(department_id: str, date: str):
     
     breakfast_revenue = 0.0
     lunch_revenue = 0.0
-    total_orders = len(orders)
+    
+    # Separate real orders and sponsor orders
+    real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
+    sponsor_orders = [order for order in orders if order.get("is_sponsor_order", False)]
+    
+    total_orders = len(real_orders)  # Only count real orders in statistics
     
     if orders:
         # Get department prices
