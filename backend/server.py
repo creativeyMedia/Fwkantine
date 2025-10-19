@@ -3993,7 +3993,7 @@ async def flexible_payment(employee_id: str, payment_data: FlexiblePaymentReques
 
 
 @api_router.get("/department-admin/extended-order-history/{department_id}")
-async def get_extended_order_history(department_id: str, limit: int = 30):
+async def get_extended_order_history(department_id: str, limit: int = 50):
     """Admin: Get chronological order history for all employees in department
     
     Returns all order types (breakfast, drinks, sweets) in a single chronological feed
@@ -4001,7 +4001,7 @@ async def get_extended_order_history(department_id: str, limit: int = 30):
     
     Args:
         department_id: Department ID
-        limit: Maximum number of orders to return (default 30)
+        limit: Maximum number of orders to return (default 50)
     """
     try:
         # Fetch all orders for this department, sorted by timestamp DESC (newest first)
