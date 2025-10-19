@@ -976,20 +976,30 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                           <div className={`space-y-1 ${textStyle}`}>
                             {item.readable_items.map((orderItem, idx) => {
                               // Check if this item should be struck through (sponsored)
-                              // WICHTIG: Wenn der Mitarbeiter der Sponsor seiner eigenen Order ist, dann NICHTS durchstreichen
+                              // WICHTIG: Self-sponsoring Check - wenn jemand sein eigenes Essen sponsert
                               const isSelfSponsored = item.is_sponsored && 
                                                      item.sponsored_by_name && 
+                                                     employee && employee.name &&
                                                      item.sponsored_by_name === employee.name;
                               
                               const isSponsored = item.is_sponsored && !item.is_sponsor_order && !isSelfSponsored;
                               let isSponsoredItem = false;
                               
-                              // SPEZIAL-CHECK: Wenn die Message nur "Mittagessen" erwähnt, dann NUR Mittagessen durchstreichen
+                              // SPEZIAL-CHECK: Welche Mahlzeit wurde gesponsert? (aus Message ermitteln)
                               let onlyLunchSponsored = false;
+                              let onlyBreakfastSponsored = false;
+                              
                               if (isSponsored && item.sponsored_message) {
                                 const message = item.sponsored_message.toLowerCase();
+                                
+                                // Prüfe ob NUR Mittagessen gesponsert wurde
                                 if (message.includes('mittagessen') && message.includes('ausgegeben') && !message.includes('frühstück')) {
                                   onlyLunchSponsored = true;
+                                }
+                                
+                                // Prüfe ob NUR Frühstück gesponsert wurde
+                                if (message.includes('frühstück') && message.includes('ausgegeben') && !message.includes('mittagessen')) {
+                                  onlyBreakfastSponsored = true;
                                 }
                               }
                               
@@ -998,6 +1008,28 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                 const sponsoredTypes = item.sponsored_meal_type.split(',');
                                 
                                 // For lunch sponsoring: check if this item is the lunch
+                                if (sponsoredTypes.includes('lunch') && !onlyBreakfastSponsored) {
+                                  const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
+                                                             !orderItem.description.includes('Brötchen') && 
+                                                             !orderItem.description.includes('Helle') && 
+                                                             !orderItem.description.includes('Körner') && 
+                                                             !orderItem.description.includes('Ei');
+                                  
+                                  if (item.order_type === 'breakfast' && isNotBreakfastItem) {
+                                    isSponsoredItem = true;
+                                  }
+                                }
+                                
+                                // For breakfast sponsoring: NUR durchstreichen wenn NICHT onlyLunchSponsored
+                                if (sponsoredTypes.includes('breakfast') && !onlyLunchSponsored &&
+                                    (orderItem.description.includes('Brötchen') || 
+                                     orderItem.description.includes('Helle') || 
+                                     orderItem.description.includes('Körner') || 
+                                     orderItem.description.includes('Ei')) &&
+                                    !orderItem.description.includes('Kaffee')) {
+                                  isSponsoredItem = true;
+                                }
+                              }
                                 if (sponsoredTypes.includes('lunch')) {
                                   const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
                                                              !orderItem.description.includes('Brötchen') && 
