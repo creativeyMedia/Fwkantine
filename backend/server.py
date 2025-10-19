@@ -2899,9 +2899,15 @@ async def get_breakfast_history(department_id: str, days_back: int = 30):
             # Daily total should represent actual food cost, not cost redistribution between employees
             daily_total = Decimal('0')
             
-            for order in real_orders:  # Only count real orders
-                # Always use the original order total_price for daily revenue calculation
-                # This represents actual food costs, regardless of who pays
+            # WICHTIG: Calculate TOTAL REVENUE from ALL orders (real_orders + sponsor_orders)
+            # Real orders = normal orders, sponsor_orders = someone paying for others
+            # Both represent actual food costs and should be counted in revenue
+            for order in real_orders:  # Count real orders
+                # Use the original order total_price (actual food cost)
+                daily_total += Decimal(str(order.get("total_price", 0)))
+            
+            for order in sponsor_orders:  # Also count sponsor orders!
+                # Sponsor orders have total_price = total cost of sponsored meals
                 daily_total += Decimal(str(order.get("total_price", 0)))
             
             # Convert back to float and round to 2 decimal places
