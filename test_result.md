@@ -669,6 +669,21 @@ backend:
         - working: false
           agent: "main"
           comment: "IMPLEMENTED: Fixed daily revenue calculation that was missing sponsor order costs. PROBLEM: In Daily Summaries, Frühstück total revenue was 3.90€ when it should be 6.15€ (2.45€ own breakfast + 3.70€ sponsored for 2 others). ROOT CAUSE: The revenue calculation in breakfast-history endpoint (line 2900-2908) and today-revenue endpoint (line 2320-2342) only counted real_orders, NOT sponsor_orders. Sponsor orders represent actual food costs paid by sponsors. SOLUTION: 1) Modified breakfast-history endpoint: Added sponsor_orders loop to add abs(total_price) to daily_total (lines 2909-2912). Sponsor orders have NEGATIVE total_price, so used abs() to get actual cost. 2) Modified today-revenue endpoint: Separated real_orders and sponsor_orders (lines 2291-2296), process real orders for item-level calculation (lines 2320-2340), then add sponsor order costs to breakfast_revenue (lines 2342-2348). Both changes ensure sponsor order costs are included in total revenue. Now daily revenue should correctly show 6.15€ (2.45€ + 3.70€). Saldo calculation was already correct, only display was wrong. Now awaiting user testing."
+        - working: false
+          agent: "main"
+          comment: "ADDITIONAL FIX: Fixed separated-revenue endpoint (Gesamt Umsatz oben). PROBLEM: Tagesstatistik showed correct 7.60€, but Gesamt Umsatz Frühstück still showed 3.90€. ROOT CAUSE: The /orders/separated-revenue endpoint also only counted real_orders, not sponsor_orders. SOLUTION: Applied same fix to separated-revenue endpoint (lines 2391-2453): 1) Separated real_orders and sponsor_orders (lines 2394-2396), 2) Process real orders for item-level calculation (lines 2427-2441), 3) Add sponsor order costs to daily_breakfast_revenue (lines 2443-2447). Now both 'Gesamt Umsatz Frühstück' and 'Tagesstatistik Umsatz Frühstück' should show correct values including sponsor costs. Now awaiting user testing."
+
+  - task: "Better Error Message for Duplicate Breakfast Orders"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Improved error message when employee tries to order breakfast twice in same day (even across different departments). PROBLEM: When an employee already has a breakfast order in one department and tries to order in another (or same) department, only a generic error appeared without context. SOLUTION: Enhanced create_order endpoint error handling (lines 2091-2106): 1) Fetch department names for both existing order and attempted order, 2) Check if trying to order in same or different department, 3) Show specific error message: a) Same department: 'Sie haben bereits eine Frühstücksbestellung für heute in [Abteilungsname]. Bitte bearbeiten Sie Ihre bestehende Bestellung.' b) Different department: 'Sie haben bereits eine Frühstücksbestellung für heute in [Andere Abteilung]. Pro Tag ist nur eine Frühstücksbestellung möglich, auch über verschiedene Wachabteilungen hinweg. Bitte bearbeiten oder löschen Sie Ihre Bestellung in [Andere Abteilung], bevor Sie in [Diese Abteilung] bestellen.' Error message now provides clear context about which department has the existing order and what action to take. Now awaiting user testing."
 
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
