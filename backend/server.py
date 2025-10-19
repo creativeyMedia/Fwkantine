@@ -2388,23 +2388,6 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             real_orders = [order for order in orders if not order.get("is_sponsor_order", False)]
             sponsor_orders = [order for order in orders if order.get("is_sponsor_order", False)]
             
-            # Get department prices
-            try:
-                white_menu = await db.menu_breakfast.find_one({"roll_type": "weiss", "department_id": department_id})
-                white_roll_price = white_menu.get("price", 0.50) if white_menu else 0.50
-                
-                seeded_menu = await db.menu_breakfast.find_one({"roll_type": "koerner", "department_id": department_id})
-                seeded_roll_price = seeded_menu.get("price", 0.60) if seeded_menu else 0.60
-                
-                department_prices = await get_department_prices(department_id)
-                eggs_price = department_prices["boiled_eggs_price"]
-                coffee_price = department_prices["coffee_price"]
-            except:
-                white_roll_price = 0.50
-                seeded_roll_price = 0.60
-                eggs_price = 0.50
-                coffee_price = 1.50
-            
             # Get daily lunch price for this date
             daily_lunch_price_doc = await db.daily_lunch_prices.find_one({
                 "department_id": department_id,
@@ -2412,48 +2395,29 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             })
             daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
             
-            # Process orders for revenue calculation - use total_price directly for accuracy
+            # EINFACHE LOGIK: Summiere alle Order-Kosten, dann trenne Mittagessen ab
+            # Dies vermeidet Doppelzählung bei gesponserten Orders
+            total_daily_revenue = 0.0
+            lunch_count = 0
+            
+            # Zähle alle real_orders
             for order in real_orders:
-                order_total = abs(order.get("total_price", 0))
-                
-                # Check if order has lunch to separate revenue
-                has_any_lunch = False
+                total_daily_revenue += abs(order.get("total_price", 0))
+                # Zähle Mittagessen
                 for item in order.get("breakfast_items", []):
                     if item.get("has_lunch", False):
-                        has_any_lunch = True
-                        break
-                
-                if has_any_lunch:
-                    # This order includes lunch - need to separate breakfast and lunch revenue
-                    lunch_count = sum(1 for item in order.get("breakfast_items", []) if item.get("has_lunch", False))
-                    lunch_cost = lunch_count * daily_lunch_price
-                    breakfast_cost = order_total - lunch_cost
-                    
-                    daily_breakfast_revenue += breakfast_cost
-                    daily_lunch_revenue += lunch_cost
-                else:
-                    # Pure breakfast order (no lunch)
-                    daily_breakfast_revenue += order_total
+                        lunch_count += 1
             
-            # WICHTIG: Also add revenue from sponsor orders!
-            # Sponsor orders have NEGATIVE total_price, use abs() to get actual cost
+            # Zähle alle sponsor_orders
             for order in sponsor_orders:
-                sponsor_cost = abs(order.get("total_price", 0))
-                
-                # Check if sponsor order includes lunch (check sponsored_meal_type)
-                sponsored_meal_type = order.get("sponsored_meal_type", "")
-                sponsor_employee_count = order.get("sponsor_employee_count", 0)
-                
-                if "lunch" in sponsored_meal_type.lower():
-                    # This sponsor order includes lunch - need to separate
-                    lunch_cost = sponsor_employee_count * daily_lunch_price
-                    breakfast_cost = sponsor_cost - lunch_cost
-                    
-                    daily_breakfast_revenue += breakfast_cost
-                    daily_lunch_revenue += lunch_cost
-                else:
-                    # Pure breakfast sponsoring (no lunch)
-                    daily_breakfast_revenue += sponsor_cost
+                total_daily_revenue += abs(order.get("total_price", 0))
+                # Sponsor-Orders für Mittagessen
+                if "lunch" in order.get("sponsored_meal_type", "").lower():
+                    lunch_count += order.get("sponsor_employee_count", 0)
+            
+            # Separiere Mittagessen vom Gesamtumsatz
+            daily_lunch_revenue = lunch_count * daily_lunch_price
+            daily_breakfast_revenue = total_daily_revenue - daily_lunch_revenue
             
             total_breakfast_revenue += daily_breakfast_revenue
             total_lunch_revenue += daily_lunch_revenue
