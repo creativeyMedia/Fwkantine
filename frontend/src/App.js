@@ -22,6 +22,15 @@ const calculateDisplayPrice = (item) => {
     return item.total_price; // Self-sponsored: pay full price
   }
   
+  // SPEZIAL-CHECK: Wenn die Message nur "Mittagessen" erwähnt, dann NUR Mittagessen abziehen
+  let onlyLunchSponsored = false;
+  if (item.sponsored_message) {
+    const message = item.sponsored_message.toLowerCase();
+    if (message.includes('mittagessen') && message.includes('ausgegeben') && !message.includes('frühstück')) {
+      onlyLunchSponsored = true;
+    }
+  }
+  
   // For sponsored orders, calculate remaining cost using backend-like logic
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
@@ -34,7 +43,8 @@ const calculateDisplayPrice = (item) => {
       const itemPrice = parseFloat(totalPriceStr.replace(' €', '').replace(',', '.')) || 0;
       
       // Subtract breakfast items if sponsored (rolls and eggs, but NOT coffee)
-      if (sponsoredTypes.includes('breakfast')) {
+      // ABER: NUR wenn NICHT onlyLunchSponsored
+      if (sponsoredTypes.includes('breakfast') && !onlyLunchSponsored) {
         if ((description.includes('Brötchen') || 
              description.includes('Helle') || 
              description.includes('Körner') || 
@@ -46,7 +56,6 @@ const calculateDisplayPrice = (item) => {
       }
       
       // Subtract lunch cost if sponsored
-      // Lunch items are in breakfast orders and are NOT coffee/rolls/eggs
       if (sponsoredTypes.includes('lunch') && item.order_type === 'breakfast') {
         const isNotBreakfastItem = !description.includes('Kaffee') && 
                                    !description.includes('Brötchen') && 
