@@ -685,6 +685,18 @@ backend:
           agent: "main"
           comment: "IMPLEMENTED: Improved error message when employee tries to order breakfast twice in same day (even across different departments). PROBLEM: When an employee already has a breakfast order in one department and tries to order in another (or same) department, only a generic error appeared without context. SOLUTION: Enhanced create_order endpoint error handling (lines 2091-2106): 1) Fetch department names for both existing order and attempted order, 2) Check if trying to order in same or different department, 3) Show specific error message: a) Same department: 'Sie haben bereits eine Frühstücksbestellung für heute in [Abteilungsname]. Bitte bearbeiten Sie Ihre bestehende Bestellung.' b) Different department: 'Sie haben bereits eine Frühstücksbestellung für heute in [Andere Abteilung]. Pro Tag ist nur eine Frühstücksbestellung möglich, auch über verschiedene Wachabteilungen hinweg. Bitte bearbeiten oder löschen Sie Ihre Bestellung in [Andere Abteilung], bevor Sie in [Diese Abteilung] bestellen.' Error message now provides clear context about which department has the existing order and what action to take. Now awaiting user testing."
 
+  - task: "Coffee Revenue Inconsistency Fix - Include Coffee in Revenue Statistics"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed revenue inconsistency where coffee was excluded from breakfast revenue statistics. PROBLEM: Total showed 19.65€ but breakfast_revenue (7.60€) + lunch_revenue (9.00€) = 16.60€. Difference of 3.05€ was coffee cost + small rounding error. Coffee was being excluded from revenue statistics (old comment: 'Coffee excluded from revenue statistics'), but included in order total_price, causing confusion. SOLUTION: Modified THREE revenue endpoints to include coffee in breakfast_revenue: 1) /orders/today-revenue (lines 2340-2354): Added has_coffee check and coffee_price to breakfast_item_cost, 2) /orders/separated-revenue (lines 2440-2458): Added has_coffee check and coffee_price to breakfast_item_cost, 3) Both endpoints now calculate: breakfast_item_cost = (rolls + eggs + coffee). Updated comment to 'Kaffee JETZT auch in Revenue zählen für konsistente Anzeige'. Result: Now breakfast_revenue should include coffee costs, making total_revenue = breakfast_revenue + lunch_revenue consistent with displayed total. Rounding already uses 2 decimal places with Decimal and ROUND_HALF_UP. Now awaiting user testing to verify 19.65€ = breakfast (with coffee) + lunch."
+
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
     implemented: true
