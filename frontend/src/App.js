@@ -956,12 +956,24 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                 // Handle comma-separated meal types (e.g., "breakfast,lunch")
                                 const sponsoredTypes = item.sponsored_meal_type.split(',');
                                 
-                                // For lunch sponsoring: strikethrough lunch items
-                                if (sponsoredTypes.includes('lunch') && orderItem.description.includes('Mittagessen')) {
-                                  isSponsoredItem = true;
+                                // For lunch sponsoring: check if this item is the lunch
+                                // Lunch items have format "1x {lunch_name}" where lunch_name could be "Bolo", "Pasta", etc.
+                                // We need to check if the order has lunch and if this is NOT coffee/rolls/eggs
+                                if (sponsoredTypes.includes('lunch')) {
+                                  // Check if this item is lunch by excluding coffee, rolls, and eggs
+                                  const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
+                                                             !orderItem.description.includes('Brötchen') && 
+                                                             !orderItem.description.includes('Helle') && 
+                                                             !orderItem.description.includes('Körner') && 
+                                                             !orderItem.description.includes('Ei');
+                                  
+                                  // If it's in a breakfast order and not a breakfast item, it must be lunch
+                                  if (item.order_type === 'breakfast' && isNotBreakfastItem) {
+                                    isSponsoredItem = true;
+                                  }
                                 }
                                 
-                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee
+                                // For breakfast sponsoring: strikethrough rolls and eggs, but NOT coffee or lunch
                                 if (sponsoredTypes.includes('breakfast') && 
                                     (orderItem.description.includes('Brötchen') || 
                                      orderItem.description.includes('Helle') || 
@@ -976,9 +988,16 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               if (isSponsored && !isSponsoredItem && item.sponsored_message) {
                                 const message = item.sponsored_message.toLowerCase();
                                 // Check if message mentions specific sponsoring
-                                if (message.includes('mittagessen') && message.includes('ausgegeben') && 
-                                    orderItem.description.includes('Mittagessen')) {
-                                  isSponsoredItem = true;
+                                if (message.includes('mittagessen') && message.includes('ausgegeben')) {
+                                  // For lunch: exclude coffee, rolls, and eggs
+                                  const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
+                                                             !orderItem.description.includes('Brötchen') && 
+                                                             !orderItem.description.includes('Helle') && 
+                                                             !orderItem.description.includes('Körner') && 
+                                                             !orderItem.description.includes('Ei');
+                                  if (item.order_type === 'breakfast' && isNotBreakfastItem) {
+                                    isSponsoredItem = true;
+                                  }
                                 }
                                 if (message.includes('frühstück') && message.includes('ausgegeben') && 
                                     (orderItem.description.includes('Brötchen') || 
