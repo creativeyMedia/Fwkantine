@@ -640,6 +640,18 @@ backend:
           agent: "main"
           comment: "IMPLEMENTED: Two improvements for Developer Dashboard: 1) EXTENDED ORDER HISTORY LIMIT: Changed default limit from 30 to 50 orders in /api/department-admin/extended-order-history endpoint (backend/server.py line 3996). Now shows last 50 orders instead of 30. 2) MODAL BACKDROP CLICK: Added onClick handler to DeveloperEmployeeProfile modal backdrop to close modal when clicking outside (frontend/src/App.js line 9671-9677). Added stopPropagation to modal content to prevent closing when clicking inside modal. Now consistent with rest of app. Now awaiting user testing."
 
+  - task: "Combined Sponsoring Display Bug Fix - Lunch Strikethrough & Price Calculation"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed display bug when both breakfast AND lunch are sponsored. PROBLEM: When both breakfast and lunch were sponsored, the lunch item (e.g., 'Bolo') was not struck through, causing incorrect total display (-6.00€ instead of -1.00€ for coffee only). ROOT CAUSE: The strikethrough logic only checked for 'Mittagessen' in description, but lunch items have dynamic names ('Bolo', 'Pasta', etc.). SOLUTION: 1) Modified IndividualEmployeeProfile strikethrough logic (lines 950-992) to identify lunch items by exclusion: in breakfast orders, any item that is NOT coffee/rolls/eggs must be lunch. 2) Fixed calculateDisplayPrice function (lines 10-46) to use same logic for calculating remaining cost. Both balance calculation and visual display now work correctly for combined sponsoring. Total should show only remaining cost (coffee = 1.00€) when both breakfast and lunch are sponsored. Now awaiting user testing."
+
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
     implemented: true
