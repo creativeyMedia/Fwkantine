@@ -2439,16 +2439,19 @@ async def get_separated_revenue(department_id: str, days_back: int = 30):
             # Process real orders for item-level revenue calculation
             for order in real_orders:
                 for item in order.get("breakfast_items", []):
-                    # Calculate breakfast revenue (rolls + eggs ONLY - coffee excluded from statistics)
+                    # Calculate breakfast revenue (rolls + eggs + coffee)
                     white_halves = item.get("white_halves", 0)
                     seeded_halves = item.get("seeded_halves", 0)
                     boiled_eggs = item.get("boiled_eggs", 0)
+                    has_coffee = item.get("has_coffee", False)
                     
                     breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
-                    daily_breakfast_revenue += breakfast_item_cost
                     
-                    # Coffee is excluded from revenue statistics (but remains in employee balance)
-                    # Coffee is neither sponsored nor counted in statistics
+                    # WICHTIG: Kaffee JETZT auch in Revenue zählen für konsistente Anzeige
+                    if has_coffee:
+                        breakfast_item_cost += coffee_price
+                    
+                    daily_breakfast_revenue += breakfast_item_cost
                     
                     # Calculate lunch revenue
                     if item.get("has_lunch", False):
