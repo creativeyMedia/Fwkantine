@@ -2335,35 +2335,36 @@ async def get_daily_revenue(department_id: str, date: str):
         })
         daily_lunch_price = daily_lunch_price_doc["lunch_price"] if daily_lunch_price_doc else 0.0
         
-        # Process real orders for revenue calculation
+        # Process orders for revenue calculation - use total_price directly for accuracy
         for order in real_orders:
+            order_total = abs(order.get("total_price", 0))
+            
+            # Check if order has lunch to separate revenue
+            has_any_lunch = False
             for item in order.get("breakfast_items", []):
-                # Calculate breakfast revenue (rolls + eggs + coffee)
-                white_halves = item.get("white_halves", 0)
-                seeded_halves = item.get("seeded_halves", 0)
-                boiled_eggs = item.get("boiled_eggs", 0)
-                has_coffee = item.get("has_coffee", False)
-                
-                breakfast_item_cost = (white_halves * white_roll_price) + (seeded_halves * seeded_roll_price) + (boiled_eggs * eggs_price)
-                
-                # WICHTIG: Kaffee JETZT auch in Revenue zählen für konsistente Anzeige
-                if has_coffee:
-                    breakfast_item_cost += coffee_price
-                
-                breakfast_revenue += breakfast_item_cost
-                
-                # Calculate lunch revenue
                 if item.get("has_lunch", False):
-                    lunch_revenue += daily_lunch_price
+                    has_any_lunch = True
+                    break
+            
+            if has_any_lunch:
+                # This order includes lunch - need to separate breakfast and lunch revenue
+                lunch_count = sum(1 for item in order.get("breakfast_items", []) if item.get("has_lunch", False))
+                lunch_cost = lunch_count * daily_lunch_price
+                breakfast_cost = order_total - lunch_cost
+                
+                breakfast_revenue += breakfast_cost
+                lunch_revenue += lunch_cost
+            else:
+                # Pure breakfast order (no lunch)
+                breakfast_revenue += order_total
         
         # WICHTIG: Also add revenue from sponsor orders!
         # Sponsor orders represent food costs paid by sponsors for others
         for order in sponsor_orders:
             # Sponsor orders have negative total_price, use abs() to get actual cost
-            # This represents the actual food cost that was sponsored
             sponsor_cost = abs(order.get("total_price", 0))
             
-            # Add to breakfast revenue (sponsor orders are always breakfast type)
+            # Add to breakfast revenue (sponsor orders are always breakfast type, may include lunch)
             breakfast_revenue += sponsor_cost
     
     return {
