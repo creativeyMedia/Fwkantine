@@ -1010,9 +1010,11 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                               // Additional check: analyze sponsored_message for clues (fallback)
                               if (isSponsored && !isSponsoredItem && item.sponsored_message) {
                                 const message = item.sponsored_message.toLowerCase();
-                                // Check if message mentions specific sponsoring
+                                
+                                // WICHTIG: Wenn die Message "mittagessen" erwähnt, dann sollte NUR das Mittagessen durchgestrichen sein
+                                // und NICHT das Frühstück (auch wenn sponsored_meal_type='breakfast,lunch' enthält)
                                 if (message.includes('mittagessen') && message.includes('ausgegeben')) {
-                                  // For lunch: exclude coffee, rolls, and eggs
+                                  // Nur Mittagessen durchstreichen (nicht Frühstück)
                                   const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
                                                              !orderItem.description.includes('Brötchen') && 
                                                              !orderItem.description.includes('Helle') && 
@@ -1021,7 +1023,10 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                   if (item.order_type === 'breakfast' && isNotBreakfastItem) {
                                     isSponsoredItem = true;
                                   }
+                                  // NICHT das Frühstück durchstreichen, auch wenn es in sponsored_meal_type steht
+                                  return; // Skip weitere Checks
                                 }
+                                
                                 if (message.includes('frühstück') && message.includes('ausgegeben') && 
                                     (orderItem.description.includes('Brötchen') || 
                                      orderItem.description.includes('Helle') || 
