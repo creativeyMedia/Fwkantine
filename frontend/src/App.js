@@ -7996,6 +7996,25 @@ const StatisticsTab = ({ employees, eightHourEmployees, currentDepartment }) => 
         </div>
       )}
 
+      {/* 8H-Dienst Employees */}
+      {eightHourEmployees && eightHourEmployees.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3 mt-6">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-full text-xs">
+              🕐 8 Stunden Dienst
+            </span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-6">
+            {eightHourEmployees.map(employee => (
+              <EightHourEmployeeStatCard key={employee.id} employee={employee} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Guest Employees */}
       {guestEmployees.length > 0 && (
         <div>
@@ -8015,14 +8034,14 @@ const StatisticsTab = ({ employees, eightHourEmployees, currentDepartment }) => 
         </div>
       )}
 
-      {employees.length === 0 && (
+      {employees.length === 0 && (!eightHourEmployees || eightHourEmployees.length === 0) && (
         <div className="text-center py-8">
           <p className="text-gray-500">Keine Mitarbeiter gefunden.</p>
         </div>
       )}
 
       {/* Gesamtsaldi */}
-      {employees.length > 0 && (
+      {(employees.length > 0 || (eightHourEmployees && eightHourEmployees.length > 0)) && (
         <div className="mt-8 pt-6 border-t border-gray-200">
           <h4 className="text-md font-medium text-gray-800 mb-4">📊 Gesamt</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -8032,10 +8051,16 @@ const StatisticsTab = ({ employees, eightHourEmployees, currentDepartment }) => 
                 <div className="text-gray-600 text-sm mb-2">Frühstück & Mittagessen</div>
                 <div className="text-xs text-gray-500 mb-1">Offene Schulden</div>
                 <div className="text-2xl font-bold text-red-600">
-                  {formatBalance(employees.reduce((sum, emp) => {
-                    const balance = parseFloat(emp.breakfast_balance || 0);
-                    return sum + (balance < 0 ? balance : 0);
-                  }, 0))}€
+                  {formatBalance(
+                    employees.reduce((sum, emp) => {
+                      const balance = parseFloat(emp.breakfast_balance || 0);
+                      return sum + (balance < 0 ? balance : 0);
+                    }, 0) +
+                    (eightHourEmployees || []).reduce((sum, emp) => {
+                      const balance = parseFloat(emp.subaccount_breakfast_balance || 0);
+                      return sum + (balance < 0 ? balance : 0);
+                    }, 0)
+                  )}€
                 </div>
               </div>
             </div>
@@ -8046,10 +8071,16 @@ const StatisticsTab = ({ employees, eightHourEmployees, currentDepartment }) => 
                 <div className="text-gray-600 text-sm mb-2">Snacks & Getränke</div>
                 <div className="text-xs text-gray-500 mb-1">Offene Schulden</div>
                 <div className="text-2xl font-bold text-red-600">
-                  {formatBalance(employees.reduce((sum, emp) => {
-                    const balance = parseFloat(emp.drinks_sweets_balance || 0);
-                    return sum + (balance < 0 ? balance : 0);
-                  }, 0))}€
+                  {formatBalance(
+                    employees.reduce((sum, emp) => {
+                      const balance = parseFloat(emp.drinks_sweets_balance || 0);
+                      return sum + (balance < 0 ? balance : 0);
+                    }, 0) +
+                    (eightHourEmployees || []).reduce((sum, emp) => {
+                      const balance = parseFloat(emp.subaccount_drinks_balance || 0);
+                      return sum + (balance < 0 ? balance : 0);
+                    }, 0)
+                  )}€
                 </div>
               </div>
             </div>
