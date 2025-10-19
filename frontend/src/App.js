@@ -3215,9 +3215,9 @@ const DepartmentAdminDashboard = () => {
 
   // Auto-refresh employee data when switching to employees tab and scroll to top
   useEffect(() => {
-    if (activeTab === 'employees' && currentDepartment) {
+    if ((activeTab === 'employees' || activeTab === 'statistics') && currentDepartment) {
       fetchEmployees();
-      fetch8HourEmployees(); // NEU: Reload 8H employees when switching to employees tab
+      fetch8HourEmployees(); // NEU: Reload 8H employees when switching to employees/statistics tab
     }
     // Scroll to top when changing tabs
     window.scrollTo(0, 0);
