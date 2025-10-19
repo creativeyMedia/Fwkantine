@@ -654,6 +654,21 @@ backend:
         - working: false
           agent: "main"
           comment: "ADDITIONAL FIX: Fixed self-sponsoring issue where sponsor's own order items were incorrectly struck through. PROBLEM: When Wachleiter sponsors breakfast for others AND someone else sponsors lunch for all (including Wachleiter), his own breakfast items (Spiegelei) were incorrectly struck through. ROOT CAUSE: Order marked as is_sponsored=true with sponsored_meal_type='breakfast,lunch', but breakfast was self-sponsored (he paid for it), only lunch was sponsored by others. SOLUTION: 1) Added isSelfSponsored check: if sponsored_by_name equals employee.name, nothing gets struck through. 2) Added onlyLunchSponsored check: if sponsored_message mentions only 'Mittagessen', then ONLY lunch items get struck through, NOT breakfast (even if sponsored_meal_type includes 'breakfast'). 3) Applied same logic to calculateDisplayPrice function. Now sponsor's own breakfast is never struck through when they sponsor others. Now awaiting user testing."
+        - working: false
+          agent: "main"
+          comment: "ADDITIONAL FIX #2: Fixed sponsored breakfast items not being struck through for regular recipients. PROBLEM: When someone sponsors breakfast for others (e.g., 1WaTest3 sponsors breakfast), the Spiegelei was NOT struck through for recipients. ROOT CAUSE: The onlyLunchSponsored check was too strict - it prevented breakfast strikethrough when message only mentioned 'Frühstück'. SOLUTION: Added onlyBreakfastSponsored flag to properly handle breakfast-only sponsoring. Modified strikethrough logic: 1) Check sponsored_message for BOTH 'frühstück' and 'mittagessen' separately, 2) If only 'frühstück' mentioned, then onlyBreakfastSponsored=true, 3) Breakfast items get struck through unless onlyLunchSponsored=true, 4) Lunch items get struck through unless onlyBreakfastSponsored=true. Applied to both strikethrough display and calculateDisplayPrice. Now breakfast-only sponsoring works correctly: breakfast items struck through, coffee remains. Now awaiting user testing."
+
+  - task: "Daily Revenue Calculation Bug - Sponsor Orders Not Counted"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed daily revenue calculation that was missing sponsor order costs. PROBLEM: In Daily Summaries, Frühstück total revenue was 3.90€ when it should be 6.15€ (2.45€ own breakfast + 3.70€ sponsored for 2 others). ROOT CAUSE: The revenue calculation in breakfast-history endpoint (line 2900-2908) and today-revenue endpoint (line 2320-2342) only counted real_orders, NOT sponsor_orders. Sponsor orders represent actual food costs paid by sponsors. SOLUTION: 1) Modified breakfast-history endpoint: Added sponsor_orders loop to add abs(total_price) to daily_total (lines 2909-2912). Sponsor orders have NEGATIVE total_price, so used abs() to get actual cost. 2) Modified today-revenue endpoint: Separated real_orders and sponsor_orders (lines 2291-2296), process real orders for item-level calculation (lines 2320-2340), then add sponsor order costs to breakfast_revenue (lines 2342-2348). Both changes ensure sponsor order costs are included in total revenue. Now daily revenue should correctly show 6.15€ (2.45€ + 3.70€). Saldo calculation was already correct, only display was wrong. Now awaiting user testing."
 
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
