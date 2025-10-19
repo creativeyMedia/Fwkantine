@@ -1039,28 +1039,6 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                                   isSponsoredItem = true;
                                 }
                               }
-                                if (sponsoredTypes.includes('lunch')) {
-                                  const isNotBreakfastItem = !orderItem.description.includes('Kaffee') && 
-                                                             !orderItem.description.includes('Brötchen') && 
-                                                             !orderItem.description.includes('Helle') && 
-                                                             !orderItem.description.includes('Körner') && 
-                                                             !orderItem.description.includes('Ei');
-                                  
-                                  if (item.order_type === 'breakfast' && isNotBreakfastItem) {
-                                    isSponsoredItem = true;
-                                  }
-                                }
-                                
-                                // For breakfast sponsoring: NUR durchstreichen wenn NICHT onlyLunchSponsored
-                                if (sponsoredTypes.includes('breakfast') && !onlyLunchSponsored &&
-                                    (orderItem.description.includes('Brötchen') || 
-                                     orderItem.description.includes('Helle') || 
-                                     orderItem.description.includes('Körner') || 
-                                     orderItem.description.includes('Ei')) &&
-                                    !orderItem.description.includes('Kaffee')) {
-                                  isSponsoredItem = true;
-                                }
-                              }
                               
                               return (
                                 <div key={idx} className="text-sm flex justify-between items-start">
