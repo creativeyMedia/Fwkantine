@@ -957,7 +957,12 @@ const IndividualEmployeeProfile = ({ employee, onClose }) => {
                           <div className={`space-y-1 ${textStyle}`}>
                             {item.readable_items.map((orderItem, idx) => {
                               // Check if this item should be struck through (sponsored)
-                              const isSponsored = item.is_sponsored && !item.is_sponsor_order;
+                              // WICHTIG: Wenn der Mitarbeiter der Sponsor seiner eigenen Order ist, dann NICHTS durchstreichen
+                              const isSelfSponsored = item.is_sponsored && 
+                                                     item.sponsored_by_name && 
+                                                     item.sponsored_by_name === employee.name;
+                              
+                              const isSponsored = item.is_sponsored && !item.is_sponsor_order && !isSelfSponsored;
                               let isSponsoredItem = false;
                               
                               if (isSponsored && item.sponsored_meal_type) {
