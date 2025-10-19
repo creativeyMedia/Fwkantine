@@ -696,6 +696,21 @@ backend:
         - working: false
           agent: "main"
           comment: "IMPLEMENTED: Fixed revenue inconsistency where coffee was excluded from breakfast revenue statistics. PROBLEM: Total showed 19.65€ but breakfast_revenue (7.60€) + lunch_revenue (9.00€) = 16.60€. Difference of 3.05€ was coffee cost + small rounding error. Coffee was being excluded from revenue statistics (old comment: 'Coffee excluded from revenue statistics'), but included in order total_price, causing confusion. SOLUTION: Modified THREE revenue endpoints to include coffee in breakfast_revenue: 1) /orders/today-revenue (lines 2340-2354): Added has_coffee check and coffee_price to breakfast_item_cost, 2) /orders/separated-revenue (lines 2440-2458): Added has_coffee check and coffee_price to breakfast_item_cost, 3) Both endpoints now calculate: breakfast_item_cost = (rolls + eggs + coffee). Updated comment to 'Kaffee JETZT auch in Revenue zählen für konsistente Anzeige'. Result: Now breakfast_revenue should include coffee costs, making total_revenue = breakfast_revenue + lunch_revenue consistent with displayed total. Rounding already uses 2 decimal places with Decimal and ROUND_HALF_UP. Now awaiting user testing to verify 19.65€ = breakfast (with coffee) + lunch."
+        - working: false
+          agent: "main"
+          comment: "ADDITIONAL FIX: Removed sponsor-orders from revenue calculation - they were causing DOPPELZÄHLUNG (double counting). PROBLEM: Revenue was too high (14.35€ + 9.00€ = 23.35€ instead of 19.65€). ROOT CAUSE: Real orders (actual food) were counted, PLUS sponsor orders (payment transfers) were counted again. Sponsor orders are just cost redistribution between employees, NOT additional food. SOLUTION: Modified both endpoints (daily-revenue and separated-revenue) to ONLY count real_orders for revenue. Removed all sponsor_orders loops from revenue calculation. Now uses simple logic: total_revenue = sum(real_orders.total_price), then separate lunch_revenue = lunch_count × lunch_price, breakfast_revenue = total_revenue - lunch_revenue. VERIFIED WITH CURL: breakfast_revenue: 10.65€, lunch_revenue: 9.00€, total_revenue: 19.65€ (10.65 + 9.00 = 19.65 ✓). Production deployment: User reported backend was not restarted, after restart should work correctly."
+
+  - task: "8H-Employee Payment Bug Fix - Missing isSubaccount Flag"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Fixed critical bug where payments for 8H-employees did not work (neither positive nor negative bookings changed the balance). PROBLEM: User reported that -10€ booking for 8H-employee did not change the saldo, same for positive bookings. ROOT CAUSE: The payment buttons for 8H-employees in EmployeeManagementTab (lines 4533-4560) set paymentEmployeeData but did NOT include isSubaccount: true flag. Without this flag, the frontend called the wrong endpoint (flexible-payment instead of subaccount-payment), which tried to update main account instead of subaccount. Since 8H-employees have no main account, nothing happened. SOLUTION: Added isSubaccount: true to paymentEmployeeData in both payment button onClick handlers (lines 4538 and 4551). Now when admin clicks payment button for 8H-employee, the FlexiblePaymentModal receives isSubaccount=true and calls correct endpoint /department-admin/subaccount-payment which updates subaccount balances. Two-line fix: added 'isSubaccount: true' comment: '// WICHTIG: Für 8H-Mitarbeiter!' to both buttons. Now awaiting user testing."
 
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
