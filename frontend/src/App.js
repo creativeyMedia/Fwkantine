@@ -4536,7 +4536,8 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
                         setPaymentEmployeeData({
                           employee: employee,
                           paymentType: 'breakfast',
-                          accountLabel: 'Frühstück (Subkonto)'
+                          accountLabel: 'Frühstück (Subkonto)',
+                          isSubaccount: true  // WICHTIG: Für 8H-Mitarbeiter!
                         });
                         setShowPaymentModal(true);
                       }}
@@ -4549,7 +4550,8 @@ const EmployeeManagementTab = ({ employees, eightHourEmployees = [], onCreateEmp
                         setPaymentEmployeeData({
                           employee: employee,
                           paymentType: 'drinks_sweets',
-                          accountLabel: 'Getränke (Subkonto)'
+                          accountLabel: 'Getränke (Subkonto)',
+                          isSubaccount: true  // WICHTIG: Für 8H-Mitarbeiter!
                         });
                         setShowPaymentModal(true);
                       }}
