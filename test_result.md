@@ -616,6 +616,18 @@ backend:
           agent: "main"
           comment: "IMPLEMENTED: Fixed the /api/department-admin/extended-order-history/{department_id} endpoint to properly parse drink_items and sweet_items dictionaries, calculate total_price correctly, and ensure all order details are properly displayed. Changes include: 1) Added type checking for drink_items and sweet_items to ensure they are dictionaries, 2) Added quantity > 0 check to only include items with valid quantities, 3) Enhanced breakfast items parsing with defensive checks for dict types, 4) Ensured total_price is always displayed as absolute value (abs()) for all order types, 5) Added better error handling for menu item lookups. The fix addresses the issues where order_details.items was empty and total_price was showing as 0 or negative values. Now awaiting user testing."
 
+  - task: "8H-Dienst Employees in Statistics Tab"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "IMPLEMENTED: Added 8H-Dienst employees to the Statistics Tab in Admin Dashboard. Changes include: 1) Added eightHourEmployees prop to StatisticsTab component, 2) Created new EightHourEmployeeStatCard component that displays only subaccount balances for the current department (F/M and G/S), 3) Added separate section for 8H employees with orange border and 🕐 icon, 4) Updated Gesamtsaldi calculation to include 8H employee subaccount balances in the total debt calculation, 5) Modified useEffect to reload 8H employees when switching to statistics tab. 8H employees now appear in Statistics Tab with their department-specific subaccount balances only (not all 4 subaccounts). Now awaiting user testing."
+
 frontend:
   - task: "Balance Warning Modal for Employee Deletion Security Feature"
     implemented: true
