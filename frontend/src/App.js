@@ -12,6 +12,16 @@ const calculateDisplayPrice = (item) => {
     return item.total_price; // Original price for non-sponsored or sponsor orders
   }
   
+  // WICHTIG: Wenn der Mitarbeiter der Sponsor seiner eigenen Order ist (self-sponsored), 
+  // dann sollte nichts abgezogen werden - er zahlt sein eigenes Essen
+  const isSelfSponsored = item.sponsored_by_name && 
+                          item.employee_name && 
+                          item.sponsored_by_name === item.employee_name;
+  
+  if (isSelfSponsored) {
+    return item.total_price; // Self-sponsored: pay full price
+  }
+  
   // For sponsored orders, calculate remaining cost using backend-like logic
   let remainingCost = item.total_price;
   const sponsoredTypes = item.sponsored_meal_type ? item.sponsored_meal_type.split(',') : [];
